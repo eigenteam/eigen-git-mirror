@@ -42,37 +42,66 @@ template<int Size> struct ConstFixedSegmentReturnType { typedef const VectorBloc
 
 #endif // not EIGEN_PARSED_BY_DOXYGEN
 
-/// \returns a dynamic-size expression of a block in *this.
+/// \returns an expression of a block in \c *this with either dynamic or fixed sizes.
 ///
-/// \param startRow the first row in the block
-/// \param startCol the first column in the block
-/// \param blockRows the number of rows in the block
-/// \param blockCols the number of columns in the block
+/// \param  startRow  the first row in the block
+/// \param  startCol  the first column in the block
+/// \param  blockRows number of rows in the block, specified at either run-time or compile-time
+/// \param  blockCols number of columns in the block, specified at either run-time or compile-time
+/// \tparam NRowsType the type of the value handling the number of rows in the block, typically Index.
+/// \tparam NColsType the type of the value handling the number of columns in the block, typically Index.
 ///
-/// Example: \include MatrixBase_block_int_int_int_int.cpp
+/// Example using runtime (aka dynamic) sizes: \include MatrixBase_block_int_int_int_int.cpp
 /// Output: \verbinclude MatrixBase_block_int_int_int_int.out
 ///
-/// \note Even though the returned expression has dynamic size, in the case
+/// \newin{3.4}:
+///
+/// The number of rows \a blockRows and columns \a blockCols can also be specified at compile-time by passing Eigen::fix<N>,
+/// or Eigen::fix<N>(n) as arguments. In the later case, \c n plays the role of a runtime fallback value in case \c N equals Eigen::Dynamic.
+/// Here is an example with a fixed number of rows \c NRows and dynamic number of columns \c cols:
+/// \code
+/// mat.block(i,j,fix<NRows>,cols)
+/// \endcode
+///
+/// This function thus fully covers the features offered by the following overloads block<NRows,NCols>(Index, Index),
+/// and block<NRows,NCols>(Index, Index, Index, Index) that are thus obsolete. Indeed, this generic version avoids
+/// redundancy, it preserves the argument order, and prevents the need to rely on the template keyword in templated code.
+///
+/// but with less redundancy and more consistency as it does not modify the argument order
+/// and seamlessly enable hybrid fixed/dynamic sizes.
+///
+/// \note Even in the case that the returned expression has dynamic size, in the case
 /// when it is applied to a fixed-size matrix, it inherits a fixed maximal size,
 /// which means that evaluating it does not cause a dynamic memory allocation.
 ///
 EIGEN_DOC_BLOCK_ADDONS_NOT_INNER_PANEL
 ///
-/// \sa class Block, block(Index,Index)
+/// \sa class Block, fix, fix<N>(int)
 ///
-EIGEN_DEVICE_FUNC
-inline BlockXpr block(Index startRow, Index startCol, Index blockRows, Index blockCols)
+template<typename NRowsType, typename NColsType>
+#ifndef EIGEN_PARSED_BY_DOXYGEN
+inline typename FixedBlockXpr<internal::get_fixed_value<NRowsType>::value,internal::get_fixed_value<NColsType>::value>::Type
+#else
+inline typename FixedBlockXpr<...,...>::Type
+#endif
+block(Index startRow, Index startCol, NRowsType blockRows, NColsType blockCols)
 {
-  return BlockXpr(derived(), startRow, startCol, blockRows, blockCols);
+  return typename FixedBlockXpr<internal::get_fixed_value<NRowsType>::value,internal::get_fixed_value<NColsType>::value>::Type(
+            derived(), startRow, startCol, internal::get_runtime_value(blockRows), internal::get_runtime_value(blockCols));
 }
 
-/// This is the const version of block(Index,Index,Index,Index). */
-EIGEN_DEVICE_FUNC
-inline const ConstBlockXpr block(Index startRow, Index startCol, Index blockRows, Index blockCols) const
+/// This is the const version of block(Index,Index,NRowsType,NColsType)
+template<typename NRowsType, typename NColsType>
+#ifndef EIGEN_PARSED_BY_DOXYGEN
+inline typename ConstFixedBlockXpr<internal::get_fixed_value<NRowsType>::value,internal::get_fixed_value<NColsType>::value>::Type
+#else
+inline typename ConstFixedBlockXpr<...,...>::Type
+#endif
+block(Index startRow, Index startCol, NRowsType blockRows, NColsType blockCols) const
 {
-  return ConstBlockXpr(derived(), startRow, startCol, blockRows, blockCols);
+  return typename ConstFixedBlockXpr<internal::get_fixed_value<NRowsType>::value,internal::get_fixed_value<NColsType>::value>::Type(
+            derived(), startRow, startCol, internal::get_runtime_value(blockRows), internal::get_runtime_value(blockCols));
 }
-
 
 
 
@@ -86,7 +115,7 @@ inline const ConstBlockXpr block(Index startRow, Index startCol, Index blockRows
 ///
 EIGEN_DOC_BLOCK_ADDONS_NOT_INNER_PANEL
 ///
-/// \sa class Block, block(Index,Index,Index,Index)
+/// \sa class Block, block(Index,Index,NRowsType,NColsType)
 ///
 EIGEN_DEVICE_FUNC
 inline BlockXpr topRightCorner(Index cRows, Index cCols)
@@ -172,7 +201,7 @@ inline const typename ConstFixedBlockXpr<CRows,CCols>::Type topRightCorner(Index
 ///
 EIGEN_DOC_BLOCK_ADDONS_NOT_INNER_PANEL
 ///
-/// \sa class Block, block(Index,Index,Index,Index)
+/// \sa class Block, block(Index,Index,NRowsType,NColsType)
 ///
 EIGEN_DEVICE_FUNC
 inline BlockXpr topLeftCorner(Index cRows, Index cCols)
@@ -196,7 +225,7 @@ inline const ConstBlockXpr topLeftCorner(Index cRows, Index cCols) const
 ///
 EIGEN_DOC_BLOCK_ADDONS_NOT_INNER_PANEL
 ///
-/// \sa class Block, block(Index,Index,Index,Index)
+/// \sa class Block, block(Index,Index,NRowsType,NColsType)
 ///
 template<int CRows, int CCols>
 EIGEN_DEVICE_FUNC
@@ -257,7 +286,7 @@ inline const typename ConstFixedBlockXpr<CRows,CCols>::Type topLeftCorner(Index 
 ///
 EIGEN_DOC_BLOCK_ADDONS_NOT_INNER_PANEL
 ///
-/// \sa class Block, block(Index,Index,Index,Index)
+/// \sa class Block, block(Index,Index,NRowsType,NColsType)
 ///
 EIGEN_DEVICE_FUNC
 inline BlockXpr bottomRightCorner(Index cRows, Index cCols)
@@ -281,7 +310,7 @@ inline const ConstBlockXpr bottomRightCorner(Index cRows, Index cCols) const
 ///
 EIGEN_DOC_BLOCK_ADDONS_NOT_INNER_PANEL
 ///
-/// \sa class Block, block(Index,Index,Index,Index)
+/// \sa class Block, block(Index,Index,NRowsType,NColsType)
 ///
 template<int CRows, int CCols>
 EIGEN_DEVICE_FUNC
@@ -342,7 +371,7 @@ inline const typename ConstFixedBlockXpr<CRows,CCols>::Type bottomRightCorner(In
 ///
 EIGEN_DOC_BLOCK_ADDONS_NOT_INNER_PANEL
 ///
-/// \sa class Block, block(Index,Index,Index,Index)
+/// \sa class Block, block(Index,Index,NRowsType,NColsType)
 ///
 EIGEN_DEVICE_FUNC
 inline BlockXpr bottomLeftCorner(Index cRows, Index cCols)
@@ -366,7 +395,7 @@ inline const ConstBlockXpr bottomLeftCorner(Index cRows, Index cCols) const
 ///
 EIGEN_DOC_BLOCK_ADDONS_NOT_INNER_PANEL
 ///
-/// \sa class Block, block(Index,Index,Index,Index)
+/// \sa class Block, block(Index,Index,NRowsType,NColsType)
 ///
 template<int CRows, int CCols>
 EIGEN_DEVICE_FUNC
@@ -426,7 +455,7 @@ inline const typename ConstFixedBlockXpr<CRows,CCols>::Type bottomLeftCorner(Ind
 ///
 EIGEN_DOC_BLOCK_ADDONS_INNER_PANEL_IF(row-major)
 ///
-/// \sa class Block, block(Index,Index,Index,Index)
+/// \sa class Block, block(Index,Index,NRowsType,NColsType)
 ///
 EIGEN_DEVICE_FUNC
 inline RowsBlockXpr topRows(Index n)
@@ -454,7 +483,7 @@ inline ConstRowsBlockXpr topRows(Index n) const
 ///
 EIGEN_DOC_BLOCK_ADDONS_INNER_PANEL_IF(row-major)
 ///
-/// \sa class Block, block(Index,Index,Index,Index)
+/// \sa class Block, block(Index,Index,NRowsType,NColsType)
 ///
 template<int N>
 EIGEN_DEVICE_FUNC
@@ -482,7 +511,7 @@ inline typename ConstNRowsBlockXpr<N>::Type topRows(Index n = N) const
 ///
 EIGEN_DOC_BLOCK_ADDONS_INNER_PANEL_IF(row-major)
 ///
-/// \sa class Block, block(Index,Index,Index,Index)
+/// \sa class Block, block(Index,Index,NRowsType,NColsType)
 ///
 EIGEN_DEVICE_FUNC
 inline RowsBlockXpr bottomRows(Index n)
@@ -510,7 +539,7 @@ inline ConstRowsBlockXpr bottomRows(Index n) const
 ///
 EIGEN_DOC_BLOCK_ADDONS_INNER_PANEL_IF(row-major)
 ///
-/// \sa class Block, block(Index,Index,Index,Index)
+/// \sa class Block, block(Index,Index,NRowsType,NColsType)
 ///
 template<int N>
 EIGEN_DEVICE_FUNC
@@ -539,7 +568,7 @@ inline typename ConstNRowsBlockXpr<N>::Type bottomRows(Index n = N) const
 ///
 EIGEN_DOC_BLOCK_ADDONS_INNER_PANEL_IF(row-major)
 ///
-/// \sa class Block, block(Index,Index,Index,Index)
+/// \sa class Block, block(Index,Index,NRowsType,NColsType)
 ///
 EIGEN_DEVICE_FUNC
 inline RowsBlockXpr middleRows(Index startRow, Index n)
@@ -568,7 +597,7 @@ inline ConstRowsBlockXpr middleRows(Index startRow, Index n) const
 ///
 EIGEN_DOC_BLOCK_ADDONS_INNER_PANEL_IF(row-major)
 ///
-/// \sa class Block, block(Index,Index,Index,Index)
+/// \sa class Block, block(Index,Index,NRowsType,NColsType)
 ///
 template<int N>
 EIGEN_DEVICE_FUNC
@@ -596,7 +625,7 @@ inline typename ConstNRowsBlockXpr<N>::Type middleRows(Index startRow, Index n =
 ///
 EIGEN_DOC_BLOCK_ADDONS_INNER_PANEL_IF(column-major)
 ///
-/// \sa class Block, block(Index,Index,Index,Index)
+/// \sa class Block, block(Index,Index,NRowsType,NColsType)
 ///
 EIGEN_DEVICE_FUNC
 inline ColsBlockXpr leftCols(Index n)
@@ -624,7 +653,7 @@ inline ConstColsBlockXpr leftCols(Index n) const
 ///
 EIGEN_DOC_BLOCK_ADDONS_INNER_PANEL_IF(column-major)
 ///
-/// \sa class Block, block(Index,Index,Index,Index)
+/// \sa class Block, block(Index,Index,NRowsType,NColsType)
 ///
 template<int N>
 EIGEN_DEVICE_FUNC
@@ -652,7 +681,7 @@ inline typename ConstNColsBlockXpr<N>::Type leftCols(Index n = N) const
 ///
 EIGEN_DOC_BLOCK_ADDONS_INNER_PANEL_IF(column-major)
 ///
-/// \sa class Block, block(Index,Index,Index,Index)
+/// \sa class Block, block(Index,Index,NRowsType,NColsType)
 ///
 EIGEN_DEVICE_FUNC
 inline ColsBlockXpr rightCols(Index n)
@@ -680,7 +709,7 @@ inline ConstColsBlockXpr rightCols(Index n) const
 ///
 EIGEN_DOC_BLOCK_ADDONS_INNER_PANEL_IF(column-major)
 ///
-/// \sa class Block, block(Index,Index,Index,Index)
+/// \sa class Block, block(Index,Index,NRowsType,NColsType)
 ///
 template<int N>
 EIGEN_DEVICE_FUNC
@@ -709,7 +738,7 @@ inline typename ConstNColsBlockXpr<N>::Type rightCols(Index n = N) const
 ///
 EIGEN_DOC_BLOCK_ADDONS_INNER_PANEL_IF(column-major)
 ///
-/// \sa class Block, block(Index,Index,Index,Index)
+/// \sa class Block, block(Index,Index,NRowsType,NColsType)
 ///
 EIGEN_DEVICE_FUNC
 inline ColsBlockXpr middleCols(Index startCol, Index numCols)
@@ -738,7 +767,7 @@ inline ConstColsBlockXpr middleCols(Index startCol, Index numCols) const
 ///
 EIGEN_DOC_BLOCK_ADDONS_INNER_PANEL_IF(column-major)
 ///
-/// \sa class Block, block(Index,Index,Index,Index)
+/// \sa class Block, block(Index,Index,NRowsType,NColsType)
 ///
 template<int N>
 EIGEN_DEVICE_FUNC
@@ -768,12 +797,18 @@ inline typename ConstNColsBlockXpr<N>::Type middleCols(Index startCol, Index n =
 /// Example: \include MatrixBase_block_int_int.cpp
 /// Output: \verbinclude MatrixBase_block_int_int.out
 ///
+/// \note The usage of of this overload is discouraged from %Eigen 3.4, better used the generic
+/// block(Index,Index,NRowsType,NColsType), here is the one-to-one equivalence:
+/// \code
+/// mat.template block<NRows,NCols>(i,j)  <-->  mat.block(i,j,fix<NRows>,fix<NCols>)
+/// \endcode
+///
 /// \note since block is a templated member, the keyword template has to be used
 /// if the matrix type is also a template parameter: \code m.template block<3,3>(1,1); \endcode
 ///
 EIGEN_DOC_BLOCK_ADDONS_NOT_INNER_PANEL
 ///
-/// \sa block(Index,Index,NRowsType,NColsType), class Block, block(Index,Index,Index,Index)
+/// \sa block(Index,Index,NRowsType,NColsType), class Block
 ///
 template<int NRows, int NCols>
 EIGEN_DEVICE_FUNC
@@ -807,9 +842,19 @@ inline const typename ConstFixedBlockXpr<NRows,NCols>::Type block(Index startRow
 /// Example: \include MatrixBase_template_int_int_block_int_int_int_int.cpp
 /// Output: \verbinclude MatrixBase_template_int_int_block_int_int_int_int.cpp
 ///
+/// \note The usage of of this overload is discouraged from %Eigen 3.4, better used the generic
+/// block(Index,Index,NRowsType,NColsType), here is the one-to-one complete equivalence:
+/// \code
+/// mat.template block<NRows,NCols>(i,j,rows,cols)     <-->  mat.block(i,j,fix<NRows>(rows),fix<NCols>(cols))
+/// \endcode
+/// If we known that, e.g., NRows==Dynamic and NCols!=Dynamic, then the equivalence becomes:
+/// \code
+/// mat.template block<Dynamic,NCols>(i,j,rows,NCols)  <-->  mat.block(i,j,rows,fix<NCols>)
+/// \endcode
+///
 EIGEN_DOC_BLOCK_ADDONS_NOT_INNER_PANEL
 ///
-/// \sa block(Index,Index,NRowsType,NColsType), block(Index,Index,Index,Index), class Block
+/// \sa block(Index,Index,NRowsType,NColsType), block(Index,Index,NRowsType,NColsType), class Block
 ///
 template<int NRows, int NCols>
 inline typename FixedBlockXpr<NRows,NCols>::Type block(Index startRow, Index startCol,
@@ -824,62 +869,6 @@ inline const typename ConstFixedBlockXpr<NRows,NCols>::Type block(Index startRow
                                                               Index blockRows, Index blockCols) const
 {
   return typename ConstFixedBlockXpr<NRows,NCols>::Type(derived(), startRow, startCol, blockRows, blockCols);
-}
-
-/// \returns an expression of a block in \c *this.
-///
-/// \tparam NRowsType the type of the object handling the number of rows in the block, can be any integral type (e.g., int, Index) or any returned by Eigen::fix<N> or Eigen::fix<N>(n).
-/// \tparam NColsType analogue of NRowsType but for the number of columns.
-/// \param  startRow  the first row in the block
-/// \param  startCol  the first column in the block
-/// \param  blockRows number of rows in the block as specified at either run-time or compile-time
-/// \param  blockCols number of columns in the block as specified at either run-time or compile-time
-///
-/// \newin{3.4}
-///
-/// This function covers the same versatility as block<NRows,NCols>(Index, Index), and block<NRows,NCols>(Index, Index, Index, Index)
-/// but with less redundancy and more consistency as it does not modify the argument order
-/// and seamlessly enable hybrid fixed/dynamic sizes.
-/// The one-to-one full equivalences are as follows:
-///
-/// \code
-/// mat.template block<NRows,NCols>(i,j)              <--> mat.block(i,j,fix<NRows>,fix<NCols>)
-/// mat.template block<NRows,NCols>(i,j,rows,cols)    <--> mat.block(i,j,fix<NRows>(rows),fix<NCols>(cols))
-/// \endcode
-///
-/// but of course, with this version one of the compile-time parameter can be completely
-/// omitted if it turns out to be a pure runtime one:
-/// \code
-/// mat.template block<NRows,Dynamic>(i,j,rows,cols)  <--> mat.block(i,j,fix<NRows>,cols)
-/// \endcode
-///
-EIGEN_DOC_BLOCK_ADDONS_NOT_INNER_PANEL
-///
-/// \sa class Block, block(Index,Index,Index,Index), fix
-///
-template<typename NRowsType, typename NColsType>
-#ifndef EIGEN_PARSED_BY_DOXYGEN
-inline typename FixedBlockXpr<internal::get_fixed_value<NRowsType>::value,internal::get_fixed_value<NColsType>::value>::Type
-#else
-inline typename FixedBlockXpr<...,...>::Type
-#endif
-block(Index startRow, Index startCol, NRowsType blockRows, NColsType blockCols)
-{
-  return typename FixedBlockXpr<internal::get_fixed_value<NRowsType>::value,internal::get_fixed_value<NColsType>::value>::Type(
-            derived(), startRow, startCol, internal::get_runtime_value(blockRows), internal::get_runtime_value(blockCols));
-}
-
-/// This is the const version of block(Index,Index,NRowsType,NColsType)
-template<typename NRowsType, typename NColsType>
-#ifndef EIGEN_PARSED_BY_DOXYGEN
-inline typename ConstFixedBlockXpr<internal::get_fixed_value<NRowsType>::value,internal::get_fixed_value<NColsType>::value>::Type
-#else
-inline typename ConstFixedBlockXpr<...,...>::Type
-#endif
-block(Index startRow, Index startCol, NRowsType blockRows, NColsType blockCols) const
-{
-  return typename ConstFixedBlockXpr<internal::get_fixed_value<NRowsType>::value,internal::get_fixed_value<NColsType>::value>::Type(
-            derived(), startRow, startCol, internal::get_runtime_value(blockRows), internal::get_runtime_value(blockCols));
 }
 
 /// \returns an expression of the \a i-th column of *this. Note that the numbering starts at 0.
