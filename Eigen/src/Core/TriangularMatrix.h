@@ -543,7 +543,7 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularViewImpl<_Mat
 
     template<typename ProductType>
     EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE TriangularViewType& _assignProduct(const ProductType& prod, const Scalar& alpha);
+    EIGEN_STRONG_INLINE TriangularViewType& _assignProduct(const ProductType& prod, const Scalar& alpha, bool beta);
 };
 
 /***************************************************************************
@@ -950,8 +950,7 @@ struct Assignment<DstXprType, Product<Lhs,Rhs,DefaultProduct>, internal::assign_
     if((dst.rows()!=dstRows) || (dst.cols()!=dstCols))
       dst.resize(dstRows, dstCols);
 
-    dst.setZero();
-    dst._assignProduct(src, 1);
+    dst._assignProduct(src, 1, 0);
   }
 };
 
@@ -962,7 +961,7 @@ struct Assignment<DstXprType, Product<Lhs,Rhs,DefaultProduct>, internal::add_ass
   typedef Product<Lhs,Rhs,DefaultProduct> SrcXprType;
   static void run(DstXprType &dst, const SrcXprType &src, const internal::add_assign_op<Scalar,typename SrcXprType::Scalar> &)
   {
-    dst._assignProduct(src, 1);
+    dst._assignProduct(src, 1, 1);
   }
 };
 
@@ -973,7 +972,7 @@ struct Assignment<DstXprType, Product<Lhs,Rhs,DefaultProduct>, internal::sub_ass
   typedef Product<Lhs,Rhs,DefaultProduct> SrcXprType;
   static void run(DstXprType &dst, const SrcXprType &src, const internal::sub_assign_op<Scalar,typename SrcXprType::Scalar> &)
   {
-    dst._assignProduct(src, -1);
+    dst._assignProduct(src, -1, 1);
   }
 };
 
