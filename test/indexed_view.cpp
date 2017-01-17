@@ -61,6 +61,8 @@ is_same_seq_type(const T1& a, const T2& b)
   return a.size() == b.size() && a.first()==b.first() && Index(a.incrObject())==Index(b.incrObject());
 }
 
+#define VERIFY_EQ_INT(A,B) VERIFY_IS_APPROX(int(A),int(B))
+
 void check_indexed_view()
 {
   using Eigen::placeholders::all;
@@ -150,33 +152,33 @@ void check_indexed_view()
   B.setRandom();
   VERIFY( (A(seqN(2,5), 5)).ColsAtCompileTime == 1);
   VERIFY( (A(seqN(2,5), 5)).RowsAtCompileTime == Dynamic);
-  VERIFY_IS_EQUAL( (A(seqN(2,5), 5)).InnerStrideAtCompileTime , A.InnerStrideAtCompileTime);
-  VERIFY_IS_EQUAL( (A(seqN(2,5), 5)).OuterStrideAtCompileTime , A.col(5).OuterStrideAtCompileTime);
+  VERIFY_EQ_INT( (A(seqN(2,5), 5)).InnerStrideAtCompileTime , A.InnerStrideAtCompileTime);
+  VERIFY_EQ_INT( (A(seqN(2,5), 5)).OuterStrideAtCompileTime , A.col(5).OuterStrideAtCompileTime);
 
-  VERIFY_IS_EQUAL( (A(5,seqN(2,5))).InnerStrideAtCompileTime , A.row(5).InnerStrideAtCompileTime);
-  VERIFY_IS_EQUAL( (A(5,seqN(2,5))).OuterStrideAtCompileTime , A.row(5).OuterStrideAtCompileTime);
-  VERIFY_IS_EQUAL( (B(1,seqN(1,2))).InnerStrideAtCompileTime , B.row(1).InnerStrideAtCompileTime);
-  VERIFY_IS_EQUAL( (B(1,seqN(1,2))).OuterStrideAtCompileTime , B.row(1).OuterStrideAtCompileTime);
+  VERIFY_EQ_INT( (A(5,seqN(2,5))).InnerStrideAtCompileTime , A.row(5).InnerStrideAtCompileTime);
+  VERIFY_EQ_INT( (A(5,seqN(2,5))).OuterStrideAtCompileTime , A.row(5).OuterStrideAtCompileTime);
+  VERIFY_EQ_INT( (B(1,seqN(1,2))).InnerStrideAtCompileTime , B.row(1).InnerStrideAtCompileTime);
+  VERIFY_EQ_INT( (B(1,seqN(1,2))).OuterStrideAtCompileTime , B.row(1).OuterStrideAtCompileTime);
 
-  VERIFY_IS_EQUAL( (A(seqN(2,5), seq(1,3))).InnerStrideAtCompileTime , A.InnerStrideAtCompileTime);
-  VERIFY_IS_EQUAL( (A(seqN(2,5), seq(1,3))).OuterStrideAtCompileTime , A.OuterStrideAtCompileTime);
-  VERIFY_IS_EQUAL( (B(seqN(1,2), seq(1,3))).InnerStrideAtCompileTime , B.InnerStrideAtCompileTime);
-  VERIFY_IS_EQUAL( (B(seqN(1,2), seq(1,3))).OuterStrideAtCompileTime , B.OuterStrideAtCompileTime);
-  VERIFY_IS_EQUAL( (A(seqN(2,5,2), seq(1,3,2))).InnerStrideAtCompileTime , Dynamic);
-  VERIFY_IS_EQUAL( (A(seqN(2,5,2), seq(1,3,2))).OuterStrideAtCompileTime , Dynamic);
-  VERIFY_IS_EQUAL( (A(seqN(2,5,fix<2>), seq(1,3,fix<3>))).InnerStrideAtCompileTime , 2);
-  VERIFY_IS_EQUAL( (A(seqN(2,5,fix<2>), seq(1,3,fix<3>))).OuterStrideAtCompileTime , Dynamic);
-  VERIFY_IS_EQUAL( (B(seqN(1,2,fix<2>), seq(1,3,fix<3>))).InnerStrideAtCompileTime , 2);
-  VERIFY_IS_EQUAL( (B(seqN(1,2,fix<2>), seq(1,3,fix<3>))).OuterStrideAtCompileTime , 3*4);
+  VERIFY_EQ_INT( (A(seqN(2,5), seq(1,3))).InnerStrideAtCompileTime , A.InnerStrideAtCompileTime);
+  VERIFY_EQ_INT( (A(seqN(2,5), seq(1,3))).OuterStrideAtCompileTime , A.OuterStrideAtCompileTime);
+  VERIFY_EQ_INT( (B(seqN(1,2), seq(1,3))).InnerStrideAtCompileTime , B.InnerStrideAtCompileTime);
+  VERIFY_EQ_INT( (B(seqN(1,2), seq(1,3))).OuterStrideAtCompileTime , B.OuterStrideAtCompileTime);
+  VERIFY_EQ_INT( (A(seqN(2,5,2), seq(1,3,2))).InnerStrideAtCompileTime , Dynamic);
+  VERIFY_EQ_INT( (A(seqN(2,5,2), seq(1,3,2))).OuterStrideAtCompileTime , Dynamic);
+  VERIFY_EQ_INT( (A(seqN(2,5,fix<2>), seq(1,3,fix<3>))).InnerStrideAtCompileTime , 2);
+  VERIFY_EQ_INT( (A(seqN(2,5,fix<2>), seq(1,3,fix<3>))).OuterStrideAtCompileTime , Dynamic);
+  VERIFY_EQ_INT( (B(seqN(1,2,fix<2>), seq(1,3,fix<3>))).InnerStrideAtCompileTime , 2);
+  VERIFY_EQ_INT( (B(seqN(1,2,fix<2>), seq(1,3,fix<3>))).OuterStrideAtCompileTime , 3*4);
 
-  VERIFY_IS_EQUAL( (A(seqN(2,fix<5>), seqN(1,fix<3>))).RowsAtCompileTime, 5);
-  VERIFY_IS_EQUAL( (A(seqN(2,fix<5>), seqN(1,fix<3>))).ColsAtCompileTime, 3);
-  VERIFY_IS_EQUAL( (A(seqN(2,fix<5>(5)), seqN(1,fix<3>(3)))).RowsAtCompileTime, 5);
-  VERIFY_IS_EQUAL( (A(seqN(2,fix<5>(5)), seqN(1,fix<3>(3)))).ColsAtCompileTime, 3);
-  VERIFY_IS_EQUAL( (A(seqN(2,fix<Dynamic>(5)), seqN(1,fix<Dynamic>(3)))).RowsAtCompileTime, Dynamic);
-  VERIFY_IS_EQUAL( (A(seqN(2,fix<Dynamic>(5)), seqN(1,fix<Dynamic>(3)))).ColsAtCompileTime, Dynamic);
-  VERIFY_IS_EQUAL( (A(seqN(2,fix<Dynamic>(5)), seqN(1,fix<Dynamic>(3)))).rows(), 5);
-  VERIFY_IS_EQUAL( (A(seqN(2,fix<Dynamic>(5)), seqN(1,fix<Dynamic>(3)))).cols(), 3);
+  VERIFY_EQ_INT( (A(seqN(2,fix<5>), seqN(1,fix<3>))).RowsAtCompileTime, 5);
+  VERIFY_EQ_INT( (A(seqN(2,fix<5>), seqN(1,fix<3>))).ColsAtCompileTime, 3);
+  VERIFY_EQ_INT( (A(seqN(2,fix<5>(5)), seqN(1,fix<3>(3)))).RowsAtCompileTime, 5);
+  VERIFY_EQ_INT( (A(seqN(2,fix<5>(5)), seqN(1,fix<3>(3)))).ColsAtCompileTime, 3);
+  VERIFY_EQ_INT( (A(seqN(2,fix<Dynamic>(5)), seqN(1,fix<Dynamic>(3)))).RowsAtCompileTime, Dynamic);
+  VERIFY_EQ_INT( (A(seqN(2,fix<Dynamic>(5)), seqN(1,fix<Dynamic>(3)))).ColsAtCompileTime, Dynamic);
+  VERIFY_EQ_INT( (A(seqN(2,fix<Dynamic>(5)), seqN(1,fix<Dynamic>(3)))).rows(), 5);
+  VERIFY_EQ_INT( (A(seqN(2,fix<Dynamic>(5)), seqN(1,fix<Dynamic>(3)))).cols(), 3);
 
   VERIFY( is_same_seq_type( seqN(2,5,fix<-1>), seqN(2,5,fix<-1>(-1)) ) );
   VERIFY( is_same_seq_type( seqN(2,5), seqN(2,5,fix<1>(1)) ) );
@@ -195,9 +197,9 @@ void check_indexed_view()
   VERIFY( (B(all,1)).RowsAtCompileTime == 4);
 
   VERIFY( (A(all, eii)).ColsAtCompileTime == eii.SizeAtCompileTime);
-  VERIFY_IS_EQUAL( (A(eii, eii)).Flags&DirectAccessBit, (unsigned int)(0));
-  VERIFY_IS_EQUAL( (A(eii, eii)).InnerStrideAtCompileTime, 0);
-  VERIFY_IS_EQUAL( (A(eii, eii)).OuterStrideAtCompileTime, 0);
+  VERIFY_EQ_INT( (A(eii, eii)).Flags&DirectAccessBit, (unsigned int)(0));
+  VERIFY_EQ_INT( (A(eii, eii)).InnerStrideAtCompileTime, 0);
+  VERIFY_EQ_INT( (A(eii, eii)).OuterStrideAtCompileTime, 0);
 
   VERIFY_IS_APPROX( A(seq(n-1,2,-2), seqN(n-1-6,4)), A(seq(last,2,-2), seqN(last-6,4)) );
   VERIFY_IS_APPROX( A(seq(n-1-6,n-1-2), seqN(n-1-6,4)), A(seq(last-6,last-2), seqN(6+last-6-6,4)) );
