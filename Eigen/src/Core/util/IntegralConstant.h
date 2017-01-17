@@ -86,7 +86,7 @@ inline internal::variable_or_fixed<N> fix(T val) { return internal::variable_or_
 
 #else // EIGEN_PARSED_BY_DOXYGEN
 
-/** \var fix
+/** \var fix<N>()
   * \ingroup Core_Module
   *
   * This \em identifier permits to construct an object embedding a compile-time integer \c N.
@@ -116,12 +116,12 @@ inline internal::variable_or_fixed<N> fix(T val) { return internal::variable_or_
   *
   * If for some reason you want a true object in c++98 then you can write: \code fix<N>() \endcode which is also valid in c++14.
   *
-  * \sa fix(int), seq, seqN
+  * \sa fix<N>(int), seq, seqN
   */
 template<int N>
-static const auto fix;
+static const auto fix();
 
-/** \fn fix(int)
+/** \fn fix<N>(int)
   * \ingroup Core_Module
   *
   * This function returns an object embedding both a compile-time integer \c N, and a fallback runtime value \a val.
