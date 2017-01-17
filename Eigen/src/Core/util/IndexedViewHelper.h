@@ -159,8 +159,8 @@ struct IndexedViewCompatibleType<all_t,XprSize> {
 };
 
 template<typename XprSizeType>
-inline AllRange<get_compile_time<XprSizeType>::value> makeIndexedViewCompatible(all_t , XprSizeType size, SpecializedType) {
-  return AllRange<get_compile_time<XprSizeType>::value>(size);
+inline AllRange<get_fixed_value<XprSizeType>::value> makeIndexedViewCompatible(all_t , XprSizeType size, SpecializedType) {
+  return AllRange<get_fixed_value<XprSizeType>::value>(size);
 }
 
 template<int Size> struct get_compile_time_incr<AllRange<Size> > {

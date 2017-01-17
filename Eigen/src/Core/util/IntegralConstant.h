@@ -46,30 +46,51 @@ protected:
   int m_value;
 };
 
-template<typename T, int Default=Dynamic> struct get_compile_time {
+template<typename T, int Default=Dynamic> struct get_fixed_value {
   static const int value = Default;
 };
 
-template<int N,int Default> struct get_compile_time<fix_t<N>,Default> {
+template<int N,int Default> struct get_fixed_value<fix_t<N>,Default> {
   static const int value = N;
 };
 
-template<int N,int Default> struct get_compile_time<fix_t<N> (*)(),Default> {
+#if !EIGEN_HAS_CXX14
+template<int N,int Default> struct get_fixed_value<fix_t<N> (*)(),Default> {
   static const int value = N;
 };
+#endif
 
-template<int N,int Default> struct get_compile_time<variable_or_fixed<N>,Default> {
+template<int N,int Default> struct get_fixed_value<variable_or_fixed<N>,Default> {
   static const int value = N ;
 };
 
 template<typename T, int N, int Default>
-struct get_compile_time<variable_if_dynamic<T,N>,Default> {
+struct get_fixed_value<variable_if_dynamic<T,N>,Default> {
   static const int value = N;
 };
 
+template<typename T> Index get_runtime_value(const T &x) { return x; }
+#if !EIGEN_HAS_CXX14
+template<int N> Index get_runtime_value(fix_t<N> (*)()) { return N; }
+#endif
 
-template<typename T> struct is_compile_time       { enum { value = false }; };
-template<int N> struct is_compile_time<fix_t<N> > { enum { value = true }; };
+// Cleanup integer/fix_t/variable_or_fixed/etc types:
+
+// By default, no cleanup:
+template<typename T, int DynamicKey=Dynamic, typename EnableIf=void> struct cleanup_index_type { typedef T type; };
+
+// Convert any integral type (e.g., short, int, unsigned int, etc.) to Eigen::Index
+template<typename T, int DynamicKey> struct cleanup_index_type<T,DynamicKey,typename internal::enable_if<internal::is_integral<T>::value>::type> { typedef Index type; };
+
+#if !EIGEN_HAS_CXX14
+// In c++98/c++11, fix<N> is a pointer to function that we better cleanup to a true fix_t<N>:
+template<int N, int DynamicKey> struct cleanup_index_type<fix_t<N> (*)(), DynamicKey> { typedef fix_t<N> type; };
+#endif
+
+// If variable_or_fixed does not match DynamicKey, then we turn it to a pure compile-time value:
+template<int N, int DynamicKey> struct cleanup_index_type<variable_or_fixed<N>, DynamicKey> { typedef fix_t<N> type; };
+// If variable_or_fixed matches DynamicKey, then we turn it to a pure runtime-value (aka Index):
+template<int DynamicKey> struct cleanup_index_type<variable_or_fixed<DynamicKey>, DynamicKey> { typedef Index type; };
 
 } // end namespace internal
 
