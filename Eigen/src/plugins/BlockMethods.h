@@ -773,7 +773,7 @@ inline typename ConstNColsBlockXpr<N>::Type middleCols(Index startCol, Index n =
 ///
 EIGEN_DOC_BLOCK_ADDONS_NOT_INNER_PANEL
 ///
-/// \sa class Block, block(Index,Index,Index,Index)
+/// \sa block(Index,Index,NRowsType,NColsType), class Block, block(Index,Index,Index,Index)
 ///
 template<int NRows, int NCols>
 EIGEN_DEVICE_FUNC
@@ -809,7 +809,7 @@ inline const typename ConstFixedBlockXpr<NRows,NCols>::Type block(Index startRow
 ///
 EIGEN_DOC_BLOCK_ADDONS_NOT_INNER_PANEL
 ///
-/// \sa class Block, block(Index,Index,Index,Index)
+/// \sa block(Index,Index,NRowsType,NColsType), block(Index,Index,Index,Index), class Block
 ///
 template<int NRows, int NCols>
 inline typename FixedBlockXpr<NRows,NCols>::Type block(Index startRow, Index startCol,
@@ -824,6 +824,62 @@ inline const typename ConstFixedBlockXpr<NRows,NCols>::Type block(Index startRow
                                                               Index blockRows, Index blockCols) const
 {
   return typename ConstFixedBlockXpr<NRows,NCols>::Type(derived(), startRow, startCol, blockRows, blockCols);
+}
+
+/// \returns an expression of a block in \c *this.
+///
+/// \tparam NRowsType the type of the object handling the number of rows in the block, can be any integral type (e.g., int, Index) or any returned by Eigen::fix<N> or Eigen::fix<N>(n).
+/// \tparam NColsType analogue of NRowsType but for the number of columns.
+/// \param  startRow  the first row in the block
+/// \param  startCol  the first column in the block
+/// \param  blockRows number of rows in the block as specified at either run-time or compile-time
+/// \param  blockCols number of columns in the block as specified at either run-time or compile-time
+///
+/// \newin{3.4}
+///
+/// This function covers the same versatility as block<NRows,NCols>(Index, Index), and block<NRows,NCols>(Index, Index, Index, Index)
+/// but with less redundancy and more consistency as it does not modify the argument order
+/// and seamlessly enable hybrid fixed/dynamic sizes.
+/// The one-to-one full equivalences are as follows:
+///
+/// \code
+/// mat.template block<NRows,NCols>(i,j)              <--> mat.block(i,j,fix<NRows>,fix<NCols>)
+/// mat.template block<NRows,NCols>(i,j,rows,cols)    <--> mat.block(i,j,fix<NRows>(rows),fix<NCols>(cols))
+/// \endcode
+///
+/// but of course, with this version one of the compile-time parameter can be completely
+/// omitted if it turns out to be a pure runtime one:
+/// \code
+/// mat.template block<NRows,Dynamic>(i,j,rows,cols)  <--> mat.block(i,j,fix<NRows>,cols)
+/// \endcode
+///
+EIGEN_DOC_BLOCK_ADDONS_NOT_INNER_PANEL
+///
+/// \sa class Block, block(Index,Index,Index,Index), fix
+///
+template<typename NRowsType, typename NColsType>
+#ifndef EIGEN_PARSED_BY_DOXYGEN
+inline typename FixedBlockXpr<internal::get_fixed_value<NRowsType>::value,internal::get_fixed_value<NColsType>::value>::Type
+#else
+inline typename FixedBlockXpr<...,...>::Type
+#endif
+block(Index startRow, Index startCol, NRowsType blockRows, NColsType blockCols)
+{
+  return typename FixedBlockXpr<internal::get_fixed_value<NRowsType>::value,internal::get_fixed_value<NColsType>::value>::Type(
+            derived(), startRow, startCol, internal::get_runtime_value(blockRows), internal::get_runtime_value(blockCols));
+}
+
+/// This is the const version of block(Index,Index,NRowsType,NColsType)
+template<typename NRowsType, typename NColsType>
+#ifndef EIGEN_PARSED_BY_DOXYGEN
+inline typename ConstFixedBlockXpr<internal::get_fixed_value<NRowsType>::value,internal::get_fixed_value<NColsType>::value>::Type
+#else
+inline typename ConstFixedBlockXpr<...,...>::Type
+#endif
+block(Index startRow, Index startCol, NRowsType blockRows, NColsType blockCols) const
+{
+  return typename ConstFixedBlockXpr<internal::get_fixed_value<NRowsType>::value,internal::get_fixed_value<NColsType>::value>::Type(
+            derived(), startRow, startCol, internal::get_runtime_value(blockRows), internal::get_runtime_value(blockCols));
 }
 
 /// \returns an expression of the \a i-th column of *this. Note that the numbering starts at 0.

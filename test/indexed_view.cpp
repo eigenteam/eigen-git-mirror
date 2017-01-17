@@ -49,7 +49,7 @@ bool match(const T& xpr, std::string ref, std::string str_xpr = "") {
 
 template<typename T1,typename T2>
 typename internal::enable_if<internal::is_same<T1,T2>::value,bool>::type
-is_same_type(const T1& a, const T2& b)
+is_same_eq(const T1& a, const T2& b)
 {
   return (a == b).all();
 }
@@ -219,25 +219,25 @@ void check_indexed_view()
 
   // Check fall-back to Block
   {
-    VERIFY( is_same_type(A.col(0), A(all,0)) );
-    VERIFY( is_same_type(A.row(0), A(0,all)) );
-    VERIFY( is_same_type(A.block(0,0,2,2), A(seqN(0,2),seq(0,1))) );
-    VERIFY( is_same_type(A.middleRows(2,4), A(seqN(2,4),all)) );
-    VERIFY( is_same_type(A.middleCols(2,4), A(all,seqN(2,4))) );
+    VERIFY( is_same_eq(A.col(0), A(all,0)) );
+    VERIFY( is_same_eq(A.row(0), A(0,all)) );
+    VERIFY( is_same_eq(A.block(0,0,2,2), A(seqN(0,2),seq(0,1))) );
+    VERIFY( is_same_eq(A.middleRows(2,4), A(seqN(2,4),all)) );
+    VERIFY( is_same_eq(A.middleCols(2,4), A(all,seqN(2,4))) );
 
-    VERIFY( is_same_type(A.col(A.cols()-1), A(all,last)) );
+    VERIFY( is_same_eq(A.col(A.cols()-1), A(all,last)) );
 
     const ArrayXXi& cA(A);
-    VERIFY( is_same_type(cA.col(0), cA(all,0)) );
-    VERIFY( is_same_type(cA.row(0), cA(0,all)) );
-    VERIFY( is_same_type(cA.block(0,0,2,2), cA(seqN(0,2),seq(0,1))) );
-    VERIFY( is_same_type(cA.middleRows(2,4), cA(seqN(2,4),all)) );
-    VERIFY( is_same_type(cA.middleCols(2,4), cA(all,seqN(2,4))) );
+    VERIFY( is_same_eq(cA.col(0), cA(all,0)) );
+    VERIFY( is_same_eq(cA.row(0), cA(0,all)) );
+    VERIFY( is_same_eq(cA.block(0,0,2,2), cA(seqN(0,2),seq(0,1))) );
+    VERIFY( is_same_eq(cA.middleRows(2,4), cA(seqN(2,4),all)) );
+    VERIFY( is_same_eq(cA.middleCols(2,4), cA(all,seqN(2,4))) );
 
-    VERIFY( is_same_type(a.head(4), a(seq(0,3))) );
-    VERIFY( is_same_type(a.tail(4), a(seqN(last-3,4))) );
-    VERIFY( is_same_type(a.tail(4), a(seq(end-4,last))) );
-    VERIFY( is_same_type(a.segment<4>(3), a(seqN(3,fix<4>))) );
+    VERIFY( is_same_eq(a.head(4), a(seq(0,3))) );
+    VERIFY( is_same_eq(a.tail(4), a(seqN(last-3,4))) );
+    VERIFY( is_same_eq(a.tail(4), a(seq(end-4,last))) );
+    VERIFY( is_same_eq(a.segment<4>(3), a(seqN(3,fix<4>))) );
   }
 
   ArrayXXi A1=A, A2 = ArrayXXi::Random(4,4);
@@ -275,6 +275,18 @@ void check_indexed_view()
   VERIFY_IS_APPROX( A(legacy::seq(legacy::last,2,-2), legacy::seq(legacy::last-6,7)), A(seq(last,2,-2), seq(last-6,7)) );
   VERIFY_IS_APPROX( A(seqN(legacy::last,2,-2), seqN(legacy::last-6,3)), A(seqN(last,2,-2), seqN(last-6,3)) );
 
+  // check extended block API
+  {
+    VERIFY( is_same_eq( A.block<3,4>(1,1), A.block(1,1,fix<3>,fix<4>)) );
+    VERIFY( is_same_eq( A.block<3,4>(1,1,3,4), A.block(1,1,fix<3>(),fix<4>(4))) );
+    VERIFY( is_same_eq( A.block<3,Dynamic>(1,1,3,4), A.block(1,1,fix<3>,4)) );
+    VERIFY( is_same_eq( A.block<Dynamic,4>(1,1,3,4), A.block(1,1,fix<Dynamic>(3),fix<4>)) );
+    VERIFY( is_same_eq( A.block(1,1,3,4), A.block(1,1,fix<Dynamic>(3),fix<Dynamic>(4))) );
+
+    const ArrayXXi& cA(A);
+    VERIFY( is_same_eq( cA.block<Dynamic,4>(1,1,3,4), cA.block(1,1,fix<Dynamic>(3),fix<4>)) );
+  }
+
 }
 
 void test_indexed_view()
@@ -282,5 +294,6 @@ void test_indexed_view()
 //   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_1( check_indexed_view() );
     CALL_SUBTEST_2( check_indexed_view() );
+    CALL_SUBTEST_3( check_indexed_view() );
 //   }
 }
