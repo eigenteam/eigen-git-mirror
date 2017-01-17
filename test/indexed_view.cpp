@@ -277,6 +277,16 @@ void check_indexed_view()
   VERIFY_IS_APPROX( A(legacy::seq(legacy::last,2,-2), legacy::seq(legacy::last-6,7)), A(seq(last,2,-2), seq(last-6,7)) );
   VERIFY_IS_APPROX( A(seqN(legacy::last,2,-2), seqN(legacy::last-6,3)), A(seqN(last,2,-2), seqN(last-6,3)) );
 
+  // check mat(i,j) with weird types for i and j
+  {
+    VERIFY_IS_APPROX( A(B.RowsAtCompileTime-1, 1), A(3,1) );
+    VERIFY_IS_APPROX( A(B.RowsAtCompileTime, 1), A(3,1) );
+    VERIFY_IS_APPROX( A(B.RowsAtCompileTime-1, B.ColsAtCompileTime-1), A(3,3) );
+    VERIFY_IS_APPROX( A(B.RowsAtCompileTime, B.ColsAtCompileTime), A(3,3) );
+    enum { I = 3, J = 4 };
+    VERIFY_IS_APPROX( A(I,J), A(3,4) );
+  }
+
   // check extended block API
   {
     VERIFY( is_same_eq( A.block<3,4>(1,1), A.block(1,1,fix<3>,fix<4>)) );

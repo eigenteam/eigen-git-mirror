@@ -55,7 +55,9 @@ ivcSize(const Indices& indices) const {
 
 template<typename RowIndices, typename ColIndices>
 struct valid_indexed_view_overload {
-  enum { value = !(internal::is_integral<RowIndices>::value && internal::is_integral<ColIndices>::value) };
+  // Here we use is_convertible to Index instead of is_integral in order to treat enums as Index.
+  // In c++11 we could use is_integral<T> && is_enum<T> if is_convertible appears to be too permissive.
+  enum { value = !(internal::is_convertible<RowIndices,Index>::value && internal::is_convertible<ColIndices,Index>::value) };
 };
 
 public:
@@ -81,7 +83,7 @@ operator()(const RowIndices& rowIndices, const ColIndices& colIndices) EIGEN_IND
             (derived(), ivcRow(rowIndices), ivcCol(colIndices));
 }
 
-// The folowing overload returns a Block<> object
+// The following overload returns a Block<> object
 
 template<typename RowIndices, typename ColIndices>
 typename internal::enable_if<valid_indexed_view_overload<RowIndices,ColIndices>::value
