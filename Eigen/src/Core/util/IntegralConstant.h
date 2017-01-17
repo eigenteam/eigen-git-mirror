@@ -47,20 +47,24 @@ protected:
 };
 
 template<typename T, int Default=Dynamic> struct get_compile_time {
-  enum { value = Default };
+  static const int value = Default;
 };
 
 template<int N,int Default> struct get_compile_time<fix_t<N>,Default> {
-  enum { value = N };
+  static const int value = N;
+};
+
+template<int N,int Default> struct get_compile_time<fix_t<N> (*)(),Default> {
+  static const int value = N;
 };
 
 template<int N,int Default> struct get_compile_time<variable_or_fixed<N>,Default> {
-  enum { value = N };
+  static const int value = N ;
 };
 
 template<typename T, int N, int Default>
 struct get_compile_time<variable_if_dynamic<T,N>,Default> {
-  enum { value = N };
+  static const int value = N;
 };
 
 
