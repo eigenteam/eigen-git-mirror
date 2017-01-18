@@ -280,9 +280,9 @@ void check_indexed_view()
   // check mat(i,j) with weird types for i and j
   {
     VERIFY_IS_APPROX( A(B.RowsAtCompileTime-1, 1), A(3,1) );
-    VERIFY_IS_APPROX( A(B.RowsAtCompileTime, 1), A(3,1) );
+    VERIFY_IS_APPROX( A(B.RowsAtCompileTime, 1), A(4,1) );
     VERIFY_IS_APPROX( A(B.RowsAtCompileTime-1, B.ColsAtCompileTime-1), A(3,3) );
-    VERIFY_IS_APPROX( A(B.RowsAtCompileTime, B.ColsAtCompileTime), A(3,3) );
+    VERIFY_IS_APPROX( A(B.RowsAtCompileTime, B.ColsAtCompileTime), A(4,4) );
     enum { I = 3, J = 4 };
     VERIFY_IS_APPROX( A(I,J), A(3,4) );
   }
@@ -295,8 +295,38 @@ void check_indexed_view()
     VERIFY( is_same_eq( A.block<Dynamic,4>(1,1,3,4), A.block(1,1,fix<Dynamic>(3),fix<4>)) );
     VERIFY( is_same_eq( A.block(1,1,3,4), A.block(1,1,fix<Dynamic>(3),fix<Dynamic>(4))) );
 
+    VERIFY( is_same_eq( A.topLeftCorner<3,4>(), A.topLeftCorner(fix<3>,fix<4>)) );
+    VERIFY( is_same_eq( A.bottomLeftCorner<3,4>(), A.bottomLeftCorner(fix<3>,fix<4>)) );
+    VERIFY( is_same_eq( A.bottomRightCorner<3,4>(), A.bottomRightCorner(fix<3>,fix<4>)) );
+    VERIFY( is_same_eq( A.topRightCorner<3,4>(), A.topRightCorner(fix<3>,fix<4>)) );
+
+    VERIFY( is_same_eq( A.leftCols<3>(), A.leftCols(fix<3>)) );
+    VERIFY( is_same_eq( A.rightCols<3>(), A.rightCols(fix<3>)) );
+    VERIFY( is_same_eq( A.middleCols<3>(1), A.middleCols(1,fix<3>)) );
+
+    VERIFY( is_same_eq( A.topRows<3>(), A.topRows(fix<3>)) );
+    VERIFY( is_same_eq( A.bottomRows<3>(), A.bottomRows(fix<3>)) );
+    VERIFY( is_same_eq( A.middleRows<3>(1), A.middleRows(1,fix<3>)) );
+
+    VERIFY( is_same_eq( a.segment<3>(1), a.segment(1,fix<3>)) );
+    VERIFY( is_same_eq( a.head<3>(), a.head(fix<3>)) );
+    VERIFY( is_same_eq( a.tail<3>(), a.tail(fix<3>)) );
+
     const ArrayXXi& cA(A);
     VERIFY( is_same_eq( cA.block<Dynamic,4>(1,1,3,4), cA.block(1,1,fix<Dynamic>(3),fix<4>)) );
+
+    VERIFY( is_same_eq( cA.topLeftCorner<3,4>(), cA.topLeftCorner(fix<3>,fix<4>)) );
+    VERIFY( is_same_eq( cA.bottomLeftCorner<3,4>(), cA.bottomLeftCorner(fix<3>,fix<4>)) );
+    VERIFY( is_same_eq( cA.bottomRightCorner<3,4>(), cA.bottomRightCorner(fix<3>,fix<4>)) );
+    VERIFY( is_same_eq( cA.topRightCorner<3,4>(), cA.topRightCorner(fix<3>,fix<4>)) );
+
+    VERIFY( is_same_eq( cA.leftCols<3>(), cA.leftCols(fix<3>)) );
+    VERIFY( is_same_eq( cA.rightCols<3>(), cA.rightCols(fix<3>)) );
+    VERIFY( is_same_eq( cA.middleCols<3>(1), cA.middleCols(1,fix<3>)) );
+
+    VERIFY( is_same_eq( cA.topRows<3>(), cA.topRows(fix<3>)) );
+    VERIFY( is_same_eq( cA.bottomRows<3>(), cA.bottomRows(fix<3>)) );
+    VERIFY( is_same_eq( cA.middleRows<3>(1), cA.middleRows(1,fix<3>)) );
   }
 
 }
