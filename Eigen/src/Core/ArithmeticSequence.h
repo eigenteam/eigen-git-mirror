@@ -12,9 +12,68 @@
 
 namespace Eigen {
 
+namespace internal {
+
+#if !EIGEN_HAS_CXX11
+template<typename T> struct aseq_negate {};
+
+template<> struct aseq_negate<Index> {
+  typedef Index type;
+};
+
+template<int N> struct aseq_negate<fix_t<N> > {
+  typedef fix_t<-N> type;
+};
+
+// Compilation error in the following case:
+template<> struct aseq_negate<fix_t<DynamicIndex> > {};
+
+template<typename FirstType,typename SizeType,
+         bool FirstIsSymbolic=Symbolic::is_symbolic<FirstType>::value,
+         bool SizeIsSymbolic =Symbolic::is_symbolic<SizeType>::value>
+struct aseq_reverse_first_type {
+  typedef Index type;
+};
+
+template<typename FirstType,typename SizeType>
+struct aseq_reverse_first_type<FirstType,SizeType,true,true> {
+  typedef Symbolic::AddExpr<FirstType,
+                            Symbolic::ProductExpr<Symbolic::AddExpr<SizeType,Symbolic::ValueExpr>,
+                                                  Symbolic::ValueExpr>
+                           > type;
+};
+
+template<typename FirstType,typename SizeType>
+struct aseq_reverse_first_type<FirstType,SizeType,true,false> {
+  typedef Symbolic::AddExpr<FirstType,Symbolic::ValueExpr> type;
+};
+
+template<typename FirstType,typename SizeType>
+struct aseq_reverse_first_type<FirstType,SizeType,false,true> {
+  typedef Symbolic::AddExpr<Symbolic::ProductExpr<Symbolic::AddExpr<SizeType,Symbolic::ValueExpr>,Symbolic::ValueExpr>,
+                            Symbolic::ValueExpr> type;
+};
+#endif
+
+// Helper to cleanup the type of the increment:
+template<typename T> struct cleanup_seq_incr {
+  typedef typename cleanup_index_type<T,DynamicIndex>::type type;
+};
+
+}
+
 //--------------------------------------------------------------------------------
 // seq(first,last,incr) and seqN(first,size,incr)
 //--------------------------------------------------------------------------------
+
+template<typename FirstType=Index,typename SizeType=Index,typename IncrType=internal::fix_t<1> >
+class ArithmeticSequence;
+
+template<typename FirstType,typename SizeType,typename IncrType>
+ArithmeticSequence<typename internal::cleanup_index_type<FirstType>::type,
+                   typename internal::cleanup_index_type<SizeType>::type,
+                   typename internal::cleanup_seq_incr<IncrType>::type >
+seqN(FirstType first, SizeType size, IncrType incr);
 
 /** \class ArithmeticSequence
   * \ingroup Core_Module
@@ -35,10 +94,9 @@ namespace Eigen {
   *
   * \sa Eigen::seq, Eigen::seqN, DenseBase::operator()(const RowIndices&, const ColIndices&), class IndexedView
   */
-template<typename FirstType=Index,typename SizeType=Index,typename IncrType=internal::fix_t<1> >
+template<typename FirstType,typename SizeType,typename IncrType>
 class ArithmeticSequence
 {
-
 public:
   ArithmeticSequence(FirstType first, SizeType size) : m_first(first), m_size(size) {}
   ArithmeticSequence(FirstType first, SizeType size, IncrType incr) : m_first(first), m_size(size), m_incr(incr) {}
@@ -65,16 +123,24 @@ protected:
   FirstType m_first;
   SizeType  m_size;
   IncrType  m_incr;
+
+public:
+
+#if EIGEN_HAS_CXX11
+  auto reverse() const -> decltype(Eigen::seqN(m_first+(m_size-1)*Index(m_incr),m_size,-m_incr)) {
+    return seqN(m_first+(m_size-1)*Index(m_incr),m_size,-m_incr);
+  }
+#else
+protected:
+  typedef typename internal::aseq_negate<IncrType>::type ReverseIncrType;
+  typedef typename internal::aseq_reverse_first_type<FirstType,SizeType>::type ReverseFirstType;
+public:
+  ArithmeticSequence<ReverseFirstType,SizeType,ReverseIncrType>
+  reverse() const {
+    return seqN(m_first+(m_size-1)*Index(m_incr),m_size,-m_incr);
+  }
+#endif
 };
-
-namespace internal {
-
-// Helper to cleanup the type of the increment:
-template<typename T> struct cleanup_seq_incr {
-  typedef typename cleanup_index_type<T,DynamicIndex>::type type;
-};
-
-}
 
 /** \returns an ArithmeticSequence starting at \a first, of length \a size, and increment \a incr
   *

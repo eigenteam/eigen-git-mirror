@@ -27,6 +27,8 @@ template<int N> struct fix_t {
     eigen_internal_assert(int(other)==N);
   }
 
+  fix_t<-N> operator-() const { return fix_t<-N>(); }
+
 #if EIGEN_HAS_CXX14
   // Needed in C++14 to allow fix<N>():
   fix_t operator() () const { return *this; }

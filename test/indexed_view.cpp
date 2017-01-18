@@ -58,7 +58,13 @@ template<typename T1,typename T2>
 typename internal::enable_if<internal::is_same<T1,T2>::value,bool>::type
 is_same_seq_type(const T1& a, const T2& b)
 {
-  return a.size() == b.size() && a.first()==b.first() && Index(a.incrObject())==Index(b.incrObject());
+  bool ok = a.first()==b.first() && a.size() == b.size() && Index(a.incrObject())==Index(b.incrObject());;
+  if(!ok)
+  {
+    std::cerr << "seqN(" << a.first() << ", " << a.size() << ", " << Index(a.incrObject()) << ") != ";
+    std::cerr << "seqN(" << b.first() << ", " << b.size() << ", " << Index(b.incrObject()) << ")\n";
+  }
+  return ok;
 }
 
 #define VERIFY_EQ_INT(A,B) VERIFY_IS_APPROX(int(A),int(B))
@@ -187,7 +193,6 @@ void check_indexed_view()
   VERIFY( is_same_seq_type( seqN(2,fix<Dynamic>(5),3), seqN(2,5,fix<DynamicIndex>(3)) ) );
   VERIFY( is_same_seq_type( seqN(2,fix<5>(5),fix<-2>), seqN(2,fix<5>,fix<-2>()) ) );
 
-
   VERIFY( (A(seqN(2,fix<5>), 5)).RowsAtCompileTime == 5);
   VERIFY( (A(4, all)).ColsAtCompileTime == Dynamic);
   VERIFY( (A(4, all)).RowsAtCompileTime == 1);
@@ -200,6 +205,8 @@ void check_indexed_view()
   VERIFY_EQ_INT( (A(eii, eii)).Flags&DirectAccessBit, (unsigned int)(0));
   VERIFY_EQ_INT( (A(eii, eii)).InnerStrideAtCompileTime, 0);
   VERIFY_EQ_INT( (A(eii, eii)).OuterStrideAtCompileTime, 0);
+
+  VERIFY_IS_APPROX( A(seq(n-1,2,-2), seqN(n-1-6,3,-1)), A(seq(last,2,fix<-2>), seqN(last-6,3,fix<-1>)) );
 
   VERIFY_IS_APPROX( A(seq(n-1,2,-2), seqN(n-1-6,4)), A(seq(last,2,-2), seqN(last-6,4)) );
   VERIFY_IS_APPROX( A(seq(n-1-6,n-1-2), seqN(n-1-6,4)), A(seq(last-6,last-2), seqN(6+last-6-6,4)) );
@@ -217,7 +224,6 @@ void check_indexed_view()
   VERIFY_IS_APPROX( A(A.rows()-2, A.cols()/2), A(last-1, end/2) );
   VERIFY_IS_APPROX( a(a.size()-2), a(last-1) );
   VERIFY_IS_APPROX( a(a.size()/2), a((last+1)/2) );
-
 
   // Check fall-back to Block
   {
@@ -250,6 +256,16 @@ void check_indexed_view()
   A2.setOnes();
   A1(seq(6,3,-1),range25) = A2;
   VERIFY_IS_APPROX( A1.block(3,2,4,4), A2 );
+
+  // check reverse
+  {
+    VERIFY( is_same_seq_type( seq(3,7).reverse(), seqN(7,5,fix<-1>)  ) );
+    VERIFY( is_same_seq_type( seq(7,3,fix<-2>).reverse(), seqN(3,3,fix<2>)  ) );
+    VERIFY_IS_APPROX( a(seqN(2,last/2).reverse()), a(seqN(2+(last/2-1)*1,last/2,fix<-1>)) );
+    VERIFY_IS_APPROX( a(seqN(last/2,fix<4>).reverse()),a(seqN(last/2,fix<4>)).reverse() );
+    VERIFY_IS_APPROX( A(seq(last-5,last-1,2).reverse(), seqN(last-3,3,fix<-2>).reverse()),
+                      A(seq(last-5,last-1,2), seqN(last-3,3,fix<-2>)).reverse() );
+  }
 
 #if EIGEN_HAS_CXX11
   VERIFY( (A(all, std::array<int,4>{{1,3,2,4}})).ColsAtCompileTime == 4);
