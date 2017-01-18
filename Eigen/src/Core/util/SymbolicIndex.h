@@ -87,6 +87,8 @@ public:
   { return AddExpr<Derived,ValueExpr >(derived(),  b); }
   AddExpr<Derived,ValueExpr> operator-(Index a) const
   { return AddExpr<Derived,ValueExpr >(derived(), -a); }
+  ProductExpr<Derived,ValueExpr> operator*(Index a) const
+  { return ProductExpr<Derived,ValueExpr>(derived(),a); }
   QuotientExpr<Derived,ValueExpr> operator/(Index a) const
   { return QuotientExpr<Derived,ValueExpr>(derived(),a); }
 
@@ -94,8 +96,10 @@ public:
   { return AddExpr<Derived,ValueExpr>(b.derived(), a); }
   friend AddExpr<NegateExpr<Derived>,ValueExpr> operator-(Index a, const BaseExpr& b)
   { return AddExpr<NegateExpr<Derived>,ValueExpr>(-b.derived(), a); }
-  friend AddExpr<ValueExpr,Derived> operator/(Index a, const BaseExpr& b)
-  { return AddExpr<ValueExpr,Derived>(a,b.derived()); }
+  friend ProductExpr<ValueExpr,Derived> operator*(Index a, const BaseExpr& b)
+  { return ProductExpr<ValueExpr,Derived>(a,b.derived()); }
+  friend QuotientExpr<ValueExpr,Derived> operator/(Index a, const BaseExpr& b)
+  { return QuotientExpr<ValueExpr,Derived>(a,b.derived()); }
 
   template<typename OtherDerived>
   AddExpr<Derived,OtherDerived> operator+(const BaseExpr<OtherDerived> &b) const
@@ -104,6 +108,10 @@ public:
   template<typename OtherDerived>
   AddExpr<Derived,NegateExpr<OtherDerived> > operator-(const BaseExpr<OtherDerived> &b) const
   { return AddExpr<Derived,NegateExpr<OtherDerived> >(derived(), -b.derived()); }
+
+  template<typename OtherDerived>
+  ProductExpr<Derived,OtherDerived> operator*(const BaseExpr<OtherDerived> &b) const
+  { return ProductExpr<Derived,OtherDerived>(derived(), b.derived()); }
 
   template<typename OtherDerived>
   QuotientExpr<Derived,OtherDerived> operator/(const BaseExpr<OtherDerived> &b) const
