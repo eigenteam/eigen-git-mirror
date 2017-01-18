@@ -289,10 +289,6 @@ void check_indexed_view()
 
 #endif
 
-  // check legacy code
-  VERIFY_IS_APPROX( A(legacy::seq(legacy::last,2,-2), legacy::seq(legacy::last-6,7)), A(seq(last,2,-2), seq(last-6,7)) );
-  VERIFY_IS_APPROX( A(seqN(legacy::last,2,-2), seqN(legacy::last-6,3)), A(seqN(last,2,-2), seqN(last-6,3)) );
-
   // check mat(i,j) with weird types for i and j
   {
     VERIFY_IS_APPROX( A(B.RowsAtCompileTime-1, 1), A(3,1) );
