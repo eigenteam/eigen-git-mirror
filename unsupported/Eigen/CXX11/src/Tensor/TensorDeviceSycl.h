@@ -234,7 +234,7 @@ struct SyclDevice {
       auto dst_acc =it2->second.template get_access<cl::sycl::access::mode::discard_write, cl::sycl::access::target::global_buffer>(cgh);
       cgh.parallel_for(cl::sycl::nd_range<1>(cl::sycl::range<1>(GRange), cl::sycl::range<1>(tileSize)), MemCopyFunctor<T>(src_acc, dst_acc, rng, i, offset));
     });
-    asynchronousExec();
+    synchronize();
   }
 
   /// The memcpyHostToDevice is used to copy the device only pointer to a host pointer. Using the device
@@ -265,7 +265,7 @@ struct SyclDevice {
       auto dst_acc =dest_buf.template get_access<cl::sycl::access::mode::discard_write, cl::sycl::access::target::global_buffer>(cgh);
       cgh.parallel_for( cl::sycl::nd_range<1>(cl::sycl::range<1>(GRange), cl::sycl::range<1>(tileSize)), MemCopyFunctor<T>(src_acc, dst_acc, rng, 0, offset));
     });
-    asynchronousExec();
+    synchronize();
   }
   /// returning the sycl queue
   EIGEN_STRONG_INLINE cl::sycl::queue& sycl_queue() const { return m_queue_stream->m_queue;}
@@ -308,7 +308,7 @@ struct SyclDevice {
   }
 
   EIGEN_STRONG_INLINE void asynchronousExec() const {
-    ///FIXEDME:: currently there is a race condition regarding the asynch scheduler.    
+    ///FIXEDME:: currently there is a race condition regarding the asynch scheduler.
     //sycl_queue().throw_asynchronous();// does not pass. Temporarily disabled
     sycl_queue().wait_and_throw(); //pass
 

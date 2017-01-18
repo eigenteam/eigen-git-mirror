@@ -736,22 +736,12 @@ struct TensorEvaluator<const TensorStridingSlicingOp<StartIndices, StopIndices, 
     for (size_t i = 0; i < internal::array_size<Dimensions>::value; ++i) {
       eigen_assert(m_strides[i] != 0 && "0 stride is invalid");
       if(m_strides[i]>0){
-        #ifndef __SYCL_DEVICE_ONLY__
         startIndicesClamped[i] = clamp(op.startIndices()[i], 0, m_impl.dimensions()[i]);
         stopIndicesClamped[i] = clamp(op.stopIndices()[i], 0, m_impl.dimensions()[i]);
-        #else
-        startIndicesClamped[i] = cl::sycl::clamp(static_cast<Index>(op.startIndices()[i]), static_cast<Index>(0), static_cast<Index>(m_impl.dimensions()[i]));
-        stopIndicesClamped[i] = cl::sycl::clamp(static_cast<Index>(op.stopIndices()[i]), static_cast<Index>(0), static_cast<Index>(m_impl.dimensions()[i]));
-        #endif
       }else{
       /* implies m_strides[i]<0 by assert */
-      #ifndef __SYCL_DEVICE_ONLY__
         startIndicesClamped[i] = clamp(op.startIndices()[i], -1, m_impl.dimensions()[i] - 1);
         stopIndicesClamped[i] = clamp(op.stopIndices()[i], -1, m_impl.dimensions()[i] - 1);
-        #else
-        startIndicesClamped[i] = cl::sycl::clamp(static_cast<Index>(op.startIndices()[i]), static_cast<Index>(-1), static_cast<Index>(m_impl.dimensions()[i] - 1));
-        stopIndicesClamped[i] = cl::sycl::clamp(static_cast<Index>(op.stopIndices()[i]), static_cast<Index>(-1), static_cast<Index>(m_impl.dimensions()[i] - 1));
-        #endif
       }
       m_startIndices[i] = startIndicesClamped[i];
     }
@@ -867,7 +857,11 @@ struct TensorEvaluator<const TensorStridingSlicingOp<StartIndices, StopIndices, 
   }
 
   static EIGEN_STRONG_INLINE Index clamp(Index value, Index min, Index max) {
+#ifndef __SYCL_DEVICE_ONLY__
     return numext::maxi(min, numext::mini(max,value));
+#else
+    return cl::sycl::clamp(value, min, max);
+#endif
   }
 
   array<Index, NumDims> m_outputStrides;
