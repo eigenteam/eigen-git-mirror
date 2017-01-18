@@ -378,6 +378,7 @@ public:
 
   Index size() const { return (m_last-m_first+m_incr)/m_incr; }
   Index operator[](Index i) const { return m_first + i * m_incr; }
+  Index first() const { return m_first; }
 
   const FirstType& firstObject() const { return m_first; }
   const LastType&  lastObject()  const { return m_last; }

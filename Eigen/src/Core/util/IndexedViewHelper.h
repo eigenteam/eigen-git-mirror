@@ -58,7 +58,9 @@ static const Symbolic::SymbolExpr<internal::symbolic_last_tag> last;
 #ifdef EIGEN_PARSED_BY_DOXYGEN
 static const auto end = last+1;
 #else
-static const Symbolic::AddExpr<Symbolic::SymbolExpr<internal::symbolic_last_tag>,Symbolic::ValueExpr> end(last+1);
+// Using a FixedExpr<1> expression is important here to make sure the compiler
+// can fully optimize the computation starting indices with zero overhead.
+static const Symbolic::AddExpr<Symbolic::SymbolExpr<internal::symbolic_last_tag>,Symbolic::FixedExpr<1> > end(last+Symbolic::FixedExpr<1>());
 #endif
 
 } // end namespace placeholders

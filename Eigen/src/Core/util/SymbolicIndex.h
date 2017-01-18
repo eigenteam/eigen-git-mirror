@@ -124,6 +124,17 @@ struct is_symbolic {
   enum { value = internal::is_convertible<T,BaseExpr<T> >::value };
 };
 
+// Simple wrapper around a compile-time value,
+// It is similar to ValueExpr(N) but this version helps the compiler to generate better code.
+template<int N>
+class FixedExpr : public BaseExpr<FixedExpr<N> > {
+public:
+  FixedExpr() {}
+  template<typename T>
+  Index eval_impl(const T&) const { return N; }
+};
+
+
 /** Represents the actual value of a symbol identified by its tag
   *
   * It is the return type of SymbolValue::operator=, and most of the time this is only way it is used.
