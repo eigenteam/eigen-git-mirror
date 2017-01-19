@@ -141,6 +141,11 @@
     #endif
     #ifdef __AVX2__
       #define EIGEN_VECTORIZE_AVX2
+      #define EIGEN_VECTORIZE_AVX
+      #define EIGEN_VECTORIZE_SSE3
+      #define EIGEN_VECTORIZE_SSSE3
+      #define EIGEN_VECTORIZE_SSE4_1
+      #define EIGEN_VECTORIZE_SSE4_2
     #endif
     #ifdef __FMA__
       #define EIGEN_VECTORIZE_FMA
