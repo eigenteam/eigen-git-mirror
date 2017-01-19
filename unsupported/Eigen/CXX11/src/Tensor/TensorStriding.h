@@ -258,7 +258,6 @@ struct TensorEvaluator<const TensorStridingOp<Strides, ArgType>, Device>
   const Strides m_strides;
 };
 
-
 // Eval as lvalue
 template<typename Strides, typename ArgType, typename Device>
 struct TensorEvaluator<TensorStridingOp<Strides, ArgType>, Device>
