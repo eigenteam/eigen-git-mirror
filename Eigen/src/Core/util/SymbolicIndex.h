@@ -57,6 +57,17 @@ protected:
   Index m_value;
 };
 
+// Simple wrapper around a compile-time value,
+// It is similar to ValueExpr(N) but this version helps the compiler to generate better code.
+template<int N>
+class FixedExpr {
+public:
+  FixedExpr() {}
+  template<typename T>
+  Index eval_impl(const T&) const { return N; }
+};
+
+
 /** \class BaseExpr
   * \ingroup Core_Module
   * Common base class of any symbolic expressions
@@ -101,6 +112,34 @@ public:
   friend QuotientExpr<ValueExpr,Derived> operator/(Index a, const BaseExpr& b)
   { return QuotientExpr<ValueExpr,Derived>(a,b.derived()); }
 
+
+  template<int N>
+  AddExpr<Derived,FixedExpr<N> > operator+(internal::fix_t<N>) const
+  { return AddExpr<Derived,FixedExpr<N> >(derived(), FixedExpr<N>()); }
+  template<int N>
+  AddExpr<Derived,FixedExpr<N> > operator-(internal::fix_t<N>) const
+  { return AddExpr<Derived,FixedExpr<-N> >(derived(), FixedExpr<-N>()); }
+  template<int N>
+  ProductExpr<Derived,FixedExpr<N> > operator*(internal::fix_t<N>) const
+  { return ProductExpr<Derived,FixedExpr<N> >(derived(),FixedExpr<N>()); }
+  template<int N>
+  QuotientExpr<Derived,FixedExpr<N> > operator/(internal::fix_t<N>) const
+  { return QuotientExpr<Derived,FixedExpr<N> >(derived(),FixedExpr<N>()); }
+
+  template<int N>
+  friend AddExpr<Derived,FixedExpr<N> > operator+(internal::fix_t<N>, const BaseExpr& b)
+  { return AddExpr<Derived,FixedExpr<N> >(b.derived(), FixedExpr<N>()); }
+  template<int N>
+  friend AddExpr<NegateExpr<Derived>,FixedExpr<N> > operator-(internal::fix_t<N>, const BaseExpr& b)
+  { return AddExpr<NegateExpr<Derived>,FixedExpr<N> >(-b.derived(), FixedExpr<N>()); }
+  template<int N>
+  friend ProductExpr<FixedExpr<N>,Derived> operator*(internal::fix_t<N>, const BaseExpr& b)
+  { return ProductExpr<FixedExpr<N>,Derived>(FixedExpr<N>(),b.derived()); }
+  template<int N>
+  friend QuotientExpr<FixedExpr<N>,Derived> operator/(internal::fix_t<N>, const BaseExpr& b)
+  { return QuotientExpr<FixedExpr<N> ,Derived>(FixedExpr<N>(),b.derived()); }
+
+
   template<typename OtherDerived>
   AddExpr<Derived,OtherDerived> operator+(const BaseExpr<OtherDerived> &b) const
   { return AddExpr<Derived,OtherDerived>(derived(),  b.derived()); }
@@ -123,17 +162,6 @@ struct is_symbolic {
   // BaseExpr has no conversion ctor, so we only have to check whether T can be staticaly cast to its base class BaseExpr<T>.
   enum { value = internal::is_convertible<T,BaseExpr<T> >::value };
 };
-
-// Simple wrapper around a compile-time value,
-// It is similar to ValueExpr(N) but this version helps the compiler to generate better code.
-template<int N>
-class FixedExpr : public BaseExpr<FixedExpr<N> > {
-public:
-  FixedExpr() {}
-  template<typename T>
-  Index eval_impl(const T&) const { return N; }
-};
-
 
 /** Represents the actual value of a symbol identified by its tag
   *
