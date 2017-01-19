@@ -386,7 +386,7 @@ struct SyclDevice {
     return 2;//sycl_queue().get_device(). template get_info<cl::sycl::info::device::max_work_group_size>();
   //  return stream_->deviceProperties().maxThreadsPerMultiProcessor;
   }
-  EIGEN_STRONG_INLINE int sharedMemPerBlock() const {
+  EIGEN_STRONG_INLINE size_t sharedMemPerBlock() const {
     return sycl_queue().get_device(). template get_info<cl::sycl::info::device::local_mem_size>();
   //  return stream_->deviceProperties().sharedMemPerBlock;
   }
