@@ -28,30 +28,31 @@ template<int N> struct aseq_negate<fix_t<N> > {
 // Compilation error in the following case:
 template<> struct aseq_negate<fix_t<DynamicIndex> > {};
 
-template<typename FirstType,typename SizeType,
+template<typename FirstType,typename SizeType,typename IncrType,
          bool FirstIsSymbolic=Symbolic::is_symbolic<FirstType>::value,
          bool SizeIsSymbolic =Symbolic::is_symbolic<SizeType>::value>
 struct aseq_reverse_first_type {
   typedef Index type;
 };
 
-template<typename FirstType,typename SizeType>
-struct aseq_reverse_first_type<FirstType,SizeType,true,true> {
+template<typename FirstType,typename SizeType,typename IncrType>
+struct aseq_reverse_first_type<FirstType,SizeType,IncrType,true,true> {
   typedef Symbolic::AddExpr<FirstType,
-                            Symbolic::ProductExpr<Symbolic::AddExpr<SizeType,Symbolic::ValueExpr>,
-                                                  Symbolic::ValueExpr>
+                            Symbolic::ProductExpr<Symbolic::AddExpr<SizeType,Symbolic::ValueExpr<fix_t<-1> > >,
+                                                  Symbolic::ValueExpr<IncrType> >
                            > type;
 };
 
-template<typename FirstType,typename SizeType>
-struct aseq_reverse_first_type<FirstType,SizeType,true,false> {
-  typedef Symbolic::AddExpr<FirstType,Symbolic::ValueExpr> type;
+template<typename FirstType,typename SizeType,typename IncrType>
+struct aseq_reverse_first_type<FirstType,SizeType,IncrType,true,false> {
+  typedef Symbolic::AddExpr<FirstType,Symbolic::ValueExpr<> > type;
 };
 
-template<typename FirstType,typename SizeType>
-struct aseq_reverse_first_type<FirstType,SizeType,false,true> {
-  typedef Symbolic::AddExpr<Symbolic::ProductExpr<Symbolic::AddExpr<SizeType,Symbolic::ValueExpr>,Symbolic::ValueExpr>,
-                            Symbolic::ValueExpr> type;
+template<typename FirstType,typename SizeType,typename IncrType>
+struct aseq_reverse_first_type<FirstType,SizeType,IncrType,false,true> {
+  typedef Symbolic::AddExpr<Symbolic::ProductExpr<Symbolic::AddExpr<SizeType,Symbolic::ValueExpr<fix_t<-1> > >,
+                                                  Symbolic::ValueExpr<IncrType> >,
+                            Symbolic::ValueExpr<> > type;
 };
 #endif
 
@@ -127,17 +128,17 @@ protected:
 public:
 
 #if EIGEN_HAS_CXX11
-  auto reverse() const -> decltype(Eigen::seqN(m_first+(m_size-1)*Index(m_incr),m_size,-m_incr)) {
-    return seqN(m_first+(m_size-1)*Index(m_incr),m_size,-m_incr);
+  auto reverse() const -> decltype(Eigen::seqN(m_first+(m_size+fix<-1>())*m_incr,m_size,-m_incr)) {
+    return seqN(m_first+(m_size+fix<-1>())*m_incr,m_size,-m_incr);
   }
 #else
 protected:
   typedef typename internal::aseq_negate<IncrType>::type ReverseIncrType;
-  typedef typename internal::aseq_reverse_first_type<FirstType,SizeType>::type ReverseFirstType;
+  typedef typename internal::aseq_reverse_first_type<FirstType,SizeType,IncrType>::type ReverseFirstType;
 public:
   ArithmeticSequence<ReverseFirstType,SizeType,ReverseIncrType>
   reverse() const {
-    return seqN(m_first+(m_size-1)*Index(m_incr),m_size,-m_incr);
+    return seqN(m_first+(m_size+fix<-1>())*m_incr,m_size,-m_incr);
   }
 #endif
 };
@@ -204,38 +205,40 @@ auto seq(FirstType f, LastType l, IncrType incr)
   return seqN(f,(l-f+CleanedIncrType(incr))/CleanedIncrType(incr),CleanedIncrType(incr));
 }
 #else
+
 template<typename FirstType,typename LastType>
 typename internal::enable_if<!(Symbolic::is_symbolic<FirstType>::value || Symbolic::is_symbolic<LastType>::value),
                              ArithmeticSequence<typename internal::cleanup_index_type<FirstType>::type,Index> >::type
 seq(FirstType f, LastType l)
 {
-  return seqN(f,(l-f+1));
+  return seqN(f,(l-f+fix<1>()));
 }
 
 template<typename FirstTypeDerived,typename LastType>
 typename internal::enable_if<!Symbolic::is_symbolic<LastType>::value,
-    ArithmeticSequence<FirstTypeDerived, Symbolic::AddExpr<Symbolic::AddExpr<Symbolic::NegateExpr<FirstTypeDerived>,Symbolic::ValueExpr>,
-                                                            Symbolic::ValueExpr> > >::type
+    ArithmeticSequence<FirstTypeDerived, Symbolic::AddExpr<Symbolic::AddExpr<Symbolic::NegateExpr<FirstTypeDerived>,Symbolic::ValueExpr<> >,
+                                                            Symbolic::ValueExpr<internal::fix_t<1> > > > >::type
 seq(const Symbolic::BaseExpr<FirstTypeDerived> &f, LastType l)
 {
-  return seqN(f.derived(),(l-f.derived()+1));
+  return seqN(f.derived(),(l-f.derived()+fix<1>()));
 }
 
 template<typename FirstType,typename LastTypeDerived>
 typename internal::enable_if<!Symbolic::is_symbolic<FirstType>::value,
     ArithmeticSequence<typename internal::cleanup_index_type<FirstType>::type,
-                        Symbolic::AddExpr<Symbolic::AddExpr<LastTypeDerived,Symbolic::ValueExpr>,Symbolic::ValueExpr> > >::type
+                        Symbolic::AddExpr<Symbolic::AddExpr<LastTypeDerived,Symbolic::ValueExpr<> >,
+                                          Symbolic::ValueExpr<internal::fix_t<1> > > > >::type
 seq(FirstType f, const Symbolic::BaseExpr<LastTypeDerived> &l)
 {
-  return seqN(f,(l.derived()-f+1));
+  return seqN(f,(l.derived()-f+fix<1>()));
 }
 
 template<typename FirstTypeDerived,typename LastTypeDerived>
 ArithmeticSequence<FirstTypeDerived,
-                    Symbolic::AddExpr<Symbolic::AddExpr<LastTypeDerived,Symbolic::NegateExpr<FirstTypeDerived> >,Symbolic::ValueExpr> >
+                    Symbolic::AddExpr<Symbolic::AddExpr<LastTypeDerived,Symbolic::NegateExpr<FirstTypeDerived> >,Symbolic::ValueExpr<internal::fix_t<1> > > >
 seq(const Symbolic::BaseExpr<FirstTypeDerived> &f, const Symbolic::BaseExpr<LastTypeDerived> &l)
 {
-  return seqN(f.derived(),(l.derived()-f.derived()+1));
+  return seqN(f.derived(),(l.derived()-f.derived()+fix<1>()));
 }
 
 
@@ -252,9 +255,9 @@ template<typename FirstTypeDerived,typename LastType, typename IncrType>
 typename internal::enable_if<!Symbolic::is_symbolic<LastType>::value,
     ArithmeticSequence<FirstTypeDerived,
                         Symbolic::QuotientExpr<Symbolic::AddExpr<Symbolic::AddExpr<Symbolic::NegateExpr<FirstTypeDerived>,
-                                                                                   Symbolic::ValueExpr>,
-                                                                 Symbolic::ValueExpr>,
-                                              Symbolic::ValueExpr>,
+                                                                                   Symbolic::ValueExpr<> >,
+                                                                 Symbolic::ValueExpr<typename internal::cleanup_seq_incr<IncrType>::type> >,
+                                              Symbolic::ValueExpr<typename internal::cleanup_seq_incr<IncrType>::type> >,
                         typename internal::cleanup_seq_incr<IncrType>::type> >::type
 seq(const Symbolic::BaseExpr<FirstTypeDerived> &f, LastType l, IncrType incr)
 {
@@ -265,9 +268,9 @@ seq(const Symbolic::BaseExpr<FirstTypeDerived> &f, LastType l, IncrType incr)
 template<typename FirstType,typename LastTypeDerived, typename IncrType>
 typename internal::enable_if<!Symbolic::is_symbolic<FirstType>::value,
     ArithmeticSequence<typename internal::cleanup_index_type<FirstType>::type,
-                        Symbolic::QuotientExpr<Symbolic::AddExpr<Symbolic::AddExpr<LastTypeDerived,Symbolic::ValueExpr>,
-                                                                 Symbolic::ValueExpr>,
-                                               Symbolic::ValueExpr>,
+                        Symbolic::QuotientExpr<Symbolic::AddExpr<Symbolic::AddExpr<LastTypeDerived,Symbolic::ValueExpr<> >,
+                                                                 Symbolic::ValueExpr<typename internal::cleanup_seq_incr<IncrType>::type> >,
+                                               Symbolic::ValueExpr<typename internal::cleanup_seq_incr<IncrType>::type> >,
                         typename internal::cleanup_seq_incr<IncrType>::type> >::type
 seq(FirstType f, const Symbolic::BaseExpr<LastTypeDerived> &l, IncrType incr)
 {
@@ -279,8 +282,8 @@ template<typename FirstTypeDerived,typename LastTypeDerived, typename IncrType>
 ArithmeticSequence<FirstTypeDerived,
                     Symbolic::QuotientExpr<Symbolic::AddExpr<Symbolic::AddExpr<LastTypeDerived,
                                                                                Symbolic::NegateExpr<FirstTypeDerived> >,
-                                                             Symbolic::ValueExpr>,
-                                          Symbolic::ValueExpr>,
+                                                             Symbolic::ValueExpr<typename internal::cleanup_seq_incr<IncrType>::type> >,
+                                          Symbolic::ValueExpr<typename internal::cleanup_seq_incr<IncrType>::type> >,
                     typename internal::cleanup_seq_incr<IncrType>::type>
 seq(const Symbolic::BaseExpr<FirstTypeDerived> &f, const Symbolic::BaseExpr<LastTypeDerived> &l, IncrType incr)
 {
