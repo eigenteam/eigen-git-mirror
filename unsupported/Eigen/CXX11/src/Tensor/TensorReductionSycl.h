@@ -108,7 +108,7 @@ struct FullReducer<Self, Op, const Eigen::SyclDevice, Vectorizable> {
   //  Dims dims= self.xprDims();
     //Op functor = reducer;
     dev.sycl_queue().submit([&](cl::sycl::handler &cgh) {
-      // this is a work around for gcc bug
+      // this is a workaround for gcc 4.8 bug
       typedef decltype(TensorSycl::internal::createTupleOfAccessors(cgh, self.impl())) TupleType;
       // create a tuple of accessors from Evaluator
       TupleType tuple_of_accessors =  TensorSycl::internal::createTupleOfAccessors(cgh, self.impl());
@@ -148,7 +148,7 @@ struct InnerReducer<Self, Op, const Eigen::SyclDevice> {
     /// recursively apply reduction on it in order to reduce the whole.
       dev.parallel_for_setup(num_coeffs_to_preserve, tileSize, range, GRange);
       dev.sycl_queue().submit([&](cl::sycl::handler &cgh) {
-      // this is work around for gcc bug.
+      // this is workaround for gcc 4.8 bug.
       typedef decltype(TensorSycl::internal::createTupleOfAccessors(cgh, self.impl())) Tuple_of_Acc;
       // create a tuple of accessors from Evaluator
       Tuple_of_Acc tuple_of_accessors =  TensorSycl::internal::createTupleOfAccessors(cgh, self.impl());

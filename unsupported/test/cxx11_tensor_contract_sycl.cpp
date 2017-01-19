@@ -28,6 +28,7 @@ using Eigen::array;
 using Eigen::SyclDevice;
 using Eigen::Tensor;
 using Eigen::TensorMap;
+static const float error_threshold =1e-4f;
 typedef Tensor<float, 1>::DimensionPair DimPair;
 template<int DataLayout, typename Device>
 void test_sycl_contraction(const Device& sycl_device, int m_size, int k_size, int n_size)
@@ -70,10 +71,10 @@ void test_sycl_contraction(const Device& sycl_device, int m_size, int k_size, in
   t_result = t_left.contract(t_right, dims);
 
   for (DenseIndex i = 0; i < t_result.size(); i++) {
-    if (static_cast<float>(fabs(t_result(i) - t_result_gpu(i))) < 1e-4f) {
+    if (static_cast<float>(fabs(t_result(i) - t_result_gpu(i))) < error_threshold) {
       continue;
     }
-    if (Eigen::internal::isApprox(t_result(i), t_result_gpu(i), 1e-4f)) {
+    if (Eigen::internal::isApprox(t_result(i), t_result_gpu(i), error_threshold)) {
       continue;
     }
     std::cout << "mismatch detected at index " << i << ": " << t_result(i)
@@ -132,10 +133,10 @@ void test_TF(const Device& sycl_device)
   t_result = t_left.contract(t_right, dims);
 
   for (DenseIndex i = 0; i < t_result.size(); i++) {
-    if (static_cast<float>(fabs(t_result(i) - t_result_gpu(i))) < 1e-4f) {
+    if (static_cast<float>(fabs(t_result(i) - t_result_gpu(i))) < error_threshold) {
       continue;
     }
-    if (Eigen::internal::isApprox(t_result(i), t_result_gpu(i), 1e-4f)) {
+    if (Eigen::internal::isApprox(t_result(i), t_result_gpu(i), error_threshold)) {
       continue;
     }
     std::cout << "mismatch detected at index " << i << ": " << t_result(i)
@@ -187,8 +188,8 @@ void test_scalar(const Device& sycl_device, int m_size, int k_size, int n_size)
 
   t_result = t_left.contract(t_right, dims);
 
-  if (static_cast<float>(fabs(t_result() - t_result_gpu())) > 1e-4f &&
-      !Eigen::internal::isApprox(t_result(), t_result_gpu(), 1e-4f)) {
+  if (static_cast<float>(fabs(t_result() - t_result_gpu())) > error_threshold &&
+      !Eigen::internal::isApprox(t_result(), t_result_gpu(), error_threshold)) {
     std::cout << "mismatch detected: " << t_result()
               << " vs " <<  t_result_gpu() << std::endl;
     assert(false);

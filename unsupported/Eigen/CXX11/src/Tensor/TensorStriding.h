@@ -121,11 +121,7 @@ struct TensorEvaluator<const TensorStridingOp<Strides, ArgType>, Device>
   {
     m_dimensions = m_impl.dimensions();
     for (int i = 0; i < NumDims; ++i) {
-#ifndef __SYCL_DEVICE_ONLY__
-      m_dimensions[i] = ceilf(static_cast<float>(m_dimensions[i]) / op.strides()[i]);
-#else
-      m_dimensions[i] = cl::sycl::ceil(static_cast<float>(m_dimensions[i]) / op.strides()[i]);
-#endif
+      m_dimensions[i] =Eigen::numext::ceil(static_cast<float>(m_dimensions[i]) / op.strides()[i]);
     }
 
     const typename TensorEvaluator<ArgType, Device>::Dimensions& input_dims = m_impl.dimensions();
@@ -233,8 +229,6 @@ struct TensorEvaluator<const TensorStridingOp<Strides, ArgType>, Device>
   /// required by sycl in order to extract the accessor
   Strides functor() const { return m_strides; }
 
-
-
  protected:
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Index srcCoeff(Index index) const
   {
@@ -299,10 +293,9 @@ struct TensorEvaluator<TensorStridingOp<Strides, ArgType>, Device>
   }
 
   /// required by sycl in order to extract the accessor
-  const TensorEvaluator<ArgType, Device>& impl() const { return this->m_impl; }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const TensorEvaluator<ArgType, Device>& impl() const { return this->m_impl; }
   /// required by sycl in order to extract the accessor
-  Strides functor() const { return this->m_strides; }
-
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Strides functor() const { return this->m_strides; }
 
   template <int StoreMode> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
   void writePacket(Index index, const PacketReturnType& x)

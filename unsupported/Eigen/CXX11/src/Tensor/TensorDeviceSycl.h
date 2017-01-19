@@ -15,16 +15,16 @@
 #if defined(EIGEN_USE_SYCL) && !defined(EIGEN_CXX11_TENSOR_TENSOR_DEVICE_SYCL_H)
 #define EIGEN_CXX11_TENSOR_TENSOR_DEVICE_SYCL_H
 
+#include "TensorSyclLegacyPointer.h"
+
 namespace Eigen {
 
   #define ConvertToActualTypeSycl(Scalar, buf_acc) reinterpret_cast<typename cl::sycl::global_ptr<Scalar>::pointer_t>((&(*buf_acc.get_pointer())))
 
-  template <typename Scalar> class MemCopyFunctor {
+  template <typename Scalar, typename read_accessor, typename write_accessor> class MemCopyFunctor {
   public:
-    typedef cl::sycl::accessor<uint8_t, 1, cl::sycl::access::mode::read, cl::sycl::access::target::global_buffer> read_accessor;
-    typedef cl::sycl::accessor<uint8_t, 1, cl::sycl::access::mode::discard_write, cl::sycl::access::target::global_buffer> write_accessor;
-
-    MemCopyFunctor(read_accessor src_acc, write_accessor dst_acc, size_t rng, size_t i, size_t offset): m_src_acc(src_acc), m_dst_acc(dst_acc), m_rng(rng), m_i(i), m_offset(offset) {}
+    MemCopyFunctor(read_accessor src_acc, write_accessor dst_acc, size_t rng, size_t i, size_t offset)
+    : m_src_acc(src_acc), m_dst_acc(dst_acc), m_rng(rng), m_i(i), m_offset(offset) {}
 
     void operator()(cl::sycl::nd_item<1> itemID) {
       auto src_ptr = ConvertToActualTypeSycl(Scalar, m_src_acc);
@@ -55,6 +55,7 @@ namespace Eigen {
 
   };
 
+
 EIGEN_STRONG_INLINE auto get_sycl_supported_devices()->decltype(cl::sycl::device::get_devices()){
   auto devices = cl::sycl::device::get_devices();
   std::vector<cl::sycl::device>::iterator it =devices.begin();
@@ -77,11 +78,10 @@ struct QueueInterface {
   bool exception_caught_ = false;
 
   mutable std::mutex mutex_;
-
   /// std::map is the container used to make sure that we create only one buffer
   /// per pointer. The lifespan of the buffer now depends on the lifespan of SyclDevice.
   /// If a non-read-only pointer is needed to be accessed on the host we should manually deallocate it.
-  mutable std::map<const uint8_t *, cl::sycl::buffer<uint8_t, 1>> buffer_map;
+  //mutable std::map<const uint8_t *, cl::sycl::buffer<uint8_t, 1>> buffer_map;
   /// sycl queue
   mutable cl::sycl::queue m_queue;
   /// creating device by using cl::sycl::selector or cl::sycl::device both are the same and can be captured through dev_Selector typename
@@ -119,48 +119,41 @@ m_queue(cl::sycl::queue(s, [&](cl::sycl::exception_list l) {
   /// use this pointer as a key in our buffer_map and we make sure that we dedicate only one buffer only for this pointer.
   /// The device pointer would be deleted by calling deallocate function.
   EIGEN_STRONG_INLINE void* allocate(size_t num_bytes) const {
-    auto buf = cl::sycl::buffer<uint8_t,1>(cl::sycl::range<1>(num_bytes));
-    auto ptr =buf.get_access<cl::sycl::access::mode::discard_write, cl::sycl::access::target::host_buffer>().get_pointer();
-    buf.set_final_data(nullptr);
     std::lock_guard<std::mutex> lock(mutex_);
-    buffer_map.insert(std::pair<const uint8_t *, cl::sycl::buffer<uint8_t, 1>>(static_cast<const uint8_t*>(ptr),buf));
-    return static_cast<void*>(ptr);
+    return codeplay::legacy::malloc(num_bytes);
   }
 
   /// This is used to deallocate the device pointer. p is used as a key inside
   /// the map to find the device buffer and delete it.
   EIGEN_STRONG_INLINE void deallocate(void *p) const {
     std::lock_guard<std::mutex> lock(mutex_);
-    auto it = buffer_map.find(static_cast<const uint8_t*>(p));
-    if (it != buffer_map.end()) {
-      auto num_bytes =it->second.get_size();
-      buffer_map.erase(it);
-      // Temporary solution for memory leak in computecpp. It will be fixed in the next computecpp version
-      std::allocator<uint8_t> a1; // Default allocator for buffer<uint8_t,1>
-      a1.deallocate(static_cast<uint8_t*>(p), num_bytes);
-    }
+    return codeplay::legacy::free(p);
   }
 
   EIGEN_STRONG_INLINE void deallocate_all() const {
     std::lock_guard<std::mutex> lock(mutex_);
-    buffer_map.clear();
+    codeplay::legacy::clear();
   }
 
-  EIGEN_STRONG_INLINE std::map<const uint8_t *, cl::sycl::buffer<uint8_t,1>>::iterator find_buffer(const void* ptr) const {
+  EIGEN_STRONG_INLINE codeplay::legacy::PointerMapper& pointerMapper() const {
     std::lock_guard<std::mutex> lock(mutex_);
-    auto it1 = buffer_map.find(static_cast<const uint8_t*>(ptr));
-    if (it1 != buffer_map.end()){
-      return it1;
-    }
-    else{
-      for(std::map<const uint8_t *, cl::sycl::buffer<uint8_t,1>>::iterator it=buffer_map.begin(); it!=buffer_map.end(); ++it){
-        auto size = it->second.get_size();
-        if((it->first <  (static_cast<const uint8_t*>(ptr))) && ((static_cast<const uint8_t*>(ptr)) < (it->first + size)) ) return it;
-      }
-    }
-    std::cerr << "No sycl buffer found. Make sure that you have allocated memory for your buffer by calling allocate function in SyclDevice"<< std::endl;
-    abort();
+    return codeplay::legacy::getPointerMapper();
   }
+
+  EIGEN_STRONG_INLINE cl::sycl::buffer<uint8_t,1> get_buffer(void* ptr) const {
+    std::lock_guard<std::mutex> lock(mutex_);
+    return pointerMapper().get_buffer(pointerMapper().get_buffer_id(ptr));
+  }
+
+  EIGEN_STRONG_INLINE size_t get_buffer_offset(void* ptr) const {
+    std::lock_guard<std::mutex> lock(mutex_);
+    return pointerMapper().get_offset(ptr);
+  }
+
+  /*EIGEN_STRONG_INLINE void* get_buffer_id(void* ptr) const {
+    std::lock_guard<std::mutex> lock(mutex_);
+    return static_cast<void*>(pointerMapper().get_buffer_id(ptr));
+  }*/
 
   // This function checks if the runtime recorded an error for the
   // underlying stream device.
@@ -172,7 +165,7 @@ m_queue(cl::sycl::queue(s, [&](cl::sycl::exception_list l) {
   }
 
   // destructor
-  ~QueueInterface() { buffer_map.clear(); }
+  ~QueueInterface() { codeplay::legacy::clear(); }
 };
 
 struct SyclDevice {
@@ -190,14 +183,20 @@ struct SyclDevice {
   }
 
   /// Accessing the created sycl device buffer for the device pointer
-  EIGEN_STRONG_INLINE cl::sycl::buffer<uint8_t, 1>& get_sycl_buffer(const void * ptr) const {
-    return m_queue_stream->find_buffer(ptr)->second;
+  EIGEN_STRONG_INLINE cl::sycl::buffer<uint8_t, 1> get_sycl_buffer(const void * ptr) const {
+  return m_queue_stream->get_buffer(const_cast<void*>(ptr));
   }
+
 
   /// This is used to prepare the number of threads and also the number of threads per block for sycl kernels
   template<typename Index>
   EIGEN_STRONG_INLINE void parallel_for_setup(Index n, Index &tileSize, Index &rng, Index &GRange)  const {
-    tileSize =static_cast<Index>(sycl_queue().get_device(). template get_info<cl::sycl::info::device::max_work_group_size>()/2);
+    tileSize =static_cast<Index>(sycl_queue().get_device(). template get_info<cl::sycl::info::device::max_work_group_size>());
+    auto s=  sycl_queue().get_device().template get_info<cl::sycl::info::device::vendor>();
+    std::transform(s.begin(), s.end(), s.begin(), ::tolower);
+    if(sycl_queue().get_device().is_cpu()){ // intel doesnot allow to use max workgroup size
+      tileSize=std::min(static_cast<size_t>(256), static_cast<size_t>(tileSize));
+    }
     rng = n;
     if (rng==0) rng=static_cast<Index>(1);
     GRange=rng;
@@ -207,6 +206,76 @@ struct SyclDevice {
       if (xMode != 0) GRange += static_cast<Index>(tileSize - xMode);
     }
   }
+
+  /// This is used to prepare the number of threads and also the number of threads per block for sycl kernels
+  template<typename Index>
+  EIGEN_STRONG_INLINE void parallel_for_setup(Index dim0, Index dim1, Index &tileSize0, Index &tileSize1, Index &rng0, Index &rng1, Index &GRange0, Index &GRange1)  const {
+    Index max_workgroup_Size = static_cast<Index>(maxSyclThreadsPerBlock());
+    if(sycl_queue().get_device().is_cpu()){ // intel doesnot allow to use max workgroup size
+      max_workgroup_Size=std::min(static_cast<size_t>(256), static_cast<size_t>(max_workgroup_Size));
+    }
+    size_t pow_of_2 = static_cast<size_t>(std::log2(max_workgroup_Size));
+    tileSize1 =static_cast<Index>(std::pow(2, static_cast<size_t>(pow_of_2/2)));
+    rng1=dim1;
+    if (rng1==0 ) rng1=static_cast<Index>(1);
+    GRange1=rng1;
+    if (tileSize1>GRange1) tileSize1=GRange1;
+    else if(GRange1>tileSize1){
+      Index xMode =  static_cast<Index>(GRange1 % tileSize1);
+      if (xMode != 0) GRange1 += static_cast<Index>(tileSize1 - xMode);
+    }
+    tileSize0 = static_cast<Index>(max_workgroup_Size/tileSize1);
+    rng0 = dim0;
+    if (rng0==0 ) rng0=static_cast<Index>(1);
+    GRange0=rng0;
+    if (tileSize0>GRange0) tileSize0=GRange0;
+    else if(GRange0>tileSize0){
+      Index xMode =  static_cast<Index>(GRange0 % tileSize0);
+      if (xMode != 0) GRange0 += static_cast<Index>(tileSize0 - xMode);
+    }
+  }
+
+
+
+  /// This is used to prepare the number of threads and also the number of threads per block for sycl kernels
+  template<typename Index>
+  EIGEN_STRONG_INLINE void parallel_for_setup(Index dim0, Index dim1,Index dim2, Index &tileSize0, Index &tileSize1, Index &tileSize2, Index &rng0, Index &rng1, Index &rng2, Index &GRange0, Index &GRange1, Index &GRange2)  const {
+    Index max_workgroup_Size = static_cast<Index>(maxSyclThreadsPerBlock());
+    if(sycl_queue().get_device().is_cpu()){ // intel doesnot allow to use max workgroup size
+      max_workgroup_Size=std::min(static_cast<size_t>(256), static_cast<size_t>(max_workgroup_Size));
+    }
+    size_t pow_of_2 = static_cast<size_t>(std::log2(max_workgroup_Size));
+    tileSize2 =static_cast<Index>(std::pow(2, static_cast<size_t>(pow_of_2/3)));
+    rng2=dim2;
+    if (rng2==0 ) rng1=static_cast<Index>(1);
+    GRange2=rng2;
+    if (tileSize2>GRange2) tileSize2=GRange2;
+    else if(GRange2>tileSize2){
+      Index xMode =  static_cast<Index>(GRange2 % tileSize2);
+      if (xMode != 0) GRange2 += static_cast<Index>(tileSize2 - xMode);
+    }
+    pow_of_2 = static_cast<size_t>(std::log2(static_cast<Index>(max_workgroup_Size/tileSize2)));
+    tileSize1 =static_cast<Index>(std::pow(2, static_cast<size_t>(pow_of_2/2)));
+    rng1=dim1;
+    if (rng1==0 ) rng1=static_cast<Index>(1);
+    GRange1=rng1;
+    if (tileSize1>GRange1) tileSize1=GRange1;
+    else if(GRange1>tileSize1){
+      Index xMode =  static_cast<Index>(GRange1 % tileSize1);
+      if (xMode != 0) GRange1 += static_cast<Index>(tileSize1 - xMode);
+    }
+    tileSize0 = static_cast<Index>(max_workgroup_Size/(tileSize1*tileSize2));
+    rng0 = dim0;
+    if (rng0==0 ) rng0=static_cast<Index>(1);
+    GRange0=rng0;
+    if (tileSize0>GRange0) tileSize0=GRange0;
+    else if(GRange0>tileSize0){
+      Index xMode =  static_cast<Index>(GRange0 % tileSize0);
+      if (xMode != 0) GRange0 += static_cast<Index>(tileSize0 - xMode);
+    }
+  }
+
+
   /// allocate device memory
   EIGEN_STRONG_INLINE void *allocate(size_t num_bytes) const {
       return m_queue_stream->allocate(num_bytes);
@@ -220,21 +289,21 @@ struct SyclDevice {
   EIGEN_STRONG_INLINE bool isDeviceSuitable() const { return true; }
 
   /// the memcpy function
-  template<typename T> EIGEN_STRONG_INLINE void memcpy(void *dst, const T *src, size_t n) const {
-    auto it1 = m_queue_stream->find_buffer((void*)src);
-    auto it2 = m_queue_stream->find_buffer(dst);
-    auto offset= (static_cast<const uint8_t*>(static_cast<const void*>(src))) - it1->first;
-    auto i= (static_cast<const uint8_t*>(dst)) - it2->first;
-    offset/=sizeof(T);
-    i/=sizeof(T);
+  template<typename Index> EIGEN_STRONG_INLINE void memcpy(void *dst, const Index *src, size_t n) const {
+    auto offset= m_queue_stream->get_buffer_offset((void*)src);
+    auto i= m_queue_stream->get_buffer_offset(dst);
+    offset/=sizeof(Index);
+    i/=sizeof(Index);
     size_t rng, GRange, tileSize;
-    parallel_for_setup(n/sizeof(T), tileSize, rng, GRange);
+    parallel_for_setup(n/sizeof(Index), tileSize, rng, GRange);
     sycl_queue().submit([&](cl::sycl::handler &cgh) {
-      auto src_acc =it1->second.template get_access<cl::sycl::access::mode::read, cl::sycl::access::target::global_buffer>(cgh);
-      auto dst_acc =it2->second.template get_access<cl::sycl::access::mode::discard_write, cl::sycl::access::target::global_buffer>(cgh);
-      cgh.parallel_for(cl::sycl::nd_range<1>(cl::sycl::range<1>(GRange), cl::sycl::range<1>(tileSize)), MemCopyFunctor<T>(src_acc, dst_acc, rng, i, offset));
+      auto src_acc =get_sycl_accessor<cl::sycl::access::mode::read>(cgh, src);
+      auto dst_acc =get_sycl_accessor<cl::sycl::access::mode::write>(cgh, dst);
+      typedef decltype(src_acc) read_accessor;
+      typedef decltype(dst_acc) write_accessor;
+      cgh.parallel_for(cl::sycl::nd_range<1>(cl::sycl::range<1>(GRange), cl::sycl::range<1>(tileSize)), MemCopyFunctor<Index, read_accessor, write_accessor>(src_acc, dst_acc, rng, i, offset));
     });
-    asynchronousExec();
+    synchronize();
   }
 
   /// The memcpyHostToDevice is used to copy the device only pointer to a host pointer. Using the device
@@ -246,26 +315,28 @@ struct SyclDevice {
     auto host_acc= get_sycl_buffer(dst). template get_access<cl::sycl::access::mode::discard_write, cl::sycl::access::target::host_buffer>();
     ::memcpy(host_acc.get_pointer(), src, n);
   }
+
   /// The memcpyDeviceToHost is used to copy the data from host to device. Here, in order to avoid double copying the data. We create a sycl
   /// buffer with map_allocator for the destination pointer with a discard_write accessor on it. The lifespan of the buffer is bound to the
   /// lifespan of the memcpyDeviceToHost function. We create a kernel to copy the data, from the device- only source buffer to the destination
   /// buffer with map_allocator on the gpu in parallel. At the end of the function call the destination buffer would be destroyed and the data
   /// would be available on the dst pointer using fast copy technique (map_allocator). In this case we can make sure that we copy the data back
   /// to the cpu only once per function call.
-  template<typename T> EIGEN_STRONG_INLINE void memcpyDeviceToHost(void *dst, const T *src, size_t n) const {
-    auto it = m_queue_stream->find_buffer(src);
-    auto offset =static_cast<const uint8_t*>(static_cast<const void*>(src))- it->first;
-    offset/=sizeof(T);
+  template<typename Index> EIGEN_STRONG_INLINE void memcpyDeviceToHost(void *dst, const Index *src, size_t n) const {
+    auto offset =m_queue_stream->get_buffer_offset((void *)src);
+    offset/=sizeof(Index);
     size_t rng, GRange, tileSize;
-    parallel_for_setup(n/sizeof(T), tileSize, rng, GRange);
+    parallel_for_setup(n/sizeof(Index), tileSize, rng, GRange);
     // Assuming that the dst is the start of the destination pointer
     auto dest_buf = cl::sycl::buffer<uint8_t, 1, cl::sycl::map_allocator<uint8_t> >(static_cast<uint8_t*>(dst), cl::sycl::range<1>(n));
     sycl_queue().submit([&](cl::sycl::handler &cgh) {
-      auto src_acc= it->second.template get_access<cl::sycl::access::mode::read, cl::sycl::access::target::global_buffer>(cgh);
+      auto src_acc= get_sycl_accessor<cl::sycl::access::mode::read>(cgh, src);
       auto dst_acc =dest_buf.template get_access<cl::sycl::access::mode::discard_write, cl::sycl::access::target::global_buffer>(cgh);
-      cgh.parallel_for( cl::sycl::nd_range<1>(cl::sycl::range<1>(GRange), cl::sycl::range<1>(tileSize)), MemCopyFunctor<T>(src_acc, dst_acc, rng, 0, offset));
+      typedef decltype(src_acc) read_accessor;
+      typedef decltype(dst_acc) write_accessor;
+      cgh.parallel_for( cl::sycl::nd_range<1>(cl::sycl::range<1>(GRange), cl::sycl::range<1>(tileSize)), MemCopyFunctor<Index, read_accessor, write_accessor>(src_acc, dst_acc, rng, 0, offset));
     });
-    asynchronousExec();
+    synchronize();
   }
   /// returning the sycl queue
   EIGEN_STRONG_INLINE cl::sycl::queue& sycl_queue() const { return m_queue_stream->m_queue;}
@@ -273,8 +344,9 @@ struct SyclDevice {
   EIGEN_STRONG_INLINE void memset(void *data, int c, size_t n) const {
     size_t rng, GRange, tileSize;
     parallel_for_setup(n, tileSize, rng, GRange);
-    sycl_queue().submit(memsetCghFunctor(get_sycl_buffer(static_cast<uint8_t*>(static_cast<void*>(data))),rng, GRange, tileSize, c ));
-    asynchronousExec();
+    auto buf =get_sycl_buffer(static_cast<uint8_t*>(static_cast<void*>(data)));
+    sycl_queue().submit(memsetCghFunctor(buf,rng, GRange, tileSize, c ));
+    synchronize();
   }
 
   struct memsetCghFunctor{
@@ -300,6 +372,24 @@ struct SyclDevice {
     // there is no l3 cache on cuda devices.
     return firstLevelCacheSize();
   }
+  EIGEN_STRONG_INLINE unsigned long getNumSyclMultiProcessors() const {
+    return sycl_queue().get_device(). template get_info<cl::sycl::info::device::max_compute_units>();
+  //  return stream_->deviceProperties().multiProcessorCount;
+  }
+  EIGEN_STRONG_INLINE unsigned long maxSyclThreadsPerBlock() const {
+    return sycl_queue().get_device(). template get_info<cl::sycl::info::device::max_work_group_size>();
+
+  //  return stream_->deviceProperties().maxThreadsPerBlock;
+  }
+  EIGEN_STRONG_INLINE unsigned long maxSyclThreadsPerMultiProcessor() const {
+    // OpenCL doesnot have such concept
+    return 2;//sycl_queue().get_device(). template get_info<cl::sycl::info::device::max_work_group_size>();
+  //  return stream_->deviceProperties().maxThreadsPerMultiProcessor;
+  }
+  EIGEN_STRONG_INLINE int sharedMemPerBlock() const {
+    return sycl_queue().get_device(). template get_info<cl::sycl::info::device::local_mem_size>();
+  //  return stream_->deviceProperties().sharedMemPerBlock;
+  }
   /// No need for sycl it should act the same as CPU version
   EIGEN_STRONG_INLINE int majorDeviceVersion() const { return 1; }
 
@@ -308,7 +398,7 @@ struct SyclDevice {
   }
 
   EIGEN_STRONG_INLINE void asynchronousExec() const {
-    ///FIXEDME:: currently there is a race condition regarding the asynch scheduler.    
+    ///FIXEDME:: currently there is a race condition regarding the asynch scheduler.
     //sycl_queue().throw_asynchronous();// does not pass. Temporarily disabled
     sycl_queue().wait_and_throw(); //pass
 

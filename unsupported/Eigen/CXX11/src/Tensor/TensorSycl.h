@@ -80,6 +80,9 @@ template<typename T> struct GetType<false, T>{
 /// this is used for extracting tensor reduction
 #include "TensorReductionSycl.h"
 
+/// this is used for extracting tensor convolution
+#include "TensorConvolutionSycl.h"
+
 // kernel execution using fusion
 #include "TensorSyclRun.h"
 //sycl functors

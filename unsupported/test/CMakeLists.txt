@@ -153,6 +153,7 @@ if(EIGEN_TEST_CXX11)
     ei_add_test_sycl(cxx11_tensor_contract_sycl "-std=c++11")
     ei_add_test_sycl(cxx11_tensor_concatenation_sycl "-std=c++11")
     ei_add_test_sycl(cxx11_tensor_reverse_sycl "-std=c++11")
+    ei_add_test_sycl(cxx11_tensor_convolution_sycl "-std=c++11")
     ei_add_test_sycl(cxx11_tensor_striding_sycl "-std=c++11")
   endif(EIGEN_TEST_SYCL)
   # It should be safe to always run these tests as there is some fallback code for

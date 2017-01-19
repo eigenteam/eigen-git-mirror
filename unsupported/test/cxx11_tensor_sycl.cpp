@@ -242,9 +242,6 @@ static void test_sycl_cast(const Eigen::SyclDevice& sycl_device){
     Scalar1* gpu_in_data  = static_cast<Scalar1*>(sycl_device.allocate(in.size()*sizeof(Scalar1)));
     Scalar2 * gpu_out_data =  static_cast<Scalar2*>(sycl_device.allocate(out.size()*sizeof(Scalar2)));
 
-
-
-
     TensorMap<Tensor<Scalar1, 1, DataLayout>> gpu_in(gpu_in_data, tensorRange);
     TensorMap<Tensor<Scalar2, 1, DataLayout>> gpu_out(gpu_out_data, tensorRange);
     sycl_device.memcpyHostToDevice(gpu_in_data, in.data(),(in.size())*sizeof(Scalar1));

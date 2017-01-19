@@ -143,12 +143,12 @@ struct TensorEvaluator<const TensorForcedEvalOp<ArgType>, Device>
     return TensorOpCost(sizeof(CoeffReturnType), 0, 0, vectorized, PacketSize);
   }
 
-  CoeffReturnType* data() const { return m_buffer; }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE CoeffReturnType* data() const { return m_buffer; }
 
   /// required by sycl in order to extract the sycl accessor
-  const TensorEvaluator<ArgType, Device>& impl() { return m_impl; }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const TensorEvaluator<ArgType, Device>& impl() { return m_impl; }
   /// used by sycl in order to build the sycl buffer
-  const Device& device() const{return m_device;}
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Device& device() const{return m_device;}
  private:
   TensorEvaluator<ArgType, Device> m_impl;
   const ArgType m_op;
