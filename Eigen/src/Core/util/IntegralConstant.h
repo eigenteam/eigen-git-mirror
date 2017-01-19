@@ -28,6 +28,10 @@ template<int N> struct fix_t {
   }
 
   fix_t<-N> operator-() const { return fix_t<-N>(); }
+  template<int M>
+  fix_t<N+M> operator+(fix_t<M>) const { return fix_t<N+M>(); }
+  template<int M>
+  fix_t<N-M> operator-(fix_t<M>) const { return fix_t<N-M>(); }
 
 #if EIGEN_HAS_CXX14
   // Needed in C++14 to allow fix<N>():

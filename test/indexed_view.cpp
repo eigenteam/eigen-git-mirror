@@ -55,8 +55,7 @@ is_same_eq(const T1& a, const T2& b)
 }
 
 template<typename T1,typename T2>
-typename internal::enable_if<internal::is_same<T1,T2>::value,bool>::type
-is_same_seq_type(const T1& a, const T2& b)
+bool is_same_seq(const T1& a, const T2& b)
 {
   bool ok = a.first()==b.first() && a.size() == b.size() && Index(a.incrObject())==Index(b.incrObject());;
   if(!ok)
@@ -66,6 +65,15 @@ is_same_seq_type(const T1& a, const T2& b)
   }
   return ok;
 }
+
+template<typename T1,typename T2>
+typename internal::enable_if<internal::is_same<T1,T2>::value,bool>::type
+is_same_seq_type(const T1& a, const T2& b)
+{
+  return is_same_seq(a,b);
+}
+
+
 
 #define VERIFY_EQ_INT(A,B) VERIFY_IS_APPROX(int(A),int(B))
 
@@ -192,6 +200,14 @@ void check_indexed_view()
   VERIFY( is_same_seq_type( seq(2,7,fix<3>), seqN(2,2,fix<3>) ) );
   VERIFY( is_same_seq_type( seqN(2,fix<Dynamic>(5),3), seqN(2,5,fix<DynamicIndex>(3)) ) );
   VERIFY( is_same_seq_type( seqN(2,fix<5>(5),fix<-2>), seqN(2,fix<5>,fix<-2>()) ) );
+
+  VERIFY( is_same_seq_type( seq(2,fix<5>), seqN(2,4) ) );
+#if EIGEN_HAS_CXX11
+  VERIFY( is_same_seq_type( seq(fix<2>,fix<5>), seqN(fix<2>,fix<4>) ) );
+#else
+  // sorry, no compile-time size recovery in c++98/03
+  VERIFY( is_same_seq( seq(fix<2>,fix<5>), seqN(fix<2>,fix<4>) ) );
+#endif
 
   VERIFY( (A(seqN(2,fix<5>), 5)).RowsAtCompileTime == 5);
   VERIFY( (A(4, all)).ColsAtCompileTime == Dynamic);

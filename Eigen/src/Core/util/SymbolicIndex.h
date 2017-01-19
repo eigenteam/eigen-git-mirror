@@ -163,6 +163,13 @@ struct is_symbolic {
   enum { value = internal::is_convertible<T,BaseExpr<T> >::value };
 };
 
+// Specialization for functions, because is_convertible fails in this case.
+// Useful in c++98/11 mode when testing is_symbolic<decltype(fix<N>)>
+template<typename T>
+struct is_symbolic<T (*)()> {
+  enum { value = false };
+};
+
 /** Represents the actual value of a symbol identified by its tag
   *
   * It is the return type of SymbolValue::operator=, and most of the time this is only way it is used.
