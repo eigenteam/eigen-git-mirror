@@ -59,7 +59,7 @@ EIGEN_STRONG_INLINE auto get_sycl_supported_devices()->decltype(cl::sycl::device
     /// get_devices returns all the available opencl devices. Either use device_selector or exclude devices that computecpp does not support (AMD OpenCL for CPU )
     auto s=  (*it).template get_info<cl::sycl::info::device::vendor>();
     std::transform(s.begin(), s.end(), s.begin(), ::tolower);
-    if((*it).is_cpu() && s.find("amd")!=std::string::npos){ // remove amd cpu as it is not supported by computecpp
+    if((*it).is_cpu() && s.find("amd")!=std::string::npos && s.find("apu") == std::string::npos){ // remove amd cpu as it is not supported by computecpp allow APUs
       it=devices.erase(it);
     }
     else{
