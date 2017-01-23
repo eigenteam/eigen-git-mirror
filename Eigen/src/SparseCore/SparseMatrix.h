@@ -1301,11 +1301,11 @@ EIGEN_DONT_INLINE typename SparseMatrix<_Scalar,_Options,_StorageIndex>::Scalar&
   // starts with: [ 0 0 0 0 0 1 ...] and we are inserted in, e.g.,
   // the 2nd inner vector...
   bool isLastVec = (!(previousOuter==-1 && m_data.size()!=0))
-                && (size_t(m_outerIndex[outer+1]) == m_data.size());
+                && (std::size_t(m_outerIndex[outer+1]) == m_data.size());
 
-  size_t startId = m_outerIndex[outer];
-  // FIXME let's make sure sizeof(long int) == sizeof(size_t)
-  size_t p = m_outerIndex[outer+1];
+  std::size_t startId = m_outerIndex[outer];
+  // FIXME let's make sure sizeof(long int) == sizeof(std::size_t)
+  std::size_t p = m_outerIndex[outer+1];
   ++m_outerIndex[outer+1];
 
   double reallocRatio = 1;
