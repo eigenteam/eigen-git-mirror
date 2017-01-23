@@ -214,6 +214,14 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
     VERIFY_IS_APPROX(m1+=m2, refM1+=refM2);
     VERIFY_IS_APPROX(m1-=m2, refM1-=refM2);
 
+    if (rows>=2 && cols>=2)
+    {
+      VERIFY_RAISES_ASSERT( m1 += m1.innerVector(0) );
+      VERIFY_RAISES_ASSERT( m1 -= m1.innerVector(0) );
+      VERIFY_RAISES_ASSERT( refM1 -= m1.innerVector(0) );
+      VERIFY_RAISES_ASSERT( refM1 += m1.innerVector(0) );
+    }
+
     // test aliasing
     VERIFY_IS_APPROX((m1 = -m1), (refM1 = -refM1));
     VERIFY_IS_APPROX((m1 = m1.transpose()), (refM1 = refM1.transpose().eval()));
@@ -428,7 +436,7 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
     m3 = m2.template triangularView<StrictlyLower>();
     VERIFY_IS_APPROX(m3, refMat3);
 
-    // check sparse-traingular to dense
+    // check sparse-triangular to dense
     refMat3 = m2.template triangularView<StrictlyUpper>();
     VERIFY_IS_APPROX(refMat3, DenseMatrix(refMat2.template triangularView<StrictlyUpper>()));
   }

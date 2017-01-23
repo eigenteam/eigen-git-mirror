@@ -186,6 +186,14 @@ template<typename MatrixType> void block(const MatrixType& m)
   VERIFY_IS_EQUAL( (m1.template block<1,Dynamic>(0,1,1,0)), m1.block(0,1,1,0));
   VERIFY_IS_EQUAL( ((m1*1).template block<Dynamic,1>(1,0,0,1)), m1.block(1,0,0,1));
   VERIFY_IS_EQUAL( ((m1*1).template block<1,Dynamic>(0,1,1,0)), m1.block(0,1,1,0));
+
+  if (rows>=2 && cols>=2)
+  {
+    VERIFY_RAISES_ASSERT( m1 += m1.col(0) );
+    VERIFY_RAISES_ASSERT( m1 -= m1.col(0) );
+    VERIFY_RAISES_ASSERT( m1.array() *= m1.col(0).array() );
+    VERIFY_RAISES_ASSERT( m1.array() /= m1.col(0).array() );
+  }
 }
 
 
