@@ -41,7 +41,7 @@ template<> struct check_rows_cols_for_overflow<Dynamic> {
   {
     // http://hg.mozilla.org/mozilla-central/file/6c8a909977d3/xpcom/ds/CheckedInt.h#l242
     // we assume Index is signed
-    Index max_index = (size_t(1) << (8 * sizeof(Index) - 1)) - 1; // assume Index is signed
+    Index max_index = (std::size_t(1) << (8 * sizeof(Index) - 1)) - 1; // assume Index is signed
     bool error = (rows == 0 || cols == 0) ? false
                : (rows > max_index / cols);
     if (error)
