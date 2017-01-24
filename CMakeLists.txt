@@ -541,7 +541,8 @@ if (NOT CMAKE_VERSION VERSION_LESS 3.0)
   set (_Eigen3_CMAKE_SIZEOF_VOID_P ${CMAKE_SIZEOF_VOID_P})
   unset (CMAKE_SIZEOF_VOID_P)
   write_basic_package_version_file (Eigen3ConfigVersion.cmake
-    VERSION ${EIGEN_VERSION_NUMBER} COMPATIBILITY SameMajorVersion)
+                                    VERSION ${EIGEN_VERSION_NUMBER}
+                                    COMPATIBILITY SameMajorVersion)
   set (CMAKE_SIZEOF_VOID_P ${_Eigen3_CMAKE_SIZEOF_VOID_P})
 
   # The Eigen target will be located in the Eigen3 namespace. Other CMake
@@ -551,13 +552,8 @@ if (NOT CMAKE_VERSION VERSION_LESS 3.0)
   # CMake even if it has not been installed to a standard directory.
   export (PACKAGE Eigen3)
 
-  install (EXPORT Eigen3Targets NAMESPACE Eigen3:: DESTINATION
-    ${CMAKEPACKAGE_INSTALL_DIR})
-  install (FILES
-    ${CMAKE_CURRENT_BINARY_DIR}/Eigen3Config.cmake
-    ${CMAKE_CURRENT_BINARY_DIR}/Eigen3ConfigVersion.cmake
-    ${CMAKE_CURRENT_SOURCE_DIR}/cmake/UseEigen3.cmake
-    DESTINATION ${CMAKEPACKAGE_INSTALL_DIR})
+  install (EXPORT Eigen3Targets NAMESPACE Eigen3:: DESTINATION ${CMAKEPACKAGE_INSTALL_DIR})
+
 else (NOT CMAKE_VERSION VERSION_LESS 3.0)
   # Fallback to legacy Eigen3Config.cmake without the imported target
   
@@ -581,15 +577,19 @@ else (NOT CMAKE_VERSION VERSION_LESS 3.0)
     set(PACKAGE_EIGEN_ROOT_DIR ${EIGEN_ROOT_DIR})
     configure_file ( ${CMAKE_CURRENT_SOURCE_DIR}/cmake/Eigen3ConfigLegacy.cmake.in
                      ${CMAKE_CURRENT_BINARY_DIR}/Eigen3Config.cmake
-                     @ONLY ESCAPE_QUOTES
-                   )
+                     @ONLY ESCAPE_QUOTES )
   endif()
 
-  install ( FILES ${CMAKE_CURRENT_SOURCE_DIR}/cmake/UseEigen3.cmake
-                  ${CMAKE_CURRENT_BINARY_DIR}/Eigen3Config.cmake
-            DESTINATION ${CMAKEPACKAGE_INSTALL_DIR}
-          )
+  write_basic_package_version_file( Eigen3ConfigVersion.cmake
+                                    VERSION ${EIGEN_VERSION_NUMBER}
+                                    COMPATIBILITY SameMajorVersion )
+
 endif (NOT CMAKE_VERSION VERSION_LESS 3.0)
+
+install ( FILES ${CMAKE_CURRENT_SOURCE_DIR}/cmake/UseEigen3.cmake
+                ${CMAKE_CURRENT_BINARY_DIR}/Eigen3Config.cmake
+                ${CMAKE_CURRENT_BINARY_DIR}/Eigen3ConfigVersion.cmake
+          DESTINATION ${CMAKEPACKAGE_INSTALL_DIR} )
 
 # Add uninstall target
 add_custom_target ( uninstall
