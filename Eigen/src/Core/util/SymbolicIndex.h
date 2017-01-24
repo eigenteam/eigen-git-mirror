@@ -235,7 +235,7 @@ public:
 
   Index eval_impl(const SymbolValue<Tag> &values) const { return values.value(); }
 
-#if __cplusplus > 201103L
+#if EIGEN_HAS_CXX14
   // C++14 versions suitable for multiple symbols
   template<typename... Types>
   Index eval_impl(const std::tuple<Types...>& values) const { return std::get<SymbolValue<Tag> >(values).value(); }

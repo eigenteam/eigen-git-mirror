@@ -85,6 +85,16 @@ void check_symbolic_index()
   VERIFY_IS_EQUAL( ( -last*end  ).eval(last=size-1), -(size-1)*size );
   VERIFY_IS_EQUAL( ( end-3*last  ).eval(last=size-1), size- 3*(size-1) );
   VERIFY_IS_EQUAL( ( (end-3*last)/end  ).eval(last=size-1), (size- 3*(size-1))/size );
+
+#if EIGEN_HAS_CXX14
+  {
+    struct x_tag {};  static const Symbolic::SymbolExpr<x_tag> x;
+    struct y_tag {};  static const Symbolic::SymbolExpr<y_tag> y;
+    struct z_tag {};  static const Symbolic::SymbolExpr<z_tag> z;
+
+    VERIFY_IS_APPROX( int(((x+3)/y+z).eval(x=6,y=3,z=-13)), (6+3)/3+(-13) );
+  }
+#endif
 }
 
 void test_symbolic_index()
