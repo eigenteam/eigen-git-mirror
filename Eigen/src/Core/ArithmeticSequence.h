@@ -43,9 +43,20 @@ struct aseq_reverse_first_type<FirstType,SizeType,IncrType,true,true> {
                            > type;
 };
 
+template<typename SizeType,typename IncrType,typename EnableIf = void>
+struct aseq_reverse_first_type_aux {
+  typedef Index type;
+};
+
+template<typename SizeType,typename IncrType>
+struct aseq_reverse_first_type_aux<SizeType,IncrType,typename internal::enable_if<bool((SizeType::value+IncrType::value)|0x1)>::type> {
+  typedef FixedInt<(SizeType::value-1)*IncrType::value> type;
+};
+
 template<typename FirstType,typename SizeType,typename IncrType>
 struct aseq_reverse_first_type<FirstType,SizeType,IncrType,true,false> {
-  typedef Symbolic::AddExpr<FirstType,Symbolic::ValueExpr<> > type;
+  typedef typename aseq_reverse_first_type_aux<SizeType,IncrType>::type Aux;
+  typedef Symbolic::AddExpr<FirstType,Symbolic::ValueExpr<Aux> > type;
 };
 
 template<typename FirstType,typename SizeType,typename IncrType>
