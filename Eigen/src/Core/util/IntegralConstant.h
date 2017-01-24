@@ -26,7 +26,7 @@ template<int N> class VariableAndFixedInt;
   * It is similar to c++11 std::integral_constant<int,N> but with some additional features
   * such as:
   *  - implicit conversion to int
-  *  - arithmetic operators: -, +, *
+  *  - arithmetic and some bitwise operators: -, +, *, /, %, &, |
   *  - c++98/14 compatibility with fix<N> and fix<N>() syntax to define integral constants.
   *
   * It is strongly discouraged to directly deal with this class FixedInt. Instances are expcected to
@@ -64,6 +64,16 @@ public:
   FixedInt<N+M> operator+( FixedInt<M>) const { return FixedInt<N+M>(); }
   template<int M>
   FixedInt<N-M> operator-( FixedInt<M>) const { return FixedInt<N-M>(); }
+  template<int M>
+  FixedInt<N*M> operator*( FixedInt<M>) const { return FixedInt<N*M>(); }
+  template<int M>
+  FixedInt<N/M> operator/( FixedInt<M>) const { return FixedInt<N/M>(); }
+  template<int M>
+  FixedInt<N%M> operator%( FixedInt<M>) const { return FixedInt<N%M>(); }
+  template<int M>
+  FixedInt<N|M> operator|( FixedInt<M>) const { return FixedInt<N|M>(); }
+  template<int M>
+  FixedInt<N&M> operator&( FixedInt<M>) const { return FixedInt<N&M>(); }
 
 #if EIGEN_HAS_CXX14
   // Needed in C++14 to allow fix<N>():
