@@ -60,7 +60,7 @@ static const auto end = last+1;
 #else
 // Using a FixedExpr<1> expression is important here to make sure the compiler
 // can fully optimize the computation starting indices with zero overhead.
-static const Symbolic::AddExpr<Symbolic::SymbolExpr<internal::symbolic_last_tag>,Symbolic::ValueExpr<Eigen::internal::fix_t<1> > > end(last+fix<1>());
+static const Symbolic::AddExpr<Symbolic::SymbolExpr<internal::symbolic_last_tag>,Symbolic::ValueExpr<Eigen::internal::FixedInt<1> > > end(last+fix<1>());
 #endif
 
 } // end namespace placeholders
@@ -71,7 +71,7 @@ namespace internal {
 inline Index eval_expr_given_size(Index x, Index /* size */)   { return x; }
 
 template<int N>
-fix_t<N> eval_expr_given_size(fix_t<N> x, Index /*size*/)   { return x; }
+FixedInt<N> eval_expr_given_size(FixedInt<N> x, Index /*size*/)   { return x; }
 
 template<typename Derived>
 Index eval_expr_given_size(const Symbolic::BaseExpr<Derived> &x, Index size)

@@ -61,7 +61,7 @@ protected:
 // Specialization for compile-time value,
 // It is similar to ValueExpr(N) but this version helps the compiler to generate better code.
 template<int N>
-class ValueExpr<internal::fix_t<N> > {
+class ValueExpr<internal::FixedInt<N> > {
 public:
   ValueExpr() {}
   template<typename T>
@@ -114,30 +114,30 @@ public:
   { return QuotientExpr<ValueExpr<>,Derived>(a,b.derived()); }
 
   template<int N>
-  AddExpr<Derived,ValueExpr<internal::fix_t<N> > > operator+(internal::fix_t<N>) const
-  { return AddExpr<Derived,ValueExpr<internal::fix_t<N> > >(derived(), ValueExpr<internal::fix_t<N> >()); }
+  AddExpr<Derived,ValueExpr<internal::FixedInt<N> > > operator+(internal::FixedInt<N>) const
+  { return AddExpr<Derived,ValueExpr<internal::FixedInt<N> > >(derived(), ValueExpr<internal::FixedInt<N> >()); }
   template<int N>
-  AddExpr<Derived,ValueExpr<internal::fix_t<N> > > operator-(internal::fix_t<N>) const
-  { return AddExpr<Derived,ValueExpr<internal::fix_t<-N> > >(derived(), ValueExpr<internal::fix_t<-N> >()); }
+  AddExpr<Derived,ValueExpr<internal::FixedInt<N> > > operator-(internal::FixedInt<N>) const
+  { return AddExpr<Derived,ValueExpr<internal::FixedInt<-N> > >(derived(), ValueExpr<internal::FixedInt<-N> >()); }
   template<int N>
-  ProductExpr<Derived,ValueExpr<internal::fix_t<N> > > operator*(internal::fix_t<N>) const
-  { return ProductExpr<Derived,ValueExpr<internal::fix_t<N> > >(derived(),ValueExpr<internal::fix_t<N> >()); }
+  ProductExpr<Derived,ValueExpr<internal::FixedInt<N> > > operator*(internal::FixedInt<N>) const
+  { return ProductExpr<Derived,ValueExpr<internal::FixedInt<N> > >(derived(),ValueExpr<internal::FixedInt<N> >()); }
   template<int N>
-  QuotientExpr<Derived,ValueExpr<internal::fix_t<N> > > operator/(internal::fix_t<N>) const
-  { return QuotientExpr<Derived,ValueExpr<internal::fix_t<N> > >(derived(),ValueExpr<internal::fix_t<N> >()); }
+  QuotientExpr<Derived,ValueExpr<internal::FixedInt<N> > > operator/(internal::FixedInt<N>) const
+  { return QuotientExpr<Derived,ValueExpr<internal::FixedInt<N> > >(derived(),ValueExpr<internal::FixedInt<N> >()); }
 
   template<int N>
-  friend AddExpr<Derived,ValueExpr<internal::fix_t<N> > > operator+(internal::fix_t<N>, const BaseExpr& b)
-  { return AddExpr<Derived,ValueExpr<internal::fix_t<N> > >(b.derived(), ValueExpr<internal::fix_t<N> >()); }
+  friend AddExpr<Derived,ValueExpr<internal::FixedInt<N> > > operator+(internal::FixedInt<N>, const BaseExpr& b)
+  { return AddExpr<Derived,ValueExpr<internal::FixedInt<N> > >(b.derived(), ValueExpr<internal::FixedInt<N> >()); }
   template<int N>
-  friend AddExpr<NegateExpr<Derived>,ValueExpr<internal::fix_t<N> > > operator-(internal::fix_t<N>, const BaseExpr& b)
-  { return AddExpr<NegateExpr<Derived>,ValueExpr<internal::fix_t<N> > >(-b.derived(), ValueExpr<internal::fix_t<N> >()); }
+  friend AddExpr<NegateExpr<Derived>,ValueExpr<internal::FixedInt<N> > > operator-(internal::FixedInt<N>, const BaseExpr& b)
+  { return AddExpr<NegateExpr<Derived>,ValueExpr<internal::FixedInt<N> > >(-b.derived(), ValueExpr<internal::FixedInt<N> >()); }
   template<int N>
-  friend ProductExpr<ValueExpr<internal::fix_t<N> >,Derived> operator*(internal::fix_t<N>, const BaseExpr& b)
-  { return ProductExpr<ValueExpr<internal::fix_t<N> >,Derived>(ValueExpr<internal::fix_t<N> >(),b.derived()); }
+  friend ProductExpr<ValueExpr<internal::FixedInt<N> >,Derived> operator*(internal::FixedInt<N>, const BaseExpr& b)
+  { return ProductExpr<ValueExpr<internal::FixedInt<N> >,Derived>(ValueExpr<internal::FixedInt<N> >(),b.derived()); }
   template<int N>
-  friend QuotientExpr<ValueExpr<internal::fix_t<N> >,Derived> operator/(internal::fix_t<N>, const BaseExpr& b)
-  { return QuotientExpr<ValueExpr<internal::fix_t<N> > ,Derived>(ValueExpr<internal::fix_t<N> >(),b.derived()); }
+  friend QuotientExpr<ValueExpr<internal::FixedInt<N> >,Derived> operator/(internal::FixedInt<N>, const BaseExpr& b)
+  { return QuotientExpr<ValueExpr<internal::FixedInt<N> > ,Derived>(ValueExpr<internal::FixedInt<N> >(),b.derived()); }
 
 
   template<typename OtherDerived>
