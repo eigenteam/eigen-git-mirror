@@ -18,6 +18,36 @@ namespace internal {
 template<int N> class FixedInt;
 template<int N> class VariableAndFixedInt;
 
+/** \internal
+  * \class FixedInt
+  *
+  * This class embeds a compile-time integer \c N.
+  *
+  * It is similar to c++11 std::integral_constant<int,N> but with some additional features
+  * such as:
+  *  - implicit conversion to int
+  *  - arithmetic operators: -, +, *
+  *  - c++98/14 compatibility with fix<N> and fix<N>() syntax to define integral constants.
+  *
+  * It is strongly discouraged to directly deal with this class FixedInt. Instances are expcected to
+  * be created by the user using Eigen::fix<N> or Eigen::fix<N>(). In C++98-11, the former syntax does
+  * not create a FixedInt<N> instance but rather a point to function that needs to be \em cleaned-up
+  * using the generic helper:
+  * \code
+  * internal::cleanup_index_type<T>::type
+  * internal::cleanup_index_type<T,DynamicKey>::type
+  * \endcode
+  * where T can a FixedInt<N>, a pointer to function FixedInt<N> (*)(), or numerous other integer-like representations.
+  * \c DynamicKey is either Dynamic (default) or DynamicIndex and used to identify true compile-time values.
+  *
+  * For convenience, you can extract the compile-time value \c N in a generic way using the following helper:
+  * \code
+  * internal::get_fixed_value<T,DefaultVal>::value
+  * \endcode
+  * that will give you \c N if T equals FixedInt<N> or FixedInt<N> (*)(), and \c DefaultVal if T does not embed any compile-time value (e.g., T==int).
+  *
+  * \sa fix<N>, class VariableAndFixedInt
+  */
 template<int N> class FixedInt
 {
 public:
@@ -45,6 +75,35 @@ public:
 #endif
 };
 
+/** \internal
+  * \class VariableAndFixedInt
+  *
+  * This class embeds both a compile-time integer \c N and a runtime integer.
+  * Both values are supposed to be equal unless the compile-time value \c N has a special
+  * value meaning that the runtime-value should be used. Depending on the context, this special
+  * value can be either Eigen::Dynamic (for positive quantities) or Eigen::DynamicIndex (for
+  * quantities that can be negative).
+  *
+  * It is the return-type of the function Eigen::fix<N>(int), and most of the time this is the only
+  * way it is used. It is strongly discouraged to directly deal with instances of VariableAndFixedInt.
+  * Indeed, in order to write generic code, it is the responsibility of the callee to properly convert
+  * it to either a true compile-time quantity (i.e. a FixedInt<N>), or to a runtime quantity (e.g., an Index)
+  * using the following generic helper:
+  * \code
+  * internal::cleanup_index_type<T>::type
+  * internal::cleanup_index_type<T,DynamicKey>::type
+  * \endcode
+  * where T can be a template instantiation of VariableAndFixedInt or numerous other integer-like representations.
+  * \c DynamicKey is either Dynamic (default) or DynamicIndex and used to identify true compile-time values.
+  *
+  * For convenience, you can also extract the compile-time value \c N using the following helper:
+  * \code
+  * internal::get_fixed_value<T,DefaultVal>::value
+  * \endcode
+  * that will give you \c N if T equals VariableAndFixedInt<N>, and \c DefaultVal if T does not embed any compile-time value (e.g., T==int).
+  *
+  * \sa fix<N>(int), class FixedInt
+  */
 template<int N> class VariableAndFixedInt
 {
 public:
