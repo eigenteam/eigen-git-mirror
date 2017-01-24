@@ -204,6 +204,15 @@ void check_indexed_view()
   VERIFY( is_same_seq_type( seq(2,fix<5>), seqN(2,4) ) );
 #if EIGEN_HAS_CXX11
   VERIFY( is_same_seq_type( seq(fix<2>,fix<5>), seqN(fix<2>,fix<4>) ) );
+  VERIFY( is_same_seq( seqN(2,std::integral_constant<int,5>(),std::integral_constant<int,-2>()), seqN(2,fix<5>,fix<-2>()) ) );
+  VERIFY( is_same_seq( seq(std::integral_constant<int,1>(),std::integral_constant<int,5>(),std::integral_constant<int,2>()),
+                       seq(fix<1>,fix<5>,fix<2>()) ) );
+  VERIFY( is_same_seq_type( seqN(2,std::integral_constant<int,5>(),std::integral_constant<int,-2>()), seqN(2,fix<5>,fix<-2>()) ) );
+  VERIFY( is_same_seq_type( seq(std::integral_constant<int,1>(),std::integral_constant<int,5>(),std::integral_constant<int,2>()),
+                            seq(fix<1>,fix<5>,fix<2>()) ) );
+
+  VERIFY( is_same_seq_type( seqN(2,std::integral_constant<int,5>()), seqN(2,fix<5>) ) );
+  VERIFY( is_same_seq_type( seq(std::integral_constant<int,1>(),std::integral_constant<int,5>()), seq(fix<1>,fix<5>) ) );
 #else
   // sorry, no compile-time size recovery in c++98/03
   VERIFY( is_same_seq( seq(fix<2>,fix<5>), seqN(fix<2>,fix<4>) ) );

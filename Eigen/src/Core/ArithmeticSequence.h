@@ -202,22 +202,28 @@ auto seq(FirstType f, LastType l);
 
 #if EIGEN_HAS_CXX11
 template<typename FirstType,typename LastType>
-auto seq(FirstType f, LastType l) -> decltype(seqN(f,(  typename internal::cleanup_index_type<LastType>::type(l)
-                                                      - typename internal::cleanup_index_type<FirstType>::type(f)+fix<1>())))
+auto seq(FirstType f, LastType l) -> decltype(seqN(typename internal::cleanup_index_type<FirstType>::type(f),
+                                                   (  typename internal::cleanup_index_type<LastType>::type(l)
+                                                    - typename internal::cleanup_index_type<FirstType>::type(f)+fix<1>())))
 {
-  return seqN(f,(typename internal::cleanup_index_type<LastType>::type(l)
-                -typename internal::cleanup_index_type<FirstType>::type(f)+fix<1>()));
+  return seqN(typename internal::cleanup_index_type<FirstType>::type(f),
+              (typename internal::cleanup_index_type<LastType>::type(l)
+               -typename internal::cleanup_index_type<FirstType>::type(f)+fix<1>()));
 }
 
 template<typename FirstType,typename LastType, typename IncrType>
 auto seq(FirstType f, LastType l, IncrType incr)
-  -> decltype(seqN(f,   (   typename internal::cleanup_index_type<LastType>::type(l)
-                          - typename internal::cleanup_index_type<FirstType>::type(f)+typename internal::cleanup_seq_incr<IncrType>::type(incr))
-                      / typename internal::cleanup_seq_incr<IncrType>::type(incr),typename internal::cleanup_seq_incr<IncrType>::type(incr)))
+  -> decltype(seqN(typename internal::cleanup_index_type<FirstType>::type(f),
+                   (   typename internal::cleanup_index_type<LastType>::type(l)
+                     - typename internal::cleanup_index_type<FirstType>::type(f)+typename internal::cleanup_seq_incr<IncrType>::type(incr)
+                   ) / typename internal::cleanup_seq_incr<IncrType>::type(incr),
+                   typename internal::cleanup_seq_incr<IncrType>::type(incr)))
 {
   typedef typename internal::cleanup_seq_incr<IncrType>::type CleanedIncrType;
-  return seqN(f,(typename internal::cleanup_index_type<LastType>::type(l)
-                -typename internal::cleanup_index_type<FirstType>::type(f)+CleanedIncrType(incr)) / CleanedIncrType(incr),CleanedIncrType(incr));
+  return seqN(typename internal::cleanup_index_type<FirstType>::type(f),
+              ( typename internal::cleanup_index_type<LastType>::type(l)
+               -typename internal::cleanup_index_type<FirstType>::type(f)+CleanedIncrType(incr)) / CleanedIncrType(incr),
+              CleanedIncrType(incr));
 }
 #else
 
