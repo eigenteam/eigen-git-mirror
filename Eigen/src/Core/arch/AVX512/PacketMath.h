@@ -230,23 +230,27 @@ EIGEN_STRONG_INLINE Packet8d pmadd(const Packet8d& a, const Packet8d& b,
 template <>
 EIGEN_STRONG_INLINE Packet16f pmin<Packet16f>(const Packet16f& a,
                                               const Packet16f& b) {
-  return _mm512_min_ps(a, b);
+  // Arguments are reversed to match NaN propagation behavior of std::min.
+  return _mm512_min_ps(b, a);
 }
 template <>
 EIGEN_STRONG_INLINE Packet8d pmin<Packet8d>(const Packet8d& a,
                                             const Packet8d& b) {
-  return _mm512_min_pd(a, b);
+  // Arguments are reversed to match NaN propagation behavior of std::min.
+  return _mm512_min_pd(b, a);
 }
 
 template <>
 EIGEN_STRONG_INLINE Packet16f pmax<Packet16f>(const Packet16f& a,
                                               const Packet16f& b) {
-  return _mm512_max_ps(a, b);
+  // Arguments are reversed to match NaN propagation behavior of std::max.
+  return _mm512_max_ps(b, a);
 }
 template <>
 EIGEN_STRONG_INLINE Packet8d pmax<Packet8d>(const Packet8d& a,
                                             const Packet8d& b) {
-  return _mm512_max_pd(a, b);
+  // Arguments are reversed to match NaN propagation behavior of std::max.
+  return _mm512_max_pd(b, a);
 }
 
 template <>
