@@ -290,7 +290,7 @@ protected:
   *  - std::array (c++11)
   *  - some internal types such as SingleRange and AllRange
   *
-  * The second template parameter ease SFINAE-based specializations.
+  * The second template parameter eases SFINAE-based specializations.
   */
 template<typename T, typename EnableIf = void> struct array_size {
   enum { value = Dynamic };
@@ -303,8 +303,14 @@ template<typename T> struct array_size<T,typename internal::enable_if<((T::SizeA
 template<typename T, int N> struct array_size<const T (&)[N]> {
   enum { value = N };
 };
+template<typename T, int N> struct array_size<T (&)[N]> {
+  enum { value = N };
+};
 
-#ifdef EIGEN_HAS_CXX11
+#if EIGEN_HAS_CXX11
+template<typename T, std::size_t N> struct array_size<const std::array<T,N> > {
+  enum { value = N };
+};
 template<typename T, std::size_t N> struct array_size<std::array<T,N> > {
   enum { value = N };
 };
