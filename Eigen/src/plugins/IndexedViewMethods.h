@@ -39,19 +39,19 @@ template<typename Indices>
 typename IvcRowType<Indices>::type
 ivcRow(const Indices& indices) const {
   return internal::makeIndexedViewCompatible(indices, internal::variable_if_dynamic<Index,RowsAtCompileTime>(derived().rows()),Specialized);
-};
+}
 
 template<typename Indices>
 typename IvcColType<Indices>::type
 ivcCol(const Indices& indices) const {
   return internal::makeIndexedViewCompatible(indices, internal::variable_if_dynamic<Index,ColsAtCompileTime>(derived().cols()),Specialized);
-};
+}
 
 template<typename Indices>
 typename IvcColType<Indices>::type
 ivcSize(const Indices& indices) const {
   return internal::makeIndexedViewCompatible(indices, internal::variable_if_dynamic<Index,SizeAtCompileTime>(derived().size()),Specialized);
-};
+}
 
 template<typename RowIndices, typename ColIndices>
 struct valid_indexed_view_overload {
