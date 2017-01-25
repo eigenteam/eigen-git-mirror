@@ -175,6 +175,21 @@ void testVectorType(const VectorType& base)
     VERIFY_IS_APPROX(VectorType::LinSpaced(size,low,low),VectorType::Constant(size,low));
     m.setLinSpaced(size,low,low);
     VERIFY_IS_APPROX(m,VectorType::Constant(size,low));
+
+    if(NumTraits<Scalar>::IsInteger)
+    {
+      VERIFY_IS_APPROX( VectorType::LinSpaced(size,low,Scalar(low+size-1)), VectorType::LinSpaced(size,Scalar(low+size-1),low).reverse() );
+
+      if(VectorType::SizeAtCompileTime==Dynamic)
+      {
+        // Check negative multiplicator path:
+        for(Index k=1; k<5; ++k)
+          VERIFY_IS_APPROX( VectorType::LinSpaced(size,low,Scalar(low+(size-1)*k)), VectorType::LinSpaced(size,Scalar(low+(size-1)*k),low).reverse() );
+        // Check negative divisor path:
+        for(Index k=1; k<5; ++k)
+          VERIFY_IS_APPROX( VectorType::LinSpaced(size*k,low,Scalar(low+size-1)), VectorType::LinSpaced(size*k,Scalar(low+size-1),low).reverse() );
+      }
+    }
   }
 }
 
@@ -222,7 +237,8 @@ void test_nullary()
     CALL_SUBTEST_8( testVectorType(Matrix<float,8,1>()) );
     CALL_SUBTEST_8( testVectorType(Matrix<float,1,1>()) );
 
-    CALL_SUBTEST_9( testVectorType(VectorXi(internal::random<int>(1,300))) );
+    CALL_SUBTEST_9( testVectorType(VectorXi(internal::random<int>(1,10))) );
+    CALL_SUBTEST_9( testVectorType(VectorXi(internal::random<int>(9,300))) );
     CALL_SUBTEST_9( testVectorType(Matrix<int,1,1>()) );
   }
 
