@@ -29,7 +29,7 @@ T generic_fast_tanh_float(const T& a_x)
   // this range is +/-1.0f in single-precision.
   const T plus_9 = pset1<T>(9.f);
   const T minus_9 = pset1<T>(-9.f);
-  const T x =  pmax(pmin(a_x, plus_9), minus_9);
+  const T x = pmax(pmin(a_x, plus_9), minus_9);
   // The monomial coefficients of the numerator polynomial (odd).
   const T alpha_1 = pset1<T>(4.89352455891786e-03f);
   const T alpha_3 = pset1<T>(6.37261928875436e-04f);
