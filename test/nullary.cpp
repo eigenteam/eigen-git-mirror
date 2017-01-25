@@ -152,6 +152,45 @@ void testVectorType(const VectorType& base)
     m.tail(size-1).setLinSpaced(low, high);
     VERIFY_IS_APPROX(m(size-1), high);
   }
+
+  // regression test for bug 1383 (LinSpaced with empty size/range)
+  {
+    Index n0 = VectorType::SizeAtCompileTime==Dynamic ? 0 : VectorType::SizeAtCompileTime;
+    low = internal::random<Scalar>();
+    m = VectorType::LinSpaced(n0,low,low-1);
+    VERIFY(m.size()==n0);
+
+    if(VectorType::SizeAtCompileTime==Dynamic)
+    {
+      VERIFY_IS_EQUAL(VectorType::LinSpaced(n0,0,Scalar(n0-1)).sum(),Scalar(0));
+      VERIFY_IS_EQUAL(VectorType::LinSpaced(n0,low,low-1).sum(),Scalar(0));
+    }
+
+    m.setLinSpaced(n0,0,Scalar(n0-1));
+    VERIFY(m.size()==n0);
+    m.setLinSpaced(n0,low,low-1);
+    VERIFY(m.size()==n0);
+
+    // empty range only:
+    VERIFY_IS_APPROX(VectorType::LinSpaced(size,low,low),VectorType::Constant(size,low));
+    m.setLinSpaced(size,low,low);
+    VERIFY_IS_APPROX(m,VectorType::Constant(size,low));
+
+    if(NumTraits<Scalar>::IsInteger)
+    {
+      VERIFY_IS_APPROX( VectorType::LinSpaced(size,low,Scalar(low+size-1)), VectorType::LinSpaced(size,Scalar(low+size-1),low).reverse() );
+
+      if(VectorType::SizeAtCompileTime==Dynamic)
+      {
+        // Check negative multiplicator path:
+        for(Index k=1; k<5; ++k)
+          VERIFY_IS_APPROX( VectorType::LinSpaced(size,low,Scalar(low+(size-1)*k)), VectorType::LinSpaced(size,Scalar(low+(size-1)*k),low).reverse() );
+        // Check negative divisor path:
+        for(Index k=1; k<5; ++k)
+          VERIFY_IS_APPROX( VectorType::LinSpaced(size*k,low,Scalar(low+size-1)), VectorType::LinSpaced(size*k,Scalar(low+size-1),low).reverse() );
+      }
+    }
+  }
 }
 
 template<typename MatrixType>
@@ -198,7 +237,8 @@ void test_nullary()
     CALL_SUBTEST_8( testVectorType(Matrix<float,8,1>()) );
     CALL_SUBTEST_8( testVectorType(Matrix<float,1,1>()) );
 
-    CALL_SUBTEST_9( testVectorType(VectorXi(internal::random<int>(1,300))) );
+    CALL_SUBTEST_9( testVectorType(VectorXi(internal::random<int>(1,10))) );
+    CALL_SUBTEST_9( testVectorType(VectorXi(internal::random<int>(9,300))) );
     CALL_SUBTEST_9( testVectorType(Matrix<int,1,1>()) );
   }
 

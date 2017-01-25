@@ -106,7 +106,7 @@ struct ThreadPoolDevice {
   }
 
   EIGEN_STRONG_INLINE void memcpy(void* dst, const void* src, size_t n) const {
-    ::memcpy(dst, src, n);
+    internal::fast_memcpy(dst, src, n);
   }
   EIGEN_STRONG_INLINE void memcpyHostToDevice(void* dst, const void* src, size_t n) const {
     memcpy(dst, src, n);

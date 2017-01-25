@@ -56,7 +56,7 @@ void pack_simple(Scalar * dst, const Scalar * src, Index cols, Index rows, Index
   } else {
     // Naive memcpy calls
     for (Index col = 0; col < cols; ++col) {
-      memcpy(dst + col*lddst, src + col*ldsrc, rows*sizeof(Scalar));
+      internal::fast_memcpy(dst + col*lddst, src + col*ldsrc, rows*sizeof(Scalar));
     }
   }
 }
