@@ -638,7 +638,7 @@ struct plain_constant_type
 template<typename ExpressionType>
 struct is_lvalue
 {
-  enum { value = !bool(is_const<ExpressionType>::value) &&
+  enum { value = (!bool(is_const<ExpressionType>::value)) &&
                  bool(traits<ExpressionType>::Flags & LvalueBit) };
 };
 
