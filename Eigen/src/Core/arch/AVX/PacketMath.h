@@ -185,11 +185,11 @@ template<> EIGEN_STRONG_INLINE Packet4d pmadd(const Packet4d& a, const Packet4d&
 
 template<> EIGEN_STRONG_INLINE Packet8f pmin<Packet8f>(const Packet8f& a, const Packet8f& b) {
   // Arguments are swapped to match NaN propagation behavior of std::min.
-  return _mm256_min_ps(a,b);
+  return _mm256_min_ps(b,a);
 }
 template<> EIGEN_STRONG_INLINE Packet4d pmin<Packet4d>(const Packet4d& a, const Packet4d& b) {
   // Arguments are swapped to match NaN propagation behavior of std::min.
-  return _mm256_min_pd(a,b);
+  return _mm256_min_pd(b,a);
 }
 template<> EIGEN_STRONG_INLINE Packet8f pmax<Packet8f>(const Packet8f& a, const Packet8f& b) {
   // Arguments are swapped to match NaN propagation behavior of std::max.
