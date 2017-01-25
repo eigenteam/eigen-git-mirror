@@ -253,7 +253,7 @@ struct TensorEvaluator<const TensorFFTOp<FFT, ArgType, FFTResultType, FFTDir>, D
         // get data into line_buf
         const Index stride = m_strides[dim];
         if (stride == 1) {
-          memcpy(line_buf, &buf[base_offset], line_len*sizeof(ComplexScalar));
+          m_device.memcpy(line_buf, &buf[base_offset], line_len*sizeof(ComplexScalar));
         } else {
           Index offset = base_offset;
           for (int j = 0; j < line_len; ++j, offset += stride) {
@@ -271,7 +271,7 @@ struct TensorEvaluator<const TensorFFTOp<FFT, ArgType, FFTResultType, FFTDir>, D
 
         // write back
         if (FFTDir == FFT_FORWARD && stride == 1) {
-          memcpy(&buf[base_offset], line_buf, line_len*sizeof(ComplexScalar));
+          m_device.memcpy(&buf[base_offset], line_buf, line_len*sizeof(ComplexScalar));
         } else {
           Index offset = base_offset;
           const ComplexScalar div_factor =  ComplexScalar(1.0 / line_len, 0);

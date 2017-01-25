@@ -63,7 +63,7 @@ namespace Eigen {
 
 namespace internal {
 
-EIGEN_DEVICE_FUNC 
+EIGEN_DEVICE_FUNC
 inline void throw_std_bad_alloc()
 {
   #ifdef EIGEN_EXCEPTIONS
@@ -72,6 +72,41 @@ inline void throw_std_bad_alloc()
     std::size_t huge = static_cast<std::size_t>(-1);
     new int[huge];
   #endif
+}
+
+EIGEN_DEVICE_FUNC
+inline void fast_memcpy(void* dst, const void* src, size_t size) {
+#if defined(__CUDA__) || defined(__ANDROID__)
+  ::memcpy(dst, src, size);
+#else
+    switch(size) {
+    // Most compilers will generate inline code for fixed sizes,
+    // which is significantly faster for small copies.
+    case  1: memcpy(dst, src, 1); break;
+    case  2: memcpy(dst, src, 2); break;
+    case  3: memcpy(dst, src, 3); break;
+    case  4: memcpy(dst, src, 4); break;
+    case  5: memcpy(dst, src, 5); break;
+    case  6: memcpy(dst, src, 6); break;
+    case  7: memcpy(dst, src, 7); break;
+    case  8: memcpy(dst, src, 8); break;
+    case  9: memcpy(dst, src, 9); break;
+    case 10: memcpy(dst, src, 10); break;
+    case 11: memcpy(dst, src, 11); break;
+    case 12: memcpy(dst, src, 12); break;
+    case 13: memcpy(dst, src, 13); break;
+    case 14: memcpy(dst, src, 14); break;
+    case 15: memcpy(dst, src, 15); break;
+    case 16: memcpy(dst, src, 16); break;
+#ifdef EIGEN_OS_LINUX
+    // On Linux, memmove appears to be faster than memcpy for
+    // large sizes, strangely enough.
+    default: memmove(dst, src, size); break;
+#else
+    default: memcpy(dst, src, size); break;
+#endif
+    }
+#endif
 }
 
 /*****************************************************************************
@@ -114,7 +149,7 @@ inline void* handmade_aligned_realloc(void* ptr, std::size_t size, std::size_t =
   void *previous_aligned = static_cast<char *>(original)+previous_offset;
   if(aligned!=previous_aligned)
     std::memmove(aligned, previous_aligned, size);
-  
+
   *(reinterpret_cast<void**>(aligned) - 1) = original;
   return aligned;
 }
@@ -142,7 +177,7 @@ EIGEN_DEVICE_FUNC inline void check_that_malloc_is_allowed()
 {
   eigen_assert(is_malloc_allowed() && "heap allocation is forbidden (EIGEN_RUNTIME_NO_MALLOC is defined and g_is_malloc_allowed is false)");
 }
-#else 
+#else
 EIGEN_DEVICE_FUNC inline void check_that_malloc_is_allowed()
 {}
 #endif
@@ -471,8 +506,8 @@ EIGEN_DEVICE_FUNC inline Index first_default_aligned(const Scalar* array, Index 
 }
 
 /** \internal Returns the smallest integer multiple of \a base and greater or equal to \a size
-  */ 
-template<typename Index> 
+  */
+template<typename Index>
 inline Index first_multiple(Index size, Index base)
 {
   return ((size+base-1)/base)*base;
@@ -493,7 +528,7 @@ template<typename T> struct smart_copy_helper<T,true> {
     IntPtr size = IntPtr(end)-IntPtr(start);
     if(size==0) return;
     eigen_internal_assert(start!=0 && end!=0 && target!=0);
-    memcpy(target, start, size);
+    fast_memcpy(target, start, size);
   }
 };
 
@@ -502,7 +537,7 @@ template<typename T> struct smart_copy_helper<T,false> {
   { std::copy(start, end, target); }
 };
 
-// intelligent memmove. falls back to std::memmove for POD types, uses std::copy otherwise. 
+// intelligent memmove. falls back to std::memmove for POD types, uses std::copy otherwise.
 template<typename T, bool UseMemmove> struct smart_memmove_helper;
 
 template<typename T> void smart_memmove(const T* start, const T* end, T* target)
@@ -522,15 +557,15 @@ template<typename T> struct smart_memmove_helper<T,true> {
 
 template<typename T> struct smart_memmove_helper<T,false> {
   static inline void run(const T* start, const T* end, T* target)
-  { 
+  {
     if (UIntPtr(target) < UIntPtr(start))
     {
       std::copy(start, end, target);
     }
-    else                                 
+    else
     {
       std::ptrdiff_t count = (std::ptrdiff_t(end)-std::ptrdiff_t(start)) / sizeof(T);
-      std::copy_backward(start, end, target + count); 
+      std::copy_backward(start, end, target + count);
     }
   }
 };
@@ -603,7 +638,7 @@ template<typename T> void swap(scoped_array<T> &a,scoped_array<T> &b)
 {
   std::swap(a.ptr(),b.ptr());
 }
-    
+
 } // end namespace internal
 
 /** \internal
@@ -622,7 +657,7 @@ template<typename T> void swap(scoped_array<T> &a,scoped_array<T> &b)
   * The underlying stack allocation function can controlled with the EIGEN_ALLOCA preprocessor token.
   */
 #ifdef EIGEN_ALLOCA
-  
+
   #if EIGEN_DEFAULT_ALIGN_BYTES>0
     // We always manually re-align the result of EIGEN_ALLOCA.
     // If alloca is already aligned, the compiler should be smart enough to optimize away the re-alignment.
@@ -645,7 +680,7 @@ template<typename T> void swap(scoped_array<T> &a,scoped_array<T> &b)
     Eigen::internal::check_size_for_overflow<TYPE>(SIZE); \
     TYPE* NAME = (BUFFER)!=0 ? BUFFER : reinterpret_cast<TYPE*>(Eigen::internal::aligned_malloc(sizeof(TYPE)*SIZE));    \
     Eigen::internal::aligned_stack_memory_handler<TYPE> EIGEN_CAT(NAME,_stack_memory_destructor)((BUFFER)==0 ? NAME : 0,SIZE,true)
-    
+
 #endif
 
 
@@ -701,7 +736,7 @@ template<typename T> void swap(scoped_array<T> &a,scoped_array<T> &b)
 * Example:
 * \code
 * // Matrix4f requires 16 bytes alignment:
-* std::map< int, Matrix4f, std::less<int>, 
+* std::map< int, Matrix4f, std::less<int>,
 *           aligned_allocator<std::pair<const int, Matrix4f> > > my_map_mat4;
 * // Vector3f does not require 16 bytes alignment, no need to use Eigen's allocator:
 * std::map< int, Vector3f > my_map_vec3;
