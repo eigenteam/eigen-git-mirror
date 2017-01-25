@@ -226,7 +226,7 @@ void check_indexed_view()
   VERIFY( (B(all,1)).ColsAtCompileTime == 1);
   VERIFY( (B(all,1)).RowsAtCompileTime == 4);
 
-  VERIFY( (A(all, eii)).ColsAtCompileTime == eii.SizeAtCompileTime);
+  VERIFY(int( (A(all, eii)).ColsAtCompileTime) == int(eii.SizeAtCompileTime));
   VERIFY_EQ_INT( (A(eii, eii)).Flags&DirectAccessBit, (unsigned int)(0));
   VERIFY_EQ_INT( (A(eii, eii)).InnerStrideAtCompileTime, 0);
   VERIFY_EQ_INT( (A(eii, eii)).OuterStrideAtCompileTime, 0);
@@ -320,7 +320,7 @@ void check_indexed_view()
     VERIFY_IS_APPROX( A(B.RowsAtCompileTime, 1), A(4,1) );
     VERIFY_IS_APPROX( A(B.RowsAtCompileTime-1, B.ColsAtCompileTime-1), A(3,3) );
     VERIFY_IS_APPROX( A(B.RowsAtCompileTime, B.ColsAtCompileTime), A(4,4) );
-    enum { I = 3, J = 4 };
+    const Index I = 3, J = 4;
     VERIFY_IS_APPROX( A(I,J), A(3,4) );
   }
 
