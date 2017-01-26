@@ -363,6 +363,9 @@ using std::ptrdiff_t;
 #include "src/Core/util/StaticAssert.h"
 #include "src/Core/util/XprHelper.h"
 #include "src/Core/util/Memory.h"
+#include "src/Core/util/IntegralConstant.h"
+#include "src/Core/util/SymbolicIndex.h"
+
 
 #include "src/Core/NumTraits.h"
 #include "src/Core/MathFunctions.h"
@@ -427,6 +430,8 @@ using std::ptrdiff_t;
 // on CUDA devices
 #include "src/Core/arch/CUDA/Complex.h"
 
+#include "src/Core/util/IndexedViewHelper.h"
+#include "src/Core/ArithmeticSequence.h"
 #include "src/Core/DenseCoeffsBase.h"
 #include "src/Core/DenseBase.h"
 #include "src/Core/MatrixBase.h"
@@ -467,6 +472,7 @@ using std::ptrdiff_t;
 #include "src/Core/Ref.h"
 #include "src/Core/Block.h"
 #include "src/Core/VectorBlock.h"
+#include "src/Core/IndexedView.h"
 #include "src/Core/Transpose.h"
 #include "src/Core/DiagonalMatrix.h"
 #include "src/Core/Diagonal.h"

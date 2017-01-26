@@ -279,6 +279,59 @@ protected:
 };
 
 /** \internal
+  * Provides access to the number of elements in the object of as a compile-time constant expression.
+  * It "returns" Eigen::Dynamic if the size cannot be resolved at compile-time (default).
+  *
+  * Similar to std::tuple_size, but more general.
+  *
+  * It currently supports:
+  *  - any types T defining T::SizeAtCompileTime
+  *  - plain C arrays as T[N]
+  *  - std::array (c++11)
+  *  - some internal types such as SingleRange and AllRange
+  *
+  * The second template parameter eases SFINAE-based specializations.
+  */
+template<typename T, typename EnableIf = void> struct array_size {
+  enum { value = Dynamic };
+};
+
+template<typename T> struct array_size<T,typename internal::enable_if<((T::SizeAtCompileTime&0)==0)>::type> {
+  enum { value = T::SizeAtCompileTime };
+};
+
+template<typename T, int N> struct array_size<const T (&)[N]> {
+  enum { value = N };
+};
+template<typename T, int N> struct array_size<T (&)[N]> {
+  enum { value = N };
+};
+
+#if EIGEN_HAS_CXX11
+template<typename T, std::size_t N> struct array_size<const std::array<T,N> > {
+  enum { value = N };
+};
+template<typename T, std::size_t N> struct array_size<std::array<T,N> > {
+  enum { value = N };
+};
+#endif
+
+/** \internal
+  * Analogue of the std::size free function.
+  * It returns the size of the container or view \a x of type \c T
+  *
+  * It currently supports:
+  *  - any types T defining a member T::size() const
+  *  - plain C arrays as T[N]
+  *
+  */
+template<typename T>
+Index size(const T& x) { return x.size(); }
+
+template<typename T,std::size_t N>
+Index size(const T (&) [N]) { return N; }
+
+/** \internal
   * Convenient struct to get the result type of a unary or binary functor.
   *
   * It supports both the current STL mechanism (using the result_type member) as well as

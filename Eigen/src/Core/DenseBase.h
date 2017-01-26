@@ -563,6 +563,7 @@ template<typename Derived> class DenseBase
 #define EIGEN_DOC_UNARY_ADDONS(X,Y)
 #   include "../plugins/CommonCwiseUnaryOps.h"
 #   include "../plugins/BlockMethods.h"
+#   include "../plugins/IndexedViewMethods.h"
 #   ifdef EIGEN_DENSEBASE_PLUGIN
 #     include EIGEN_DENSEBASE_PLUGIN
 #   endif
