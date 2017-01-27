@@ -94,10 +94,9 @@ template<typename MatrixType> void block(const MatrixType& m)
   m1.block(r1,c1,r2-r1+1,c2-c1+1) = s1 * m2.block(0, 0, r2-r1+1,c2-c1+1);
   m1.block(r1,c1,r2-r1+1,c2-c1+1)(r2-r1,c2-c1) = m2.block(0, 0, r2-r1+1,c2-c1+1)(0,0);
 
-  enum {
-    BlockRows = 2,
-    BlockCols = 5
-  };
+  const Index BlockRows = 2;
+  const Index BlockCols = 5;
+
   if (rows>=5 && cols>=8)
   {
     // test fixed block() as lvalue
