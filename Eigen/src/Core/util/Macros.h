@@ -362,7 +362,7 @@
 #define EIGEN_HAS_CXX11 0
 #endif
 
-#if EIGEN_MAX_CPP_VER>=14 && (defined(__cplusplus) && (__cplusplus > 201103L) || EIGEN_COMP_MSVC >= 1900)
+#if EIGEN_MAX_CPP_VER>=14 && (defined(__cplusplus) && (__cplusplus > 201103L) || EIGEN_COMP_MSVC >= 1910)
 #define EIGEN_HAS_CXX14 1
 #else
 #define EIGEN_HAS_CXX14 0
