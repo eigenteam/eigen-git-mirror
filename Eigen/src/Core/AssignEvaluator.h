@@ -708,7 +708,7 @@ void resize_if_allowed(DstXprType &dst, const SrcXprType& src, const Functor &/*
   EIGEN_ONLY_USED_FOR_DEBUG(dst);
   EIGEN_ONLY_USED_FOR_DEBUG(src);
   eigen_assert(dst.rows() == src.rows() && dst.cols() == src.cols());
-};
+}
 
 template<typename DstXprType,typename SrcXprType, typename T1, typename T2>
 EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
@@ -719,7 +719,7 @@ void resize_if_allowed(DstXprType &dst, const SrcXprType& src, const internal::a
   if(((dst.rows()!=dstRows) || (dst.cols()!=dstCols)))
     dst.resize(dstRows, dstCols);
   eigen_assert(dst.rows() == dstRows && dst.cols() == dstCols);
-};
+}
 
 template<typename DstXprType, typename SrcXprType, typename Functor>
 EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void call_dense_assignment_loop(DstXprType& dst, const SrcXprType& src, const Functor &func)
