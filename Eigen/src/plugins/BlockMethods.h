@@ -1354,3 +1354,59 @@ inline typename ConstFixedSegmentReturnType<N>::Type tail(Index n = N) const
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
   return typename ConstFixedSegmentReturnType<N>::Type(derived(), size() - n);
 }
+
+/** \returns a dynamic-size expression of a reshape in *this.
+  *
+  * \param reshapeRows the number of rows in the reshape
+  * \param reshapeCols the number of columns in the reshape
+  *
+  * Example: \include MatrixBase_reshape_int_int.cpp
+  * Output: \verbinclude MatrixBase_reshape_int_int.out
+  *
+  * \note Even though the returned expression has dynamic size, in the case
+  * when it is applied to a fixed-size matrix, it inherits a fixed maximal size,
+  * which means that evaluating it does not cause a dynamic memory allocation.
+  *
+  * \sa class Reshape, reshape()
+  */
+EIGEN_DEVICE_FUNC
+inline Reshape<Derived> reshape(Index reshapeRows, Index reshapeCols)
+{
+  return Reshape<Derived>(derived(), reshapeRows, reshapeCols);
+}
+
+/** This is the const version of reshape(Index,Index). */
+EIGEN_DEVICE_FUNC
+inline const Reshape<const Derived> reshape(Index reshapeRows, Index reshapeCols) const
+{
+  return Reshape<const Derived>(derived(), reshapeRows, reshapeCols);
+}
+
+/** \returns a fixed-size expression of a reshape in *this.
+  *
+  * The template parameters \a ReshapeRows and \a ReshapeCols are the number of
+  * rows and columns in the reshape.
+  *
+  * Example: \include MatrixBase_reshape.cpp
+  * Output: \verbinclude MatrixBase_reshape.out
+  *
+  * \note since reshape is a templated member, the keyword template has to be used
+  * if the matrix type is also a template parameter: \code m.template reshape<3,3>(); \endcode
+  *
+  * \sa class Reshape, reshape(Index,Index)
+  */
+template<int ReshapeRows, int ReshapeCols>
+EIGEN_DEVICE_FUNC
+inline Reshape<Derived, ReshapeRows, ReshapeCols> reshape()
+{
+  return Reshape<Derived, ReshapeRows, ReshapeCols>(derived());
+}
+
+/** This is the const version of reshape<>(Index, Index). */
+template<int ReshapeRows, int ReshapeCols>
+EIGEN_DEVICE_FUNC
+inline const Reshape<const Derived, ReshapeRows, ReshapeCols> reshape() const
+{
+  return Reshape<const Derived, ReshapeRows, ReshapeCols>(derived());
+}
+
