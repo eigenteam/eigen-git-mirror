@@ -197,8 +197,8 @@ template<typename XprType, int Rows, int Cols, int Order, bool HasDirectAccess> 
   protected:
 
     MatrixTypeNested m_xpr;
-    const internal::variable_if_dynamic<Index, RowsAtCompileTime> m_rows;
-    const internal::variable_if_dynamic<Index, ColsAtCompileTime> m_cols;
+    const internal::variable_if_dynamic<Index, Rows> m_rows;
+    const internal::variable_if_dynamic<Index, Cols> m_cols;
 };
 
 
@@ -423,65 +423,6 @@ protected:
 //};
 
 } // end namespace internal
-
-/** \returns a dynamic-size expression of a reshape in *this.
-  *
-  * \param reshapeRows the number of rows in the reshape
-  * \param reshapeCols the number of columns in the reshape
-  *
-  * Example: \include MatrixBase_reshape_int_int.cpp
-  * Output: \verbinclude MatrixBase_reshape_int_int.out
-  *
-  * \note Even though the returned expression has dynamic size, in the case
-  * when it is applied to a fixed-size matrix, it inherits a fixed maximal size,
-  * which means that evaluating it does not cause a dynamic memory allocation.
-  *
-  * \sa class Reshape, reshaped()
-  */
-template<typename Derived>
-EIGEN_DEVICE_FUNC
-inline Reshaped<Derived> DenseBase<Derived>::reshaped(Index reshapeRows, Index reshapeCols)
-{
-  return Reshaped<Derived>(derived(), reshapeRows, reshapeCols);
-}
-
-/** This is the const version of reshaped(Index,Index). */
-template<typename Derived>
-EIGEN_DEVICE_FUNC
-inline const Reshaped<const Derived> DenseBase<Derived>::reshaped(Index reshapeRows, Index reshapeCols) const
-{
-  return Reshaped<const Derived>(derived(), reshapeRows, reshapeCols);
-}
-
-/** \returns a fixed-size expression of a reshape in *this.
-  *
-  * The template parameters \a ReshapeRows and \a ReshapeCols are the number of
-  * rows and columns in the reshape.
-  *
-  * Example: \include MatrixBase_reshape.cpp
-  * Output: \verbinclude MatrixBase_reshape.out
-  *
-  * \note since reshape is a templated member, the keyword template has to be used
-  * if the matrix type is also a template parameter: \code m.template reshape<3,3>(); \endcode
-  *
-  * \sa class Reshape, reshaped(Index,Index)
-  */
-template<typename Derived>
-template<int ReshapeRows, int ReshapeCols>
-EIGEN_DEVICE_FUNC
-inline Reshaped<Derived, ReshapeRows, ReshapeCols> DenseBase<Derived>::reshaped()
-{
-  return Reshaped<Derived, ReshapeRows, ReshapeCols>(derived());
-}
-
-/** This is the const version of reshape<>(Index, Index). */
-template<typename Derived>
-template<int ReshapeRows, int ReshapeCols>
-EIGEN_DEVICE_FUNC
-inline const Reshaped<const Derived, ReshapeRows, ReshapeCols> DenseBase<Derived>::reshaped() const
-{
-  return Reshaped<const Derived, ReshapeRows, ReshapeCols>(derived());
-}
 
 } // end namespace Eigen
 
