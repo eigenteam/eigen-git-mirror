@@ -557,6 +557,20 @@ template<typename Derived> class DenseBase
     }
     EIGEN_DEVICE_FUNC void reverseInPlace();
 
+    EIGEN_DEVICE_FUNC inline
+    Reshaped<Derived> reshaped(Index nRows, Index nCols);
+
+    EIGEN_DEVICE_FUNC inline
+    const Reshaped<const Derived> reshaped(Index nRows, Index nCols) const;
+
+    template<int ReshapeRows, int ReshapeCols>
+    EIGEN_DEVICE_FUNC
+    inline Reshaped<Derived, ReshapeRows, ReshapeCols> reshaped();
+
+    template<int ReshapeRows, int ReshapeCols>
+    EIGEN_DEVICE_FUNC
+    inline const Reshaped<const Derived, ReshapeRows, ReshapeCols> reshaped() const;
+
 #define EIGEN_CURRENT_STORAGE_BASE_CLASS Eigen::DenseBase
 #define EIGEN_DOC_BLOCK_ADDONS_NOT_INNER_PANEL
 #define EIGEN_DOC_BLOCK_ADDONS_INNER_PANEL_IF(COND)

@@ -84,7 +84,7 @@ template<typename ExpressionType> class SwapWrapper;
 
 template<typename XprType, int BlockRows=Dynamic, int BlockCols=Dynamic, bool InnerPanel = false> class Block;
 template<typename XprType, typename RowIndices, typename ColIndices> class IndexedView;
-template<typename XprType, int BlockRows=Dynamic, int BlockCols=Dynamic> class Reshape;
+template<typename XprType, int Rows=Dynamic, int Cols=Dynamic, int Order=0> class Reshaped;
 
 template<typename MatrixType, int Size=Dynamic> class VectorBlock;
 template<typename MatrixType> class Transpose;

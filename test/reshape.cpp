@@ -15,35 +15,36 @@ using Eigen::MatrixXi;
 // just test a 4x4 matrix, enumerate all combination manually,
 // so I don't have to do template-meta-programming here.
 template <typename MatType>
-void reshape_all_size(MatType m) {
+void reshape_all_size(MatType m)
+{
   typedef Eigen::Map<MatrixXi> MapMat;
   // dynamic
-  VERIFY_IS_EQUAL((m.template reshape( 1, 16)), MapMat(m.data(),  1, 16));
-  VERIFY_IS_EQUAL((m.template reshape( 2,  8)), MapMat(m.data(),  2,  8));
-  VERIFY_IS_EQUAL((m.template reshape( 4,  4)), MapMat(m.data(),  4,  4));
-  VERIFY_IS_EQUAL((m.template reshape( 8,  2)), MapMat(m.data(),  8,  2));
-  VERIFY_IS_EQUAL((m.template reshape(16,  1)), MapMat(m.data(), 16,  1));
+  VERIFY_IS_EQUAL((m.reshaped( 1, 16)), MapMat(m.data(),  1, 16));
+  VERIFY_IS_EQUAL((m.reshaped( 2,  8)), MapMat(m.data(),  2,  8));
+  VERIFY_IS_EQUAL((m.reshaped( 4,  4)), MapMat(m.data(),  4,  4));
+  VERIFY_IS_EQUAL((m.reshaped( 8,  2)), MapMat(m.data(),  8,  2));
+  VERIFY_IS_EQUAL((m.reshaped(16,  1)), MapMat(m.data(), 16,  1));
 
   // static
-  VERIFY_IS_EQUAL((m.template reshape< 1, 16>()), MapMat(m.data(),  1, 16));
-  VERIFY_IS_EQUAL((m.template reshape< 2,  8>()), MapMat(m.data(),  2,  8));
-  VERIFY_IS_EQUAL((m.template reshape< 4,  4>()), MapMat(m.data(),  4,  4));
-  VERIFY_IS_EQUAL((m.template reshape< 8,  2>()), MapMat(m.data(),  8,  2));
-  VERIFY_IS_EQUAL((m.template reshape<16,  1>()), MapMat(m.data(), 16,  1));
+  VERIFY_IS_EQUAL((m.template reshaped< 1, 16>()), MapMat(m.data(),  1, 16));
+  VERIFY_IS_EQUAL((m.template reshaped< 2,  8>()), MapMat(m.data(),  2,  8));
+  VERIFY_IS_EQUAL((m.template reshaped< 4,  4>()), MapMat(m.data(),  4,  4));
+  VERIFY_IS_EQUAL((m.template reshaped< 8,  2>()), MapMat(m.data(),  8,  2));
+  VERIFY_IS_EQUAL((m.template reshaped<16,  1>()), MapMat(m.data(), 16,  1));
 
   // reshape chain
   VERIFY_IS_EQUAL(
     (m
-     .template reshape( 1, 16)
-     .template reshape< 2,  8>()
-     .template reshape(16,  1)
-     .template reshape< 8,  2>()
-     .template reshape( 2,  8)
-     .template reshape< 1, 16>()
-     .template reshape( 4,  4)
-     .template reshape<16,  1>()
-     .template reshape( 8,  2)
-     .template reshape< 4,  4>()
+     .         reshaped( 1, 16)
+     .template reshaped< 2,  8>()
+     .         reshaped(16,  1)
+     .template reshaped< 8,  2>()
+     .         reshaped( 2,  8)
+     .template reshaped< 1, 16>()
+     .         reshaped( 4,  4)
+     .template reshaped<16,  1>()
+     .         reshaped( 8,  2)
+     .template reshaped< 4,  4>()
     ),
     MapMat(m.data(), 4,  4)
   );
