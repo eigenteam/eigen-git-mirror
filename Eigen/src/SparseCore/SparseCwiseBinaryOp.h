@@ -359,6 +359,16 @@ struct binary_evaluator<CwiseBinaryOp<scalar_product_op<T1,T2>, Lhs, Rhs>, Itera
   explicit binary_evaluator(const XprType& xpr) : Base(xpr) {}
 };
 
+// "sparse ./ dense"
+template<typename T1, typename T2, typename Lhs, typename Rhs>
+struct binary_evaluator<CwiseBinaryOp<scalar_quotient_op<T1,T2>, Lhs, Rhs>, IteratorBased, IndexBased>
+  : sparse_conjunction_evaluator<CwiseBinaryOp<scalar_quotient_op<T1,T2>, Lhs, Rhs> >
+{
+  typedef CwiseBinaryOp<scalar_quotient_op<T1,T2>, Lhs, Rhs> XprType;
+  typedef sparse_conjunction_evaluator<XprType> Base;
+  explicit binary_evaluator(const XprType& xpr) : Base(xpr) {}
+};
+
 // "sparse && sparse"
 template<typename Lhs, typename Rhs>
 struct binary_evaluator<CwiseBinaryOp<scalar_boolean_and_op, Lhs, Rhs>, IteratorBased, IteratorBased>
