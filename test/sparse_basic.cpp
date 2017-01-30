@@ -161,17 +161,21 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
     if(internal::random<bool>())
       m1.makeCompressed();
 
+    Index m1_nnz = m1.nonZeros();
+
     VERIFY_IS_APPROX(m1*s1, refM1*s1);
     VERIFY_IS_APPROX(m1+m2, refM1+refM2);
     VERIFY_IS_APPROX(m1+m2+m3, refM1+refM2+refM3);
     VERIFY_IS_APPROX(m3.cwiseProduct(m1+m2), refM3.cwiseProduct(refM1+refM2));
     VERIFY_IS_APPROX(m1*s1-m2, refM1*s1-refM2);
+    VERIFY_IS_APPROX(m4=m1/s1, refM1/s1);
+    VERIFY_IS_EQUAL(m4.nonZeros(), m1_nnz);
 
     if(SparseMatrixType::IsRowMajor)
       VERIFY_IS_APPROX(m1.innerVector(0).dot(refM2.row(0)), refM1.row(0).dot(refM2.row(0)));
     else
       VERIFY_IS_APPROX(m1.innerVector(0).dot(refM2.col(0)), refM1.col(0).dot(refM2.col(0)));
-    
+
     DenseVector rv = DenseVector::Random(m1.cols());
     DenseVector cv = DenseVector::Random(m1.rows());
     Index r = internal::random<Index>(0,m1.rows()-2);
@@ -208,8 +212,12 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
 
     VERIFY_IS_APPROX(m1.sum(), refM1.sum());
 
+    m4 = m1; refM4 = m4;
+
     VERIFY_IS_APPROX(m1*=s1, refM1*=s1);
+    VERIFY_IS_EQUAL(m1.nonZeros(), m1_nnz);
     VERIFY_IS_APPROX(m1/=s1, refM1/=s1);
+    VERIFY_IS_EQUAL(m1.nonZeros(), m1_nnz);
 
     VERIFY_IS_APPROX(m1+=m2, refM1+=refM2);
     VERIFY_IS_APPROX(m1-=m2, refM1-=refM2);
@@ -220,13 +228,22 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
       VERIFY_RAISES_ASSERT( m1 -= m1.innerVector(0) );
       VERIFY_RAISES_ASSERT( refM1 -= m1.innerVector(0) );
       VERIFY_RAISES_ASSERT( refM1 += m1.innerVector(0) );
+      m1 = m4; refM1 = refM4;
     }
 
     // test aliasing
     VERIFY_IS_APPROX((m1 = -m1), (refM1 = -refM1));
+    VERIFY_IS_EQUAL(m1.nonZeros(), m1_nnz);
+    m1 = m4; refM1 = refM4;
     VERIFY_IS_APPROX((m1 = m1.transpose()), (refM1 = refM1.transpose().eval()));
+    VERIFY_IS_EQUAL(m1.nonZeros(), m1_nnz);
+    m1 = m4; refM1 = refM4;
     VERIFY_IS_APPROX((m1 = -m1.transpose()), (refM1 = -refM1.transpose().eval()));
+    VERIFY_IS_EQUAL(m1.nonZeros(), m1_nnz);
+    m1 = m4; refM1 = refM4;
     VERIFY_IS_APPROX((m1 += -m1), (refM1 += -refM1));
+    VERIFY_IS_EQUAL(m1.nonZeros(), m1_nnz);
+    m1 = m4; refM1 = refM4;
 
     if(m1.isCompressed())
     {
