@@ -229,7 +229,8 @@ ALIASES                = "only_for_vectors=This is only for vectors (either row-
                          "blank= " \
                          "cpp11=<span class='cpp11'>[c++11]</span>" \
                          "cpp14=<span class='cpp14'>[c++14]</span>" \
-                         "cpp17=<span class='cpp17'>[c++17]</span>"
+                         "cpp17=<span class='cpp17'>[c++17]</span>" \
+                         "newin{1}=<span class='newin3x'>New in %Eigen \1.</span>"
                          
 
 ALIASES += "eigenAutoToc=  "
@@ -409,7 +410,7 @@ EXTRACT_PACKAGE        = NO
 # If the EXTRACT_STATIC tag is set to YES all static members of a file
 # will be included in the documentation.
 
-EXTRACT_STATIC         = NO
+EXTRACT_STATIC         = YES
 
 # If the EXTRACT_LOCAL_CLASSES tag is set to YES classes (and structs)
 # defined locally in source files will be included in the documentation.
@@ -727,7 +728,8 @@ RECURSIVE              = YES
 # Note that relative paths are relative to the directory from which doxygen is
 # run.
 
-EXCLUDE                = "${Eigen_SOURCE_DIR}/Eigen/Eigen2Support" \
+EXCLUDE                = "${Eigen_SOURCE_DIR}/Eigen/src/Core/products" \
+                         "${Eigen_SOURCE_DIR}/Eigen/Eigen2Support" \
                          "${Eigen_SOURCE_DIR}/Eigen/src/Eigen2Support" \
                          "${Eigen_SOURCE_DIR}/doc/examples" \
                          "${Eigen_SOURCE_DIR}/doc/special_examples" \
@@ -1591,8 +1593,12 @@ PREDEFINED             = EIGEN_EMPTY_STRUCT \
                          EIGEN_STRONG_INLINE=inline \
                          EIGEN_DEVICE_FUNC= \
                          "EIGEN_MAKE_CWISE_BINARY_OP(METHOD,FUNCTOR)=template<typename OtherDerived> const CwiseBinaryOp<FUNCTOR<Scalar>, const Derived, const OtherDerived> METHOD(const EIGEN_CURRENT_STORAGE_BASE_CLASS<OtherDerived> &other) const;" \
-                         "EIGEN_CWISE_PRODUCT_RETURN_TYPE(LHS,RHS)=CwiseBinaryOp<internal::scalar_product_op<typename LHS::Scalar, typename RHS::Scalar >, const LHS, const RHS>"\
+                         "EIGEN_CWISE_PRODUCT_RETURN_TYPE(LHS,RHS)=CwiseBinaryOp<internal::scalar_product_op<LHS::Scalar,RHS::Scalar>, const LHS, const RHS>"\
+                         "EIGEN_CAT2(a,b)= a ## b"\
+                         "EIGEN_CAT(a,b)=EIGEN_CAT2(a,b)"\
+                         "EIGEN_CWISE_BINARY_RETURN_TYPE(LHS,RHS,OPNAME)=CwiseBinaryOp<EIGEN_CAT(EIGEN_CAT(internal::scalar_,OPNAME),_op)<LHS::Scalar, RHS::Scalar>, const LHS, const RHS>"\
                          DOXCOMMA=,
+
 
 # If the MACRO_EXPANSION and EXPAND_ONLY_PREDEF tags are set to YES then
 # this tag can be used to specify a list of macro names that should be expanded.
@@ -1616,6 +1622,7 @@ EXPAND_AS_DEFINED      = EIGEN_MAKE_TYPEDEFS \
                          EIGEN_DOC_UNARY_ADDONS \
                          EIGEN_DOC_BLOCK_ADDONS_NOT_INNER_PANEL \
                          EIGEN_DOC_BLOCK_ADDONS_INNER_PANEL_IF
+
 
 # If the SKIP_FUNCTION_MACROS tag is set to YES (the default) then
 # doxygen's preprocessor will remove all references to function-like macros

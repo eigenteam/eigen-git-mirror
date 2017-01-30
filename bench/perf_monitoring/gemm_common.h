@@ -3,7 +3,7 @@
 #include <vector>
 #include <string>
 #include "eigen_src/Eigen/Core"
-#include "../../BenchTimer.h"
+#include "../BenchTimer.h"
 using namespace Eigen;
 
 #ifndef SCALAR

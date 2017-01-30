@@ -141,6 +141,11 @@
     #endif
     #ifdef __AVX2__
       #define EIGEN_VECTORIZE_AVX2
+      #define EIGEN_VECTORIZE_AVX
+      #define EIGEN_VECTORIZE_SSE3
+      #define EIGEN_VECTORIZE_SSSE3
+      #define EIGEN_VECTORIZE_SSE4_1
+      #define EIGEN_VECTORIZE_SSE4_2
     #endif
     #ifdef __FMA__
       #define EIGEN_VECTORIZE_FMA
@@ -332,11 +337,15 @@ inline static const char *SimdInstructionSetsInUse(void) {
 #error Eigen2-support is only available up to version 3.2. Please go to "http://eigen.tuxfamily.org/index.php?title=Eigen2" for further information
 #endif
 
+namespace Eigen {
+
 // we use size_t frequently and we'll never remember to prepend it with std:: everytime just to
 // ensure QNX/QCC support
 using std::size_t;
 // gcc 4.6.0 wants std:: for ptrdiff_t
 using std::ptrdiff_t;
+
+}
 
 /** \defgroup Core_Module Core module
   * This is the main module of Eigen providing dense matrix and vector support
@@ -354,6 +363,9 @@ using std::ptrdiff_t;
 #include "src/Core/util/StaticAssert.h"
 #include "src/Core/util/XprHelper.h"
 #include "src/Core/util/Memory.h"
+#include "src/Core/util/IntegralConstant.h"
+#include "src/Core/util/SymbolicIndex.h"
+
 
 #include "src/Core/NumTraits.h"
 #include "src/Core/MathFunctions.h"
@@ -418,6 +430,8 @@ using std::ptrdiff_t;
 // on CUDA devices
 #include "src/Core/arch/CUDA/Complex.h"
 
+#include "src/Core/util/IndexedViewHelper.h"
+#include "src/Core/ArithmeticSequence.h"
 #include "src/Core/DenseCoeffsBase.h"
 #include "src/Core/DenseBase.h"
 #include "src/Core/MatrixBase.h"
@@ -458,6 +472,7 @@ using std::ptrdiff_t;
 #include "src/Core/Ref.h"
 #include "src/Core/Block.h"
 #include "src/Core/VectorBlock.h"
+#include "src/Core/IndexedView.h"
 #include "src/Core/Transpose.h"
 #include "src/Core/DiagonalMatrix.h"
 #include "src/Core/Diagonal.h"

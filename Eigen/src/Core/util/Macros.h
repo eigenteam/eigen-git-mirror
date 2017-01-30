@@ -356,12 +356,17 @@
 #define EIGEN_MAX_CPP_VER 99
 #endif
 
-#if EIGEN_MAX_CPP_VER>=11 && defined(__cplusplus) && (__cplusplus >= 201103L)
+#if EIGEN_MAX_CPP_VER>=11 && (defined(__cplusplus) && (__cplusplus >= 201103L) || EIGEN_COMP_MSVC >= 1900)
 #define EIGEN_HAS_CXX11 1
 #else
 #define EIGEN_HAS_CXX11 0
 #endif
 
+#if EIGEN_MAX_CPP_VER>=14 && (defined(__cplusplus) && (__cplusplus > 201103L) || EIGEN_COMP_MSVC >= 1910)
+#define EIGEN_HAS_CXX14 1
+#else
+#define EIGEN_HAS_CXX14 0
+#endif
 
 // Do we support r-value references?
 #ifndef EIGEN_HAS_RVALUE_REFERENCES
@@ -865,7 +870,8 @@ namespace Eigen {
   typedef typename Eigen::internal::ref_selector<Derived>::type Nested; \
   typedef typename Eigen::internal::traits<Derived>::StorageKind StorageKind; \
   typedef typename Eigen::internal::traits<Derived>::StorageIndex StorageIndex; \
-  enum { RowsAtCompileTime = Eigen::internal::traits<Derived>::RowsAtCompileTime, \
+  enum CompileTimeTraits \
+      { RowsAtCompileTime = Eigen::internal::traits<Derived>::RowsAtCompileTime, \
         ColsAtCompileTime = Eigen::internal::traits<Derived>::ColsAtCompileTime, \
         Flags = Eigen::internal::traits<Derived>::Flags, \
         SizeAtCompileTime = Base::SizeAtCompileTime, \

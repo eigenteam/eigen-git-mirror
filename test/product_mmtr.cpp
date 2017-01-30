@@ -62,6 +62,19 @@ template<typename Scalar> void mmtr(int size)
   CHECK_MMTR(matc, Upper, -= (s*sqc).template triangularView<Upper>()*sqc);
   CHECK_MMTR(matc, Lower, = (s*sqr).template triangularView<Lower>()*sqc);
   CHECK_MMTR(matc, Upper, += (s*sqc).template triangularView<Lower>()*sqc);
+
+  // check aliasing
+  ref2 = ref1 = matc;
+  ref1 = sqc.adjoint() * matc * sqc;
+  ref2.template triangularView<Upper>() = ref1.template triangularView<Upper>();
+  matc.template triangularView<Upper>() = sqc.adjoint() * matc * sqc;
+  VERIFY_IS_APPROX(matc, ref2);
+
+  ref2 = ref1 = matc;
+  ref1 = sqc * matc * sqc.adjoint();
+  ref2.template triangularView<Lower>() = ref1.template triangularView<Lower>();
+  matc.template triangularView<Lower>() = sqc * matc * sqc.adjoint();
+  VERIFY_IS_APPROX(matc, ref2);
 }
 
 void test_product_mmtr()

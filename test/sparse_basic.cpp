@@ -25,6 +25,7 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
   //const Index outer = ref.outerSize();
 
   typedef typename SparseMatrixType::Scalar Scalar;
+  typedef typename SparseMatrixType::RealScalar RealScalar;
   enum { Flags = SparseMatrixType::Flags };
 
   double density = (std::max)(8./(rows*cols), 0.01);
@@ -160,17 +161,21 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
     if(internal::random<bool>())
       m1.makeCompressed();
 
+    Index m1_nnz = m1.nonZeros();
+
     VERIFY_IS_APPROX(m1*s1, refM1*s1);
     VERIFY_IS_APPROX(m1+m2, refM1+refM2);
     VERIFY_IS_APPROX(m1+m2+m3, refM1+refM2+refM3);
     VERIFY_IS_APPROX(m3.cwiseProduct(m1+m2), refM3.cwiseProduct(refM1+refM2));
     VERIFY_IS_APPROX(m1*s1-m2, refM1*s1-refM2);
+    VERIFY_IS_APPROX(m4=m1/s1, refM1/s1);
+    VERIFY_IS_EQUAL(m4.nonZeros(), m1_nnz);
 
     if(SparseMatrixType::IsRowMajor)
       VERIFY_IS_APPROX(m1.innerVector(0).dot(refM2.row(0)), refM1.row(0).dot(refM2.row(0)));
     else
       VERIFY_IS_APPROX(m1.innerVector(0).dot(refM2.col(0)), refM1.col(0).dot(refM2.col(0)));
-    
+
     DenseVector rv = DenseVector::Random(m1.cols());
     DenseVector cv = DenseVector::Random(m1.rows());
     Index r = internal::random<Index>(0,m1.rows()-2);
@@ -193,20 +198,52 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
     VERIFY_IS_APPROX(m3 + refM4, refM3 + refM4);
     VERIFY_IS_APPROX(refM4 - m3, refM4 - refM3);
     VERIFY_IS_APPROX(m3 - refM4, refM3 - refM4);
+    VERIFY_IS_APPROX((RealScalar(0.5)*refM4 + RealScalar(0.5)*m3).eval(), RealScalar(0.5)*refM4 + RealScalar(0.5)*refM3);
+    VERIFY_IS_APPROX((RealScalar(0.5)*refM4 + m3*RealScalar(0.5)).eval(), RealScalar(0.5)*refM4 + RealScalar(0.5)*refM3);
+    VERIFY_IS_APPROX((RealScalar(0.5)*refM4 + m3.cwiseProduct(m3)).eval(), RealScalar(0.5)*refM4 + refM3.cwiseProduct(refM3));
+
+    VERIFY_IS_APPROX((RealScalar(0.5)*refM4 + RealScalar(0.5)*m3).eval(), RealScalar(0.5)*refM4 + RealScalar(0.5)*refM3);
+    VERIFY_IS_APPROX((RealScalar(0.5)*refM4 + m3*RealScalar(0.5)).eval(), RealScalar(0.5)*refM4 + RealScalar(0.5)*refM3);
+    VERIFY_IS_APPROX((RealScalar(0.5)*refM4 + (m3+m3)).eval(), RealScalar(0.5)*refM4 + (refM3+refM3));
+    VERIFY_IS_APPROX(((refM3+m3)+RealScalar(0.5)*m3).eval(), RealScalar(0.5)*refM3 + (refM3+refM3));
+    VERIFY_IS_APPROX((RealScalar(0.5)*refM4 + (refM3+m3)).eval(), RealScalar(0.5)*refM4 + (refM3+refM3));
+    VERIFY_IS_APPROX((RealScalar(0.5)*refM4 + (m3+refM3)).eval(), RealScalar(0.5)*refM4 + (refM3+refM3));
+
 
     VERIFY_IS_APPROX(m1.sum(), refM1.sum());
 
+    m4 = m1; refM4 = m4;
+
     VERIFY_IS_APPROX(m1*=s1, refM1*=s1);
+    VERIFY_IS_EQUAL(m1.nonZeros(), m1_nnz);
     VERIFY_IS_APPROX(m1/=s1, refM1/=s1);
+    VERIFY_IS_EQUAL(m1.nonZeros(), m1_nnz);
 
     VERIFY_IS_APPROX(m1+=m2, refM1+=refM2);
     VERIFY_IS_APPROX(m1-=m2, refM1-=refM2);
 
+    if (rows>=2 && cols>=2)
+    {
+      VERIFY_RAISES_ASSERT( m1 += m1.innerVector(0) );
+      VERIFY_RAISES_ASSERT( m1 -= m1.innerVector(0) );
+      VERIFY_RAISES_ASSERT( refM1 -= m1.innerVector(0) );
+      VERIFY_RAISES_ASSERT( refM1 += m1.innerVector(0) );
+      m1 = m4; refM1 = refM4;
+    }
+
     // test aliasing
     VERIFY_IS_APPROX((m1 = -m1), (refM1 = -refM1));
+    VERIFY_IS_EQUAL(m1.nonZeros(), m1_nnz);
+    m1 = m4; refM1 = refM4;
     VERIFY_IS_APPROX((m1 = m1.transpose()), (refM1 = refM1.transpose().eval()));
+    VERIFY_IS_EQUAL(m1.nonZeros(), m1_nnz);
+    m1 = m4; refM1 = refM4;
     VERIFY_IS_APPROX((m1 = -m1.transpose()), (refM1 = -refM1.transpose().eval()));
+    VERIFY_IS_EQUAL(m1.nonZeros(), m1_nnz);
+    m1 = m4; refM1 = refM4;
     VERIFY_IS_APPROX((m1 += -m1), (refM1 += -refM1));
+    VERIFY_IS_EQUAL(m1.nonZeros(), m1_nnz);
+    m1 = m4; refM1 = refM4;
 
     if(m1.isCompressed())
     {
@@ -416,7 +453,7 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
     m3 = m2.template triangularView<StrictlyLower>();
     VERIFY_IS_APPROX(m3, refMat3);
 
-    // check sparse-traingular to dense
+    // check sparse-triangular to dense
     refMat3 = m2.template triangularView<StrictlyUpper>();
     VERIFY_IS_APPROX(refMat3, DenseMatrix(refMat2.template triangularView<StrictlyUpper>()));
   }
@@ -465,6 +502,10 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
     SparseMatrixType m2(rows, cols);
     initSparse<Scalar>(density, refMat2, m2);
     VERIFY_IS_APPROX(m2.diagonal(), refMat2.diagonal().eval());
+    DenseVector d = m2.diagonal();
+    VERIFY_IS_APPROX(d, refMat2.diagonal().eval());
+    d = m2.diagonal().array();
+    VERIFY_IS_APPROX(d, refMat2.diagonal().eval());
     VERIFY_IS_APPROX(const_cast<const SparseMatrixType&>(m2).diagonal(), refMat2.diagonal().eval());
     
     initSparse<Scalar>(density, refMat2, m2, ForceNonZeroDiag);

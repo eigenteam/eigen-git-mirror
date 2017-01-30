@@ -190,9 +190,9 @@ template<typename _StorageIndex> cholmod_sparse* cm_spsolve       (int sys, chol
 template<>                       cholmod_sparse* cm_spsolve<long> (int sys, cholmod_factor& L, cholmod_sparse& B, cholmod_common &Common) { return cholmod_l_spsolve (sys, &L, &B, &Common); }
 
 template<typename _StorageIndex>
-int  cm_factorize_p       (cholmod_sparse*  A, double beta[2], _StorageIndex* fset, size_t fsize, cholmod_factor* L, cholmod_common &Common) { return cholmod_factorize_p   (A, beta, fset, fsize, L, &Common); }
+int  cm_factorize_p       (cholmod_sparse*  A, double beta[2], _StorageIndex* fset, std::size_t fsize, cholmod_factor* L, cholmod_common &Common) { return cholmod_factorize_p   (A, beta, fset, fsize, L, &Common); }
 template<>
-int  cm_factorize_p<long> (cholmod_sparse*  A, double beta[2], long* fset,          size_t fsize, cholmod_factor* L, cholmod_common &Common) { return cholmod_l_factorize_p (A, beta, fset, fsize, L, &Common); }
+int  cm_factorize_p<long> (cholmod_sparse*  A, double beta[2], long* fset,          std::size_t fsize, cholmod_factor* L, cholmod_common &Common) { return cholmod_l_factorize_p (A, beta, fset, fsize, L, &Common); }
 
 #undef EIGEN_CHOLMOD_SPECIALIZE0
 #undef EIGEN_CHOLMOD_SPECIALIZE1

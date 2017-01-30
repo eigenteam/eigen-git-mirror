@@ -340,7 +340,7 @@ mat1 = mat2.adjoint();        mat1.adjointInPlace();
 \endcode
 </td></tr>
 <tr><td>
-\link MatrixBase::dot() dot \endlink product \n inner product \matrixworld</td><td>\code
+\link MatrixBase::dot dot \endlink product \n inner product \matrixworld</td><td>\code
 scalar = vec1.dot(vec2);
 scalar = col1.adjoint() * col2;
 scalar = (col1.adjoint() * col2).value();\endcode

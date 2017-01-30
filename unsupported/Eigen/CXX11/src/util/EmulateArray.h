@@ -200,19 +200,15 @@ EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const T& array_get(const array<T,N>& a) {
   return a[I];
 }
 
-template <typename T> struct array_size;
 template<class T, std::size_t N> struct array_size<array<T,N> > {
   static const size_t value = N;
 };
-template <typename T> struct array_size;
 template<class T, std::size_t N> struct array_size<array<T,N>& > {
   static const size_t value = N;
 };
-template <typename T> struct array_size;
 template<class T, std::size_t N> struct array_size<const array<T,N> > {
   static const size_t value = N;
 };
-template <typename T> struct array_size;
 template<class T, std::size_t N> struct array_size<const array<T,N>& > {
   static const size_t value = N;
 };
@@ -251,14 +247,6 @@ template<std::size_t I, class T, std::size_t N> constexpr inline T const& array_
 
 #undef STD_GET_ARR_HACK
 
-template <typename T> struct array_size;
-template<class T, std::size_t N> struct array_size<const std::array<T,N> > {
-  static const size_t value = N;
-};
-template <typename T> struct array_size;
-template<class T, std::size_t N> struct array_size<std::array<T,N> > {
-  static const size_t value = N;
-};
 }  // end namespace internal
 }  // end namespace Eigen
 

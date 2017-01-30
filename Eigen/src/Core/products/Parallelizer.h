@@ -75,7 +75,7 @@ template<typename Index> struct GemmParallelInfo
 {
   GemmParallelInfo() : sync(-1), users(0), lhs_start(0), lhs_length(0) {}
 
-  int volatile sync;
+  Index volatile sync;
   int volatile users;
 
   Index lhs_start;

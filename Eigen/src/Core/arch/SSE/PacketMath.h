@@ -45,7 +45,7 @@ struct eigen_packet_wrapper
     m_val = v;
     return *this;
   }
-  
+
   T m_val;
 };
 typedef eigen_packet_wrapper<__m128>  Packet4f;
@@ -69,7 +69,7 @@ template<> struct is_arithmetic<__m128d> { enum { value = true }; };
 
 #define vec2d_swizzle1(v,p,q) \
   (_mm_castsi128_pd(_mm_shuffle_epi32( _mm_castpd_si128(v), ((q*2+1)<<6|(q*2)<<4|(p*2+1)<<2|(p*2)))))
-  
+
 #define vec4f_swizzle2(a,b,p,q,r,s) \
   (_mm_shuffle_ps( (a), (b), ((s)<<6|(r)<<4|(q)<<2|(p))))
 
@@ -190,7 +190,7 @@ template<> EIGEN_STRONG_INLINE Packet4f pload1<Packet4f>(const float *from) {
   return vec4f_swizzle1(_mm_load_ss(from),0,0,0,0);
 }
 #endif
-  
+
 template<> EIGEN_STRONG_INLINE Packet4f plset<Packet4f>(const float& a) { return _mm_add_ps(pset1<Packet4f>(a), _mm_set_ps(3,2,1,0)); }
 template<> EIGEN_STRONG_INLINE Packet2d plset<Packet2d>(const double& a) { return _mm_add_pd(pset1<Packet2d>(a),_mm_set_pd(1,0)); }
 template<> EIGEN_STRONG_INLINE Packet4i plset<Packet4i>(const int& a) { return _mm_add_epi32(pset1<Packet4i>(a),_mm_set_epi32(3,2,1,0)); }
@@ -250,8 +250,34 @@ template<> EIGEN_STRONG_INLINE Packet4f pmadd(const Packet4f& a, const Packet4f&
 template<> EIGEN_STRONG_INLINE Packet2d pmadd(const Packet2d& a, const Packet2d& b, const Packet2d& c) { return _mm_fmadd_pd(a,b,c); }
 #endif
 
-template<> EIGEN_STRONG_INLINE Packet4f pmin<Packet4f>(const Packet4f& a, const Packet4f& b) { return _mm_min_ps(a,b); }
-template<> EIGEN_STRONG_INLINE Packet2d pmin<Packet2d>(const Packet2d& a, const Packet2d& b) { return _mm_min_pd(a,b); }
+template<> EIGEN_STRONG_INLINE Packet4f pmin<Packet4f>(const Packet4f& a, const Packet4f& b) {
+#if EIGEN_COMP_GNUC
+  // There appears to be a bug in GCC, by which the optimizer may
+  // flip the argument order in calls to _mm_min_ps, so we have to
+  // resort to inline ASM here. This is supposed to be fixed in gcc6.3,
+  // see also: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=72867
+  Packet4f res = b;
+  asm("minps %[a], %[res]" : [res] "+x" (res) : [a] "x" (a));
+  return res;
+#else
+  // Arguments are reversed to match NaN propagation behavior of std::min.
+  return _mm_min_ps(b, a);
+#endif
+}
+template<> EIGEN_STRONG_INLINE Packet2d pmin<Packet2d>(const Packet2d& a, const Packet2d& b) {
+#if EIGEN_COMP_GNUC
+  // There appears to be a bug in GCC, by which the optimizer may
+  // flip the argument order in calls to _mm_min_pd, so we have to
+  // resort to inline ASM here. This is supposed to be fixed in gcc6.3,
+  // see also: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=72867
+  Packet2d res = b;
+  asm("minpd %[a], %[res]" : [res] "+x" (res) : [a] "x" (a));
+  return res;
+#else
+  // Arguments are reversed to match NaN propagation behavior of std::min.
+  return _mm_min_pd(b, a);
+#endif
+}
 template<> EIGEN_STRONG_INLINE Packet4i pmin<Packet4i>(const Packet4i& a, const Packet4i& b)
 {
 #ifdef EIGEN_VECTORIZE_SSE4_1
@@ -263,8 +289,34 @@ template<> EIGEN_STRONG_INLINE Packet4i pmin<Packet4i>(const Packet4i& a, const 
 #endif
 }
 
-template<> EIGEN_STRONG_INLINE Packet4f pmax<Packet4f>(const Packet4f& a, const Packet4f& b) { return _mm_max_ps(a,b); }
-template<> EIGEN_STRONG_INLINE Packet2d pmax<Packet2d>(const Packet2d& a, const Packet2d& b) { return _mm_max_pd(a,b); }
+template<> EIGEN_STRONG_INLINE Packet4f pmax<Packet4f>(const Packet4f& a, const Packet4f& b) {
+#if EIGEN_COMP_GNUC
+  // There appears to be a bug in GCC, by which the optimizer may
+  // flip the argument order in calls to _mm_max_ps, so we have to
+  // resort to inline ASM here. This is supposed to be fixed in gcc6.3,
+  // see also: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=72867
+  Packet4f res = b;
+  asm("maxps %[a], %[res]" : [res] "+x" (res) : [a] "x" (a));
+  return res;
+#else
+  // Arguments are reversed to match NaN propagation behavior of std::max.
+  return _mm_max_ps(b, a);
+#endif
+}
+template<> EIGEN_STRONG_INLINE Packet2d pmax<Packet2d>(const Packet2d& a, const Packet2d& b) {
+#if EIGEN_COMP_GNUC
+  // There appears to be a bug in GCC, by which the optimizer may
+  // flip the argument order in calls to _mm_max_pd, so we have to
+  // resort to inline ASM here. This is supposed to be fixed in gcc6.3,
+  // see also: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=72867
+  Packet2d res = b;
+  asm("maxpd %[a], %[res]" : [res] "+x" (res) : [a] "x" (a));
+  return res;
+#else
+  // Arguments are reversed to match NaN propagation behavior of std::max.
+  return _mm_max_pd(b, a);
+#endif
+}
 template<> EIGEN_STRONG_INLINE Packet4i pmax<Packet4i>(const Packet4i& a, const Packet4i& b)
 {
 #ifdef EIGEN_VECTORIZE_SSE4_1

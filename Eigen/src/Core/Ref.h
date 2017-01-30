@@ -184,6 +184,8 @@ protected:
   * void foo(const Ref<MatrixXf,0,Stride<> >& A) { foo_impl(A); }
   * \endcode
   *
+  * See also the following stackoverflow questions for further references:
+  *  - <a href="http://stackoverflow.com/questions/21132538/correct-usage-of-the-eigenref-class">Correct usage of the Eigen::Ref<> class</a>
   *
   * \sa PlainObjectBase::Map(), \ref TopicStorageOrders
   */

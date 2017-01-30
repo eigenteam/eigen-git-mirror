@@ -36,7 +36,7 @@ A.fill(10);       // Fill A with all 10's.
 MatrixXd::Identity(rows,cols)               // eye(rows,cols)
 C.setIdentity(rows,cols)                    // C = eye(rows,cols)
 MatrixXd::Zero(rows,cols)                   // zeros(rows,cols)
-C.setZero(rows,cols)                        // C = ones(rows,cols)
+C.setZero(rows,cols)                        // C = zeros(rows,cols)
 MatrixXd::Ones(rows,cols)                   // ones(rows,cols)
 C.setOnes(rows,cols)                        // C = ones(rows,cols)
 MatrixXd::Random(rows,cols)                 // rand(rows,cols)*2-1            // MatrixXd::Random returns uniform random numbers in (-1, 1).
@@ -84,7 +84,7 @@ P.bottomRightCorner<rows,cols>()   // P(end-rows+1:end, end-cols+1:end)
 
 // Of particular note is Eigen's swap function which is highly optimized.
 // Eigen                           // Matlab
-R.row(i) = P.col(j);               // R(i, :) = P(:, i)
+R.row(i) = P.col(j);               // R(i, :) = P(:, j)
 R.col(j1).swap(mat1.col(j2));      // R(:, [j1 j2]) = R(:, [j2, j1])
 
 // Views, transpose, etc;

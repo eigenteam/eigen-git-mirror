@@ -4,7 +4,7 @@
 #include <string>
 #include <functional>
 #include "eigen_src/Eigen/Core"
-#include "../../BenchTimer.h"
+#include "../BenchTimer.h"
 using namespace Eigen;
 
 #ifndef SCALAR
