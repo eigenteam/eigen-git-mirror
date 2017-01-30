@@ -287,7 +287,7 @@ struct SyclDevice {
 
   /// the memcpy function
   template<typename Index> EIGEN_STRONG_INLINE void memcpy(void *dst, const Index *src, size_t n) const {
-    auto it1 = m_queue_stream->find_buffer((void*)src);
+    auto it1 = m_queue_stream->find_buffer(static_cast<const void*>(src));
     auto it2 = m_queue_stream->find_buffer(dst);
     auto offset= (static_cast<const uint8_t*>(static_cast<const void*>(src))) - it1->first;
     auto i= (static_cast<const uint8_t*>(dst)) - it2->first;
@@ -297,7 +297,7 @@ struct SyclDevice {
     parallel_for_setup(n/sizeof(Index), tileSize, rng, GRange);
     sycl_queue().submit([&](cl::sycl::handler &cgh) {
       auto src_acc =it1->second.template get_access<cl::sycl::access::mode::read, cl::sycl::access::target::global_buffer>(cgh);
-      auto dst_acc =it2->second.template get_access<cl::sycl::access::mode::discard_write, cl::sycl::access::target::global_buffer>(cgh);
+      auto dst_acc =it2->second.template get_access<cl::sycl::access::mode::write, cl::sycl::access::target::global_buffer>(cgh);
       typedef decltype(src_acc) read_accessor;
       typedef decltype(dst_acc) write_accessor;
       cgh.parallel_for(cl::sycl::nd_range<1>(cl::sycl::range<1>(GRange), cl::sycl::range<1>(tileSize)), MemCopyFunctor<Index, read_accessor, write_accessor>(src_acc, dst_acc, rng, i, offset));
