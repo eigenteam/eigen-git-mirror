@@ -682,6 +682,9 @@ protected:
     }
 
     m_can_use_xsmm = true;
+    #else
+    // silence the compiler warning
+    (void) eval_op_indices;
     #endif
   }
 
@@ -842,10 +845,6 @@ protected:
   TensorEvaluator<EvalRightArgType, Device> m_rightImpl;
   const Device& m_device;
   Scalar* m_result;
-
-  /// required for sycl
-  const Indices m_expr_indices;
-
   bool m_can_use_xsmm;
 };
 
