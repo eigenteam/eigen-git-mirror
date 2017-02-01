@@ -352,7 +352,7 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
           auto global_range=cl::sycl::range<2>(GRange_x, GRange_y);  // global range
           auto local_range=cl::sycl::range<2>(tileSize_x, tileSize_y);  // local range
           InputLocalAcc local_acc(cl::sycl::range<1>(shared_mem), cgh);
-          const array<Index, 1> indices{m_indices[0]};
+          const array<Index, 1> indices{{m_indices[0]}};
           const array<Index, 1> kernel_dims{{m_kernelImpl.dimensions()[0]}};
           internal::IndexMapper<Index, InputDims, 1, Layout> indexMapper(m_inputImpl.dimensions(), kernel_dims, indices);
           cgh.parallel_for(cl::sycl::nd_range<2>(global_range, local_range),

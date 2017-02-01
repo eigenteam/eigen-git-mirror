@@ -16,7 +16,7 @@
 #define EIGEN_TEST_NO_LONGDOUBLE
 #define EIGEN_TEST_NO_COMPLEX
 #define EIGEN_TEST_FUNC cxx11_tensor_morphing_sycl
-#define EIGEN_DEFAULT_DENSE_INDEX_TYPE int
+#define EIGEN_DEFAULT_DENSE_INDEX_TYPE int64_t
 #define EIGEN_USE_SYCL
 
 
@@ -28,18 +28,18 @@ using Eigen::SyclDevice;
 using Eigen::Tensor;
 using Eigen::TensorMap;
 
-template <typename DataType, int DataLayout>
+template <typename DataType, int DataLayout, typename IndexType>
 static void test_simple_reshape(const Eigen::SyclDevice& sycl_device)
 {
-  typename Tensor<DataType, 5 ,DataLayout>::Dimensions dim1(2,3,1,7,1);
-  typename Tensor<DataType, 3 ,DataLayout>::Dimensions dim2(2,3,7);
-  typename Tensor<DataType, 2 ,DataLayout>::Dimensions dim3(6,7);
-  typename Tensor<DataType, 2 ,DataLayout>::Dimensions dim4(2,21);
+  typename Tensor<DataType, 5 ,DataLayout, IndexType>::Dimensions dim1(2,3,1,7,1);
+  typename Tensor<DataType, 3 ,DataLayout, IndexType>::Dimensions dim2(2,3,7);
+  typename Tensor<DataType, 2 ,DataLayout, IndexType>::Dimensions dim3(6,7);
+  typename Tensor<DataType, 2 ,DataLayout, IndexType>::Dimensions dim4(2,21);
 
-  Tensor<DataType, 5, DataLayout> tensor1(dim1);
-  Tensor<DataType, 3, DataLayout> tensor2(dim2);
-  Tensor<DataType, 2, DataLayout> tensor3(dim3);
-  Tensor<DataType, 2, DataLayout> tensor4(dim4);
+  Tensor<DataType, 5, DataLayout, IndexType> tensor1(dim1);
+  Tensor<DataType, 3, DataLayout, IndexType> tensor2(dim2);
+  Tensor<DataType, 2, DataLayout, IndexType> tensor3(dim3);
+  Tensor<DataType, 2, DataLayout, IndexType> tensor4(dim4);
 
   tensor1.setRandom();
 
@@ -48,10 +48,10 @@ static void test_simple_reshape(const Eigen::SyclDevice& sycl_device)
   DataType* gpu_data3  = static_cast<DataType*>(sycl_device.allocate(tensor3.size()*sizeof(DataType)));
   DataType* gpu_data4  = static_cast<DataType*>(sycl_device.allocate(tensor4.size()*sizeof(DataType)));
 
-  TensorMap<Tensor<DataType, 5,DataLayout>> gpu1(gpu_data1, dim1);
-  TensorMap<Tensor<DataType, 3,DataLayout>> gpu2(gpu_data2, dim2);
-  TensorMap<Tensor<DataType, 2,DataLayout>> gpu3(gpu_data3, dim3);
-  TensorMap<Tensor<DataType, 2,DataLayout>> gpu4(gpu_data4, dim4);
+  TensorMap<Tensor<DataType, 5,DataLayout, IndexType>> gpu1(gpu_data1, dim1);
+  TensorMap<Tensor<DataType, 3,DataLayout, IndexType>> gpu2(gpu_data2, dim2);
+  TensorMap<Tensor<DataType, 2,DataLayout, IndexType>> gpu3(gpu_data3, dim3);
+  TensorMap<Tensor<DataType, 2,DataLayout, IndexType>> gpu4(gpu_data4, dim4);
 
   sycl_device.memcpyHostToDevice(gpu_data1, tensor1.data(),(tensor1.size())*sizeof(DataType));
 
@@ -63,9 +63,9 @@ static void test_simple_reshape(const Eigen::SyclDevice& sycl_device)
 
   gpu4.device(sycl_device)=gpu1.reshape(dim2).reshape(dim4);
   sycl_device.memcpyDeviceToHost(tensor4.data(), gpu_data4,(tensor4.size())*sizeof(DataType));
-  for (int i = 0; i < 2; ++i){
-    for (int j = 0; j < 3; ++j){
-      for (int k = 0; k < 7; ++k){
+  for (IndexType i = 0; i < 2; ++i){
+    for (IndexType j = 0; j < 3; ++j){
+      for (IndexType k = 0; k < 7; ++k){
         VERIFY_IS_EQUAL(tensor1(i,j,0,k,0), tensor2(i,j,k));      ///ColMajor
         if (static_cast<int>(DataLayout) == static_cast<int>(ColMajor)) {
           VERIFY_IS_EQUAL(tensor1(i,j,0,k,0), tensor3(i+2*j,k));    ///ColMajor
@@ -86,15 +86,15 @@ static void test_simple_reshape(const Eigen::SyclDevice& sycl_device)
 }
 
 
-template<typename DataType, int DataLayout>
+template<typename DataType, int DataLayout, typename IndexType>
 static void test_reshape_as_lvalue(const Eigen::SyclDevice& sycl_device)
 {
-  typename Tensor<DataType, 3, DataLayout>::Dimensions dim1(2,3,7);
-  typename Tensor<DataType, 2, DataLayout>::Dimensions dim2(6,7);
-  typename Tensor<DataType, 5, DataLayout>::Dimensions dim3(2,3,1,7,1);
-  Tensor<DataType, 3, DataLayout> tensor(dim1);
-  Tensor<DataType, 2, DataLayout> tensor2d(dim2);
-  Tensor<DataType, 5, DataLayout> tensor5d(dim3);
+  typename Tensor<DataType, 3, DataLayout, IndexType>::Dimensions dim1(2,3,7);
+  typename Tensor<DataType, 2, DataLayout, IndexType>::Dimensions dim2(6,7);
+  typename Tensor<DataType, 5, DataLayout, IndexType>::Dimensions dim3(2,3,1,7,1);
+  Tensor<DataType, 3, DataLayout, IndexType> tensor(dim1);
+  Tensor<DataType, 2, DataLayout, IndexType> tensor2d(dim2);
+  Tensor<DataType, 5, DataLayout, IndexType> tensor5d(dim3);
 
   tensor.setRandom();
 
@@ -102,9 +102,9 @@ static void test_reshape_as_lvalue(const Eigen::SyclDevice& sycl_device)
   DataType* gpu_data2  = static_cast<DataType*>(sycl_device.allocate(tensor2d.size()*sizeof(DataType)));
   DataType* gpu_data3  = static_cast<DataType*>(sycl_device.allocate(tensor5d.size()*sizeof(DataType)));
 
-  TensorMap< Tensor<DataType, 3, DataLayout> > gpu1(gpu_data1, dim1);
-  TensorMap< Tensor<DataType, 2, DataLayout> > gpu2(gpu_data2, dim2);
-  TensorMap< Tensor<DataType, 5, DataLayout> > gpu3(gpu_data3, dim3);
+  TensorMap< Tensor<DataType, 3, DataLayout, IndexType> > gpu1(gpu_data1, dim1);
+  TensorMap< Tensor<DataType, 2, DataLayout, IndexType> > gpu2(gpu_data2, dim2);
+  TensorMap< Tensor<DataType, 5, DataLayout, IndexType> > gpu3(gpu_data3, dim3);
 
   sycl_device.memcpyHostToDevice(gpu_data1, tensor.data(),(tensor.size())*sizeof(DataType));
 
@@ -115,9 +115,9 @@ static void test_reshape_as_lvalue(const Eigen::SyclDevice& sycl_device)
   sycl_device.memcpyDeviceToHost(tensor5d.data(), gpu_data3,(tensor5d.size())*sizeof(DataType));
 
 
-  for (int i = 0; i < 2; ++i){
-    for (int j = 0; j < 3; ++j){
-      for (int k = 0; k < 7; ++k){
+  for (IndexType i = 0; i < 2; ++i){
+    for (IndexType j = 0; j < 3; ++j){
+      for (IndexType k = 0; k < 7; ++k){
         VERIFY_IS_EQUAL(tensor5d(i,j,0,k,0), tensor(i,j,k));
         if (static_cast<int>(DataLayout) == static_cast<int>(ColMajor)) {
           VERIFY_IS_EQUAL(tensor2d(i+2*j,k), tensor(i,j,k));    ///ColMajor
@@ -134,43 +134,43 @@ static void test_reshape_as_lvalue(const Eigen::SyclDevice& sycl_device)
 }
 
 
-template <typename DataType, int DataLayout>
+template <typename DataType, int DataLayout, typename IndexType>
 static void test_simple_slice(const Eigen::SyclDevice &sycl_device)
 {
-  int sizeDim1 = 2;
-  int sizeDim2 = 3;
-  int sizeDim3 = 5;
-  int sizeDim4 = 7;
-  int sizeDim5 = 11;
-  array<int, 5> tensorRange = {{sizeDim1, sizeDim2, sizeDim3, sizeDim4, sizeDim5}};
-  Tensor<DataType, 5,DataLayout> tensor(tensorRange);
+  IndexType sizeDim1 = 2;
+  IndexType sizeDim2 = 3;
+  IndexType sizeDim3 = 5;
+  IndexType sizeDim4 = 7;
+  IndexType sizeDim5 = 11;
+  array<IndexType, 5> tensorRange = {{sizeDim1, sizeDim2, sizeDim3, sizeDim4, sizeDim5}};
+  Tensor<DataType, 5,DataLayout, IndexType> tensor(tensorRange);
   tensor.setRandom();
-  array<int, 5> slice1_range ={{1, 1, 1, 1, 1}};
-  Tensor<DataType, 5,DataLayout> slice1(slice1_range);
+  array<IndexType, 5> slice1_range ={{1, 1, 1, 1, 1}};
+  Tensor<DataType, 5,DataLayout, IndexType> slice1(slice1_range);
 
   DataType* gpu_data1  = static_cast<DataType*>(sycl_device.allocate(tensor.size()*sizeof(DataType)));
   DataType* gpu_data2  = static_cast<DataType*>(sycl_device.allocate(slice1.size()*sizeof(DataType)));
-  TensorMap<Tensor<DataType, 5,DataLayout>> gpu1(gpu_data1, tensorRange);
-  TensorMap<Tensor<DataType, 5,DataLayout>> gpu2(gpu_data2, slice1_range);
-  Eigen::DSizes<ptrdiff_t, 5> indices(1,2,3,4,5);
-  Eigen::DSizes<ptrdiff_t, 5> sizes(1,1,1,1,1);
+  TensorMap<Tensor<DataType, 5,DataLayout, IndexType>> gpu1(gpu_data1, tensorRange);
+  TensorMap<Tensor<DataType, 5,DataLayout, IndexType>> gpu2(gpu_data2, slice1_range);
+  Eigen::DSizes<IndexType, 5> indices(1,2,3,4,5);
+  Eigen::DSizes<IndexType, 5> sizes(1,1,1,1,1);
   sycl_device.memcpyHostToDevice(gpu_data1, tensor.data(),(tensor.size())*sizeof(DataType));
   gpu2.device(sycl_device)=gpu1.slice(indices, sizes);
   sycl_device.memcpyDeviceToHost(slice1.data(), gpu_data2,(slice1.size())*sizeof(DataType));
   VERIFY_IS_EQUAL(slice1(0,0,0,0,0), tensor(1,2,3,4,5));
 
 
-  array<int, 5> slice2_range ={{1,1,2,2,3}};
-  Tensor<DataType, 5,DataLayout> slice2(slice2_range);
+  array<IndexType, 5> slice2_range ={{1,1,2,2,3}};
+  Tensor<DataType, 5,DataLayout, IndexType> slice2(slice2_range);
   DataType* gpu_data3  = static_cast<DataType*>(sycl_device.allocate(slice2.size()*sizeof(DataType)));
-  TensorMap<Tensor<DataType, 5,DataLayout>> gpu3(gpu_data3, slice2_range);
-  Eigen::DSizes<ptrdiff_t, 5> indices2(1,1,3,4,5);
-  Eigen::DSizes<ptrdiff_t, 5> sizes2(1,1,2,2,3);
+  TensorMap<Tensor<DataType, 5,DataLayout, IndexType>> gpu3(gpu_data3, slice2_range);
+  Eigen::DSizes<IndexType, 5> indices2(1,1,3,4,5);
+  Eigen::DSizes<IndexType, 5> sizes2(1,1,2,2,3);
   gpu3.device(sycl_device)=gpu1.slice(indices2, sizes2);
   sycl_device.memcpyDeviceToHost(slice2.data(), gpu_data3,(slice2.size())*sizeof(DataType));
-  for (int i = 0; i < 2; ++i) {
-    for (int j = 0; j < 2; ++j) {
-      for (int k = 0; k < 3; ++k) {
+  for (IndexType i = 0; i < 2; ++i) {
+    for (IndexType j = 0; j < 2; ++j) {
+      for (IndexType k = 0; k < 3; ++k) {
         VERIFY_IS_EQUAL(slice2(0,0,i,j,k), tensor(1,1,3+i,4+j,5+k));
       }
     }
@@ -219,7 +219,8 @@ static void test_strided_slice_write_sycl(const Eigen::SyclDevice& sycl_device)
   sycl_device.memcpyDeviceToHost(tensor.data(), gpu_data1,(tensor.size())*sizeof(DataType));
   sycl_device.memcpyDeviceToHost(tensor2.data(), gpu_data2,(tensor2.size())*sizeof(DataType));
 
-  for(int i=0;i<sizeDim1;i++) for(int j=0;j<sizeDim2;j++){
+  for(IndexType i=0;i<sizeDim1;i++)
+    for(IndexType j=0;j<sizeDim2;j++){
     VERIFY_IS_EQUAL(tensor(i,j), tensor2(i,j));
   }
   sycl_device.deallocate(gpu_data1);
@@ -230,12 +231,12 @@ static void test_strided_slice_write_sycl(const Eigen::SyclDevice& sycl_device)
 template<typename DataType, typename dev_Selector> void sycl_morphing_test_per_device(dev_Selector s){
   QueueInterface queueInterface(s);
   auto sycl_device = Eigen::SyclDevice(&queueInterface);
-  test_simple_slice<DataType, RowMajor>(sycl_device);
-  test_simple_slice<DataType, ColMajor>(sycl_device);
-  test_simple_reshape<DataType, RowMajor>(sycl_device);
-  test_simple_reshape<DataType, ColMajor>(sycl_device);
-  test_reshape_as_lvalue<DataType, RowMajor>(sycl_device);
-  test_reshape_as_lvalue<DataType, ColMajor>(sycl_device);
+  test_simple_slice<DataType, RowMajor, int64_t>(sycl_device);
+  test_simple_slice<DataType, ColMajor, int64_t>(sycl_device);
+  test_simple_reshape<DataType, RowMajor, int64_t>(sycl_device);
+  test_simple_reshape<DataType, ColMajor, int64_t>(sycl_device);
+  test_reshape_as_lvalue<DataType, RowMajor, int64_t>(sycl_device);
+  test_reshape_as_lvalue<DataType, ColMajor, int64_t>(sycl_device);
   test_strided_slice_write_sycl<DataType, ColMajor, int64_t>(sycl_device);
   test_strided_slice_write_sycl<DataType, RowMajor, int64_t>(sycl_device);
 }

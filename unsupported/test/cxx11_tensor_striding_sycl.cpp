@@ -14,7 +14,7 @@
 #define EIGEN_TEST_NO_LONGDOUBLE
 #define EIGEN_TEST_NO_COMPLEX
 #define EIGEN_TEST_FUNC cxx11_tensor_striding_sycl
-#define EIGEN_DEFAULT_DENSE_INDEX_TYPE int
+#define EIGEN_DEFAULT_DENSE_INDEX_TYPE int64_t
 #define EIGEN_USE_SYCL
 
 #include <iostream>
@@ -72,10 +72,10 @@ static void test_simple_striding(const Eigen::SyclDevice& sycl_device)
   VERIFY_IS_EQUAL(no_stride.dimension(2), 5);
   VERIFY_IS_EQUAL(no_stride.dimension(3), 7);
 
-  for (int i = 0; i < 2; ++i) {
-    for (int j = 0; j < 3; ++j) {
-      for (int k = 0; k < 5; ++k) {
-        for (int l = 0; l < 7; ++l) {
+  for (IndexType i = 0; i < 2; ++i) {
+    for (IndexType j = 0; j < 3; ++j) {
+      for (IndexType k = 0; k < 5; ++k) {
+        for (IndexType l = 0; l < 7; ++l) {
           VERIFY_IS_EQUAL(tensor(i,j,k,l), no_stride(i,j,k,l));
         }
       }
@@ -97,10 +97,10 @@ static void test_simple_striding(const Eigen::SyclDevice& sycl_device)
   VERIFY_IS_EQUAL(stride.dimension(2), 3);
   VERIFY_IS_EQUAL(stride.dimension(3), 3);
 
-  for (int i = 0; i < 1; ++i) {
-    for (int j = 0; j < 1; ++j) {
-      for (int k = 0; k < 3; ++k) {
-        for (int l = 0; l < 3; ++l) {
+  for (IndexType i = 0; i < 1; ++i) {
+    for (IndexType j = 0; j < 1; ++j) {
+      for (IndexType k = 0; k < 3; ++k) {
+        for (IndexType l = 0; l < 3; ++l) {
           VERIFY_IS_EQUAL(tensor(2*i,4*j,2*k,3*l), stride(i,j,k,l));
         }
       }
@@ -151,10 +151,10 @@ static void test_striding_as_lvalue(const Eigen::SyclDevice& sycl_device)
   gpu_stride.stride(strides).device(sycl_device)=gpu_tensor;
   sycl_device.memcpyDeviceToHost(stride.data(), d_stride, stride_bytes);
 
-  for (int i = 0; i < 2; ++i) {
-    for (int j = 0; j < 3; ++j) {
-      for (int k = 0; k < 5; ++k) {
-        for (int l = 0; l < 7; ++l) {
+  for (IndexType i = 0; i < 2; ++i) {
+    for (IndexType j = 0; j < 3; ++j) {
+      for (IndexType k = 0; k < 5; ++k) {
+        for (IndexType l = 0; l < 7; ++l) {
           VERIFY_IS_EQUAL(tensor(i,j,k,l), stride(2*i,4*j,2*k,3*l));
         }
       }
@@ -172,10 +172,10 @@ static void test_striding_as_lvalue(const Eigen::SyclDevice& sycl_device)
   gpu_no_stride.stride(strides).device(sycl_device)=gpu_tensor.stride(no_strides);
   sycl_device.memcpyDeviceToHost(no_stride.data(), d_no_stride, no_stride_bytes);
 
-  for (int i = 0; i < 2; ++i) {
-    for (int j = 0; j < 3; ++j) {
-      for (int k = 0; k < 5; ++k) {
-        for (int l = 0; l < 7; ++l) {
+  for (IndexType i = 0; i < 2; ++i) {
+    for (IndexType j = 0; j < 3; ++j) {
+      for (IndexType k = 0; k < 5; ++k) {
+        for (IndexType l = 0; l < 7; ++l) {
           VERIFY_IS_EQUAL(tensor(i,j,k,l), no_stride(2*i,4*j,2*k,3*l));
         }
       }
@@ -190,10 +190,10 @@ static void test_striding_as_lvalue(const Eigen::SyclDevice& sycl_device)
 template <typename Dev_selector> void tensorStridingPerDevice(Dev_selector& s){
   QueueInterface queueInterface(s);
   auto sycl_device=Eigen::SyclDevice(&queueInterface);
-  test_simple_striding<float, ColMajor, ptrdiff_t>(sycl_device);
-  test_simple_striding<float, RowMajor, ptrdiff_t>(sycl_device);
-  test_striding_as_lvalue<float, ColMajor, ptrdiff_t>(sycl_device);
-  test_striding_as_lvalue<float, RowMajor, ptrdiff_t>(sycl_device);
+  test_simple_striding<float, ColMajor, int64_t>(sycl_device);
+  test_simple_striding<float, RowMajor, int64_t>(sycl_device);
+  test_striding_as_lvalue<float, ColMajor, int64_t>(sycl_device);
+  test_striding_as_lvalue<float, RowMajor, int64_t>(sycl_device);
 }
 
 void test_cxx11_tensor_striding_sycl() {

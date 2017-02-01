@@ -14,24 +14,24 @@
 #define EIGEN_TEST_NO_LONGDOUBLE
 #define EIGEN_TEST_NO_COMPLEX
 #define EIGEN_TEST_FUNC cxx11_tensor_reverse_sycl
-#define EIGEN_DEFAULT_DENSE_INDEX_TYPE int
+#define EIGEN_DEFAULT_DENSE_INDEX_TYPE int64_t
 #define EIGEN_USE_SYCL
 
 #include "main.h"
 #include <unsupported/Eigen/CXX11/Tensor>
 
 
-template <typename DataType, int DataLayout>
+template <typename DataType, int DataLayout, typename IndexType>
 static void test_simple_reverse(const Eigen::SyclDevice&  sycl_device) {
 
-  int dim1 = 2;
-  int dim2 = 3;
-  int dim3 = 5;
-  int dim4 = 7;
+  IndexType dim1 = 2;
+  IndexType dim2 = 3;
+  IndexType dim3 = 5;
+  IndexType dim4 = 7;
 
-  array<int, 4> tensorRange = {{dim1, dim2, dim3, dim4}};
-  Tensor<DataType, 4, DataLayout> tensor(tensorRange);
-  Tensor<DataType, 4, DataLayout> reversed_tensor(tensorRange);
+  array<IndexType, 4> tensorRange = {{dim1, dim2, dim3, dim4}};
+  Tensor<DataType, 4, DataLayout, IndexType> tensor(tensorRange);
+  Tensor<DataType, 4, DataLayout, IndexType> reversed_tensor(tensorRange);
   tensor.setRandom();
 
   array<bool, 4> dim_rev;
@@ -43,17 +43,17 @@ static void test_simple_reverse(const Eigen::SyclDevice&  sycl_device) {
   DataType* gpu_in_data = static_cast<DataType*>(sycl_device.allocate(tensor.dimensions().TotalSize()*sizeof(DataType)));
   DataType* gpu_out_data =static_cast<DataType*>(sycl_device.allocate(reversed_tensor.dimensions().TotalSize()*sizeof(DataType)));
 
-  TensorMap<Tensor<DataType, 4, DataLayout> >  in_gpu(gpu_in_data, tensorRange);
-  TensorMap<Tensor<DataType, 4, DataLayout> >  out_gpu(gpu_out_data, tensorRange);
+  TensorMap<Tensor<DataType, 4, DataLayout, IndexType> >  in_gpu(gpu_in_data, tensorRange);
+  TensorMap<Tensor<DataType, 4, DataLayout, IndexType> >  out_gpu(gpu_out_data, tensorRange);
 
   sycl_device.memcpyHostToDevice(gpu_in_data, tensor.data(),(tensor.dimensions().TotalSize())*sizeof(DataType));
   out_gpu.device(sycl_device) = in_gpu.reverse(dim_rev);
   sycl_device.memcpyDeviceToHost(reversed_tensor.data(), gpu_out_data, reversed_tensor.dimensions().TotalSize()*sizeof(DataType));
   // Check that the CPU and GPU reductions return the same result.
-  for (int i = 0; i < 2; ++i) {
-    for (int j = 0; j < 3; ++j) {
-      for (int k = 0; k < 5; ++k) {
-        for (int l = 0; l < 7; ++l) {
+  for (IndexType i = 0; i < 2; ++i) {
+    for (IndexType j = 0; j < 3; ++j) {
+      for (IndexType k = 0; k < 5; ++k) {
+        for (IndexType l = 0; l < 7; ++l) {
           VERIFY_IS_EQUAL(tensor(i,j,k,l), reversed_tensor(i,2-j,4-k,l));
         }
       }
@@ -67,10 +67,10 @@ static void test_simple_reverse(const Eigen::SyclDevice&  sycl_device) {
   out_gpu.device(sycl_device) = in_gpu.reverse(dim_rev);
   sycl_device.memcpyDeviceToHost(reversed_tensor.data(), gpu_out_data, reversed_tensor.dimensions().TotalSize()*sizeof(DataType));
 
-  for (int i = 0; i < 2; ++i) {
-    for (int j = 0; j < 3; ++j) {
-      for (int k = 0; k < 5; ++k) {
-        for (int l = 0; l < 7; ++l) {
+  for (IndexType i = 0; i < 2; ++i) {
+    for (IndexType j = 0; j < 3; ++j) {
+      for (IndexType k = 0; k < 5; ++k) {
+        for (IndexType l = 0; l < 7; ++l) {
           VERIFY_IS_EQUAL(tensor(i,j,k,l), reversed_tensor(1-i,j,k,l));
         }
       }
@@ -84,10 +84,10 @@ static void test_simple_reverse(const Eigen::SyclDevice&  sycl_device) {
   out_gpu.device(sycl_device) = in_gpu.reverse(dim_rev);
   sycl_device.memcpyDeviceToHost(reversed_tensor.data(), gpu_out_data, reversed_tensor.dimensions().TotalSize()*sizeof(DataType));
 
-  for (int i = 0; i < 2; ++i) {
-    for (int j = 0; j < 3; ++j) {
-      for (int k = 0; k < 5; ++k) {
-        for (int l = 0; l < 7; ++l) {
+  for (IndexType i = 0; i < 2; ++i) {
+    for (IndexType j = 0; j < 3; ++j) {
+      for (IndexType k = 0; k < 5; ++k) {
+        for (IndexType l = 0; l < 7; ++l) {
           VERIFY_IS_EQUAL(tensor(i,j,k,l), reversed_tensor(1-i,j,k,6-l));
         }
       }
@@ -100,18 +100,18 @@ static void test_simple_reverse(const Eigen::SyclDevice&  sycl_device) {
 
 
 
-template <typename DataType, int DataLayout>
+template <typename DataType, int DataLayout, typename IndexType>
 static void test_expr_reverse(const Eigen::SyclDevice&  sycl_device, bool LValue)
 {
-  int dim1 = 2;
-  int dim2 = 3;
-  int dim3 = 5;
-  int dim4 = 7;
+  IndexType dim1 = 2;
+  IndexType dim2 = 3;
+  IndexType dim3 = 5;
+  IndexType dim4 = 7;
 
-  array<int, 4> tensorRange = {{dim1, dim2, dim3, dim4}};
-  Tensor<DataType, 4, DataLayout> tensor(tensorRange);
-  Tensor<DataType, 4, DataLayout> expected(tensorRange);
-  Tensor<DataType, 4, DataLayout> result(tensorRange);
+  array<IndexType, 4> tensorRange = {{dim1, dim2, dim3, dim4}};
+  Tensor<DataType, 4, DataLayout, IndexType> tensor(tensorRange);
+  Tensor<DataType, 4, DataLayout, IndexType> expected(tensorRange);
+  Tensor<DataType, 4, DataLayout, IndexType> result(tensorRange);
   tensor.setRandom();
 
   array<bool, 4> dim_rev;
@@ -124,9 +124,9 @@ static void test_expr_reverse(const Eigen::SyclDevice&  sycl_device, bool LValue
   DataType* gpu_out_data_expected =static_cast<DataType*>(sycl_device.allocate(expected.dimensions().TotalSize()*sizeof(DataType)));
   DataType* gpu_out_data_result =static_cast<DataType*>(sycl_device.allocate(result.dimensions().TotalSize()*sizeof(DataType)));
 
-  TensorMap<Tensor<DataType, 4, DataLayout> >  in_gpu(gpu_in_data, tensorRange);
-  TensorMap<Tensor<DataType, 4, DataLayout> >  out_gpu_expected(gpu_out_data_expected, tensorRange);
-  TensorMap<Tensor<DataType, 4, DataLayout> >  out_gpu_result(gpu_out_data_result, tensorRange);
+  TensorMap<Tensor<DataType, 4, DataLayout, IndexType> >  in_gpu(gpu_in_data, tensorRange);
+  TensorMap<Tensor<DataType, 4, DataLayout, IndexType> >  out_gpu_expected(gpu_out_data_expected, tensorRange);
+  TensorMap<Tensor<DataType, 4, DataLayout, IndexType> >  out_gpu_result(gpu_out_data_result, tensorRange);
 
 
   sycl_device.memcpyHostToDevice(gpu_in_data, tensor.data(),(tensor.dimensions().TotalSize())*sizeof(DataType));
@@ -139,20 +139,20 @@ static void test_expr_reverse(const Eigen::SyclDevice&  sycl_device, bool LValue
   sycl_device.memcpyDeviceToHost(expected.data(), gpu_out_data_expected, expected.dimensions().TotalSize()*sizeof(DataType));
 
 
-  array<int, 4> src_slice_dim;
+  array<IndexType, 4> src_slice_dim;
   src_slice_dim[0] = 2;
   src_slice_dim[1] = 3;
   src_slice_dim[2] = 1;
   src_slice_dim[3] = 7;
-  array<int, 4> src_slice_start;
+  array<IndexType, 4> src_slice_start;
   src_slice_start[0] = 0;
   src_slice_start[1] = 0;
   src_slice_start[2] = 0;
   src_slice_start[3] = 0;
-  array<int, 4> dst_slice_dim = src_slice_dim;
-  array<int, 4> dst_slice_start = src_slice_start;
+  array<IndexType, 4> dst_slice_dim = src_slice_dim;
+  array<IndexType, 4> dst_slice_start = src_slice_start;
 
-  for (int i = 0; i < 5; ++i) {
+  for (IndexType i = 0; i < 5; ++i) {
     if (LValue) {
         out_gpu_result.slice(dst_slice_start, dst_slice_dim).reverse(dim_rev).device(sycl_device) =
           in_gpu.slice(src_slice_start, src_slice_dim);
@@ -165,10 +165,10 @@ static void test_expr_reverse(const Eigen::SyclDevice&  sycl_device, bool LValue
   }
   sycl_device.memcpyDeviceToHost(result.data(), gpu_out_data_result, result.dimensions().TotalSize()*sizeof(DataType));
 
-  for (int i = 0; i < expected.dimension(0); ++i) {
-    for (int j = 0; j < expected.dimension(1); ++j) {
-      for (int k = 0; k < expected.dimension(2); ++k) {
-        for (int l = 0; l < expected.dimension(3); ++l) {
+  for (IndexType i = 0; i < expected.dimension(0); ++i) {
+    for (IndexType j = 0; j < expected.dimension(1); ++j) {
+      for (IndexType k = 0; k < expected.dimension(2); ++k) {
+        for (IndexType l = 0; l < expected.dimension(3); ++l) {
           VERIFY_IS_EQUAL(result(i,j,k,l), expected(i,j,k,l));
         }
       }
@@ -178,7 +178,7 @@ static void test_expr_reverse(const Eigen::SyclDevice&  sycl_device, bool LValue
   dst_slice_start[2] = 0;
   result.setRandom();
   sycl_device.memcpyHostToDevice(gpu_out_data_result, result.data(),(result.dimensions().TotalSize())*sizeof(DataType));
-  for (int i = 0; i < 5; ++i) {
+  for (IndexType i = 0; i < 5; ++i) {
      if (LValue) {
        out_gpu_result.slice(dst_slice_start, dst_slice_dim).reverse(dim_rev).device(sycl_device) =
            in_gpu.slice(dst_slice_start, dst_slice_dim);
@@ -190,10 +190,10 @@ static void test_expr_reverse(const Eigen::SyclDevice&  sycl_device, bool LValue
   }
   sycl_device.memcpyDeviceToHost(result.data(), gpu_out_data_result, result.dimensions().TotalSize()*sizeof(DataType));
 
-  for (int i = 0; i < expected.dimension(0); ++i) {
-    for (int j = 0; j < expected.dimension(1); ++j) {
-      for (int k = 0; k < expected.dimension(2); ++k) {
-        for (int l = 0; l < expected.dimension(3); ++l) {
+  for (IndexType i = 0; i < expected.dimension(0); ++i) {
+    for (IndexType j = 0; j < expected.dimension(1); ++j) {
+      for (IndexType k = 0; k < expected.dimension(2); ++k) {
+        for (IndexType l = 0; l < expected.dimension(3); ++l) {
           VERIFY_IS_EQUAL(result(i,j,k,l), expected(i,j,k,l));
         }
       }
@@ -207,12 +207,12 @@ template<typename DataType> void sycl_reverse_test_per_device(const cl::sycl::de
   std::cout << "Running on " << d.template get_info<cl::sycl::info::device::name>() << std::endl;
   QueueInterface queueInterface(d);
   auto sycl_device = Eigen::SyclDevice(&queueInterface);
-  test_simple_reverse<DataType, RowMajor>(sycl_device);
-  test_simple_reverse<DataType, ColMajor>(sycl_device);
-  test_expr_reverse<DataType, RowMajor>(sycl_device, false);
-  test_expr_reverse<DataType, ColMajor>(sycl_device, false);
-  test_expr_reverse<DataType, RowMajor>(sycl_device, true);
-  test_expr_reverse<DataType, ColMajor>(sycl_device, true);
+  test_simple_reverse<DataType, RowMajor, int64_t>(sycl_device);
+  test_simple_reverse<DataType, ColMajor, int64_t>(sycl_device);
+  test_expr_reverse<DataType, RowMajor, int64_t>(sycl_device, false);
+  test_expr_reverse<DataType, ColMajor, int64_t>(sycl_device, false);
+  test_expr_reverse<DataType, RowMajor, int64_t>(sycl_device, true);
+  test_expr_reverse<DataType, ColMajor, int64_t>(sycl_device, true);
 }
 void test_cxx11_tensor_reverse_sycl() {
   for (const auto& device :Eigen::get_sycl_supported_devices()) {

@@ -50,10 +50,9 @@ template<typename Expr, typename FunctorExpr, typename TupleType > struct ExecEx
 /// creates the expression tree for the device with accessor to buffers;
 /// construct the kernel and submit it to the sycl queue.
 /// std::array does not have TotalSize. So I have to get the size through template specialisation.
-template<typename Index, typename Dimensions> struct DimensionSize{
-  static Index getDimSize(const Dimensions& dim){
+template<typename , typename Dimensions> struct DimensionSize{
+  static auto getDimSize(const Dimensions& dim)->decltype(dim.TotalSize()){
     return dim.TotalSize();
-
   }
 };
 #define DIMSIZEMACRO(CVQual)\

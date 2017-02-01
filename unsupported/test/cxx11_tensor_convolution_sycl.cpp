@@ -14,7 +14,7 @@
 #define EIGEN_TEST_NO_LONGDOUBLE
 #define EIGEN_TEST_NO_COMPLEX
 #define EIGEN_TEST_FUNC cxx11_tensor_convolution_sycl
-#define EIGEN_DEFAULT_DENSE_INDEX_TYPE int
+#define EIGEN_DEFAULT_DENSE_INDEX_TYPE int64_t
 #define EIGEN_USE_SYCL
 
 #include <iostream>
@@ -35,12 +35,12 @@ static const float error_threshold =1e-4f;
 template <typename DataType, int DataLayout, typename IndexType>
 static void test_larg_expr1D(const Eigen::SyclDevice& sycl_device)
 {
-  int indim0 =53;
-  int indim1= 55;
-  int indim2= 51;
-  int outdim0=50;
-  int outdim1=55;
-  int outdim2=51;
+  IndexType indim0 =53;
+  IndexType indim1= 55;
+  IndexType indim2= 51;
+  IndexType outdim0=50;
+  IndexType outdim1=55;
+  IndexType outdim2=51;
   Eigen::array<IndexType, 3> input_dims = {{indim0, indim1, indim2}};
   Eigen::array<IndexType, 1> kernel_dims = {{4}};
   Eigen::array<IndexType, 3> result_dims = {{outdim0, outdim1, outdim2}};
@@ -76,9 +76,9 @@ static void test_larg_expr1D(const Eigen::SyclDevice& sycl_device)
 
   result_host=input.convolve(kernel, dims3);
 
-for(int i=0; i< outdim0; i++ ){
-  for(int j=0; j< outdim1; j++ ){
-    for(int k=0; k< outdim2; k++ ){
+for(IndexType i=0; i< outdim0; i++ ){
+  for(IndexType j=0; j< outdim1; j++ ){
+    for(IndexType k=0; k< outdim2; k++ ){
       if (!(Eigen::internal::isApprox(result(i,j,k), result_host(i,j,k), error_threshold))) {
         std::cout <<std::setprecision(16)<< "mismatch detected at index  ( "<< i  << " , "  << j  << ", " << k << " ) " << " \t " << result(i,j,k) << " vs "<<  result_host(i,j,k) << std::endl;
         assert(false);
@@ -96,12 +96,12 @@ for(int i=0; i< outdim0; i++ ){
 template <typename DataType, int DataLayout, typename IndexType>
 static void test_larg_expr2D(const Eigen::SyclDevice& sycl_device)
 {
-  int indim0 =53;
-  int indim1= 55;
-  int indim2= 51;
-  int outdim0=50;
-  int outdim1=51;
-  int outdim2=51;
+  IndexType indim0 =53;
+  IndexType indim1= 55;
+  IndexType indim2= 51;
+  IndexType outdim0=50;
+  IndexType outdim1=51;
+  IndexType outdim2=51;
   Eigen::array<IndexType, 3> input_dims = {{indim0, indim1, indim2}};
   Eigen::array<IndexType, 2> kernel_dims = {{4,5}};
   Eigen::array<IndexType, 3> result_dims = {{outdim0, outdim1, outdim2}};
@@ -137,9 +137,9 @@ static void test_larg_expr2D(const Eigen::SyclDevice& sycl_device)
 
   result_host=input.convolve(kernel, dims3);
 
-for(int i=0; i< outdim0; i++ ){
-  for(int j=0; j< outdim1; j++ ){
-    for(int k=0; k< outdim2; k++ ){
+for(IndexType i=0; i< outdim0; i++ ){
+  for(IndexType j=0; j< outdim1; j++ ){
+    for(IndexType k=0; k< outdim2; k++ ){
       if (!(Eigen::internal::isApprox(result(i,j,k), result_host(i,j,k), error_threshold))) {
         std::cout <<std::setprecision(16)<< "mismatch detected at index  ( "<< i  << " , "  << j  << ", " << k << " ) " << " \t " << result(i,j,k) << " vs "<<  result_host(i,j,k) << std::endl;
         assert(false);
@@ -157,12 +157,12 @@ for(int i=0; i< outdim0; i++ ){
 template <typename DataType, int DataLayout, typename IndexType>
 static void test_larg_expr3D(const Eigen::SyclDevice& sycl_device)
 {
-  int indim0 =53;
-  int indim1= 55;
-  int indim2= 51;
-  int outdim0=50;
-  int outdim1=51;
-  int outdim2=49;
+  IndexType indim0 =53;
+  IndexType indim1= 55;
+  IndexType indim2= 51;
+  IndexType outdim0=50;
+  IndexType outdim1=51;
+  IndexType outdim2=49;
   Eigen::array<IndexType, 3> input_dims = {{indim0, indim1, indim2}};
   Eigen::array<IndexType, 3> kernel_dims = {{4,5,3}};
   Eigen::array<IndexType, 3> result_dims = {{outdim0, outdim1, outdim2}};
@@ -198,9 +198,9 @@ static void test_larg_expr3D(const Eigen::SyclDevice& sycl_device)
 
   result_host=input.convolve(kernel, dims3);
 
-for(int i=0; i< outdim0; i++ ){
-  for(int j=0; j< outdim1; j++ ){
-    for(int k=0; k< outdim2; k++ ){
+for(IndexType i=0; i< outdim0; i++ ){
+  for(IndexType j=0; j< outdim1; j++ ){
+    for(IndexType k=0; k< outdim2; k++ ){
       if (!(Eigen::internal::isApprox(result(i,j,k), result_host(i,j,k), error_threshold))) {
         std::cout <<std::setprecision(16)<< "mismatch detected at index  ( "<< i  << " , "  << j  << ", " << k << " ) " << " \t " << result(i,j,k) << " vs "<<  result_host(i,j,k) << std::endl;
         assert(false);
@@ -446,20 +446,20 @@ static void test_strides(const Eigen::SyclDevice& sycl_device){
 template <typename Dev_selector> void tensorConvolutionPerDevice(Dev_selector& s){
   QueueInterface queueInterface(s);
   auto sycl_device=Eigen::SyclDevice(&queueInterface);
-  test_larg_expr1D<float, RowMajor, ptrdiff_t>(sycl_device);
-  test_larg_expr1D<float, ColMajor, ptrdiff_t>(sycl_device);
-  test_larg_expr2D<float, RowMajor, ptrdiff_t>(sycl_device);
-  test_larg_expr2D<float, ColMajor, ptrdiff_t>(sycl_device);
-  test_larg_expr3D<float, RowMajor, ptrdiff_t>(sycl_device);
-  test_larg_expr3D<float, ColMajor, ptrdiff_t>(sycl_device);
-  test_evals<float, ColMajor, ptrdiff_t>(sycl_device);
-  test_evals<float, RowMajor, ptrdiff_t>(sycl_device);
-  test_expr<float, ColMajor, ptrdiff_t>(sycl_device);
-  test_expr<float, RowMajor, ptrdiff_t>(sycl_device);
-  test_modes<float, ColMajor, ptrdiff_t>(sycl_device);
-  test_modes<float, RowMajor, ptrdiff_t>(sycl_device);
-  test_strides<float, ColMajor, ptrdiff_t>(sycl_device);
-  test_strides<float, RowMajor, ptrdiff_t>(sycl_device);
+  test_larg_expr1D<float, RowMajor, int64_t>(sycl_device);
+  test_larg_expr1D<float, ColMajor, int64_t>(sycl_device);
+  test_larg_expr2D<float, RowMajor, int64_t>(sycl_device);
+  test_larg_expr2D<float, ColMajor, int64_t>(sycl_device);
+  test_larg_expr3D<float, RowMajor, int64_t>(sycl_device);
+  test_larg_expr3D<float, ColMajor, int64_t>(sycl_device);
+  test_evals<float, ColMajor, int64_t>(sycl_device);
+  test_evals<float, RowMajor, int64_t>(sycl_device);
+  test_expr<float, ColMajor, int64_t>(sycl_device);
+  test_expr<float, RowMajor, int64_t>(sycl_device);
+  test_modes<float, ColMajor, int64_t>(sycl_device);
+  test_modes<float, RowMajor, int64_t>(sycl_device);
+  test_strides<float, ColMajor, int64_t>(sycl_device);
+  test_strides<float, RowMajor, int64_t>(sycl_device);
 }
 
 void test_cxx11_tensor_convolution_sycl() {

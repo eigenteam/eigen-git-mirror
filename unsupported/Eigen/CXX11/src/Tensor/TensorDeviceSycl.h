@@ -194,7 +194,7 @@ struct SyclDevice {
     auto s=  sycl_queue().get_device().template get_info<cl::sycl::info::device::vendor>();
     std::transform(s.begin(), s.end(), s.begin(), ::tolower);
     if(sycl_queue().get_device().is_cpu()){ // intel doesnot allow to use max workgroup size
-      tileSize=std::min(static_cast<size_t>(256), static_cast<size_t>(tileSize));
+      tileSize=std::min(static_cast<Index>(256), static_cast<Index>(tileSize));
     }
     rng = n;
     if (rng==0) rng=static_cast<Index>(1);
@@ -211,10 +211,10 @@ struct SyclDevice {
   EIGEN_STRONG_INLINE void parallel_for_setup(Index dim0, Index dim1, Index &tileSize0, Index &tileSize1, Index &rng0, Index &rng1, Index &GRange0, Index &GRange1)  const {
     Index max_workgroup_Size = static_cast<Index>(maxSyclThreadsPerBlock());
     if(sycl_queue().get_device().is_cpu()){ // intel doesnot allow to use max workgroup size
-      max_workgroup_Size=std::min(static_cast<size_t>(256), static_cast<size_t>(max_workgroup_Size));
+      max_workgroup_Size=std::min(static_cast<Index>(256), static_cast<Index>(max_workgroup_Size));
     }
-    size_t pow_of_2 = static_cast<size_t>(std::log2(max_workgroup_Size));
-    tileSize1 =static_cast<Index>(std::pow(2, static_cast<size_t>(pow_of_2/2)));
+    Index pow_of_2 = static_cast<Index>(std::log2(max_workgroup_Size));
+    tileSize1 =static_cast<Index>(std::pow(2, static_cast<Index>(pow_of_2/2)));
     rng1=dim1;
     if (rng1==0 ) rng1=static_cast<Index>(1);
     GRange1=rng1;
@@ -241,10 +241,10 @@ struct SyclDevice {
   EIGEN_STRONG_INLINE void parallel_for_setup(Index dim0, Index dim1,Index dim2, Index &tileSize0, Index &tileSize1, Index &tileSize2, Index &rng0, Index &rng1, Index &rng2, Index &GRange0, Index &GRange1, Index &GRange2)  const {
     Index max_workgroup_Size = static_cast<Index>(maxSyclThreadsPerBlock());
     if(sycl_queue().get_device().is_cpu()){ // intel doesnot allow to use max workgroup size
-      max_workgroup_Size=std::min(static_cast<size_t>(256), static_cast<size_t>(max_workgroup_Size));
+      max_workgroup_Size=std::min(static_cast<Index>(256), static_cast<Index>(max_workgroup_Size));
     }
-    size_t pow_of_2 = static_cast<size_t>(std::log2(max_workgroup_Size));
-    tileSize2 =static_cast<Index>(std::pow(2, static_cast<size_t>(pow_of_2/3)));
+    Index pow_of_2 = static_cast<Index>(std::log2(max_workgroup_Size));
+    tileSize2 =static_cast<Index>(std::pow(2, static_cast<Index>(pow_of_2/3)));
     rng2=dim2;
     if (rng2==0 ) rng1=static_cast<Index>(1);
     GRange2=rng2;
@@ -253,8 +253,8 @@ struct SyclDevice {
       Index xMode =  static_cast<Index>(GRange2 % tileSize2);
       if (xMode != 0) GRange2 += static_cast<Index>(tileSize2 - xMode);
     }
-    pow_of_2 = static_cast<size_t>(std::log2(static_cast<Index>(max_workgroup_Size/tileSize2)));
-    tileSize1 =static_cast<Index>(std::pow(2, static_cast<size_t>(pow_of_2/2)));
+    pow_of_2 = static_cast<Index>(std::log2(static_cast<Index>(max_workgroup_Size/tileSize2)));
+    tileSize1 =static_cast<Index>(std::pow(2, static_cast<Index>(pow_of_2/2)));
     rng1=dim1;
     if (rng1==0 ) rng1=static_cast<Index>(1);
     GRange1=rng1;
