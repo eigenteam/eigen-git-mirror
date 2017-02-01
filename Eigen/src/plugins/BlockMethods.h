@@ -439,8 +439,8 @@ EIGEN_DOC_BLOCK_ADDONS_NOT_INNER_PANEL
 ///
 /// \sa block(Index,Index,NRowsType,NColsType), class Block
 ///
-EIGEN_DEVICE_FUNC
 template<typename NRowsType, typename NColsType>
+EIGEN_DEVICE_FUNC
 #ifndef EIGEN_PARSED_BY_DOXYGEN
 inline typename FixedBlockXpr<internal::get_fixed_value<NRowsType>::value,internal::get_fixed_value<NColsType>::value>::Type
 #else
@@ -544,8 +544,8 @@ EIGEN_DOC_BLOCK_ADDONS_INNER_PANEL_IF(row-major)
 ///
 /// \sa block(Index,Index,NRowsType,NColsType), class Block
 ///
-EIGEN_DEVICE_FUNC
 template<typename NRowsType>
+EIGEN_DEVICE_FUNC
 #ifndef EIGEN_PARSED_BY_DOXYGEN
 inline typename NRowsBlockXpr<internal::get_fixed_value<NRowsType>::value>::Type
 #else
@@ -695,8 +695,8 @@ EIGEN_DOC_BLOCK_ADDONS_INNER_PANEL_IF(row-major)
 ///
 /// \sa block(Index,Index,NRowsType,NColsType), class Block
 ///
-EIGEN_DEVICE_FUNC
 template<typename NRowsType>
+EIGEN_DEVICE_FUNC
 #ifndef EIGEN_PARSED_BY_DOXYGEN
 inline typename NRowsBlockXpr<internal::get_fixed_value<NRowsType>::value>::Type
 #else
@@ -860,8 +860,8 @@ rightCols(NColsType n)
 }
 
 /// This is the const version of rightCols(NColsType).
-EIGEN_DEVICE_FUNC
 template<typename NColsType>
+EIGEN_DEVICE_FUNC
 #ifndef EIGEN_PARSED_BY_DOXYGEN
 inline const typename ConstNColsBlockXpr<internal::get_fixed_value<NColsType>::value>::Type
 #else
@@ -1229,8 +1229,8 @@ head(NType n) const
 ///
 /// \sa class Block, block(Index,Index)
 ///
-EIGEN_DEVICE_FUNC
 template<typename NType>
+EIGEN_DEVICE_FUNC
 #ifndef EIGEN_PARSED_BY_DOXYGEN
 inline typename FixedSegmentReturnType<internal::get_fixed_value<NType>::value>::Type
 #else
