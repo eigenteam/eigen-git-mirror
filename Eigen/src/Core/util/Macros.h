@@ -23,7 +23,7 @@
 
 /// \internal EIGEN_COMP_GNUC set to 1 for all compilers compatible with GCC
 #ifdef __GNUC__
-  #define EIGEN_COMP_GNUC 1
+  #define EIGEN_COMP_GNUC (__GNUC__*10+__GNUC_MINOR__)
 #else
   #define EIGEN_COMP_GNUC 0
 #endif
