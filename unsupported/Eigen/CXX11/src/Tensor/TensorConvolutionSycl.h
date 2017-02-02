@@ -66,7 +66,7 @@ EigenConvolutionKernel1D(internal::IndexMapper<Index, InputDims, 1, Eigen::inter
     itemID.barrier(cl::sycl::access::fence_space::local_space);
 
     // calculate the convolution
-    const int first_output_start =itemID.get_group(0)*(itemID.get_local_range()[0]); // output start x
+    const size_t first_output_start =itemID.get_group(0)*(itemID.get_local_range()[0]); // output start x
     if(itemID.get_global(0)< range_x && itemID.get_global(1)< range_y){
       CoeffReturnType result = static_cast<CoeffReturnType>(0);
       const size_t index = plane_kernel_offset+ itemID.get_local(0);
