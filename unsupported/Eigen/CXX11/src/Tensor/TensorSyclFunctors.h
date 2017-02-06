@@ -18,13 +18,14 @@ namespace Eigen {
 namespace TensorSycl {
 namespace internal {
 
-  template<typename CoeffReturnType, typename OutputAccessor, typename InputAccessor, typename LocalAccessor> struct GenericKernelReducer{
+  template<typename CoeffReturnType, typename OP, typename OutputAccessor, typename InputAccessor, typename LocalAccessor> struct GenericKernelReducer{
+    OP op;
     OutputAccessor aOut;
     InputAccessor aI;
     LocalAccessor scratch;
     size_t length, local;
-    GenericKernelReducer(OutputAccessor aOut_, InputAccessor aI_, LocalAccessor scratch_, size_t length_, size_t local_)
-    : aOut(aOut_), aI(aI_), scratch(scratch_), length(length_), local(local_){}
+    GenericKernelReducer(OP op_, OutputAccessor aOut_, InputAccessor aI_, LocalAccessor scratch_, size_t length_, size_t local_)
+    : op(op_), aOut(aOut_), aI(aI_), scratch(scratch_), length(length_), local(local_){}
     void operator()(cl::sycl::nd_item<1> itemID) {
       size_t globalid = itemID.get_global(0);
       size_t localid = itemID.get_local(0);
@@ -44,7 +45,12 @@ namespace internal {
         auto min = (length < local) ? length : local;
         for (size_t offset = min / 2; offset > 0; offset /= 2) {
           if (localid < offset) {
-            scratch[localid] += scratch[localid + offset];
+            auto accum = op.initialize();
+            op.reduce(scratch[localid], &accum);
+            op.reduce(scratch[localid + offset], &accum);
+            op.finalize(accum);
+            scratch[localid]=accum;
+            //scratch[localid] += scratch[localid + offset];
           }
           itemID.barrier(cl::sycl::access::fence_space::local_space);
         }
@@ -131,11 +137,21 @@ public:
     if(globalid<rng)
       tmp_global_accessor.get_pointer()[globalid]=Eigen::internal::InnerMostDimReducer<decltype(device_self_evaluator), Op, false>::reduce(device_self_evaluator, static_cast<typename DevExpr::Index>(red_factor*globalid), red_factor, const_cast<Op&>(op));
     else
-      tmp_global_accessor.get_pointer()[globalid]=static_cast<CoeffReturnType>(0);
+      tmp_global_accessor.get_pointer()[globalid]=static_cast<CoeffReturnType>(op.initialize());
 
-    if(remaining!=0 && globalid==0 )
+    if(remaining!=0 && globalid==0 ){
       // this will add the rest of input buffer when the input size is not devidable to red_factor.
-      tmp_global_accessor.get_pointer()[0]+=Eigen::internal::InnerMostDimReducer<decltype(device_self_evaluator), Op, false>::reduce(device_self_evaluator, static_cast<typename DevExpr::Index>(red_factor*(rng)), static_cast<typename DevExpr::Index>(remaining), const_cast<Op&>(op));
+    //  tmp_global_accessor.get_pointer()[0]+=
+      auto remaining_reduce =Eigen::internal::InnerMostDimReducer<decltype(device_self_evaluator), Op, false>::
+      reduce(device_self_evaluator, static_cast<typename DevExpr::Index>(red_factor*(rng)), static_cast<typename DevExpr::Index>(remaining), const_cast<Op&>(op));
+      auto accum = op.initialize();
+      op.reduce(tmp_global_accessor.get_pointer()[0], &accum);
+      op.reduce(remaining_reduce, &accum);
+      op.finalize(accum);
+      tmp_global_accessor.get_pointer()[0]=accum;
+
+
+    }
   }
 };
 

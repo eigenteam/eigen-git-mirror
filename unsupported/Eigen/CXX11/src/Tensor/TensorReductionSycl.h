@@ -26,10 +26,10 @@ namespace Eigen {
 namespace internal {
 
 template<typename CoeffReturnType> struct syclGenericBufferReducer{
-template<typename BufferTOut, typename BufferTIn>
-static void run(BufferTOut& bufOut, BufferTIn& bufI, const Eigen::SyclDevice& dev, size_t length, size_t local){
+template<typename OP, typename BufferTOut, typename BufferTIn>
+static void run(OP op, BufferTOut& bufOut, BufferTIn& bufI, const Eigen::SyclDevice& dev, size_t length, size_t local){
   do {
-          auto f = [length, local, bufOut, &bufI](cl::sycl::handler& h) mutable {
+          auto f = [length, local, op, &bufOut, &bufI](cl::sycl::handler& h) mutable {
             cl::sycl::nd_range<1> r{cl::sycl::range<1>{std::max(length, local)},
                                     cl::sycl::range<1>{std::min(length, local)}};
             /* Two accessors are used: one to the buffer that is being reduced,
@@ -43,7 +43,7 @@ static void run(BufferTOut& bufOut, BufferTIn& bufI, const Eigen::SyclDevice& de
 
             /* The parallel_for invocation chosen is the variant with an nd_item
              * parameter, since the code requires barriers for correctness. */
-            h.parallel_for(r, TensorSycl::internal::GenericKernelReducer< CoeffReturnType, OutputAccessor, InputAccessor, LocalAccessor>(aOut, aI, scratch,  length, local));
+            h.parallel_for(r, TensorSycl::internal::GenericKernelReducer<CoeffReturnType, OP, OutputAccessor, InputAccessor, LocalAccessor>(op, aOut, aI, scratch,  length, local));
           };
             dev.sycl_queue().submit(f);
             dev.asynchronousExec();
@@ -123,7 +123,7 @@ struct FullReducer<Self, Op, const Eigen::SyclDevice, Vectorizable> {
     // getting final out buffer at the moment the created buffer is true because there is no need for assign
     auto out_buffer =dev.get_sycl_buffer(output);
     /// This is used to recursively reduce the tmp value to an element of 1;
-    syclGenericBufferReducer<CoeffReturnType>::run(out_buffer, temp_global_buffer,dev, GRange,  outTileSize);
+    syclGenericBufferReducer<CoeffReturnType>::run(reducer, out_buffer, temp_global_buffer,dev, GRange,  outTileSize);
   }
 
 };

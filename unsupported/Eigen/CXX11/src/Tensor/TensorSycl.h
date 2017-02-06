@@ -35,7 +35,7 @@ namespace Eigen {
 namespace TensorSycl {
 namespace internal {
 
-  template<typename CoeffReturnType, typename OutputAccessor, typename InputAccessor, typename LocalAccessor> struct GenericKernelReducer;
+  template<typename CoeffReturnType, typename OP, typename OutputAccessor, typename InputAccessor, typename LocalAccessor> struct GenericKernelReducer;
 
 
 /// This struct is used for special expression nodes with no operations (for example assign and selectOP).

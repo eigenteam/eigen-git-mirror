@@ -34,7 +34,7 @@ static void test_full_reductions_sycl(const Eigen::SyclDevice&  sycl_device) {
 
   in.setRandom();
 
-  full_redux = in.sum();
+  full_redux = in.minimum();
 
   DataType* gpu_in_data = static_cast<DataType*>(sycl_device.allocate(in.dimensions().TotalSize()*sizeof(DataType)));
   DataType* gpu_out_data =(DataType*)sycl_device.allocate(sizeof(DataType));
@@ -43,11 +43,10 @@ static void test_full_reductions_sycl(const Eigen::SyclDevice&  sycl_device) {
   TensorMap<Tensor<DataType, 0, DataLayout, IndexType> >  out_gpu(gpu_out_data);
 
   sycl_device.memcpyHostToDevice(gpu_in_data, in.data(),(in.dimensions().TotalSize())*sizeof(DataType));
-  out_gpu.device(sycl_device) = in_gpu.sum();
+  out_gpu.device(sycl_device) = in_gpu.minimum();
   sycl_device.memcpyDeviceToHost(full_redux_gpu.data(), gpu_out_data, sizeof(DataType));
   // Check that the CPU and GPU reductions return the same result.
   VERIFY_IS_APPROX(full_redux_gpu(), full_redux());
-
   sycl_device.deallocate(gpu_in_data);
   sycl_device.deallocate(gpu_out_data);
 }
@@ -69,7 +68,7 @@ static void test_first_dim_reductions_sycl(const Eigen::SyclDevice& sycl_device)
 
   in.setRandom();
 
-  redux= in.sum(red_axis);
+  redux= in.maximum(red_axis);
 
   DataType* gpu_in_data = static_cast<DataType*>(sycl_device.allocate(in.dimensions().TotalSize()*sizeof(DataType)));
   DataType* gpu_out_data = static_cast<DataType*>(sycl_device.allocate(redux_gpu.dimensions().TotalSize()*sizeof(DataType)));
@@ -78,7 +77,7 @@ static void test_first_dim_reductions_sycl(const Eigen::SyclDevice& sycl_device)
   TensorMap<Tensor<DataType, 2, DataLayout, IndexType> >  out_gpu(gpu_out_data, reduced_tensorRange);
 
   sycl_device.memcpyHostToDevice(gpu_in_data, in.data(),(in.dimensions().TotalSize())*sizeof(DataType));
-  out_gpu.device(sycl_device) = in_gpu.sum(red_axis);
+  out_gpu.device(sycl_device) = in_gpu.maximum(red_axis);
   sycl_device.memcpyDeviceToHost(redux_gpu.data(), gpu_out_data, redux_gpu.dimensions().TotalSize()*sizeof(DataType));
 
   // Check that the CPU and GPU reductions return the same result.
