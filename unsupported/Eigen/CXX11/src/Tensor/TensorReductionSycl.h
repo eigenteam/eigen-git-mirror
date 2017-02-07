@@ -25,8 +25,8 @@
 namespace Eigen {
 namespace internal {
 
-template<typename CoeffReturnType> struct syclGenericBufferReducer{
-template<typename OP, typename BufferTOut, typename BufferTIn>
+template<typename OP, typename CoeffReturnType> struct syclGenericBufferReducer{
+template<typename BufferTOut, typename BufferTIn>
 static void run(OP op, BufferTOut& bufOut, BufferTIn& bufI, const Eigen::SyclDevice& dev, size_t length, size_t local){
   do {
           auto f = [length, local, op, &bufOut, &bufI](cl::sycl::handler& h) mutable {
@@ -54,11 +54,16 @@ static void run(OP op, BufferTOut& bufOut, BufferTIn& bufI, const Eigen::SyclDev
           length = length / local;
 
         } while (length > 1);
-
-
-
 }
 
+};
+
+template<typename CoeffReturnType> struct syclGenericBufferReducer<Eigen::internal::MeanReducer<CoeffReturnType>, CoeffReturnType>{
+template<typename BufferTOut, typename BufferTIn>
+static void run(Eigen::internal::MeanReducer<CoeffReturnType>, BufferTOut& bufOut, BufferTIn& bufI, const Eigen::SyclDevice& dev, size_t length, size_t local){
+   syclGenericBufferReducer<Eigen::internal::SumReducer<CoeffReturnType>, CoeffReturnType>::run(Eigen::internal::SumReducer<CoeffReturnType>(),
+    bufOut, bufI, dev, length, local);
+}
 };
 
 /// Self is useless here because in expression construction we are going to treat reduction as a leafnode.
@@ -123,7 +128,7 @@ struct FullReducer<Self, Op, const Eigen::SyclDevice, Vectorizable> {
     // getting final out buffer at the moment the created buffer is true because there is no need for assign
     auto out_buffer =dev.get_sycl_buffer(output);
     /// This is used to recursively reduce the tmp value to an element of 1;
-    syclGenericBufferReducer<CoeffReturnType>::run(reducer, out_buffer, temp_global_buffer,dev, GRange,  outTileSize);
+    syclGenericBufferReducer<Op, CoeffReturnType>::run(reducer, out_buffer, temp_global_buffer,dev, GRange,  outTileSize);
   }
 
 };
@@ -135,7 +140,7 @@ struct InnerReducer<Self, Op, const Eigen::SyclDevice> {
   typedef typename Self::CoeffReturnType CoeffReturnType;
   static const bool HasOptimizedImplementation = false;
 
-  static bool run(const Self& self, Op& reducer, const Eigen::SyclDevice& dev, CoeffReturnType* output, typename Self::Index , typename Self::Index num_coeffs_to_preserve) {
+  static bool run(const Self& self, Op& reducer, const Eigen::SyclDevice& dev, CoeffReturnType* output, typename Self::Index num_values_to_reduce, typename Self::Index num_coeffs_to_preserve) {
     typedef const typename Self::ChildType HostExpr; /// this is the child of reduction
     typedef Eigen::TensorSycl::internal::FunctorExtractor<TensorEvaluator<HostExpr, const Eigen::SyclDevice> > FunctorExpr;
     FunctorExpr functors = TensorSycl::internal::extractFunctors(self.impl());
@@ -153,10 +158,10 @@ struct InnerReducer<Self, Op, const Eigen::SyclDevice> {
       // create a tuple of accessors from Evaluator
       Tuple_of_Acc tuple_of_accessors =  TensorSycl::internal::createTupleOfAccessors(cgh, self.impl());
       auto output_accessor = dev.template get_sycl_accessor<cl::sycl::access::mode::discard_write>(cgh, output);
-
+      Index red_size = (num_values_to_reduce!=0)? num_values_to_reduce : static_cast<Index>(1);
       cgh.parallel_for( cl::sycl::nd_range<1>(cl::sycl::range<1>(GRange), cl::sycl::range<1>(tileSize)),
       TensorSycl::internal::ReductionFunctor<HostExpr, FunctorExpr, Tuple_of_Acc, Dims, Op, typename Self::Index>
-      (output_accessor, functors, tuple_of_accessors, self.xprDims(), reducer, range));
+      (output_accessor, functors, tuple_of_accessors, self.xprDims(), reducer, range, red_size));
 
     });
     dev.asynchronousExec();

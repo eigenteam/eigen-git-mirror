@@ -22,10 +22,41 @@
 
 
 template <typename DataType, int DataLayout, typename IndexType>
-static void test_full_reductions_sycl(const Eigen::SyclDevice&  sycl_device) {
+static void test_full_reductions_mean_sycl(const Eigen::SyclDevice&  sycl_device) {
 
   const IndexType num_rows = 452;
   const IndexType num_cols = 765;
+  array<IndexType, 2> tensorRange = {{num_rows, num_cols}};
+
+  Tensor<DataType, 2, DataLayout, IndexType> in(tensorRange);
+  Tensor<DataType, 0, DataLayout, IndexType> full_redux;
+  Tensor<DataType, 0, DataLayout, IndexType> full_redux_gpu;
+
+  in.setRandom();
+
+  full_redux = in.mean();
+
+  DataType* gpu_in_data = static_cast<DataType*>(sycl_device.allocate(in.dimensions().TotalSize()*sizeof(DataType)));
+  DataType* gpu_out_data =(DataType*)sycl_device.allocate(sizeof(DataType));
+
+  TensorMap<Tensor<DataType, 2, DataLayout, IndexType> >  in_gpu(gpu_in_data, tensorRange);
+  TensorMap<Tensor<DataType, 0, DataLayout, IndexType> >  out_gpu(gpu_out_data);
+
+  sycl_device.memcpyHostToDevice(gpu_in_data, in.data(),(in.dimensions().TotalSize())*sizeof(DataType));
+  out_gpu.device(sycl_device) = in_gpu.mean();
+  sycl_device.memcpyDeviceToHost(full_redux_gpu.data(), gpu_out_data, sizeof(DataType));
+  // Check that the CPU and GPU reductions return the same result.
+  VERIFY_IS_APPROX(full_redux_gpu(), full_redux());
+  sycl_device.deallocate(gpu_in_data);
+  sycl_device.deallocate(gpu_out_data);
+}
+
+
+template <typename DataType, int DataLayout, typename IndexType>
+static void test_full_reductions_min_sycl(const Eigen::SyclDevice&  sycl_device) {
+
+  const IndexType num_rows = 876;
+  const IndexType num_cols = 953;
   array<IndexType, 2> tensorRange = {{num_rows, num_cols}};
 
   Tensor<DataType, 2, DataLayout, IndexType> in(tensorRange);
@@ -50,8 +81,10 @@ static void test_full_reductions_sycl(const Eigen::SyclDevice&  sycl_device) {
   sycl_device.deallocate(gpu_in_data);
   sycl_device.deallocate(gpu_out_data);
 }
+
+
 template <typename DataType, int DataLayout, typename IndexType>
-static void test_first_dim_reductions_sycl(const Eigen::SyclDevice& sycl_device) {
+static void test_first_dim_reductions_max_sycl(const Eigen::SyclDevice& sycl_device) {
 
   IndexType dim_x = 145;
   IndexType dim_y = 1;
@@ -90,7 +123,7 @@ static void test_first_dim_reductions_sycl(const Eigen::SyclDevice& sycl_device)
 }
 
 template <typename DataType, int DataLayout, typename IndexType>
-static void test_last_dim_reductions_sycl(const Eigen::SyclDevice &sycl_device) {
+static void test_last_dim_reductions_sum_sycl(const Eigen::SyclDevice &sycl_device) {
 
   IndexType dim_x = 567;
   IndexType dim_y = 1;
@@ -132,12 +165,14 @@ template<typename DataType> void sycl_reduction_test_per_device(const cl::sycl::
   QueueInterface queueInterface(d);
   auto sycl_device = Eigen::SyclDevice(&queueInterface);
 
-  test_full_reductions_sycl<DataType, RowMajor, int64_t>(sycl_device);
-  test_first_dim_reductions_sycl<DataType, RowMajor, int64_t>(sycl_device);
-  test_last_dim_reductions_sycl<DataType, RowMajor, int64_t>(sycl_device);
-  test_full_reductions_sycl<DataType, ColMajor, int64_t>(sycl_device);
-  test_first_dim_reductions_sycl<DataType, ColMajor, int64_t>(sycl_device);
-  test_last_dim_reductions_sycl<DataType, ColMajor, int64_t>(sycl_device);
+  test_full_reductions_mean_sycl<DataType, RowMajor, int64_t>(sycl_device);
+  test_full_reductions_min_sycl<DataType, RowMajor, int64_t>(sycl_device);
+  test_first_dim_reductions_max_sycl<DataType, RowMajor, int64_t>(sycl_device);
+  test_last_dim_reductions_sum_sycl<DataType, RowMajor, int64_t>(sycl_device);
+  test_full_reductions_mean_sycl<DataType, ColMajor, int64_t>(sycl_device);
+  test_full_reductions_min_sycl<DataType, ColMajor, int64_t>(sycl_device);
+  test_first_dim_reductions_max_sycl<DataType, ColMajor, int64_t>(sycl_device);
+  test_last_dim_reductions_sum_sycl<DataType, ColMajor, int64_t>(sycl_device);
 }
 void test_cxx11_tensor_reduction_sycl() {
   for (const auto& device :Eigen::get_sycl_supported_devices()) {
