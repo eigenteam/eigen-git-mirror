@@ -515,7 +515,7 @@ struct dense_assignment_loop<Kernel, LinearTraversal, CompleteUnrolling>
 template<typename Kernel>
 struct dense_assignment_loop<Kernel, SliceVectorizedTraversal, NoUnrolling>
 {
-  EIGEN_DEVICE_FUNC static inline void run(Kernel &kernel)
+  EIGEN_DEVICE_FUNC static EIGEN_STRONG_INLINE void run(Kernel &kernel)
   {
     typedef typename Kernel::Scalar Scalar;
     typedef typename Kernel::PacketType PacketType;
@@ -563,7 +563,7 @@ struct dense_assignment_loop<Kernel, SliceVectorizedTraversal, NoUnrolling>
 template<typename Kernel>
 struct dense_assignment_loop<Kernel, SliceVectorizedTraversal, InnerUnrolling>
 {
-  EIGEN_DEVICE_FUNC static inline void run(Kernel &kernel)
+  EIGEN_DEVICE_FUNC static EIGEN_STRONG_INLINE void run(Kernel &kernel)
   {
     typedef typename Kernel::DstEvaluatorType::XprType DstXprType;
     typedef typename Kernel::PacketType PacketType;
