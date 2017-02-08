@@ -80,8 +80,8 @@
 //  2015   14      1900
 //  "15"   15      1900
 
-/// \internal EIGEN_COMP_MSVC_STRICT set to 1 if the compiler is really Microsoft Visual C++ and not ,e.g., ICC
-#if EIGEN_COMP_MSVC && !(EIGEN_COMP_ICC)
+/// \internal EIGEN_COMP_MSVC_STRICT set to 1 if the compiler is really Microsoft Visual C++ and not ,e.g., ICC or clang-cl
+#if EIGEN_COMP_MSVC && !(EIGEN_COMP_ICC) && !(EIGEN_COMP_LLVM)
   #define EIGEN_COMP_MSVC_STRICT _MSC_VER
 #else
   #define EIGEN_COMP_MSVC_STRICT 0
