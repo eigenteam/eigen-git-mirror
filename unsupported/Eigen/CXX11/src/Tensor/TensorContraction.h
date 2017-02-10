@@ -64,9 +64,9 @@ void pack_simple(Scalar * dst, const Scalar * src, Index cols, Index rows, Index
 template<typename LhsScalar, typename RhsScalar, typename Scalar>
   struct libxsmm_wrapper {
     libxsmm_wrapper() {}
-    libxsmm_wrapper(int flags, int m, int n, int k, int lda, int ldb, int ldc, float alpha, float beta, int prefetch) {}
-    void operator()(const LhsScalar* a, const RhsScalar* b, Scalar* c) {}
-    void operator()(const LhsScalar* a, const RhsScalar* b, Scalar* c, const LhsScalar* ap, const RhsScalar* bp, const Scalar* cp) {}
+    libxsmm_wrapper(int, int, int, int, int, int, int, float, float, int) {}
+    void operator()(const LhsScalar*, const RhsScalar*, Scalar*) {}
+    void operator()(const LhsScalar*, const RhsScalar*, Scalar*, const LhsScalar*, const RhsScalar*, const Scalar*) {}
   };
 
   template<>
@@ -682,10 +682,9 @@ protected:
     }
 
     m_can_use_xsmm = true;
-    #else
-    // silence the compiler warning
-    (void) eval_op_indices;
-    #endif
+#else
+    EIGEN_UNUSED_VARIABLE(eval_op_indices);
+#endif
   }
 
 #if defined(EIGEN_VECTORIZE_AVX) && defined(EIGEN_USE_LIBXSMM)
