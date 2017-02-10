@@ -349,6 +349,12 @@
 # define __has_feature(x) 0
 #endif
 
+#if !( EIGEN_COMP_CLANG && ((EIGEN_COMP_CLANG<309) || defined(__apple_build_version__)) || EIGEN_COMP_GNUC_STRICT && EIGEN_COMP_GNUC<49)
+#define EIGEN_HAS_INDEXED_VIEW 1
+#else
+#define EIGEN_HAS_INDEXED_VIEW 0
+#endif
+
 // Upperbound on the C++ version to use.
 // Expected values are 03, 11, 14, 17, etc.
 // By default, let's use an arbitrarily large C++ version.
