@@ -7,7 +7,8 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#if !defined(EIGEN_PARSED_BY_DOXYGEN) && EIGEN_HAS_INDEXED_VIEW
+#if EIGEN_HAS_INDEXED_VIEW
+#if !defined(EIGEN_PARSED_BY_DOXYGEN)
 
 // This file is automatically included twice to generate const and non-const versions
 
@@ -256,4 +257,5 @@ template<typename Indices>
 IndexedView_or_VectorBlock
 operator()(const Indices& indices);
 
-#endif  // EIGEN_PARSED_BY_DOXYGEN && EIGEN_HAS_INDEXED_VIEW
+#endif  // EIGEN_PARSED_BY_DOXYGEN
+#endif  // EIGEN_HAS_INDEXED_VIEW
