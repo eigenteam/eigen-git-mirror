@@ -17,30 +17,53 @@
 ///
 /// \sa class Reshaped, fix, fix<N>(int)
 ///
+#ifdef EIGEN_PARSED_BY_DOXYGEN
+template<typename NRowsType, typename NColsType, typename OrderType>
+EIGEN_DEVICE_FUNC
+inline Reshaped<Derived,...>
+reshaped(NRowsType nRows, NColsType nCols, OrderType = ColOrder);
+
+/** This is the const version of reshaped(NRowsType,NColsType). */
+template<typename NRowsType, typename NColsType, typename OrderType>
+EIGEN_DEVICE_FUNC
+inline const Reshaped<const Derived,...>
+reshaped(NRowsType nRows, NColsType nCols, OrderType = ColOrder) const;
+#else
 template<typename NRowsType, typename NColsType>
 EIGEN_DEVICE_FUNC
-#ifndef EIGEN_PARSED_BY_DOXYGEN
 inline Reshaped<Derived,internal::get_fixed_value<NRowsType>::value,internal::get_fixed_value<NColsType>::value>
-#else
-inline Reshaped<Derived,...>
-#endif
 reshaped(NRowsType nRows, NColsType nCols)
 {
   return Reshaped<Derived,internal::get_fixed_value<NRowsType>::value,internal::get_fixed_value<NColsType>::value>(
             derived(), internal::get_runtime_value(nRows), internal::get_runtime_value(nCols));
 }
 
-/** This is the const version of reshaped(NRowsType,NColsType). */
+template<typename NRowsType, typename NColsType, typename OrderType>
+EIGEN_DEVICE_FUNC
+inline Reshaped<Derived,internal::get_fixed_value<NRowsType>::value,internal::get_fixed_value<NColsType>::value,OrderType::value>
+reshaped(NRowsType nRows, NColsType nCols, OrderType)
+{
+  return Reshaped<Derived,internal::get_fixed_value<NRowsType>::value,internal::get_fixed_value<NColsType>::value,OrderType::value>(
+            derived(), internal::get_runtime_value(nRows), internal::get_runtime_value(nCols));
+}
+
+
 template<typename NRowsType, typename NColsType>
 EIGEN_DEVICE_FUNC
-#ifndef EIGEN_PARSED_BY_DOXYGEN
 inline const Reshaped<const Derived,internal::get_fixed_value<NRowsType>::value,internal::get_fixed_value<NColsType>::value>
-#else
-inline const Reshaped<const Derived,...>
-#endif
 reshaped(NRowsType nRows, NColsType nCols) const
 {
   return Reshaped<const Derived,internal::get_fixed_value<NRowsType>::value,internal::get_fixed_value<NColsType>::value>(
             derived(), internal::get_runtime_value(nRows), internal::get_runtime_value(nCols));
 }
 
+template<typename NRowsType, typename NColsType, typename OrderType>
+EIGEN_DEVICE_FUNC
+inline const Reshaped<const Derived,internal::get_fixed_value<NRowsType>::value,internal::get_fixed_value<NColsType>::value,OrderType::value>
+reshaped(NRowsType nRows, NColsType nCols, OrderType) const
+{
+  return Reshaped<const Derived,internal::get_fixed_value<NRowsType>::value,internal::get_fixed_value<NColsType>::value,OrderType::value>(
+            derived(), internal::get_runtime_value(nRows), internal::get_runtime_value(nCols));
+}
+
+#endif // EIGEN_PARSED_BY_DOXYGEN

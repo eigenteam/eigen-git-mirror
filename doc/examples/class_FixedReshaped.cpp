@@ -4,10 +4,10 @@ using namespace Eigen;
 using namespace std;
 
 template<typename Derived>
-Eigen::Reshape<Derived, 4, 2>
+Eigen::Reshaped<Derived, 4, 2>
 reshape_helper(MatrixBase<Derived>& m)
 {
-  return Eigen::Reshape<Derived, 4, 2>(m.derived());
+  return Eigen::Reshaped<Derived, 4, 2>(m.derived());
 }
 
 int main(int, char**)

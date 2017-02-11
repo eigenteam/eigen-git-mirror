@@ -13,7 +13,7 @@
 
 namespace Eigen {
 
-/** \class Reshapedd
+/** \class Reshaped
   * \ingroup Core_Module
   *
   * \brief Expression of a fixed-size or dynamic-size reshape
@@ -23,27 +23,24 @@ namespace Eigen {
   * \tparam Cols the number of columns of the reshape we are taking at compile time (optional)
   * \tparam Order
   *
-  * This class represents an expression of either a fixed-size or dynamic-size reshape. It is the return
-  * type of DenseBase::reshaped(Index,Index) and DenseBase::reshape<int,int>() and
+  * This class represents an expression of either a fixed-size or dynamic-size reshape.
+  * It is the return type of DenseBase::reshaped(NRowsType,NColsType) and
   * most of the time this is the only way it is used.
   *
-  * However, if you want to directly maniputate reshape expressions,
+  * However, in C++98, if you want to directly maniputate reshaped expressions,
   * for instance if you want to write a function returning such an expression, you
-  * will need to use this class.
+  * will need to use this class. In C++11, it is advised to use the \em auto
+  * keyword for such use cases.
   *
   * Here is an example illustrating the dynamic case:
   * \include class_Reshaped.cpp
   * Output: \verbinclude class_Reshaped.out
   *
-  * \note Even though this expression has dynamic size, in the case where \a XprType
-  * has fixed size, this expression inherits a fixed maximal size which means that evaluating
-  * it does not cause a dynamic memory allocation.
-  *
   * Here is an example illustrating the fixed-size case:
   * \include class_FixedReshaped.cpp
   * Output: \verbinclude class_FixedReshaped.out
   *
-  * \sa DenseBase::reshaped(Index,Index), DenseBase::reshaped(), class VectorReshaped
+  * \sa DenseBase::reshaped(NRowsType,NColsType)
   */
 
 namespace internal {

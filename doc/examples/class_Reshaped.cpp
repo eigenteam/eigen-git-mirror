@@ -4,10 +4,10 @@ using namespace std;
 using namespace Eigen;
 
 template<typename Derived>
-const Reshape<const Derived>
+const Reshaped<const Derived>
 reshape_helper(const MatrixBase<Derived>& m, int rows, int cols)
 {
-  return Reshape<const Derived>(m.derived(), rows, cols);
+  return Reshaped<const Derived>(m.derived(), rows, cols);
 }
 
 int main(int, char**)
@@ -17,7 +17,7 @@ int main(int, char**)
        2, 5, 8, 11,
        3, 6, 9, 12;
   cout << m << endl;
-  auto n = reshape_helper(m, 2, 6);
+  Ref<const MatrixXd> n = reshape_helper(m, 2, 6);
   cout << "Matrix m is:" << endl << m << endl;
   cout << "Matrix n is:" << endl << n << endl;
 }
