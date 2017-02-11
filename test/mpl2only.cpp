@@ -12,7 +12,9 @@
 #include <Eigen/SparseCore>
 #include <Eigen/SparseLU>
 #include <Eigen/SparseQR>
+#include <Eigen/Sparse>
 #include <Eigen/IterativeLinearSolvers>
+#include <Eigen/Eigen>
 
 int main()
 {
