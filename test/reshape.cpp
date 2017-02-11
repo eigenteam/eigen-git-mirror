@@ -48,6 +48,18 @@ void reshape_all_size(MatType m)
     ),
     MapMat(m.data(), 4,  4)
   );
+
+  VERIFY_IS_EQUAL(m.reshaped( 1, 16).data(), m.data());
+  VERIFY_IS_EQUAL(m.reshaped( 1, 16).innerStride(), 1);
+
+  VERIFY_IS_EQUAL(m.reshaped( 2, 8).data(), m.data());
+  VERIFY_IS_EQUAL(m.reshaped( 2, 8).innerStride(), 1);
+  VERIFY_IS_EQUAL(m.reshaped( 2, 8).outerStride(), 2);
+
+  m.reshaped(2,8,ColOrder);
+
+  MatrixXi m28r = m.reshaped(2,8,RowOrder);
+  std::cout << m28r << "\n";
 }
 
 void test_reshape()
