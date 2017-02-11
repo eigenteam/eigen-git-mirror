@@ -7,7 +7,6 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#if EIGEN_HAS_INDEXED_VIEW
 #if !defined(EIGEN_PARSED_BY_DOXYGEN)
 
 // This file is automatically included twice to generate const and non-const versions
@@ -113,6 +112,8 @@ operator()(const RowIndices& rowIndices, const ColIndices& colIndices) EIGEN_IND
   return Base::operator()(internal::eval_expr_given_size(rowIndices,rows()),internal::eval_expr_given_size(colIndices,cols()));
 }
 
+#if EIGEN_HAS_STATIC_ARRAY_TEMPLATE
+
 // The folowing three overloads are needed to handle raw Index[N] arrays.
 
 template<typename RowIndicesT, std::size_t RowIndicesN, typename ColIndices>
@@ -138,6 +139,8 @@ operator()(const RowIndicesT (&rowIndices)[RowIndicesN], const ColIndicesT (&col
   return IndexedView<EIGEN_INDEXED_VIEW_METHOD_CONST Derived,const RowIndicesT (&)[RowIndicesN],const ColIndicesT (&)[ColIndicesN]>
                     (derived(), rowIndices, colIndices);
 }
+
+#endif // EIGEN_HAS_STATIC_ARRAY_TEMPLATE
 
 // Overloads for 1D vectors/arrays
 
@@ -182,6 +185,8 @@ operator()(const IndexType& id) EIGEN_INDEXED_VIEW_METHOD_CONST
   return Base::operator()(internal::eval_expr_given_size(id,size()));
 }
 
+#if EIGEN_HAS_STATIC_ARRAY_TEMPLATE
+
 template<typename IndicesT, std::size_t IndicesN>
 typename internal::enable_if<IsRowMajor,
   IndexedView<EIGEN_INDEXED_VIEW_METHOD_CONST Derived,IvcIndex,const IndicesT (&)[IndicesN]> >::type
@@ -201,6 +206,8 @@ operator()(const IndicesT (&indices)[IndicesN]) EIGEN_INDEXED_VIEW_METHOD_CONST
   return IndexedView<EIGEN_INDEXED_VIEW_METHOD_CONST Derived,const IndicesT (&)[IndicesN],IvcIndex>
             (derived(), indices, IvcIndex(0));
 }
+
+#endif // EIGEN_HAS_STATIC_ARRAY_TEMPLATE
 
 #undef EIGEN_INDEXED_VIEW_METHOD_CONST
 #undef EIGEN_INDEXED_VIEW_METHOD_TYPE
@@ -258,4 +265,3 @@ IndexedView_or_VectorBlock
 operator()(const Indices& indices);
 
 #endif  // EIGEN_PARSED_BY_DOXYGEN
-#endif  // EIGEN_HAS_INDEXED_VIEW
