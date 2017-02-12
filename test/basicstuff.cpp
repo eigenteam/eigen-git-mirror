@@ -49,6 +49,19 @@ template<typename MatrixType> void basicStuff(const MatrixType& m)
   v1[r] = x;
   VERIFY_IS_APPROX(x, v1[r]);
 
+  // test fetching with various index types.
+  x = v1(static_cast<char>(r));
+  x = v1(static_cast<signed char>(r));
+  x = v1(static_cast<unsigned char>(r));
+  x = v1(static_cast<signed short>(r));
+  x = v1(static_cast<unsigned short>(r));
+  x = v1(static_cast<signed int>(r));
+  x = v1(static_cast<unsigned int>(r));
+  x = v1(static_cast<signed long>(r));
+  x = v1(static_cast<unsigned long>(r));
+  x = v1(static_cast<long long int>(r));
+  x = v1(static_cast<unsigned long long int>(r));
+
   VERIFY_IS_APPROX(               v1,    v1);
   VERIFY_IS_NOT_APPROX(           v1,    2*v1);
   VERIFY_IS_MUCH_SMALLER_THAN(    vzero, v1);
