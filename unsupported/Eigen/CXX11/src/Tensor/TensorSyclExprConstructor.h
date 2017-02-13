@@ -368,6 +368,23 @@ SYCLPADDINGOPEXPRCONST(TensorPaddingOp, )
 #undef SYCLPADDINGOPEXPRCONST
 
 
+// TensorChippingOp
+#define SYCLTENSORCHIPPINGOPEXPR(CVQual)\
+template<DenseIndex DimId, typename OrigXprType, typename XprType, typename... Params>\
+struct ExprConstructor<CVQual TensorChippingOp <DimId, OrigXprType> , CVQual TensorChippingOp<DimId, XprType>, Params... >{\
+  typedef ExprConstructor<OrigXprType, XprType, Params...> my_xpr_type;\
+  typedef CVQual TensorChippingOp<DimId, typename my_xpr_type::Type> Type;\
+  my_xpr_type xprExpr;\
+  Type expr;\
+  template <typename FuncDetector>\
+  ExprConstructor(FuncDetector &funcD, const utility::tuple::Tuple<Params...> &t)\
+  : xprExpr(funcD.xprExpr, t), expr(xprExpr.expr, funcD.offset(), funcD.dimId()) {}\
+};
+
+SYCLTENSORCHIPPINGOPEXPR(const)
+SYCLTENSORCHIPPINGOPEXPR()
+#undef SYCLTENSORCHIPPINGOPEXPR
+
 
 /// template deduction for \ref ExprConstructor struct
 template <typename OrigExpr, typename IndexExpr, typename FuncD, typename... Params>

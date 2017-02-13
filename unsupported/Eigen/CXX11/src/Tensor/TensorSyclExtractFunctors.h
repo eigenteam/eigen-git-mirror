@@ -290,6 +290,22 @@ SYCLEXTRFUNCCONTRACTCONCAT(TensorConcatenationOp, axis(), const)
 SYCLEXTRFUNCCONTRACTCONCAT(TensorConcatenationOp, axis(),)
 #undef SYCLEXTRFUNCCONTRACTCONCAT
 
+//TensorChippingOp
+#define SYCLEXTRFUNCCHIPPINGOP(CVQual)\
+template<DenseIndex DimId, typename XprType, typename Device>\
+struct FunctorExtractor<TensorEvaluator<CVQual TensorChippingOp<DimId, XprType>, Device>>{\
+  FunctorExtractor<Eigen::TensorEvaluator<XprType, Device> > xprExpr;\
+  const DenseIndex m_dim;\
+  const DenseIndex m_offset;\
+  EIGEN_STRONG_INLINE const DenseIndex& dimId() const { return m_dim; }\
+  EIGEN_STRONG_INLINE const DenseIndex& offset() const { return m_offset; }\
+  FunctorExtractor(const TensorEvaluator<CVQual TensorChippingOp<DimId, XprType>, Device>& expr)\
+  : xprExpr(expr.impl()), m_dim(expr.dimId()), m_offset(expr.offset()) {}\
+};
+
+SYCLEXTRFUNCCHIPPINGOP(const)
+SYCLEXTRFUNCCHIPPINGOP()
+#undef SYCLEXTRFUNCCHIPPINGOP
 
 /// template deduction function for FunctorExtractor
 template <typename Evaluator>

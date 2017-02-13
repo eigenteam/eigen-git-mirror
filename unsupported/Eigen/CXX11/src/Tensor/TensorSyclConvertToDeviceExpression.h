@@ -146,6 +146,18 @@ KERNELBROKERCONVERTERSLICESTRIDEOP()
 #undef KERNELBROKERCONVERTERSLICESTRIDEOP
 
 
+/// specialisation of the \ref ConvertToDeviceExpression struct when the node type is TensorChippingOp
+#define KERNELBROKERCONVERTCHIPPINGOP(CVQual)\
+template <DenseIndex DimId, typename Expr>\
+struct ConvertToDeviceExpression<CVQual TensorChippingOp<DimId, Expr> > {\
+  typedef CVQual TensorChippingOp<DimId, typename ConvertToDeviceExpression<Expr>::Type> Type;\
+};
+KERNELBROKERCONVERTCHIPPINGOP(const)
+KERNELBROKERCONVERTCHIPPINGOP()
+#undef KERNELBROKERCONVERTCHIPPINGOP
+
+
+
 }  // namespace internal
 }  // namespace TensorSycl
 }  // namespace Eigen

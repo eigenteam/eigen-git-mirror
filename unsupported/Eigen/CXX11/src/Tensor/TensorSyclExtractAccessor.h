@@ -188,7 +188,7 @@ SYCLCONTRACTIONCONVOLUTIONEXTACC(,TensorConvolutionOp)
 
 
 /// specialisation of the \ref ExtractAccessor struct when the node type is
-/// const TensorSlicingOp. 
+/// const TensorSlicingOp.
 #define SYCLSLICEOPEXTACC(CVQual)\
 template <typename StartIndices, typename Sizes, typename XprType, typename Dev>\
 struct ExtractAccessor<TensorEvaluator<CVQual TensorSlicingOp<StartIndices, Sizes, XprType>, Dev> > {\
@@ -200,7 +200,7 @@ SYCLSLICEOPEXTACC(const)
 SYCLSLICEOPEXTACC()
 #undef SYCLSLICEOPEXTACC
 // specialisation of the \ref ExtractAccessor struct when the node type is
-/// const TensorStridingSlicingOp.
+///  TensorStridingSlicingOp.
 #define SYCLSLICESTRIDEOPEXTACC(CVQual)\
 template<typename StartIndices, typename StopIndices, typename Strides, typename XprType, typename Dev>\
 struct ExtractAccessor<TensorEvaluator<CVQual TensorStridingSlicingOp<StartIndices, StopIndices, Strides, XprType>, Dev> >{\
@@ -211,6 +211,19 @@ struct ExtractAccessor<TensorEvaluator<CVQual TensorStridingSlicingOp<StartIndic
 SYCLSLICESTRIDEOPEXTACC(const)
 SYCLSLICESTRIDEOPEXTACC()
 #undef SYCLSLICESTRIDEOPEXTACC
+
+// specialisation of the \ref ExtractAccessor struct when the node type is
+/// TensorChippingOp.
+#define SYCLTENSORCHIPPINGOPEXTACC(CVQual)\
+template<DenseIndex DimId, typename XprType, typename Dev>\
+struct ExtractAccessor<TensorEvaluator<CVQual TensorChippingOp<DimId, XprType>, Dev> >{\
+  static inline auto getTuple(cl::sycl::handler& cgh, const TensorEvaluator<CVQual TensorChippingOp<DimId, XprType>, Dev>& eval)\
+  RETURN_CPP11(AccessorConstructor::getTuple(cgh, eval.impl()))\
+};
+
+SYCLTENSORCHIPPINGOPEXTACC(const)
+SYCLTENSORCHIPPINGOPEXTACC()
+#undef SYCLTENSORCHIPPINGOPEXTACC
 
 
 /// template deduction for \ref ExtractAccessor

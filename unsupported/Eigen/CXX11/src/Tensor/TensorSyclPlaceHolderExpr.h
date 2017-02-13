@@ -157,6 +157,18 @@ EVALTO()
 
 
 /// specialisation of the \ref PlaceHolderExpression when the node is
+/// TensorChippingOp
+#define CHIPPINGOP(CVQual)\
+template <DenseIndex DimId, typename Expr, size_t N>\
+struct PlaceHolderExpression<CVQual TensorChippingOp<DimId, Expr>, N> {\
+  typedef CVQual TensorChippingOp< DimId, typename CalculateIndex <N, Expr>::ArgType> Type;\
+};
+
+CHIPPINGOP(const)
+CHIPPINGOP()
+#undef CHIPPINGOP
+
+/// specialisation of the \ref PlaceHolderExpression when the node is
 /// TensorReductionOp
 #define SYCLREDUCTION(CVQual)\
 template <typename OP, typename Dims, typename Expr, size_t N>\

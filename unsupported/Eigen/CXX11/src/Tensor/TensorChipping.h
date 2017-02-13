@@ -150,7 +150,7 @@ struct TensorEvaluator<const TensorChippingOp<DimId, ArgType>, Device>
   };
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
-      : m_impl(op.expression(), device), m_dim(op.dim()), m_device(device)
+      : m_impl(op.expression(), device), m_dim(op.dim()), m_device(device), m_offset(op.offset())
   {
     EIGEN_STATIC_ASSERT((NumInputDims >= 1), YOU_MADE_A_PROGRAMMING_MISTAKE);
     eigen_assert(NumInputDims > m_dim.actualDim());
@@ -206,7 +206,7 @@ struct TensorEvaluator<const TensorChippingOp<DimId, ArgType>, Device>
     eigen_assert(index+PacketSize-1 < dimensions().TotalSize());
 
     if ((static_cast<int>(Layout) == static_cast<int>(ColMajor) && m_dim.actualDim() == 0) ||
-	(static_cast<int>(Layout) == static_cast<int>(RowMajor) && m_dim.actualDim() == NumInputDims-1)) {
+  (static_cast<int>(Layout) == static_cast<int>(RowMajor) && m_dim.actualDim() == NumInputDims-1)) {
       // m_stride is equal to 1, so let's avoid the integer division.
       eigen_assert(m_stride == 1);
       Index inputIndex = index * m_inputStride + m_inputOffset;
@@ -218,7 +218,7 @@ struct TensorEvaluator<const TensorChippingOp<DimId, ArgType>, Device>
       PacketReturnType rslt = internal::pload<PacketReturnType>(values);
       return rslt;
     } else if ((static_cast<int>(Layout) == static_cast<int>(ColMajor) && m_dim.actualDim() == NumInputDims - 1) ||
-	       (static_cast<int>(Layout) == static_cast<int>(RowMajor) && m_dim.actualDim() == 0)) {
+         (static_cast<int>(Layout) == static_cast<int>(RowMajor) && m_dim.actualDim() == 0)) {
       // m_stride is aways greater than index, so let's avoid the integer division.
       eigen_assert(m_stride > index);
       return m_impl.template packet<LoadMode>(index + m_inputOffset);
@@ -274,17 +274,29 @@ struct TensorEvaluator<const TensorChippingOp<DimId, ArgType>, Device>
     }
   }
 
+  /// used by sycl
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE DenseIndex dimId() const {
+    return m_dim.actualDim();
+  }
+
+  /// used by sycl
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const DenseIndex& offset() const {
+    return m_offset;
+  }
+  /// required by sycl in order to extract the accessor
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const TensorEvaluator<ArgType, Device>& impl() const { return m_impl; }
+
  protected:
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Index srcCoeff(Index index) const
   {
     Index inputIndex;
     if ((static_cast<int>(Layout) == static_cast<int>(ColMajor) && m_dim.actualDim() == 0) ||
-	(static_cast<int>(Layout) == static_cast<int>(RowMajor) && m_dim.actualDim() == NumInputDims-1)) {
+  (static_cast<int>(Layout) == static_cast<int>(RowMajor) && m_dim.actualDim() == NumInputDims-1)) {
       // m_stride is equal to 1, so let's avoid the integer division.
       eigen_assert(m_stride == 1);
       inputIndex = index * m_inputStride + m_inputOffset;
     } else if ((static_cast<int>(Layout) == static_cast<int>(ColMajor) && m_dim.actualDim() == NumInputDims-1) ||
-	       (static_cast<int>(Layout) == static_cast<int>(RowMajor) && m_dim.actualDim() == 0)) {
+         (static_cast<int>(Layout) == static_cast<int>(RowMajor) && m_dim.actualDim() == 0)) {
       // m_stride is aways greater than index, so let's avoid the integer division.
       eigen_assert(m_stride > index);
       inputIndex = index + m_inputOffset;
@@ -304,6 +316,9 @@ struct TensorEvaluator<const TensorChippingOp<DimId, ArgType>, Device>
   TensorEvaluator<ArgType, Device> m_impl;
   const internal::DimensionId<DimId> m_dim;
   const Device& m_device;
+// required by sycl
+  const DenseIndex m_offset;
+
 };
 
 
@@ -344,7 +359,7 @@ struct TensorEvaluator<TensorChippingOp<DimId, ArgType>, Device>
     EIGEN_STATIC_ASSERT((PacketSize > 1), YOU_MADE_A_PROGRAMMING_MISTAKE)
 
     if ((static_cast<int>(this->Layout) == static_cast<int>(ColMajor) && this->m_dim.actualDim() == 0) ||
-	(static_cast<int>(this->Layout) == static_cast<int>(RowMajor) && this->m_dim.actualDim() == NumInputDims-1)) {
+  (static_cast<int>(this->Layout) == static_cast<int>(RowMajor) && this->m_dim.actualDim() == NumInputDims-1)) {
       // m_stride is equal to 1, so let's avoid the integer division.
       eigen_assert(this->m_stride == 1);
       EIGEN_ALIGN_MAX typename internal::remove_const<CoeffReturnType>::type values[PacketSize];
@@ -355,7 +370,7 @@ struct TensorEvaluator<TensorChippingOp<DimId, ArgType>, Device>
         inputIndex += this->m_inputStride;
       }
     } else if ((static_cast<int>(this->Layout) == static_cast<int>(ColMajor) && this->m_dim.actualDim() == NumInputDims-1) ||
-	       (static_cast<int>(this->Layout) == static_cast<int>(RowMajor) && this->m_dim.actualDim() == 0)) {
+         (static_cast<int>(this->Layout) == static_cast<int>(RowMajor) && this->m_dim.actualDim() == 0)) {
       // m_stride is aways greater than index, so let's avoid the integer division.
       eigen_assert(this->m_stride > index);
       this->m_impl.template writePacket<StoreMode>(index + this->m_inputOffset, x);

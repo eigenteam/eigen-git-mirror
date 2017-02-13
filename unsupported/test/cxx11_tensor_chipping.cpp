@@ -43,7 +43,7 @@ static void test_simple_chip()
   VERIFY_IS_EQUAL(chip2.dimension(2), 7);
   VERIFY_IS_EQUAL(chip2.dimension(3), 11);
   for (int i = 0; i < 2; ++i) {
-    for (int j = 0; j < 3; ++j) {
+    for (int j = 0; j < 5; ++j) {
       for (int k = 0; k < 7; ++k) {
         for (int l = 0; l < 11; ++l) {
           VERIFY_IS_EQUAL(chip2(i,j,k,l), tensor(i,1,j,k,l));
@@ -75,7 +75,7 @@ static void test_simple_chip()
   for (int i = 0; i < 2; ++i) {
     for (int j = 0; j < 3; ++j) {
       for (int k = 0; k < 5; ++k) {
-        for (int l = 0; l < 7; ++l) {
+        for (int l = 0; l < 11; ++l) {
           VERIFY_IS_EQUAL(chip4(i,j,k,l), tensor(i,j,k,5,l));
         }
       }
@@ -126,7 +126,7 @@ static void test_dynamic_chip()
   VERIFY_IS_EQUAL(chip2.dimension(2), 7);
   VERIFY_IS_EQUAL(chip2.dimension(3), 11);
   for (int i = 0; i < 2; ++i) {
-    for (int j = 0; j < 3; ++j) {
+    for (int j = 0; j < 5; ++j) {
       for (int k = 0; k < 7; ++k) {
         for (int l = 0; l < 11; ++l) {
           VERIFY_IS_EQUAL(chip2(i,j,k,l), tensor(i,1,j,k,l));
@@ -158,7 +158,7 @@ static void test_dynamic_chip()
   for (int i = 0; i < 2; ++i) {
     for (int j = 0; j < 3; ++j) {
       for (int k = 0; k < 5; ++k) {
-        for (int l = 0; l < 7; ++l) {
+        for (int l = 0; l < 11; ++l) {
           VERIFY_IS_EQUAL(chip4(i,j,k,l), tensor(i,j,k,5,l));
         }
       }

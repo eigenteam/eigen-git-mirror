@@ -139,6 +139,17 @@ SLICEOPLEAFCOUNT(const)
 SLICEOPLEAFCOUNT()
 #undef SLICEOPLEAFCOUNT
 
+
+/// specialisation of the \ref LeafCount struct when the node type is  TensorChippingOp
+#define CHIPPINGOPLEAFCOUNT(CVQual)\
+template <DenseIndex DimId, typename XprType>\
+struct LeafCount<CVQual TensorChippingOp<DimId, XprType> >:CategoryCount<XprType>{};
+
+CHIPPINGOPLEAFCOUNT(const)
+CHIPPINGOPLEAFCOUNT()
+#undef CHIPPINGOPLEAFCOUNT
+
+
 #define SLICESTRIDEOPLEAFCOUNT(CVQual)\
 template<typename StartIndices, typename StopIndices, typename Strides, typename XprType>\
 struct LeafCount<CVQual TensorStridingSlicingOp<StartIndices, StopIndices, Strides, XprType> >:CategoryCount<XprType>{};
