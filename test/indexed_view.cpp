@@ -79,7 +79,6 @@ is_same_seq_type(const T1& a, const T2& b)
 
 void check_indexed_view()
 {
-#if EIGEN_HAS_INDEXED_VIEW
   using Eigen::placeholders::all;
   using Eigen::placeholders::last;
   using Eigen::placeholders::end;
@@ -298,6 +297,7 @@ void check_indexed_view()
 
   VERIFY_IS_APPROX( (A(std::array<int,3>{{1,3,5}}, std::array<int,4>{{9,6,3,0}})), A(seqN(1,3,2), seqN(9,4,-3)) );
 
+#if EIGEN_HAS_STATIC_ARRAY_TEMPLATE
   VERIFY_IS_APPROX( A({3, 1, 6, 5}, all), A(std::array<int,4>{{3, 1, 6, 5}}, all) );
   VERIFY_IS_APPROX( A(all,{3, 1, 6, 5}), A(all,std::array<int,4>{{3, 1, 6, 5}}) );
   VERIFY_IS_APPROX( A({1,3,5},{3, 1, 6, 5}), A(std::array<int,3>{{1,3,5}},std::array<int,4>{{3, 1, 6, 5}}) );
@@ -310,6 +310,7 @@ void check_indexed_view()
 
   VERIFY_IS_APPROX( b({3, 1, 6, 5}), b(std::array<int,4>{{3, 1, 6, 5}}) );
   VERIFY_IS_EQUAL( b({1,3,5}).SizeAtCompileTime, 3 );
+#endif
 
 #endif
 
@@ -365,7 +366,6 @@ void check_indexed_view()
     VERIFY( is_same_eq( cA.middleRows<3>(1), cA.middleRows(1,fix<3>)) );
   }
 
-#endif  // EIGEN_HAS_INDEXED_VIEW
 }
 
 void test_indexed_view()

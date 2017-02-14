@@ -19,8 +19,8 @@ struct traits<IndexedView<XprType, RowIndices, ColIndices> >
  : traits<XprType>
 {
   enum {
-    RowsAtCompileTime = array_size<RowIndices>::value,
-    ColsAtCompileTime = array_size<ColIndices>::value,
+    RowsAtCompileTime = int(array_size<RowIndices>::value),
+    ColsAtCompileTime = int(array_size<ColIndices>::value),
     MaxRowsAtCompileTime = RowsAtCompileTime != Dynamic ? int(RowsAtCompileTime) : int(traits<XprType>::MaxRowsAtCompileTime),
     MaxColsAtCompileTime = ColsAtCompileTime != Dynamic ? int(ColsAtCompileTime) : int(traits<XprType>::MaxColsAtCompileTime),
 
@@ -29,8 +29,8 @@ struct traits<IndexedView<XprType, RowIndices, ColIndices> >
                : (MaxColsAtCompileTime==1&&MaxRowsAtCompileTime!=1) ? 0
                : XprTypeIsRowMajor,
 
-    RowIncr = get_compile_time_incr<RowIndices>::value,
-    ColIncr = get_compile_time_incr<ColIndices>::value,
+    RowIncr = int(get_compile_time_incr<RowIndices>::value),
+    ColIncr = int(get_compile_time_incr<ColIndices>::value),
     InnerIncr = IsRowMajor ? ColIncr : RowIncr,
     OuterIncr = IsRowMajor ? RowIncr : ColIncr,
 
@@ -51,7 +51,7 @@ struct traits<IndexedView<XprType, RowIndices, ColIndices> >
 
     // FIXME we deal with compile-time strides if and only if we have DirectAccessBit flag,
     // but this is too strict regarding negative strides...
-    DirectAccessMask = (InnerIncr!=UndefinedIncr && OuterIncr!=UndefinedIncr && InnerIncr>=0 && OuterIncr>=0) ? DirectAccessBit : 0,
+    DirectAccessMask = (int(InnerIncr)!=UndefinedIncr && int(OuterIncr)!=UndefinedIncr && InnerIncr>=0 && OuterIncr>=0) ? DirectAccessBit : 0,
     FlagsRowMajorBit = IsRowMajor ? RowMajorBit : 0,
     FlagsLvalueBit = is_lvalue<XprType>::value ? LvalueBit : 0,
     Flags = (traits<XprType>::Flags & (HereditaryBits | DirectAccessMask)) | FlagsLvalueBit | FlagsRowMajorBit
