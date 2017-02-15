@@ -99,11 +99,11 @@ struct TensorEvaluator<const TensorPatchOp<PatchDim, ArgType>, Device>
  };
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
-      : m_impl(op.expression(), device)
+      : m_impl(op.expression(), device), patch_dims(op.patch_dims())
   {
     Index num_patches = 1;
     const typename TensorEvaluator<ArgType, Device>::Dimensions& input_dims = m_impl.dimensions();
-    const PatchDim& patch_dims = op.patch_dims();
+  //  const PatchDim& patch_dims = op.patch_dims();
     if (static_cast<int>(Layout) == static_cast<int>(ColMajor)) {
       for (int i = 0; i < NumDims-1; ++i) {
         m_dimensions[i] = patch_dims[i];
@@ -255,6 +255,11 @@ struct TensorEvaluator<const TensorPatchOp<PatchDim, ArgType>, Device>
 
   EIGEN_DEVICE_FUNC Scalar* data() const { return NULL; }
 
+  /// required by sycl in order to extract the accessor
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const TensorEvaluator<ArgType, Device>& impl() const { return m_impl; }
+  /// required by sycl in order to extract the accessor
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const PatchDim& functor() const { return patch_dims; }
+
  protected:
   Dimensions m_dimensions;
   array<Index, NumDims> m_outputStrides;
@@ -262,6 +267,8 @@ struct TensorEvaluator<const TensorPatchOp<PatchDim, ArgType>, Device>
   array<Index, NumDims-1> m_patchStrides;
 
   TensorEvaluator<ArgType, Device> m_impl;
+  // required by sycl
+  const PatchDim& patch_dims;
 };
 
 } // end namespace Eigen
