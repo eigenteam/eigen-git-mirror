@@ -91,27 +91,34 @@ ASSIGNCONVERT(, false)
 #undef ASSIGNCONVERT
 
 /// specialisation of the \ref ConvertToDeviceExpression struct when the node
-/// type is either TensorForcedEvalOp or TensorEvalToOp
+/// type is  TensorEvalToOp
 #define KERNELBROKERCONVERT(CVQual, Res, ExprNode)\
 template <typename Expr>\
 struct ConvertToDeviceExpression<CVQual ExprNode<Expr> > \
 : DeviceConvertor<ExprNode, Res, Expr>{};
 
-/// specialisation of the \ref ConvertToDeviceExpression struct when the node type is TensorForcedEvalOp
-#define KERNELBROKERCONVERTFORCEDEVAL(CVQual)\
-template <typename Expr>\
-struct ConvertToDeviceExpression<CVQual TensorForcedEvalOp<Expr> > {\
-  typedef CVQual TensorForcedEvalOp< typename ConvertToDeviceExpression<Expr>::Type> Type;\
-};
-KERNELBROKERCONVERTFORCEDEVAL(const)
-KERNELBROKERCONVERTFORCEDEVAL()
-#undef KERNELBROKERCONVERTFORCEDEVAL
-
-
 
 KERNELBROKERCONVERT(const, true, TensorEvalToOp)
 KERNELBROKERCONVERT(, false, TensorEvalToOp)
 #undef KERNELBROKERCONVERT
+
+/// specialisation of the \ref ConvertToDeviceExpression struct when the node types are TensorForcedEvalOp and TensorLayoutSwapOp
+#define KERNELBROKERCONVERTFORCEDEVALLAYOUTSWAP(CVQual, ExprNode)\
+template <typename Expr>\
+struct ConvertToDeviceExpression<CVQual ExprNode<Expr> > {\
+  typedef CVQual ExprNode< typename ConvertToDeviceExpression<Expr>::Type> Type;\
+};
+
+// TensorForcedEvalOp
+KERNELBROKERCONVERTFORCEDEVALLAYOUTSWAP(const,TensorForcedEvalOp)
+KERNELBROKERCONVERTFORCEDEVALLAYOUTSWAP(,TensorForcedEvalOp)
+
+// TensorLayoutSwapOp
+KERNELBROKERCONVERTFORCEDEVALLAYOUTSWAP(const,TensorLayoutSwapOp)
+KERNELBROKERCONVERTFORCEDEVALLAYOUTSWAP(,TensorLayoutSwapOp)
+#undef KERNELBROKERCONVERTFORCEDEVALLAYOUTSWAP
+
+
 
 /// specialisation of the \ref ConvertToDeviceExpression struct when the node type is TensorReductionOp
 #define KERNELBROKERCONVERTREDUCTION(CVQual)\

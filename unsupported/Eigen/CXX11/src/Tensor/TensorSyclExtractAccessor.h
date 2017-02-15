@@ -226,6 +226,21 @@ SYCLTENSORCHIPPINGOPEXTACC()
 #undef SYCLTENSORCHIPPINGOPEXTACC
 
 
+// specialisation of the \ref ExtractAccessor struct when the node type is
+/// TensorLayoutSwapOp.
+#define SYCLTENSORLAYOUTSWAPOPEXTACC(CVQual)\
+template<typename XprType, typename Dev>\
+struct ExtractAccessor<TensorEvaluator<CVQual TensorLayoutSwapOp<XprType>, Dev> >{\
+  static inline auto getTuple(cl::sycl::handler& cgh, const TensorEvaluator<CVQual TensorLayoutSwapOp<XprType>, Dev>& eval)\
+  RETURN_CPP11(AccessorConstructor::getTuple(cgh, eval.impl()))\
+};
+
+SYCLTENSORLAYOUTSWAPOPEXTACC(const)
+SYCLTENSORLAYOUTSWAPOPEXTACC()
+#undef SYCLTENSORLAYOUTSWAPOPEXTACC
+
+
+
 /// template deduction for \ref ExtractAccessor
 template <typename Evaluator>
 auto createTupleOfAccessors(cl::sycl::handler& cgh, const Evaluator& eval)

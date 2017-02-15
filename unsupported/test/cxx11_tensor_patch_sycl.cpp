@@ -12,7 +12,6 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-
 #define EIGEN_TEST_NO_LONGDOUBLE
 #define EIGEN_TEST_NO_COMPLEX
 #define EIGEN_TEST_FUNC cxx11_tensor_patch_sycl
@@ -80,10 +79,12 @@ static void test_simple_patch_sycl(const Eigen::SyclDevice& sycl_device){
   for (int i = 0; i < tensor.size(); ++i) {
     VERIFY_IS_EQUAL(tensor.data()[i], no_patch.data()[i]);
   }
+
   patch_dims[0] = 2;
   patch_dims[1] = 3;
   patch_dims[2] = 5;
   patch_dims[3] = 7;
+
   if (DataLayout == ColMajor) {
    patchTensorRange = {{sizeDim1,sizeDim2,sizeDim3,sizeDim4,1}};
   }else{
@@ -114,15 +115,11 @@ static void test_simple_patch_sycl(const Eigen::SyclDevice& sycl_device){
   for (int i = 0; i < tensor.size(); ++i) {
     VERIFY_IS_EQUAL(tensor.data()[i], single_patch.data()[i]);
   }
-
-
-
-
-
   patch_dims[0] = 1;
   patch_dims[1] = 2;
   patch_dims[2] = 2;
   patch_dims[3] = 1;
+  
   if (DataLayout == ColMajor) {
    patchTensorRange = {{1,2,2,1,2*2*4*7}};
   }else{

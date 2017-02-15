@@ -39,7 +39,6 @@ template <typename Evaluator> struct FunctorExtractor{
   EIGEN_STRONG_INLINE const Dimensions& dimensions() const { return m_dimensions; }
   FunctorExtractor(const Evaluator& expr)
   : m_dimensions(expr.dimensions()) {}
-
 };
 
 /// specialisation of the \ref FunctorExtractor struct when the node type does not require anything
@@ -143,19 +142,23 @@ SYCLEXTRFUNCASSIGNOP(const)
 SYCLEXTRFUNCASSIGNOP()
 #undef SYCLEXTRFUNCASSIGNOP
 
-/// specialisation of the \ref FunctorExtractor struct when the node type is
-/// TensorEvalToOp, This is an specialisation without OP so it has to be separated.
-#define SYCLEXTRFUNCEVALTOOP(CVQual)\
-template <typename RHSExpr, typename Dev>\
-struct FunctorExtractor<TensorEvaluator<CVQual TensorEvalToOp<RHSExpr>, Dev> > {\
-  FunctorExtractor<TensorEvaluator<RHSExpr, Dev> > rhsExpr;\
-  FunctorExtractor(const TensorEvaluator<CVQual TensorEvalToOp<RHSExpr>, Dev>& expr)\
-  : rhsExpr(expr.impl()) {}\
+/// specialisation of the \ref FunctorExtractor struct when the node types are
+/// TensorEvalToOp, TensorLayoutSwapOp. This is an specialisation without OP so it has to be separated.
+#define SYCLEXTRFUNCEVALTOOPSWAPLAYOUT(CVQual, ExprNode)\
+template <typename Expr, typename Dev>\
+struct FunctorExtractor<TensorEvaluator<CVQual ExprNode<Expr>, Dev> > {\
+  FunctorExtractor<TensorEvaluator<Expr, Dev> > xprExpr;\
+  FunctorExtractor(const TensorEvaluator<CVQual ExprNode<Expr>, Dev>& expr)\
+  : xprExpr(expr.impl()) {}\
 };
+//TensorEvalToOp
+SYCLEXTRFUNCEVALTOOPSWAPLAYOUT(const, TensorEvalToOp)
+SYCLEXTRFUNCEVALTOOPSWAPLAYOUT(, TensorEvalToOp)
+// TensorLayoutSwapOp
+SYCLEXTRFUNCEVALTOOPSWAPLAYOUT(const, TensorLayoutSwapOp)
+SYCLEXTRFUNCEVALTOOPSWAPLAYOUT(, TensorLayoutSwapOp)
 
-SYCLEXTRFUNCEVALTOOP(const)
-SYCLEXTRFUNCEVALTOOP()
-#undef SYCLEXTRFUNCEVALTOOP
+#undef SYCLEXTRFUNCEVALTOOPSWAPLAYOUT
 
 template<typename Dim, size_t NumOutputDim> struct DimConstr {
 template<typename InDim>

@@ -223,7 +223,7 @@ struct ExprConstructor<CVQual TensorEvalToOp<OrigExpr, MakeGlobalPointer>, CVQua
   Type expr;\
   template <typename FuncDetector>\
   ExprConstructor(FuncDetector &funcD, const utility::tuple::Tuple<Params...> &t)\
-  : nestedExpression(funcD.rhsExpr, t), buffer(t), expr(buffer.expr, nestedExpression.expr) {}\
+  : nestedExpression(funcD.xprExpr, t), buffer(t), expr(buffer.expr, nestedExpression.expr) {}\
 };
 
 EVALTO(const)
@@ -384,6 +384,25 @@ struct ExprConstructor<CVQual TensorChippingOp <DimId, OrigXprType> , CVQual Ten
 SYCLTENSORCHIPPINGOPEXPR(const)
 SYCLTENSORCHIPPINGOPEXPR()
 #undef SYCLTENSORCHIPPINGOPEXPR
+
+
+
+// TensorLayoutSwapOp
+#define SYCLTENSORLAYOUTSWAPOPEXPR(CVQual)\
+template<typename OrigXprType, typename XprType, typename... Params>\
+struct ExprConstructor<CVQual TensorLayoutSwapOp <OrigXprType> , CVQual TensorLayoutSwapOp<XprType>, Params... >{\
+  typedef ExprConstructor<OrigXprType, XprType, Params...> my_xpr_type;\
+  typedef CVQual TensorLayoutSwapOp<typename my_xpr_type::Type> Type;\
+  my_xpr_type xprExpr;\
+  Type expr;\
+  template <typename FuncDetector>\
+  ExprConstructor(FuncDetector &funcD, const utility::tuple::Tuple<Params...> &t)\
+  : xprExpr(funcD.xprExpr, t), expr(xprExpr.expr) {}\
+};
+
+SYCLTENSORLAYOUTSWAPOPEXPR(const)
+SYCLTENSORLAYOUTSWAPOPEXPR()
+#undef SYCLTENSORLAYOUTSWAPOPEXPR
 
 
 /// template deduction for \ref ExprConstructor struct

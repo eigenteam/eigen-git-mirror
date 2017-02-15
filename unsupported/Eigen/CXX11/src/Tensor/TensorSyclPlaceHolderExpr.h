@@ -144,16 +144,19 @@ FORCEDEVAL()
 #undef FORCEDEVAL
 
 /// specialisation of the \ref PlaceHolderExpression when the node is
-/// TensorEvalToOp
-#define EVALTO(CVQual)\
+/// TensorEvalToOp, TensorLayoutSwapOp
+#define EVALTOLAYOUTSWAP(CVQual, ExprNode)\
 template <typename Expr, size_t N>\
-struct PlaceHolderExpression<CVQual TensorEvalToOp<Expr>, N> {\
-  typedef CVQual TensorEvalToOp<typename CalculateIndex <N, Expr>::ArgType> Type;\
+struct PlaceHolderExpression<CVQual ExprNode<Expr>, N> {\
+  typedef CVQual ExprNode<typename CalculateIndex <N, Expr>::ArgType> Type;\
 };
 
-EVALTO(const)
-EVALTO()
-#undef EVALTO
+EVALTOLAYOUTSWAP(const, TensorEvalToOp)
+EVALTOLAYOUTSWAP(, TensorEvalToOp)
+EVALTOLAYOUTSWAP(const, TensorLayoutSwapOp)
+EVALTOLAYOUTSWAP(, TensorLayoutSwapOp)
+
+#undef EVALTOLAYOUTSWAP
 
 
 /// specialisation of the \ref PlaceHolderExpression when the node is

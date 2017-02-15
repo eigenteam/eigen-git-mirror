@@ -94,15 +94,17 @@ SYCLFORCEDEVALLEAFCOUNT()
 #undef SYCLFORCEDEVALLEAFCOUNT
 
 /// specialisation of the \ref LeafCount struct when the node type is TensorEvalToOp
-#define EVALTOLEAFCOUNT(CVQual)\
+#define EVALTOLAYOUTSWAPLEAFCOUNT(CVQual , ExprNode, Num)\
 template <typename Expr>\
-struct LeafCount<CVQual TensorEvalToOp<Expr> > {\
-  static const size_t Count = 1 + CategoryCount<Expr>::Count;\
+struct LeafCount<CVQual ExprNode<Expr> > {\
+  static const size_t Count = Num + CategoryCount<Expr>::Count;\
 };
 
-EVALTOLEAFCOUNT(const)
-EVALTOLEAFCOUNT()
-#undef EVALTOLEAFCOUNT
+EVALTOLAYOUTSWAPLEAFCOUNT(const, TensorEvalToOp, 1)
+EVALTOLAYOUTSWAPLEAFCOUNT(, TensorEvalToOp, 1)
+EVALTOLAYOUTSWAPLEAFCOUNT(const, TensorLayoutSwapOp, 0)
+EVALTOLAYOUTSWAPLEAFCOUNT(, TensorLayoutSwapOp, 0)
+#undef EVALTOLAYOUTSWAPLEAFCOUNT
 
 /// specialisation of the \ref LeafCount struct when the node type is const TensorReductionOp
 #define REDUCTIONLEAFCOUNT(CVQual)\
