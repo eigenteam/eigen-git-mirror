@@ -54,7 +54,7 @@ struct is_input_scalar<Sizes<> > {
   static const bool value = true;
 };
 #ifndef EIGEN_EMULATE_CXX11_META_H
-template <typename std::size_t... Indices>
+template <typename std::ptrdiff_t... Indices>
 struct is_input_scalar<Sizes<Indices...> > {
   static const bool value = (Sizes<Indices...>::total_size == 1);
 };
