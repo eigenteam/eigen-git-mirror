@@ -148,7 +148,7 @@ struct tribb_kernel
     ResMapper res(_res, resStride);
     gebp_kernel<LhsScalar, RhsScalar, Index, ResMapper, mr, nr, ConjLhs, ConjRhs> gebp_kernel;
 
-    Matrix<ResScalar,BlockSize,BlockSize,ColMajor> buffer;
+    Matrix<ResScalar,BlockSize,BlockSize,ColMajor> buffer((internal::constructor_without_unaligned_array_assert()));
 
     // let's process the block per panel of actual_mc x BlockSize,
     // again, each is split into three parts, etc.
