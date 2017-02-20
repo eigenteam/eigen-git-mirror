@@ -227,6 +227,20 @@ SYCLTENSORCHIPPINGOPEXTACC()
 
 
 // specialisation of the \ref ExtractAccessor struct when the node type is
+/// TensorImagePatchOp.
+#define SYCLTENSORIMAGEPATCHOPEXTACC(CVQual)\
+template<DenseIndex Rows, DenseIndex Cols, typename XprType, typename Dev>\
+struct ExtractAccessor<TensorEvaluator<CVQual TensorImagePatchOp<Rows, Cols, XprType>, Dev> >{\
+  static inline auto getTuple(cl::sycl::handler& cgh, const TensorEvaluator<CVQual TensorImagePatchOp<Rows, Cols, XprType>, Dev>& eval)\
+  RETURN_CPP11(AccessorConstructor::getTuple(cgh, eval.impl()))\
+};
+
+SYCLTENSORIMAGEPATCHOPEXTACC(const)
+SYCLTENSORIMAGEPATCHOPEXTACC()
+#undef SYCLTENSORIMAGEPATCHOPEXTACC
+
+
+// specialisation of the \ref ExtractAccessor struct when the node type is
 /// TensorLayoutSwapOp.
 #define SYCLTENSORLAYOUTSWAPOPEXTACC(CVQual)\
 template<typename XprType, typename Dev>\

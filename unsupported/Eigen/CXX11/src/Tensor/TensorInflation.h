@@ -215,6 +215,12 @@ struct TensorEvaluator<const TensorInflationOp<Strides, ArgType>, Device>
 
   EIGEN_DEVICE_FUNC Scalar* data() const { return NULL; }
 
+  /// required by sycl in order to extract the accessor
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE  const TensorEvaluator<ArgType, Device>& impl() const { return m_impl; }
+  /// required by sycl in order to extract the accessor
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE  const Strides& functor() const { return m_strides; }
+
+
  protected:
   Dimensions m_dimensions;
   array<Index, NumDims> m_outputStrides;

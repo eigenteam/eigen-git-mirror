@@ -221,6 +221,20 @@ SYCLSLICESTRIDEOPPLH()
 #undef SYCLSLICESTRIDEOPPLH
 
 
+
+/// specialisation of the \ref PlaceHolderExpression when the node is
+/// TensorImagePatchOp
+#define SYCLTENSORIMAGEPATCHOP(CVQual)\
+template<DenseIndex Rows, DenseIndex Cols, typename XprType, size_t N>\
+struct PlaceHolderExpression<CVQual TensorImagePatchOp<Rows, Cols, XprType>, N> {\
+  typedef CVQual TensorImagePatchOp<Rows, Cols, typename CalculateIndex <N, XprType>::ArgType> Type;\
+};
+
+SYCLTENSORIMAGEPATCHOP(const)
+SYCLTENSORIMAGEPATCHOP()
+#undef SYCLTENSORIMAGEPATCHOP
+
+
 /// template deduction for \ref PlaceHolderExpression struct
 template <typename Expr>
 struct createPlaceHolderExpression {

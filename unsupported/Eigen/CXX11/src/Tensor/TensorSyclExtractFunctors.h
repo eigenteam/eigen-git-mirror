@@ -296,7 +296,7 @@ SYCLEXTRFUNCCONTRACTCONCAT(TensorConcatenationOp, axis(),)
 //TensorChippingOp
 #define SYCLEXTRFUNCCHIPPINGOP(CVQual)\
 template<DenseIndex DimId, typename XprType, typename Device>\
-struct FunctorExtractor<TensorEvaluator<CVQual TensorChippingOp<DimId, XprType>, Device>>{\
+struct FunctorExtractor<TensorEvaluator<CVQual TensorChippingOp<DimId, XprType>, Device> >{\
   FunctorExtractor<Eigen::TensorEvaluator<XprType, Device> > xprExpr;\
   const DenseIndex m_dim;\
   const DenseIndex m_offset;\
@@ -310,6 +310,40 @@ SYCLEXTRFUNCCHIPPINGOP(const)
 SYCLEXTRFUNCCHIPPINGOP()
 #undef SYCLEXTRFUNCCHIPPINGOP
 
+#define SYCLEXTRFUNCIMAGEPATCHOP(CVQual)\
+template<DenseIndex Rows, DenseIndex Cols, typename XprType, typename Device>\
+struct FunctorExtractor<TensorEvaluator<CVQual TensorImagePatchOp<Rows, Cols, XprType>, Device> >{\
+typedef CVQual TensorImagePatchOp<Rows, Cols, XprType> Self;\
+FunctorExtractor<Eigen::TensorEvaluator<XprType, Device> > xprExpr;\
+const DenseIndex m_patch_rows;\
+const DenseIndex m_patch_cols;\
+const DenseIndex m_row_strides;\
+const DenseIndex m_col_strides;\
+const DenseIndex m_in_row_strides;\
+const DenseIndex m_in_col_strides;\
+const DenseIndex m_row_inflate_strides;\
+const DenseIndex m_col_inflate_strides;\
+const bool m_padding_explicit;\
+const DenseIndex m_padding_top;\
+const DenseIndex m_padding_bottom;\
+const DenseIndex m_padding_left;\
+const DenseIndex m_padding_right;\
+const PaddingType m_padding_type;\
+const typename Self::Scalar m_padding_value;\
+FunctorExtractor(const TensorEvaluator<Self, Device>& expr)\
+: xprExpr(expr.impl()), m_patch_rows(expr.xpr().patch_rows()), m_patch_cols(expr.xpr().patch_cols()),\
+  m_row_strides(expr.xpr().row_strides()), m_col_strides(expr.xpr().col_strides()),\
+  m_in_row_strides(expr.xpr().in_row_strides()), m_in_col_strides(expr.xpr().in_col_strides()),\
+  m_row_inflate_strides(expr.xpr().row_inflate_strides()), m_col_inflate_strides(expr.xpr().col_inflate_strides()),\
+  m_padding_explicit(expr.xpr().padding_explicit()),m_padding_top(expr.xpr().padding_top()),\
+  m_padding_bottom(expr.xpr().padding_bottom()), m_padding_left(expr.xpr().padding_left()),\
+  m_padding_right(expr.xpr().padding_right()), m_padding_type(expr.xpr().padding_type()),\
+  m_padding_value(expr.xpr().padding_value()){}\
+};
+
+SYCLEXTRFUNCIMAGEPATCHOP(const)
+SYCLEXTRFUNCIMAGEPATCHOP()
+#undef SYCLEXTRFUNCIMAGEPATCHOP
 /// template deduction function for FunctorExtractor
 template <typename Evaluator>
 auto inline extractFunctors(const Evaluator& evaluator)-> FunctorExtractor<Evaluator> {

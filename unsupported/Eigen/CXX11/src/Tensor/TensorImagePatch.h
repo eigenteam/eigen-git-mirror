@@ -70,12 +70,8 @@ class TensorImagePatchOp : public TensorBase<TensorImagePatchOp<Rows, Cols, XprT
                                                            DenseIndex in_row_strides, DenseIndex in_col_strides,
                                                            DenseIndex row_inflate_strides, DenseIndex col_inflate_strides,
                                                            PaddingType padding_type, Scalar padding_value)
-      : m_xpr(expr), m_patch_rows(patch_rows), m_patch_cols(patch_cols),
-        m_row_strides(row_strides), m_col_strides(col_strides),
-        m_in_row_strides(in_row_strides), m_in_col_strides(in_col_strides),
-        m_row_inflate_strides(row_inflate_strides), m_col_inflate_strides(col_inflate_strides),
-        m_padding_explicit(false), m_padding_top(0), m_padding_bottom(0), m_padding_left(0), m_padding_right(0),
-        m_padding_type(padding_type), m_padding_value(padding_value) {}
+      : TensorImagePatchOp(expr, patch_rows, patch_cols, row_strides,col_strides, in_row_strides, in_col_strides, row_inflate_strides,
+         col_inflate_strides, 0,0,0,0,padding_value, padding_type, false ){}
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorImagePatchOp(const XprType& expr, DenseIndex patch_rows, DenseIndex patch_cols,
                                                            DenseIndex row_strides, DenseIndex col_strides,
@@ -83,14 +79,15 @@ class TensorImagePatchOp : public TensorBase<TensorImagePatchOp<Rows, Cols, XprT
                                                            DenseIndex row_inflate_strides, DenseIndex col_inflate_strides,
                                                            DenseIndex padding_top, DenseIndex padding_bottom,
                                                            DenseIndex padding_left, DenseIndex padding_right,
-                                                           Scalar padding_value)
+                                                           Scalar padding_value, PaddingType padding_type=PADDING_VALID,
+                                                           bool padding_explicit=true)
       : m_xpr(expr), m_patch_rows(patch_rows), m_patch_cols(patch_cols),
         m_row_strides(row_strides), m_col_strides(col_strides),
         m_in_row_strides(in_row_strides), m_in_col_strides(in_col_strides),
         m_row_inflate_strides(row_inflate_strides), m_col_inflate_strides(col_inflate_strides),
-        m_padding_explicit(true), m_padding_top(padding_top), m_padding_bottom(padding_bottom),
+        m_padding_explicit(padding_explicit), m_padding_top(padding_top), m_padding_bottom(padding_bottom),
         m_padding_left(padding_left), m_padding_right(padding_right),
-        m_padding_type(PADDING_VALID), m_padding_value(padding_value) {}
+        m_padding_type(padding_type), m_padding_value(padding_value) {}
 
     EIGEN_DEVICE_FUNC
     DenseIndex patch_rows() const { return m_patch_rows; }
@@ -172,7 +169,7 @@ struct TensorEvaluator<const TensorImagePatchOp<Rows, Cols, ArgType>, Device>
   };
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
-      : m_impl(op.expression(), device)
+      : m_impl(op.expression(), device), m_op(op)
   {
     EIGEN_STATIC_ASSERT((NumDims >= 4), YOU_MADE_A_PROGRAMMING_MISTAKE);
 
@@ -241,6 +238,8 @@ struct TensorEvaluator<const TensorImagePatchOp<Rows, Cols, ArgType>, Device>
           break;
         default:
           eigen_assert(false && "unexpected padding");
+          m_outputCols=0; // silence the uninitialised warnig;
+          m_outputRows=0; //// silence the uninitialised warnig;
       }
     }
     eigen_assert(m_outputRows > 0);
@@ -420,7 +419,10 @@ struct TensorEvaluator<const TensorImagePatchOp<Rows, Cols, ArgType>, Device>
 
   EIGEN_DEVICE_FUNC Scalar* data() const { return NULL; }
 
-  const TensorEvaluator<ArgType, Device>& impl() const { return m_impl; }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const TensorEvaluator<ArgType, Device>& impl() const { return m_impl; }
+  // required by sycl
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const XprType& xpr() const { return m_op; }
+
 
   Index rowPaddingTop() const { return m_rowPaddingTop; }
   Index colPaddingLeft() const { return m_colPaddingLeft; }
@@ -501,6 +503,8 @@ struct TensorEvaluator<const TensorImagePatchOp<Rows, Cols, ArgType>, Device>
   Scalar m_paddingValue;
 
   TensorEvaluator<ArgType, Device> m_impl;
+  // required for sycl
+  const XprType& m_op;
 };
 
 

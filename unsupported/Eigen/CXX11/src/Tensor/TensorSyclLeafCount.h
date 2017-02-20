@@ -161,6 +161,16 @@ SLICESTRIDEOPLEAFCOUNT()
 #undef SLICESTRIDEOPLEAFCOUNT
 
 
+#define TENSORIMAGEPATCHOPLEAFCOUNT(CVQual)\
+template<DenseIndex Rows, DenseIndex Cols, typename XprType>\
+struct LeafCount<CVQual TensorImagePatchOp<Rows, Cols, XprType> >:CategoryCount<XprType>{};
+
+
+TENSORIMAGEPATCHOPLEAFCOUNT(const)
+TENSORIMAGEPATCHOPLEAFCOUNT()
+#undef TENSORIMAGEPATCHOPLEAFCOUNT
+
+
 } /// namespace TensorSycl
 } /// namespace internal
 } /// namespace Eigen

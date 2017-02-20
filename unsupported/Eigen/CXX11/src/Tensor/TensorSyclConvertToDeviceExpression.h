@@ -165,6 +165,20 @@ KERNELBROKERCONVERTCHIPPINGOP()
 
 
 
+
+/// specialisation of the \ref ConvertToDeviceExpression struct when the node type is TensorImagePatchOp
+#define KERNELBROKERCONVERTIMAGEPATCHOP(CVQual)\
+template<DenseIndex Rows, DenseIndex Cols, typename XprType>\
+struct ConvertToDeviceExpression<CVQual TensorImagePatchOp<Rows, Cols, XprType> >{\
+  typedef CVQual TensorImagePatchOp<Rows, Cols, typename ConvertToDeviceExpression<XprType>::Type> Type;\
+};
+KERNELBROKERCONVERTIMAGEPATCHOP(const)
+KERNELBROKERCONVERTIMAGEPATCHOP()
+#undef KERNELBROKERCONVERTIMAGEPATCHOP
+
+
+
+
 }  // namespace internal
 }  // namespace TensorSycl
 }  // namespace Eigen
