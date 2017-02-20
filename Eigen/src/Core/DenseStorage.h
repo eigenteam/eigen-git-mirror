@@ -201,7 +201,7 @@ template<typename T, int Size, int _Rows, int _Cols, int _Options> class DenseSt
       return *this; 
     }
     EIGEN_DEVICE_FUNC DenseStorage(Index size, Index rows, Index cols) {
-      EIGEN_INTERNAL_DENSE_STORAGE_CTOR_PLUGIN()
+      EIGEN_INTERNAL_DENSE_STORAGE_CTOR_PLUGIN({})
       eigen_internal_assert(size==rows*cols && rows==_Rows && cols==_Cols);
       EIGEN_UNUSED_VARIABLE(size);
       EIGEN_UNUSED_VARIABLE(rows);
@@ -347,7 +347,7 @@ template<typename T, int _Options> class DenseStorage<T, Dynamic, Dynamic, Dynam
     EIGEN_DEVICE_FUNC DenseStorage(Index size, Index rows, Index cols)
       : m_data(internal::conditional_aligned_new_auto<T,(_Options&DontAlign)==0>(size)), m_rows(rows), m_cols(cols)
     {
-      EIGEN_INTERNAL_DENSE_STORAGE_CTOR_PLUGIN()
+      EIGEN_INTERNAL_DENSE_STORAGE_CTOR_PLUGIN({})
       eigen_internal_assert(size==rows*cols && rows>=0 && cols >=0);
     }
     EIGEN_DEVICE_FUNC DenseStorage(const DenseStorage& other)
@@ -408,7 +408,7 @@ template<typename T, int _Options> class DenseStorage<T, Dynamic, Dynamic, Dynam
           m_data = internal::conditional_aligned_new_auto<T,(_Options&DontAlign)==0>(size);
         else
           m_data = 0;
-        EIGEN_INTERNAL_DENSE_STORAGE_CTOR_PLUGIN()
+        EIGEN_INTERNAL_DENSE_STORAGE_CTOR_PLUGIN({})
       }
       m_rows = rows;
       m_cols = cols;
@@ -427,7 +427,7 @@ template<typename T, int _Rows, int _Options> class DenseStorage<T, Dynamic, _Ro
     explicit DenseStorage(internal::constructor_without_unaligned_array_assert) : m_data(0), m_cols(0) {}
     EIGEN_DEVICE_FUNC DenseStorage(Index size, Index rows, Index cols) : m_data(internal::conditional_aligned_new_auto<T,(_Options&DontAlign)==0>(size)), m_cols(cols)
     {
-      EIGEN_INTERNAL_DENSE_STORAGE_CTOR_PLUGIN()
+      EIGEN_INTERNAL_DENSE_STORAGE_CTOR_PLUGIN({})
       eigen_internal_assert(size==rows*cols && rows==_Rows && cols >=0);
       EIGEN_UNUSED_VARIABLE(rows);
     }
@@ -483,7 +483,7 @@ template<typename T, int _Rows, int _Options> class DenseStorage<T, Dynamic, _Ro
           m_data = internal::conditional_aligned_new_auto<T,(_Options&DontAlign)==0>(size);
         else
           m_data = 0;
-        EIGEN_INTERNAL_DENSE_STORAGE_CTOR_PLUGIN()
+        EIGEN_INTERNAL_DENSE_STORAGE_CTOR_PLUGIN({})
       }
       m_cols = cols;
     }
@@ -501,7 +501,7 @@ template<typename T, int _Cols, int _Options> class DenseStorage<T, Dynamic, Dyn
     explicit DenseStorage(internal::constructor_without_unaligned_array_assert) : m_data(0), m_rows(0) {}
     EIGEN_DEVICE_FUNC DenseStorage(Index size, Index rows, Index cols) : m_data(internal::conditional_aligned_new_auto<T,(_Options&DontAlign)==0>(size)), m_rows(rows)
     {
-      EIGEN_INTERNAL_DENSE_STORAGE_CTOR_PLUGIN()
+      EIGEN_INTERNAL_DENSE_STORAGE_CTOR_PLUGIN({})
       eigen_internal_assert(size==rows*cols && rows>=0 && cols == _Cols);
       EIGEN_UNUSED_VARIABLE(cols);
     }
@@ -557,7 +557,7 @@ template<typename T, int _Cols, int _Options> class DenseStorage<T, Dynamic, Dyn
           m_data = internal::conditional_aligned_new_auto<T,(_Options&DontAlign)==0>(size);
         else
           m_data = 0;
-        EIGEN_INTERNAL_DENSE_STORAGE_CTOR_PLUGIN()
+        EIGEN_INTERNAL_DENSE_STORAGE_CTOR_PLUGIN({})
       }
       m_rows = rows;
     }
