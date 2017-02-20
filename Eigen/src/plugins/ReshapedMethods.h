@@ -40,10 +40,12 @@ reshaped(NRowsType nRows, NColsType nCols)
 
 template<typename NRowsType, typename NColsType, typename OrderType>
 EIGEN_DEVICE_FUNC
-inline Reshaped<Derived,internal::get_fixed_value<NRowsType>::value,internal::get_fixed_value<NColsType>::value,OrderType::value>
+inline Reshaped<Derived,internal::get_fixed_value<NRowsType>::value,internal::get_fixed_value<NColsType>::value,
+                OrderType::value==AutoOrderValue?Flags&RowMajorBit:OrderType::value>
 reshaped(NRowsType nRows, NColsType nCols, OrderType)
 {
-  return Reshaped<Derived,internal::get_fixed_value<NRowsType>::value,internal::get_fixed_value<NColsType>::value,OrderType::value>(
+  return Reshaped<Derived,internal::get_fixed_value<NRowsType>::value,internal::get_fixed_value<NColsType>::value,
+                  OrderType::value==AutoOrderValue?Flags&RowMajorBit:OrderType::value>(
             derived(), internal::get_runtime_value(nRows), internal::get_runtime_value(nCols));
 }
 
@@ -59,10 +61,12 @@ reshaped(NRowsType nRows, NColsType nCols) const
 
 template<typename NRowsType, typename NColsType, typename OrderType>
 EIGEN_DEVICE_FUNC
-inline const Reshaped<const Derived,internal::get_fixed_value<NRowsType>::value,internal::get_fixed_value<NColsType>::value,OrderType::value>
+inline const Reshaped<const Derived,internal::get_fixed_value<NRowsType>::value,internal::get_fixed_value<NColsType>::value,
+                      OrderType::value==AutoOrderValue?Flags&RowMajorBit:OrderType::value>
 reshaped(NRowsType nRows, NColsType nCols, OrderType) const
 {
-  return Reshaped<const Derived,internal::get_fixed_value<NRowsType>::value,internal::get_fixed_value<NColsType>::value,OrderType::value>(
+  return Reshaped<const Derived,internal::get_fixed_value<NRowsType>::value,internal::get_fixed_value<NColsType>::value,
+                  OrderType::value==AutoOrderValue?Flags&RowMajorBit:OrderType::value>(
             derived(), internal::get_runtime_value(nRows), internal::get_runtime_value(nCols));
 }
 

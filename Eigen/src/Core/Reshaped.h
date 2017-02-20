@@ -21,7 +21,7 @@ namespace Eigen {
   * \tparam XprType the type of the expression in which we are taking a reshape
   * \tparam Rows the number of rows of the reshape we are taking at compile time (optional)
   * \tparam Cols the number of columns of the reshape we are taking at compile time (optional)
-  * \tparam Order
+  * \tparam Order can be ColMajor or RowMajor, default is ColMajor.
   *
   * This class represents an expression of either a fixed-size or dynamic-size reshape.
   * It is the return type of DenseBase::reshaped(NRowsType,NColsType) and
@@ -68,9 +68,8 @@ struct traits<Reshaped<XprType, Rows, Cols, Order> > : traits<XprType>
                              : Dynamic,
     OuterStrideAtCompileTime = Dynamic,
 
-    InOrder = Order,
     HasDirectAccess = internal::has_direct_access<XprType>::ret
-                    && (Order==int(AutoOrderValue) || Order==int(XpxStorageOrder))
+                    && (Order==int(XpxStorageOrder))
                     && ((evaluator<XprType>::Flags&LinearAccessBit)==LinearAccessBit),
 
     MaskPacketAccessBit = (InnerSize == Dynamic || (InnerSize % packet_traits<Scalar>::size) == 0)
@@ -324,11 +323,20 @@ struct reshaped_evaluator<ArgType, Rows, Cols, Order, /* HasDirectAccess */ fals
 
   typedef std::pair<Index, Index> RowCol;
 
-  inline RowCol index_remap(Index rowId, Index colId) const {
-    const Index nth_elem_idx = colId * m_xpr.rows() + rowId;
-    const Index actual_col = nth_elem_idx / m_xpr.nestedExpression().rows();
-    const Index actual_row = nth_elem_idx % m_xpr.nestedExpression().rows();
-    return RowCol(actual_row, actual_col);
+  inline RowCol index_remap(Index rowId, Index colId) const
+  {
+    if(Order==ColMajor)
+    {
+      const Index nth_elem_idx = colId * m_xpr.rows() + rowId;
+      return RowCol(nth_elem_idx % m_xpr.nestedExpression().rows(),
+                    nth_elem_idx / m_xpr.nestedExpression().rows());
+    }
+    else
+    {
+      const Index nth_elem_idx = colId + rowId * m_xpr.cols();
+      return RowCol(nth_elem_idx / m_xpr.nestedExpression().cols(),
+                    nth_elem_idx % m_xpr.nestedExpression().cols());
+    }
   }
 
   EIGEN_DEVICE_FUNC
