@@ -431,6 +431,7 @@ using std::ptrdiff_t;
 #include "src/Core/arch/CUDA/Complex.h"
 
 #include "src/Core/util/IndexedViewHelper.h"
+#include "src/Core/util/ReshapedHelper.h"
 #include "src/Core/ArithmeticSequence.h"
 #include "src/Core/DenseCoeffsBase.h"
 #include "src/Core/DenseBase.h"

@@ -28,62 +28,70 @@ template<typename NRowsType, typename NColsType, typename OrderType>
 EIGEN_DEVICE_FUNC
 inline const Reshaped<const Derived,...>
 reshaped(NRowsType nRows, NColsType nCols, OrderType = ColOrder) const;
+
 #else
+
+// This file is automatically included twice to generate const and non-const versions
+
+#ifndef EIGEN_RESHAPED_METHOD_2ND_PASS
+#define EIGEN_RESHAPED_METHOD_CONST const
+#else
+#define EIGEN_RESHAPED_METHOD_CONST
+#endif
+
+#ifndef EIGEN_RESHAPED_METHOD_2ND_PASS
+
+// This part is included once
+
+#endif
+
 template<typename NRowsType, typename NColsType>
 EIGEN_DEVICE_FUNC
-inline Reshaped<Derived,internal::get_fixed_value<NRowsType>::value,internal::get_fixed_value<NColsType>::value>
-reshaped(NRowsType nRows, NColsType nCols)
+inline Reshaped<EIGEN_RESHAPED_METHOD_CONST Derived,
+                internal::get_compiletime_reshape_size<NRowsType,NColsType,SizeAtCompileTime>::value,
+                internal::get_compiletime_reshape_size<NColsType,NRowsType,SizeAtCompileTime>::value>
+reshaped(NRowsType nRows, NColsType nCols) EIGEN_RESHAPED_METHOD_CONST
 {
-  return Reshaped<Derived,internal::get_fixed_value<NRowsType>::value,internal::get_fixed_value<NColsType>::value>(
-            derived(), internal::get_runtime_value(nRows), internal::get_runtime_value(nCols));
+  return Reshaped<EIGEN_RESHAPED_METHOD_CONST Derived,
+                  internal::get_compiletime_reshape_size<NRowsType,NColsType,SizeAtCompileTime>::value,
+                  internal::get_compiletime_reshape_size<NColsType,NRowsType,SizeAtCompileTime>::value>
+                (derived(),
+                 internal::get_runtime_reshape_size(nRows,internal::get_runtime_value(nCols),size()),
+                 internal::get_runtime_reshape_size(nCols,internal::get_runtime_value(nRows),size()));
 }
 
 template<typename NRowsType, typename NColsType, typename OrderType>
 EIGEN_DEVICE_FUNC
-inline Reshaped<Derived,internal::get_fixed_value<NRowsType>::value,internal::get_fixed_value<NColsType>::value,
+inline Reshaped<EIGEN_RESHAPED_METHOD_CONST Derived,
+                internal::get_compiletime_reshape_size<NRowsType,NColsType,SizeAtCompileTime>::value,
+                internal::get_compiletime_reshape_size<NColsType,NRowsType,SizeAtCompileTime>::value,
                 OrderType::value==AutoOrderValue?Flags&RowMajorBit:OrderType::value>
-reshaped(NRowsType nRows, NColsType nCols, OrderType)
+reshaped(NRowsType nRows, NColsType nCols, OrderType) EIGEN_RESHAPED_METHOD_CONST
 {
-  return Reshaped<Derived,internal::get_fixed_value<NRowsType>::value,internal::get_fixed_value<NColsType>::value,
-                  OrderType::value==AutoOrderValue?Flags&RowMajorBit:OrderType::value>(
-            derived(), internal::get_runtime_value(nRows), internal::get_runtime_value(nCols));
-}
-
-
-template<typename NRowsType, typename NColsType>
-EIGEN_DEVICE_FUNC
-inline const Reshaped<const Derived,internal::get_fixed_value<NRowsType>::value,internal::get_fixed_value<NColsType>::value>
-reshaped(NRowsType nRows, NColsType nCols) const
-{
-  return Reshaped<const Derived,internal::get_fixed_value<NRowsType>::value,internal::get_fixed_value<NColsType>::value>(
-            derived(), internal::get_runtime_value(nRows), internal::get_runtime_value(nCols));
-}
-
-template<typename NRowsType, typename NColsType, typename OrderType>
-EIGEN_DEVICE_FUNC
-inline const Reshaped<const Derived,internal::get_fixed_value<NRowsType>::value,internal::get_fixed_value<NColsType>::value,
-                      OrderType::value==AutoOrderValue?Flags&RowMajorBit:OrderType::value>
-reshaped(NRowsType nRows, NColsType nCols, OrderType) const
-{
-  return Reshaped<const Derived,internal::get_fixed_value<NRowsType>::value,internal::get_fixed_value<NColsType>::value,
-                  OrderType::value==AutoOrderValue?Flags&RowMajorBit:OrderType::value>(
-            derived(), internal::get_runtime_value(nRows), internal::get_runtime_value(nCols));
+  return Reshaped<EIGEN_RESHAPED_METHOD_CONST Derived,
+                  internal::get_compiletime_reshape_size<NRowsType,NColsType,SizeAtCompileTime>::value,
+                  internal::get_compiletime_reshape_size<NColsType,NRowsType,SizeAtCompileTime>::value,
+                  OrderType::value==AutoOrderValue?Flags&RowMajorBit:OrderType::value>
+                (derived(),
+                 internal::get_runtime_reshape_size(nRows,internal::get_runtime_value(nCols),size()),
+                 internal::get_runtime_reshape_size(nCols,internal::get_runtime_value(nRows),size()));
 }
 
 // Views as linear vectors
 
 EIGEN_DEVICE_FUNC
-inline const Reshaped<Derived,SizeAtCompileTime,1>
-operator()(const Eigen::internal::all_t&)
+inline Reshaped<EIGEN_RESHAPED_METHOD_CONST Derived,SizeAtCompileTime,1>
+operator()(const Eigen::internal::all_t&) EIGEN_RESHAPED_METHOD_CONST
 {
-  return Reshaped<Derived,SizeAtCompileTime,1>(derived(),size(),1);
+  return Reshaped<EIGEN_RESHAPED_METHOD_CONST Derived,SizeAtCompileTime,1>(derived(),size(),1);
 }
 
-EIGEN_DEVICE_FUNC
-inline const Reshaped<const Derived,SizeAtCompileTime,1>
-operator()(const Eigen::internal::all_t&) const
-{
-  return Reshaped<const Derived,SizeAtCompileTime,1>(derived(),size(),1);
-}
+#undef EIGEN_RESHAPED_METHOD_CONST
+
+#ifndef EIGEN_RESHAPED_METHOD_2ND_PASS
+#define EIGEN_RESHAPED_METHOD_2ND_PASS
+#include "ReshapedMethods.h"
+#undef EIGEN_RESHAPED_METHOD_2ND_PASS
+#endif
 
 #endif // EIGEN_PARSED_BY_DOXYGEN
