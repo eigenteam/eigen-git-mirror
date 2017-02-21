@@ -70,10 +70,10 @@ template<typename MatrixType> void matrixRedux(const MatrixType& m)
   VERIFY_IS_APPROX(m1.block(r0,c0,0,0).prod(),  Scalar(1));
 
   // test nesting complex expression
-  VERIFY_EVALUATION_COUNT( (m1.matrix()*m1.matrix().transpose()).sum(), (MatrixType::SizeAtCompileTime==Dynamic ? 1 : 0) );
+  VERIFY_EVALUATION_COUNT( (m1.matrix()*m1.matrix().transpose()).sum(), (MatrixType::IsVectorAtCompileTime && MatrixType::SizeAtCompileTime!=1 ? 0 : 1) );
   Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime> m2(rows,rows);
   m2.setRandom();
-  VERIFY_EVALUATION_COUNT( ((m1.matrix()*m1.matrix().transpose())+m2).sum(), (MatrixType::SizeAtCompileTime==Dynamic ? 1 : 0) );
+  VERIFY_EVALUATION_COUNT( ((m1.matrix()*m1.matrix().transpose())+m2).sum(),(MatrixType::IsVectorAtCompileTime && MatrixType::SizeAtCompileTime!=1 ? 0 : 1));
 }
 
 template<typename VectorType> void vectorRedux(const VectorType& w)
@@ -156,8 +156,10 @@ void test_redux()
     CALL_SUBTEST_1( matrixRedux(Array<float, 1, 1>()) );
     CALL_SUBTEST_2( matrixRedux(Matrix2f()) );
     CALL_SUBTEST_2( matrixRedux(Array2f()) );
+    CALL_SUBTEST_2( matrixRedux(Array22f()) );
     CALL_SUBTEST_3( matrixRedux(Matrix4d()) );
     CALL_SUBTEST_3( matrixRedux(Array4d()) );
+    CALL_SUBTEST_3( matrixRedux(Array44d()) );
     CALL_SUBTEST_4( matrixRedux(MatrixXcf(internal::random<int>(1,maxsize), internal::random<int>(1,maxsize))) );
     CALL_SUBTEST_4( matrixRedux(ArrayXXcf(internal::random<int>(1,maxsize), internal::random<int>(1,maxsize))) );
     CALL_SUBTEST_5( matrixRedux(MatrixXd (internal::random<int>(1,maxsize), internal::random<int>(1,maxsize))) );

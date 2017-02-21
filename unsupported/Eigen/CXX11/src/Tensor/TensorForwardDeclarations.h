@@ -75,7 +75,7 @@ template<typename CustomUnaryFunc, typename XprType> class TensorCustomUnaryOp;
 template<typename CustomBinaryFunc, typename LhsXprType, typename RhsXprType> class TensorCustomBinaryOp;
 
 template<typename XprType, template <class> class MakePointer_ = MakePointer> class TensorEvalToOp;
-template<typename XprType, template <class> class MakePointer_ = MakePointer> class TensorForcedEvalOp;
+template<typename XprType> class TensorForcedEvalOp;
 
 template<typename ExpressionType, typename DeviceType> class TensorDevice;
 template<typename Derived, typename Device> struct TensorEvaluator;

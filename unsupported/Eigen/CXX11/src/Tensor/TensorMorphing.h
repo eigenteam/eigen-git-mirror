@@ -711,6 +711,12 @@ struct TensorEvaluator<const TensorStridingSlicingOp<StartIndices, StopIndices, 
 {
   typedef TensorStridingSlicingOp<StartIndices, StopIndices, Strides, ArgType> XprType;
   static const int NumDims = internal::array_size<Strides>::value;
+  typedef typename XprType::Index Index;
+  typedef typename XprType::Scalar Scalar;
+  typedef typename internal::remove_const<Scalar>::type ScalarNonConst;
+  typedef typename XprType::CoeffReturnType CoeffReturnType;
+  typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
+  typedef Strides Dimensions;
 
   enum {
     // Alignment can't be guaranteed at compile time since it depends on the
@@ -733,7 +739,7 @@ struct TensorEvaluator<const TensorStridingSlicingOp<StartIndices, StopIndices, 
         startIndicesClamped[i] = clamp(op.startIndices()[i], 0, m_impl.dimensions()[i]);
         stopIndicesClamped[i] = clamp(op.stopIndices()[i], 0, m_impl.dimensions()[i]);
       }else{
-        /* implies m_strides[i]<0 by assert */
+      /* implies m_strides[i]<0 by assert */
         startIndicesClamped[i] = clamp(op.startIndices()[i], -1, m_impl.dimensions()[i] - 1);
         stopIndicesClamped[i] = clamp(op.stopIndices()[i], -1, m_impl.dimensions()[i] - 1);
       }
@@ -796,13 +802,6 @@ struct TensorEvaluator<const TensorStridingSlicingOp<StartIndices, StopIndices, 
                                           sizeof(Scalar));
   }
 
-  typedef typename XprType::Index Index;
-  typedef typename XprType::Scalar Scalar;
-  typedef typename internal::remove_const<Scalar>::type ScalarNonConst;
-  typedef typename XprType::CoeffReturnType CoeffReturnType;
-  typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
-  typedef Strides Dimensions;
-
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Dimensions& dimensions() const { return m_dimensions; }
 
 
@@ -858,7 +857,11 @@ struct TensorEvaluator<const TensorStridingSlicingOp<StartIndices, StopIndices, 
   }
 
   static EIGEN_STRONG_INLINE Index clamp(Index value, Index min, Index max) {
+#ifndef __SYCL_DEVICE_ONLY__
     return numext::maxi(min, numext::mini(max,value));
+#else
+    return cl::sycl::clamp(value, min, max);
+#endif
   }
 
   array<Index, NumDims> m_outputStrides;

@@ -64,9 +64,9 @@ void pack_simple(Scalar * dst, const Scalar * src, Index cols, Index rows, Index
 template<typename LhsScalar, typename RhsScalar, typename Scalar>
   struct libxsmm_wrapper {
     libxsmm_wrapper() {}
-    libxsmm_wrapper(int flags, int m, int n, int k, int lda, int ldb, int ldc, float alpha, float beta, int prefetch) {}
-    void operator()(const LhsScalar* a, const RhsScalar* b, Scalar* c) {}
-    void operator()(const LhsScalar* a, const RhsScalar* b, Scalar* c, const LhsScalar* ap, const RhsScalar* bp, const Scalar* cp) {}
+    libxsmm_wrapper(int, int, int, int, int, int, int, float, float, int) {}
+    void operator()(const LhsScalar*, const RhsScalar*, Scalar*) {}
+    void operator()(const LhsScalar*, const RhsScalar*, Scalar*, const LhsScalar*, const RhsScalar*, const Scalar*) {}
   };
 
   template<>
@@ -220,7 +220,7 @@ struct TensorContractionEvaluatorBase
     m_rightImpl(choose(Cond<static_cast<int>(Layout) == static_cast<int>(ColMajor)>(),
                           op.rhsExpression(), op.lhsExpression()), device),
         m_device(device),
-        m_result(NULL), m_expr_indices(op.indices()) {
+        m_result(NULL) {
     EIGEN_STATIC_ASSERT((static_cast<int>(TensorEvaluator<LeftArgType, Device>::Layout) ==
          static_cast<int>(TensorEvaluator<RightArgType, Device>::Layout)),
                         YOU_MADE_A_PROGRAMMING_MISTAKE);
@@ -682,7 +682,9 @@ protected:
     }
 
     m_can_use_xsmm = true;
-    #endif
+#else
+    EIGEN_UNUSED_VARIABLE(eval_op_indices);
+#endif
   }
 
 #if defined(EIGEN_VECTORIZE_AVX) && defined(EIGEN_USE_LIBXSMM)
@@ -842,9 +844,6 @@ protected:
   TensorEvaluator<EvalRightArgType, Device> m_rightImpl;
   const Device& m_device;
   Scalar* m_result;
-  /// required for sycl
-  const Indices m_expr_indices;
-
   bool m_can_use_xsmm;
 };
 

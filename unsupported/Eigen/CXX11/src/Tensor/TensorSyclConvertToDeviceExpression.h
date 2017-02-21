@@ -97,8 +97,18 @@ template <typename Expr>\
 struct ConvertToDeviceExpression<CVQual ExprNode<Expr> > \
 : DeviceConvertor<ExprNode, Res, Expr>{};
 
-KERNELBROKERCONVERT(const, true, TensorForcedEvalOp)
-KERNELBROKERCONVERT(, false, TensorForcedEvalOp)
+/// specialisation of the \ref ConvertToDeviceExpression struct when the node type is TensorForcedEvalOp
+#define KERNELBROKERCONVERTFORCEDEVAL(CVQual)\
+template <typename Expr>\
+struct ConvertToDeviceExpression<CVQual TensorForcedEvalOp<Expr> > {\
+  typedef CVQual TensorForcedEvalOp< typename ConvertToDeviceExpression<Expr>::Type> Type;\
+};
+KERNELBROKERCONVERTFORCEDEVAL(const)
+KERNELBROKERCONVERTFORCEDEVAL()
+#undef KERNELBROKERCONVERTFORCEDEVAL
+
+
+
 KERNELBROKERCONVERT(const, true, TensorEvalToOp)
 KERNELBROKERCONVERT(, false, TensorEvalToOp)
 #undef KERNELBROKERCONVERT
@@ -134,6 +144,18 @@ struct ConvertToDeviceExpression<CVQual TensorStridingSlicingOp<StartIndices, St
 KERNELBROKERCONVERTERSLICESTRIDEOP(const)
 KERNELBROKERCONVERTERSLICESTRIDEOP()
 #undef KERNELBROKERCONVERTERSLICESTRIDEOP
+
+
+/// specialisation of the \ref ConvertToDeviceExpression struct when the node type is TensorChippingOp
+#define KERNELBROKERCONVERTCHIPPINGOP(CVQual)\
+template <DenseIndex DimId, typename Expr>\
+struct ConvertToDeviceExpression<CVQual TensorChippingOp<DimId, Expr> > {\
+  typedef CVQual TensorChippingOp<DimId, typename ConvertToDeviceExpression<Expr>::Type> Type;\
+};
+KERNELBROKERCONVERTCHIPPINGOP(const)
+KERNELBROKERCONVERTCHIPPINGOP()
+#undef KERNELBROKERCONVERTCHIPPINGOP
+
 
 
 }  // namespace internal

@@ -246,6 +246,9 @@ struct TensorEvaluator<const TensorConversionOp<TargetType, ArgType>, Device>
 
   EIGEN_DEVICE_FUNC Scalar* data() const { return NULL; }
 
+  /// required by sycl in order to extract the sycl accessor
+  const TensorEvaluator<ArgType, Device>& impl() const { return m_impl; }
+
   protected:
   template <int LoadMode, bool ActuallyVectorize>
   struct PacketConv {

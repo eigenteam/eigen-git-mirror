@@ -14,7 +14,7 @@
 #define EIGEN_TEST_NO_LONGDOUBLE
 #define EIGEN_TEST_NO_COMPLEX
 #define EIGEN_TEST_FUNC cxx11_tensor_device_sycl
-#define EIGEN_DEFAULT_DENSE_INDEX_TYPE int
+#define EIGEN_DEFAULT_DENSE_INDEX_TYPE int64_t
 #define EIGEN_USE_SYCL
 
 #include "main.h"
@@ -22,35 +22,35 @@
 #include <stdint.h>
 #include <iostream>
 
-template <typename DataType, int DataLayout>
+template <typename DataType, int DataLayout, typename IndexType>
 void test_device_memory(const Eigen::SyclDevice &sycl_device) {
   std::cout << "Running on : "
             << sycl_device.sycl_queue().get_device(). template get_info<cl::sycl::info::device::name>()
             <<std::endl;
-  int sizeDim1 = 100;
-  array<int, 1> tensorRange = {{sizeDim1}};
-  Tensor<DataType, 1, DataLayout> in(tensorRange);
-  Tensor<DataType, 1, DataLayout> in1(tensorRange);
+  IndexType sizeDim1 = 100;
+  array<IndexType, 1> tensorRange = {{sizeDim1}};
+  Tensor<DataType, 1, DataLayout,IndexType> in(tensorRange);
+  Tensor<DataType, 1, DataLayout,IndexType> in1(tensorRange);
   memset(in1.data(), 1, in1.size() * sizeof(DataType));
   DataType* gpu_in_data  = static_cast<DataType*>(sycl_device.allocate(in.size()*sizeof(DataType)));
   sycl_device.memset(gpu_in_data, 1, in.size()*sizeof(DataType));
   sycl_device.memcpyDeviceToHost(in.data(), gpu_in_data, in.size()*sizeof(DataType));
-  for (int i=0; i<in.size(); i++) {
+  for (IndexType i=0; i<in.size(); i++) {
     VERIFY_IS_EQUAL(in(i), in1(i));
   }
   sycl_device.deallocate(gpu_in_data);
 }
 
-template <typename DataType, int DataLayout>
+template <typename DataType, int DataLayout, typename IndexType>
 void test_device_exceptions(const Eigen::SyclDevice &sycl_device) {
   VERIFY(sycl_device.ok());
-  int sizeDim1 = 100;
-  array<int, 1> tensorDims = {{sizeDim1}};
+  IndexType sizeDim1 = 100;
+  array<IndexType, 1> tensorDims = {{sizeDim1}};
   DataType* gpu_data = static_cast<DataType*>(sycl_device.allocate(sizeDim1*sizeof(DataType)));
   sycl_device.memset(gpu_data, 1, sizeDim1*sizeof(DataType));
 
-  TensorMap<Tensor<DataType, 1, DataLayout>> in(gpu_data, tensorDims);
-  TensorMap<Tensor<DataType, 1, DataLayout>> out(gpu_data, tensorDims);
+  TensorMap<Tensor<DataType, 1, DataLayout,IndexType>> in(gpu_data, tensorDims);
+  TensorMap<Tensor<DataType, 1, DataLayout,IndexType>> out(gpu_data, tensorDims);
   out.device(sycl_device) = in / in.constant(0);
 
   sycl_device.synchronize();
@@ -62,8 +62,8 @@ template<typename DataType> void sycl_device_test_per_device(const cl::sycl::dev
   std::cout << "Running on " << d.template get_info<cl::sycl::info::device::name>() << std::endl;
   QueueInterface queueInterface(d);
   auto sycl_device = Eigen::SyclDevice(&queueInterface);
-  test_device_memory<DataType, RowMajor>(sycl_device);
-  test_device_memory<DataType, ColMajor>(sycl_device);
+  test_device_memory<DataType, RowMajor, int64_t>(sycl_device);
+  test_device_memory<DataType, ColMajor, int64_t>(sycl_device);
   /// this test throw an exception. enable it if you want to see the exception
   //test_device_exceptions<DataType, RowMajor>(sycl_device);
   /// this test throw an exception. enable it if you want to see the exception

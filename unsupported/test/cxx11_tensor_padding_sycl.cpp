@@ -16,7 +16,7 @@
 #define EIGEN_TEST_NO_LONGDOUBLE
 #define EIGEN_TEST_NO_COMPLEX
 #define EIGEN_TEST_FUNC cxx11_tensor_padding_sycl
-#define EIGEN_DEFAULT_DENSE_INDEX_TYPE int
+#define EIGEN_DEFAULT_DENSE_INDEX_TYPE int64_t
 #define EIGEN_USE_SYCL
 
 
@@ -69,10 +69,10 @@ static void test_simple_padding(const Eigen::SyclDevice& sycl_device)
   sycl_device.memcpyHostToDevice(gpu_data1, tensor.data(),(tensor.size())*sizeof(DataType));
   gpu2.device(sycl_device)=gpu1.pad(paddings);
   sycl_device.memcpyDeviceToHost(padded.data(), gpu_data2,(padded.size())*sizeof(DataType));
-  for (int i = 0; i < padedSizeDim1; ++i) {
-    for (int j = 0; j < padedSizeDim2; ++j) {
-      for (int k = 0; k < padedSizeDim3; ++k) {
-        for (int l = 0; l < padedSizeDim4; ++l) {
+  for (IndexType i = 0; i < padedSizeDim1; ++i) {
+    for (IndexType j = 0; j < padedSizeDim2; ++j) {
+      for (IndexType k = 0; k < padedSizeDim3; ++k) {
+        for (IndexType l = 0; l < padedSizeDim4; ++l) {
           if (j >= 2 && j < 5 && k >= 3 && k < 8) {
             VERIFY_IS_EQUAL(padded(i,j,k,l), tensor(i,j-2,k-3,l));
           } else {
@@ -121,10 +121,10 @@ static void test_padded_expr(const Eigen::SyclDevice& sycl_device)
   gpu2.device(sycl_device)=gpu1.pad(paddings).reshape(reshape_dims);
   sycl_device.memcpyDeviceToHost(result.data(), gpu_data2,(result.size())*sizeof(DataType));
 
-  for (int i = 0; i < 2; ++i) {
-    for (int j = 0; j < 6; ++j) {
-      for (int k = 0; k < 12; ++k) {
-        for (int l = 0; l < 7; ++l) {
+  for (IndexType i = 0; i < 2; ++i) {
+    for (IndexType j = 0; j < 6; ++j) {
+      for (IndexType k = 0; k < 12; ++k) {
+        for (IndexType l = 0; l < 7; ++l) {
           const float result_value = DataLayout == ColMajor ?
               result(i+2*j,k+12*l) : result(j+6*i,l+7*k);
           if (j >= 2 && j < 5 && k >= 3 && k < 8) {
@@ -143,10 +143,6 @@ static void test_padded_expr(const Eigen::SyclDevice& sycl_device)
 template<typename DataType, typename dev_Selector> void sycl_padding_test_per_device(dev_Selector s){
   QueueInterface queueInterface(s);
   auto sycl_device = Eigen::SyclDevice(&queueInterface);
-  test_simple_padding<DataType, RowMajor, int>(sycl_device);
-  test_simple_padding<DataType, ColMajor, int>(sycl_device);
-  test_padded_expr<DataType, RowMajor, int>(sycl_device);
-  test_padded_expr<DataType, ColMajor, int>(sycl_device);
   test_simple_padding<DataType, RowMajor, int64_t>(sycl_device);
   test_simple_padding<DataType, ColMajor, int64_t>(sycl_device);
   test_padded_expr<DataType, RowMajor, int64_t>(sycl_device);

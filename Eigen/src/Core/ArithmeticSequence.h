@@ -14,7 +14,7 @@ namespace Eigen {
 
 namespace internal {
 
-#if !EIGEN_HAS_CXX11
+#if (!EIGEN_HAS_CXX11) || !((!EIGEN_COMP_GNUC) || EIGEN_COMP_GNUC>=48)
 template<typename T> struct aseq_negate {};
 
 template<> struct aseq_negate<Index> {
@@ -138,7 +138,7 @@ protected:
 
 public:
 
-#if EIGEN_HAS_CXX11
+#if EIGEN_HAS_CXX11 && ((!EIGEN_COMP_GNUC) || EIGEN_COMP_GNUC>=48)
   auto reverse() const -> decltype(Eigen::seqN(m_first+(m_size+fix<-1>())*m_incr,m_size,-m_incr)) {
     return seqN(m_first+(m_size+fix<-1>())*m_incr,m_size,-m_incr);
   }

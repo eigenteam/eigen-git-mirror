@@ -78,8 +78,8 @@ EIGEN_DOC_BLOCK_ADDONS_NOT_INNER_PANEL
 ///
 /// \sa class Block, fix, fix<N>(int)
 ///
-EIGEN_DEVICE_FUNC
 template<typename NRowsType, typename NColsType>
+EIGEN_DEVICE_FUNC
 #ifndef EIGEN_PARSED_BY_DOXYGEN
 inline typename FixedBlockXpr<internal::get_fixed_value<NRowsType>::value,internal::get_fixed_value<NColsType>::value>::Type
 #else
@@ -92,8 +92,8 @@ block(Index startRow, Index startCol, NRowsType blockRows, NColsType blockCols)
 }
 
 /// This is the const version of block(Index,Index,NRowsType,NColsType)
-EIGEN_DEVICE_FUNC
 template<typename NRowsType, typename NColsType>
+EIGEN_DEVICE_FUNC
 #ifndef EIGEN_PARSED_BY_DOXYGEN
 inline const typename ConstFixedBlockXpr<internal::get_fixed_value<NRowsType>::value,internal::get_fixed_value<NColsType>::value>::Type
 #else
@@ -124,8 +124,8 @@ EIGEN_DOC_BLOCK_ADDONS_NOT_INNER_PANEL
 ///
 /// \sa block(Index,Index,NRowsType,NColsType), class Block
 ///
-EIGEN_DEVICE_FUNC
 template<typename NRowsType, typename NColsType>
+EIGEN_DEVICE_FUNC
 #ifndef EIGEN_PARSED_BY_DOXYGEN
 inline typename FixedBlockXpr<internal::get_fixed_value<NRowsType>::value,internal::get_fixed_value<NColsType>::value>::Type
 #else
@@ -138,8 +138,8 @@ topRightCorner(NRowsType cRows, NColsType cCols)
 }
 
 /// This is the const version of topRightCorner(NRowsType, NColsType).
-EIGEN_DEVICE_FUNC
 template<typename NRowsType, typename NColsType>
+EIGEN_DEVICE_FUNC
 #ifndef EIGEN_PARSED_BY_DOXYGEN
 inline const typename ConstFixedBlockXpr<internal::get_fixed_value<NRowsType>::value,internal::get_fixed_value<NColsType>::value>::Type
 #else
@@ -229,8 +229,8 @@ EIGEN_DOC_BLOCK_ADDONS_NOT_INNER_PANEL
 ///
 /// \sa block(Index,Index,NRowsType,NColsType), class Block
 ///
-EIGEN_DEVICE_FUNC
 template<typename NRowsType, typename NColsType>
+EIGEN_DEVICE_FUNC
 #ifndef EIGEN_PARSED_BY_DOXYGEN
 inline typename FixedBlockXpr<internal::get_fixed_value<NRowsType>::value,internal::get_fixed_value<NColsType>::value>::Type
 #else
@@ -243,8 +243,8 @@ topLeftCorner(NRowsType cRows, NColsType cCols)
 }
 
 /// This is the const version of topLeftCorner(Index, Index).
-EIGEN_DEVICE_FUNC
 template<typename NRowsType, typename NColsType>
+EIGEN_DEVICE_FUNC
 #ifndef EIGEN_PARSED_BY_DOXYGEN
 inline const typename ConstFixedBlockXpr<internal::get_fixed_value<NRowsType>::value,internal::get_fixed_value<NColsType>::value>::Type
 #else
@@ -333,8 +333,8 @@ EIGEN_DOC_BLOCK_ADDONS_NOT_INNER_PANEL
 ///
 /// \sa block(Index,Index,NRowsType,NColsType), class Block
 ///
-EIGEN_DEVICE_FUNC
 template<typename NRowsType, typename NColsType>
+EIGEN_DEVICE_FUNC
 #ifndef EIGEN_PARSED_BY_DOXYGEN
 inline typename FixedBlockXpr<internal::get_fixed_value<NRowsType>::value,internal::get_fixed_value<NColsType>::value>::Type
 #else
@@ -348,8 +348,8 @@ bottomRightCorner(NRowsType cRows, NColsType cCols)
 }
 
 /// This is the const version of bottomRightCorner(NRowsType, NColsType).
-EIGEN_DEVICE_FUNC
 template<typename NRowsType, typename NColsType>
+EIGEN_DEVICE_FUNC
 #ifndef EIGEN_PARSED_BY_DOXYGEN
 inline const typename ConstFixedBlockXpr<internal::get_fixed_value<NRowsType>::value,internal::get_fixed_value<NColsType>::value>::Type
 #else
@@ -439,8 +439,8 @@ EIGEN_DOC_BLOCK_ADDONS_NOT_INNER_PANEL
 ///
 /// \sa block(Index,Index,NRowsType,NColsType), class Block
 ///
-EIGEN_DEVICE_FUNC
 template<typename NRowsType, typename NColsType>
+EIGEN_DEVICE_FUNC
 #ifndef EIGEN_PARSED_BY_DOXYGEN
 inline typename FixedBlockXpr<internal::get_fixed_value<NRowsType>::value,internal::get_fixed_value<NColsType>::value>::Type
 #else
@@ -454,8 +454,8 @@ bottomLeftCorner(NRowsType cRows, NColsType cCols)
 }
 
 /// This is the const version of bottomLeftCorner(NRowsType, NColsType).
-EIGEN_DEVICE_FUNC
 template<typename NRowsType, typename NColsType>
+EIGEN_DEVICE_FUNC
 #ifndef EIGEN_PARSED_BY_DOXYGEN
 inline typename ConstFixedBlockXpr<internal::get_fixed_value<NRowsType>::value,internal::get_fixed_value<NColsType>::value>::Type
 #else
@@ -544,8 +544,8 @@ EIGEN_DOC_BLOCK_ADDONS_INNER_PANEL_IF(row-major)
 ///
 /// \sa block(Index,Index,NRowsType,NColsType), class Block
 ///
-EIGEN_DEVICE_FUNC
 template<typename NRowsType>
+EIGEN_DEVICE_FUNC
 #ifndef EIGEN_PARSED_BY_DOXYGEN
 inline typename NRowsBlockXpr<internal::get_fixed_value<NRowsType>::value>::Type
 #else
@@ -558,8 +558,8 @@ topRows(NRowsType n)
 }
 
 /// This is the const version of topRows(NRowsType).
-EIGEN_DEVICE_FUNC
 template<typename NRowsType>
+EIGEN_DEVICE_FUNC
 #ifndef EIGEN_PARSED_BY_DOXYGEN
 inline const typename ConstNRowsBlockXpr<internal::get_fixed_value<NRowsType>::value>::Type
 #else
@@ -619,8 +619,8 @@ EIGEN_DOC_BLOCK_ADDONS_INNER_PANEL_IF(row-major)
 ///
 /// \sa block(Index,Index,NRowsType,NColsType), class Block
 ///
-EIGEN_DEVICE_FUNC
 template<typename NRowsType>
+EIGEN_DEVICE_FUNC
 #ifndef EIGEN_PARSED_BY_DOXYGEN
 inline typename NRowsBlockXpr<internal::get_fixed_value<NRowsType>::value>::Type
 #else
@@ -633,8 +633,8 @@ bottomRows(NRowsType n)
 }
 
 /// This is the const version of bottomRows(NRowsType).
-EIGEN_DEVICE_FUNC
 template<typename NRowsType>
+EIGEN_DEVICE_FUNC
 #ifndef EIGEN_PARSED_BY_DOXYGEN
 inline const typename ConstNRowsBlockXpr<internal::get_fixed_value<NRowsType>::value>::Type
 #else
@@ -695,8 +695,8 @@ EIGEN_DOC_BLOCK_ADDONS_INNER_PANEL_IF(row-major)
 ///
 /// \sa block(Index,Index,NRowsType,NColsType), class Block
 ///
-EIGEN_DEVICE_FUNC
 template<typename NRowsType>
+EIGEN_DEVICE_FUNC
 #ifndef EIGEN_PARSED_BY_DOXYGEN
 inline typename NRowsBlockXpr<internal::get_fixed_value<NRowsType>::value>::Type
 #else
@@ -709,8 +709,8 @@ middleRows(Index startRow, NRowsType n)
 }
 
 /// This is the const version of middleRows(Index,NRowsType).
-EIGEN_DEVICE_FUNC
 template<typename NRowsType>
+EIGEN_DEVICE_FUNC
 #ifndef EIGEN_PARSED_BY_DOXYGEN
 inline const typename ConstNRowsBlockXpr<internal::get_fixed_value<NRowsType>::value>::Type
 #else
@@ -771,8 +771,8 @@ EIGEN_DOC_BLOCK_ADDONS_INNER_PANEL_IF(column-major)
 ///
 /// \sa block(Index,Index,NRowsType,NColsType), class Block
 ///
-EIGEN_DEVICE_FUNC
 template<typename NColsType>
+EIGEN_DEVICE_FUNC
 #ifndef EIGEN_PARSED_BY_DOXYGEN
 inline typename NColsBlockXpr<internal::get_fixed_value<NColsType>::value>::Type
 #else
@@ -785,8 +785,8 @@ leftCols(NColsType n)
 }
 
 /// This is the const version of leftCols(NColsType).
-EIGEN_DEVICE_FUNC
 template<typename NColsType>
+EIGEN_DEVICE_FUNC
 #ifndef EIGEN_PARSED_BY_DOXYGEN
 inline const typename ConstNColsBlockXpr<internal::get_fixed_value<NColsType>::value>::Type
 #else
@@ -846,8 +846,8 @@ EIGEN_DOC_BLOCK_ADDONS_INNER_PANEL_IF(column-major)
 ///
 /// \sa block(Index,Index,NRowsType,NColsType), class Block
 ///
-EIGEN_DEVICE_FUNC
 template<typename NColsType>
+EIGEN_DEVICE_FUNC
 #ifndef EIGEN_PARSED_BY_DOXYGEN
 inline typename NColsBlockXpr<internal::get_fixed_value<NColsType>::value>::Type
 #else
@@ -860,8 +860,8 @@ rightCols(NColsType n)
 }
 
 /// This is the const version of rightCols(NColsType).
-EIGEN_DEVICE_FUNC
 template<typename NColsType>
+EIGEN_DEVICE_FUNC
 #ifndef EIGEN_PARSED_BY_DOXYGEN
 inline const typename ConstNColsBlockXpr<internal::get_fixed_value<NColsType>::value>::Type
 #else
@@ -922,8 +922,8 @@ EIGEN_DOC_BLOCK_ADDONS_INNER_PANEL_IF(column-major)
 ///
 /// \sa block(Index,Index,NRowsType,NColsType), class Block
 ///
-EIGEN_DEVICE_FUNC
 template<typename NColsType>
+EIGEN_DEVICE_FUNC
 #ifndef EIGEN_PARSED_BY_DOXYGEN
 inline typename NColsBlockXpr<internal::get_fixed_value<NColsType>::value>::Type
 #else
@@ -936,8 +936,8 @@ middleCols(Index startCol, NColsType numCols)
 }
 
 /// This is the const version of middleCols(Index,NColsType).
-EIGEN_DEVICE_FUNC
 template<typename NColsType>
+EIGEN_DEVICE_FUNC
 #ifndef EIGEN_PARSED_BY_DOXYGEN
 inline const typename ConstNColsBlockXpr<internal::get_fixed_value<NColsType>::value>::Type
 #else
@@ -1130,8 +1130,8 @@ inline ConstRowXpr row(Index i) const
 ///
 /// \sa block(Index,Index,NRowsType,NColsType), fix<N>, fix<N>(int), class Block
 ///
-EIGEN_DEVICE_FUNC
 template<typename NType>
+EIGEN_DEVICE_FUNC
 #ifndef EIGEN_PARSED_BY_DOXYGEN
 inline typename FixedSegmentReturnType<internal::get_fixed_value<NType>::value>::Type
 #else
@@ -1146,8 +1146,8 @@ segment(Index start, NType n)
 
 
 /// This is the const version of segment(Index,NType).
-EIGEN_DEVICE_FUNC
 template<typename NType>
+EIGEN_DEVICE_FUNC
 #ifndef EIGEN_PARSED_BY_DOXYGEN
 inline const typename ConstFixedSegmentReturnType<internal::get_fixed_value<NType>::value>::Type
 #else
@@ -1180,8 +1180,8 @@ segment(Index start, NType n) const
 ///
 /// \sa class Block, block(Index,Index)
 ///
-EIGEN_DEVICE_FUNC
 template<typename NType>
+EIGEN_DEVICE_FUNC
 #ifndef EIGEN_PARSED_BY_DOXYGEN
 inline typename FixedSegmentReturnType<internal::get_fixed_value<NType>::value>::Type
 #else
@@ -1195,8 +1195,8 @@ head(NType n)
 }
 
 /// This is the const version of head(NType).
-EIGEN_DEVICE_FUNC
 template<typename NType>
+EIGEN_DEVICE_FUNC
 #ifndef EIGEN_PARSED_BY_DOXYGEN
 inline const typename ConstFixedSegmentReturnType<internal::get_fixed_value<NType>::value>::Type
 #else
@@ -1229,8 +1229,8 @@ head(NType n) const
 ///
 /// \sa class Block, block(Index,Index)
 ///
-EIGEN_DEVICE_FUNC
 template<typename NType>
+EIGEN_DEVICE_FUNC
 #ifndef EIGEN_PARSED_BY_DOXYGEN
 inline typename FixedSegmentReturnType<internal::get_fixed_value<NType>::value>::Type
 #else
@@ -1244,8 +1244,8 @@ tail(NType n)
 }
 
 /// This is the const version of tail(Index).
-EIGEN_DEVICE_FUNC
 template<typename NType>
+EIGEN_DEVICE_FUNC
 #ifndef EIGEN_PARSED_BY_DOXYGEN
 inline const typename ConstFixedSegmentReturnType<internal::get_fixed_value<NType>::value>::Type
 #else

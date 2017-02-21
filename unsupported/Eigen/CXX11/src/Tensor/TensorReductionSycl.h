@@ -25,11 +25,11 @@
 namespace Eigen {
 namespace internal {
 
-template<typename CoeffReturnType> struct syclGenericBufferReducer{
+template<typename OP, typename CoeffReturnType> struct syclGenericBufferReducer{
 template<typename BufferTOut, typename BufferTIn>
-static void run(BufferTOut& bufOut, BufferTIn& bufI, const Eigen::SyclDevice& dev, size_t length, size_t local){
+static void run(OP op, BufferTOut& bufOut, BufferTIn& bufI, const Eigen::SyclDevice& dev, size_t length, size_t local){
   do {
-          auto f = [length, local, bufOut, &bufI](cl::sycl::handler& h) mutable {
+          auto f = [length, local, op, &bufOut, &bufI](cl::sycl::handler& h) mutable {
             cl::sycl::nd_range<1> r{cl::sycl::range<1>{std::max(length, local)},
                                     cl::sycl::range<1>{std::min(length, local)}};
             /* Two accessors are used: one to the buffer that is being reduced,
@@ -43,7 +43,7 @@ static void run(BufferTOut& bufOut, BufferTIn& bufI, const Eigen::SyclDevice& de
 
             /* The parallel_for invocation chosen is the variant with an nd_item
              * parameter, since the code requires barriers for correctness. */
-            h.parallel_for(r, TensorSycl::internal::GenericKernelReducer< CoeffReturnType, OutputAccessor, InputAccessor, LocalAccessor>(aOut, aI, scratch,  length, local));
+            h.parallel_for(r, TensorSycl::internal::GenericKernelReducer<CoeffReturnType, OP, OutputAccessor, InputAccessor, LocalAccessor>(op, aOut, aI, scratch,  length, local));
           };
             dev.sycl_queue().submit(f);
             dev.asynchronousExec();
@@ -54,11 +54,16 @@ static void run(BufferTOut& bufOut, BufferTIn& bufI, const Eigen::SyclDevice& de
           length = length / local;
 
         } while (length > 1);
-
-
-
 }
 
+};
+
+template<typename CoeffReturnType> struct syclGenericBufferReducer<Eigen::internal::MeanReducer<CoeffReturnType>, CoeffReturnType>{
+template<typename BufferTOut, typename BufferTIn>
+static void run(Eigen::internal::MeanReducer<CoeffReturnType>, BufferTOut& bufOut, BufferTIn& bufI, const Eigen::SyclDevice& dev, size_t length, size_t local){
+   syclGenericBufferReducer<Eigen::internal::SumReducer<CoeffReturnType>, CoeffReturnType>::run(Eigen::internal::SumReducer<CoeffReturnType>(),
+    bufOut, bufI, dev, length, local);
+}
 };
 
 /// Self is useless here because in expression construction we are going to treat reduction as a leafnode.
@@ -74,8 +79,8 @@ struct FullReducer<Self, Op, const Eigen::SyclDevice, Vectorizable> {
 
   static void run(const Self& self, Op& reducer, const Eigen::SyclDevice& dev, CoeffReturnType* output) {
     typedef const typename Self::ChildType HostExpr; /// this is the child of reduction
-    auto functors = TensorSycl::internal::extractFunctors(self.impl());
-    typedef decltype(functors) FunctorExpr;
+    typedef Eigen::TensorSycl::internal::FunctorExtractor<TensorEvaluator<HostExpr, const Eigen::SyclDevice> > FunctorExpr;
+    FunctorExpr functors = TensorSycl::internal::extractFunctors(self.impl());
     int red_factor =256; /// initial reduction. If the size is less than red_factor we only creates one thread.
     size_t inputSize =self.impl().dimensions().TotalSize();
     size_t rng = inputSize/red_factor; // the total number of thread initially is half the size of the input
@@ -108,9 +113,10 @@ struct FullReducer<Self, Op, const Eigen::SyclDevice, Vectorizable> {
   //  Dims dims= self.xprDims();
     //Op functor = reducer;
     dev.sycl_queue().submit([&](cl::sycl::handler &cgh) {
+      // this is a workaround for gcc 4.8 bug
+      typedef decltype(TensorSycl::internal::createTupleOfAccessors(cgh, self.impl())) TupleType;
       // create a tuple of accessors from Evaluator
-      auto tuple_of_accessors =  TensorSycl::internal::createTupleOfAccessors(cgh, self.impl());
-      typedef decltype(tuple_of_accessors) TupleType;
+      TupleType tuple_of_accessors =  TensorSycl::internal::createTupleOfAccessors(cgh, self.impl());
       auto tmp_global_accessor = temp_global_buffer. template get_access<cl::sycl::access::mode::read_write, cl::sycl::access::target::global_buffer>(cgh);
       typedef decltype(tmp_global_accessor) OutAccessor;
       cgh.parallel_for( cl::sycl::nd_range<1>(cl::sycl::range<1>(GRange), cl::sycl::range<1>(outTileSize)),
@@ -122,7 +128,7 @@ struct FullReducer<Self, Op, const Eigen::SyclDevice, Vectorizable> {
     // getting final out buffer at the moment the created buffer is true because there is no need for assign
     auto out_buffer =dev.get_sycl_buffer(output);
     /// This is used to recursively reduce the tmp value to an element of 1;
-    syclGenericBufferReducer<CoeffReturnType>::run(out_buffer, temp_global_buffer,dev, GRange,  outTileSize);
+    syclGenericBufferReducer<Op, CoeffReturnType>::run(reducer, out_buffer, temp_global_buffer,dev, GRange,  outTileSize);
   }
 
 };
@@ -134,10 +140,10 @@ struct InnerReducer<Self, Op, const Eigen::SyclDevice> {
   typedef typename Self::CoeffReturnType CoeffReturnType;
   static const bool HasOptimizedImplementation = false;
 
-  static bool run(const Self& self, Op& reducer, const Eigen::SyclDevice& dev, CoeffReturnType* output, typename Self::Index , typename Self::Index num_coeffs_to_preserve) {
+  static bool run(const Self& self, Op& reducer, const Eigen::SyclDevice& dev, CoeffReturnType* output, typename Self::Index num_values_to_reduce, typename Self::Index num_coeffs_to_preserve) {
     typedef const typename Self::ChildType HostExpr; /// this is the child of reduction
-    auto functors = TensorSycl::internal::extractFunctors(self.impl());
-    typedef decltype(functors) FunctorExpr;
+    typedef Eigen::TensorSycl::internal::FunctorExtractor<TensorEvaluator<HostExpr, const Eigen::SyclDevice> > FunctorExpr;
+    FunctorExpr functors = TensorSycl::internal::extractFunctors(self.impl());
     typename Self::Index range, GRange, tileSize;
     typedef typename Eigen::internal::remove_all<decltype(self.xprDims())>::type Dims;
 
@@ -147,14 +153,15 @@ struct InnerReducer<Self, Op, const Eigen::SyclDevice> {
     /// recursively apply reduction on it in order to reduce the whole.
       dev.parallel_for_setup(num_coeffs_to_preserve, tileSize, range, GRange);
       dev.sycl_queue().submit([&](cl::sycl::handler &cgh) {
+      // this is workaround for gcc 4.8 bug.
+      typedef decltype(TensorSycl::internal::createTupleOfAccessors(cgh, self.impl())) Tuple_of_Acc;
       // create a tuple of accessors from Evaluator
-      auto tuple_of_accessors =  TensorSycl::internal::createTupleOfAccessors(cgh, self.impl());
-      typedef typename Eigen::internal::remove_all<decltype(tuple_of_accessors)>::type Tuple_of_Acc;
+      Tuple_of_Acc tuple_of_accessors =  TensorSycl::internal::createTupleOfAccessors(cgh, self.impl());
       auto output_accessor = dev.template get_sycl_accessor<cl::sycl::access::mode::discard_write>(cgh, output);
-
+      Index red_size = (num_values_to_reduce!=0)? num_values_to_reduce : static_cast<Index>(1);
       cgh.parallel_for( cl::sycl::nd_range<1>(cl::sycl::range<1>(GRange), cl::sycl::range<1>(tileSize)),
       TensorSycl::internal::ReductionFunctor<HostExpr, FunctorExpr, Tuple_of_Acc, Dims, Op, typename Self::Index>
-      (output_accessor, functors, tuple_of_accessors, self.xprDims(), reducer, range));
+      (output_accessor, functors, tuple_of_accessors, self.xprDims(), reducer, range, red_size));
 
     });
     dev.asynchronousExec();

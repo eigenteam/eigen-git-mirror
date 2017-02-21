@@ -35,7 +35,7 @@ namespace Eigen {
 namespace TensorSycl {
 namespace internal {
 
-  template<typename CoeffReturnType, typename OutputAccessor, typename InputAccessor, typename LocalAccessor> struct GenericKernelReducer;
+  template<typename CoeffReturnType, typename OP, typename OutputAccessor, typename InputAccessor, typename LocalAccessor> struct GenericKernelReducer;
 
 
 /// This struct is used for special expression nodes with no operations (for example assign and selectOP).
@@ -79,6 +79,9 @@ template<typename T> struct GetType<false, T>{
 
 /// this is used for extracting tensor reduction
 #include "TensorReductionSycl.h"
+
+/// this is used for extracting tensor convolution
+#include "TensorConvolutionSycl.h"
 
 // kernel execution using fusion
 #include "TensorSyclRun.h"

@@ -205,6 +205,8 @@ class TensorIntDivisor<int32_t, true> {
   EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE int divide(const int32_t n) const {
 #ifdef __CUDA_ARCH__
     return (__umulhi(magic, n) >> shift);
+#elif defined(__SYCL_DEVICE_ONLY__)
+    return (cl::sycl::mul_hi(static_cast<uint64_t>(magic), static_cast<uint64_t>(n)) >> shift);
 #else
     uint64_t v = static_cast<uint64_t>(magic) * static_cast<uint64_t>(n);
     return (static_cast<uint32_t>(v >> 32) >> shift);

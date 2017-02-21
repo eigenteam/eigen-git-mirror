@@ -131,11 +131,6 @@ template<typename DataType> void sycl_broadcast_test_per_device(const cl::sycl::
   std::cout << "Running on " << d.template get_info<cl::sycl::info::device::name>() << std::endl;
   QueueInterface queueInterface(d);
   auto sycl_device = Eigen::SyclDevice(&queueInterface);
-
-  test_broadcast_sycl_fixed<DataType, RowMajor, int>(sycl_device);
-  test_broadcast_sycl<DataType, RowMajor, int>(sycl_device);
-  test_broadcast_sycl_fixed<DataType, ColMajor, int>(sycl_device);
-  test_broadcast_sycl<DataType, ColMajor, int>(sycl_device);
   test_broadcast_sycl<DataType, RowMajor, int64_t>(sycl_device);
   test_broadcast_sycl<DataType, ColMajor, int64_t>(sycl_device);
   test_broadcast_sycl_fixed<DataType, RowMajor, int64_t>(sycl_device);

@@ -297,7 +297,7 @@ void check_indexed_view()
 
   VERIFY_IS_APPROX( (A(std::array<int,3>{{1,3,5}}, std::array<int,4>{{9,6,3,0}})), A(seqN(1,3,2), seqN(9,4,-3)) );
 
-#if (!EIGEN_COMP_CLANG) || (EIGEN_COMP_CLANG>=308 && !defined(__apple_build_version__))
+#if EIGEN_HAS_STATIC_ARRAY_TEMPLATE
   VERIFY_IS_APPROX( A({3, 1, 6, 5}, all), A(std::array<int,4>{{3, 1, 6, 5}}, all) );
   VERIFY_IS_APPROX( A(all,{3, 1, 6, 5}), A(all,std::array<int,4>{{3, 1, 6, 5}}) );
   VERIFY_IS_APPROX( A({1,3,5},{3, 1, 6, 5}), A(std::array<int,3>{{1,3,5}},std::array<int,4>{{3, 1, 6, 5}}) );

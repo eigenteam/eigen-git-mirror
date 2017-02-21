@@ -157,6 +157,18 @@ EVALTO()
 
 
 /// specialisation of the \ref PlaceHolderExpression when the node is
+/// TensorChippingOp
+#define CHIPPINGOP(CVQual)\
+template <DenseIndex DimId, typename Expr, size_t N>\
+struct PlaceHolderExpression<CVQual TensorChippingOp<DimId, Expr>, N> {\
+  typedef CVQual TensorChippingOp< DimId, typename CalculateIndex <N, Expr>::ArgType> Type;\
+};
+
+CHIPPINGOP(const)
+CHIPPINGOP()
+#undef CHIPPINGOP
+
+/// specialisation of the \ref PlaceHolderExpression when the node is
 /// TensorReductionOp
 #define SYCLREDUCTION(CVQual)\
 template <typename OP, typename Dims, typename Expr, size_t N>\
@@ -166,6 +178,20 @@ struct PlaceHolderExpression<CVQual TensorReductionOp<OP, Dims, Expr>, N>{\
 SYCLREDUCTION(const)
 SYCLREDUCTION()
 #undef SYCLREDUCTION
+
+
+/// specialisation of the \ref PlaceHolderExpression when the node is
+/// TensorReductionOp
+#define SYCLCONTRACTIONCONVOLUTIONPLH(CVQual, ExprNode)\
+template <typename Indices, typename LhsXprType, typename RhsXprType, size_t N>\
+struct PlaceHolderExpression<CVQual ExprNode<Indices, LhsXprType, RhsXprType>, N>{\
+  typedef CVQual PlaceHolder<CVQual ExprNode<Indices, LhsXprType, RhsXprType>, N> Type;\
+};
+SYCLCONTRACTIONCONVOLUTIONPLH(const, TensorContractionOp)
+SYCLCONTRACTIONCONVOLUTIONPLH(,TensorContractionOp)
+SYCLCONTRACTIONCONVOLUTIONPLH(const, TensorConvolutionOp)
+SYCLCONTRACTIONCONVOLUTIONPLH(,TensorConvolutionOp)
+#undef SYCLCONTRACTIONCONVOLUTIONPLH
 
 
 /// specialisation of the \ref PlaceHolderExpression when the node is

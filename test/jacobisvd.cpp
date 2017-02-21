@@ -101,6 +101,12 @@ void test_jacobisvd()
     // Test on inf/nan matrix
     CALL_SUBTEST_7(  (svd_inf_nan<JacobiSVD<MatrixXf>, MatrixXf>()) );
     CALL_SUBTEST_10( (svd_inf_nan<JacobiSVD<MatrixXd>, MatrixXd>()) );
+
+    // bug1395 test compile-time vectors as input
+    CALL_SUBTEST_13(( jacobisvd_verify_assert(Matrix<double,6,1>()) ));
+    CALL_SUBTEST_13(( jacobisvd_verify_assert(Matrix<double,1,6>()) ));
+    CALL_SUBTEST_13(( jacobisvd_verify_assert(Matrix<double,Dynamic,1>(r)) ));
+    CALL_SUBTEST_13(( jacobisvd_verify_assert(Matrix<double,1,Dynamic>(c)) ));
   }
 
   CALL_SUBTEST_7(( jacobisvd<MatrixXf>(MatrixXf(internal::random<int>(EIGEN_TEST_MAX_SIZE/4, EIGEN_TEST_MAX_SIZE/2), internal::random<int>(EIGEN_TEST_MAX_SIZE/4, EIGEN_TEST_MAX_SIZE/2))) ));
