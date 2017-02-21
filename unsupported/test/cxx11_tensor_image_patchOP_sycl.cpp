@@ -134,7 +134,7 @@ static void test_simple_image_patch_sycl(const Eigen::SyclDevice& sycl_device)
 
   for (IndexType i = 0; i < 3; ++i) {
     for (IndexType j = 0; j < 5; ++j) {
-      int patchId = i+3*j;
+      IndexType patchId = i+3*j;
       for (IndexType r = 0; r < 3; ++r) {
         for (IndexType c = 0; c < 5; ++c) {
           for (IndexType d = 0; d < 2; ++d) {
@@ -206,7 +206,7 @@ static void test_simple_image_patch_sycl(const Eigen::SyclDevice& sycl_device)
 
   for (IndexType i = 0; i < 3; ++i) {
     for (IndexType j = 0; j < 5; ++j) {
-      int patchId = i+3*j;
+      IndexType patchId = i+3*j;
       for (IndexType r = 0; r < 2; ++r) {
         for (IndexType c = 0; c < 2; ++c) {
           for (IndexType d = 0; d < 2; ++d) {
@@ -323,7 +323,7 @@ static void test_patch_padding_valid_sycl(const Eigen::SyclDevice& sycl_device){
 
   for (IndexType i = 0; (i+stride+ksize-1) < input_rows; i += stride) {  // input rows
     for (IndexType j = 0; (j+stride+ksize-1) < input_cols; j += stride) {  // input cols
-      int patchId = i+input_rows*j;
+      IndexType patchId = i+input_rows*j;
       for (IndexType r = 0; r < ksize; ++r) {  // patch rows
         for (IndexType c = 0; c < ksize; ++c) {  // patch cols
           for (IndexType d = 0; d < input_depth; ++d) {  // depth
@@ -529,7 +529,7 @@ sycl_device.memcpyDeviceToHost(result_col_major.data(), gpu_data_result_col_majo
 
   for (IndexType i = 0; (i+stride+ksize-1) <= input_rows; i += stride) {  // input rows
     for (IndexType j = 0; (j+stride+ksize-1) <= input_cols; j += stride) {  // input cols
-      int patchId = i+input_rows*j;
+      IndexType patchId = i+input_rows*j;
       for (IndexType r = 0; r < ksize; ++r) {  // patch rows
         for (IndexType c = 0; c < ksize; ++c) {  // patch cols
           for (IndexType d = 0; d < input_depth; ++d) {  // depth
@@ -667,7 +667,7 @@ sycl_device.memcpyDeviceToHost(entire_image_patch_row_major.data(), gpu_data_ent
 
   for (IndexType i = 0; i < 3; ++i) {
     for (IndexType j = 0; j < 5; ++j) {
-      int patchId = i+3*j;
+      IndexType patchId = i+3*j;
       for (IndexType r = 0; r < 3; ++r) {
         for (IndexType c = 0; c < 5; ++c) {
           for (IndexType d = 0; d < 2; ++d) {
@@ -731,7 +731,7 @@ sycl_device.memcpyDeviceToHost(entire_image_patch_row_major.data(), gpu_data_ent
 
   for (IndexType i = 0; i < 3; ++i) {
     for (IndexType j = 0; j < 5; ++j) {
-      int patchId = i+3*j;
+      IndexType patchId = i+3*j;
       for (IndexType r = 0; r < 2; ++r) {
         for (IndexType c = 0; c < 2; ++c) {
           for (IndexType d = 0; d < 2; ++d) {
@@ -824,7 +824,7 @@ static void test_imagenet_patches_sycl(const Eigen::SyclDevice& sycl_device)
   for (IndexType b = 0; b < 16; ++b) {
     for (IndexType i = 0; i < 128; ++i) {
       for (IndexType j = 0; j < 128; ++j) {
-        int patchId = i+128*j;
+        IndexType patchId = i+128*j;
         for (IndexType c = 0; c < 11; ++c) {
           for (IndexType r = 0; r < 11; ++r) {
             for (IndexType d = 0; d < 3; ++d) {
@@ -899,7 +899,7 @@ static void test_imagenet_patches_sycl(const Eigen::SyclDevice& sycl_device)
   for (IndexType b = 0; b < 32; ++b) {
     for (IndexType i = 0; i < 64; ++i) {
       for (IndexType j = 0; j < 64; ++j) {
-        int patchId = i+64*j;
+        IndexType patchId = i+64*j;
         for (IndexType c = 0; c < 9; ++c) {
           for (IndexType r = 0; r < 9; ++r) {
             for (IndexType d = 0; d < 16; ++d) {
@@ -972,7 +972,7 @@ static void test_imagenet_patches_sycl(const Eigen::SyclDevice& sycl_device)
   for (IndexType b = 0; b < 32; ++b) {
     for (IndexType i = 0; i < 16; ++i) {
       for (IndexType j = 0; j < 16; ++j) {
-        int patchId = i+16*j;
+        IndexType patchId = i+16*j;
         for (IndexType c = 0; c < 7; ++c) {
           for (IndexType r = 0; r < 7; ++r) {
             for (IndexType d = 0; d < 32; ++d) {
@@ -1044,7 +1044,7 @@ static void test_imagenet_patches_sycl(const Eigen::SyclDevice& sycl_device)
   for (IndexType b = 0; b < 32; ++b) {
     for (IndexType i = 0; i < 13; ++i) {
       for (IndexType j = 0; j < 13; ++j) {
-        int patchId = i+13*j;
+        IndexType patchId = i+13*j;
         for (IndexType c = 0; c < 3; ++c) {
           for (IndexType r = 0; r < 3; ++r) {
             for (IndexType d = 0; d < 64; ++d) {
