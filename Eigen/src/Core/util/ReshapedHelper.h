@@ -34,7 +34,7 @@ struct get_compiletime_reshape_size<AutoSize_t,OtherSize,TotalSize> {
     value = (TotalSize==Dynamic || other_size==Dynamic) ? Dynamic : TotalSize / other_size };
 };
 
-Index get_runtime_reshape_size(AutoSize_t /*size*/, Index other, Index total) {
+inline Index get_runtime_reshape_size(AutoSize_t /*size*/, Index other, Index total) {
   return total/other;
 }
 
