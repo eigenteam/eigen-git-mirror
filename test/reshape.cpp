@@ -10,6 +10,13 @@
 
 #include "main.h"
 
+template<typename T1,typename T2>
+typename internal::enable_if<internal::is_same<T1,T2>::value,bool>::type
+is_same_eq(const T1& a, const T2& b)
+{
+  return (a.array() == b.array()).all();
+}
+
 // just test a 4x4 matrix, enumerate all combination manually
 template <typename MatType>
 void reshape4x4(MatType m)
@@ -75,6 +82,7 @@ void reshape4x4(MatType m)
   VERIFY_IS_EQUAL( m28r1, m28r2);
 
   using placeholders::all;
+  VERIFY(is_same_eq(m.reshaped(fix<MatType::SizeAtCompileTime>(m.size()),fix<1>), m(all)));
   VERIFY_IS_EQUAL(m.reshaped(16,1), m(all));
   VERIFY_IS_EQUAL(m.reshaped(1,16), m(all).transpose());
   VERIFY_IS_EQUAL(m(all).reshaped(2,8), m.reshaped(2,8));

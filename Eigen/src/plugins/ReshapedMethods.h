@@ -73,8 +73,15 @@ reshaped(NRowsType nRows, NColsType nCols, OrderType) const
 // Views as linear vectors
 
 EIGEN_DEVICE_FUNC
-inline const Reshaped<const Derived,SizeAtCompileTime,1>
+inline const Reshaped<Derived,SizeAtCompileTime,1>
 operator()(const Eigen::internal::all_t&)
+{
+  return Reshaped<Derived,SizeAtCompileTime,1>(derived(),size(),1);
+}
+
+EIGEN_DEVICE_FUNC
+inline const Reshaped<const Derived,SizeAtCompileTime,1>
+operator()(const Eigen::internal::all_t&) const
 {
   return Reshaped<const Derived,SizeAtCompileTime,1>(derived(),size(),1);
 }
