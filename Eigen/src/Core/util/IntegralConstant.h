@@ -192,7 +192,7 @@ inline internal::FixedInt<N> fix() { return internal::FixedInt<N>(); }
 // The generic typename T is mandatory. Otherwise, a code like fix<N> could refer to either the function above or this next overload.
 // This way a code like fix<N> can only refer to the previous function.
 template<int N,typename T>
-inline internal::VariableAndFixedInt<N> fix(T val) { return internal::VariableAndFixedInt<N>(val); }
+inline internal::VariableAndFixedInt<N> fix(T val) { return internal::VariableAndFixedInt<N>(internal::convert_index<int>(val)); }
 #endif
 
 #else // EIGEN_PARSED_BY_DOXYGEN
