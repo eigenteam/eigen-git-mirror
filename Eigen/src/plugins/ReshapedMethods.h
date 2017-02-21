@@ -70,4 +70,13 @@ reshaped(NRowsType nRows, NColsType nCols, OrderType) const
             derived(), internal::get_runtime_value(nRows), internal::get_runtime_value(nCols));
 }
 
+// Views as linear vectors
+
+EIGEN_DEVICE_FUNC
+inline const Reshaped<const Derived,SizeAtCompileTime,1>
+operator()(const Eigen::internal::all_t&)
+{
+  return Reshaped<const Derived,SizeAtCompileTime,1>(derived(),size(),1);
+}
+
 #endif // EIGEN_PARSED_BY_DOXYGEN

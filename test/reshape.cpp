@@ -73,6 +73,13 @@ void reshape4x4(MatType m)
   MatrixXi m28r1 = m.reshaped(2,8,RowOrder);
   MatrixXi m28r2 = m.transpose().reshaped(8,2,ColOrder).transpose();
   VERIFY_IS_EQUAL( m28r1, m28r2);
+
+  using placeholders::all;
+  VERIFY_IS_EQUAL(m.reshaped(16,1), m(all));
+  VERIFY_IS_EQUAL(m.reshaped(1,16), m(all).transpose());
+  VERIFY_IS_EQUAL(m(all).reshaped(2,8), m.reshaped(2,8));
+  VERIFY_IS_EQUAL(m(all).reshaped(4,4), m.reshaped(4,4));
+  VERIFY_IS_EQUAL(m(all).reshaped(8,2), m.reshaped(8,2));
 }
 
 void test_reshape()

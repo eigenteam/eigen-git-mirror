@@ -339,6 +339,8 @@ enum SideType {
   OnTheRight = 2  
 };
 
+
+
 /* the following used to be written as:
  *
  *   struct NoChange_t {};
