@@ -1,10 +1,13 @@
 
-/// \returns as expression of \c *this with reshaped sizes.
+/// \returns an expression of \c *this with reshaped sizes.
 ///
-/// \param nRows the number of rows in the reshaped expression, specified at either run-time or compile-time
-/// \param nCols the number of columns in the reshaped expression, specified at either run-time or compile-time
+/// \param nRows the number of rows in the reshaped expression, specified at either run-time or compile-time, or AutoSize
+/// \param nCols the number of columns in the reshaped expression, specified at either run-time or compile-time, or AutoSize
+/// \param order specifies whether the coefficients should be processed in column-major-order (ColOrder), in row-major-order (RowOrder),
+///              or follows the \em natural order of the nested expression (AutoOrder). The default is ColOrder.
 /// \tparam NRowsType the type of the value handling the number of rows, typically Index.
 /// \tparam NColsType the type of the value handling the number of columns, typically Index.
+/// \tparam OrderType the type of the order
 ///
 /// Dynamic size example: \include MatrixBase_reshaped_int_int.cpp
 /// Output: \verbinclude MatrixBase_reshaped_int_int.out
@@ -15,19 +18,39 @@
 /// \include MatrixBase_reshaped_fixed.cpp
 /// Output: \verbinclude MatrixBase_reshaped_fixed.out
 ///
-/// \sa class Reshaped, fix, fix<N>(int)
+/// Finally, one of the sizes parameter can be automatically deduced from the other one by passing AutoSize as in the following example:
+/// \include MatrixBase_reshaped_auto.cpp
+/// Output: \verbinclude MatrixBase_reshaped_auto.out
+/// AutoSize does preserve compile-time sizes when possible, i.e., when the sizes of the input are known at compile time \b and
+/// that the other size is passed at compile-time using Eigen::fix<N> as above.
+///
+/// \sa operator()(placeholders::all), class Reshaped, fix, fix<N>(int)
 ///
 #ifdef EIGEN_PARSED_BY_DOXYGEN
-template<typename NRowsType, typename NColsType, typename OrderType>
+template<typename NRowsType, typename NColsType, typename OrderType = ColOrder>
 EIGEN_DEVICE_FUNC
 inline Reshaped<Derived,...>
-reshaped(NRowsType nRows, NColsType nCols, OrderType = ColOrder);
+reshaped(NRowsType nRows, NColsType nCols, OrderType order = ColOrder);
 
 /** This is the const version of reshaped(NRowsType,NColsType). */
-template<typename NRowsType, typename NColsType, typename OrderType>
+template<typename NRowsType, typename NColsType, typename OrderType = ColOrder>
 EIGEN_DEVICE_FUNC
 inline const Reshaped<const Derived,...>
-reshaped(NRowsType nRows, NColsType nCols, OrderType = ColOrder) const;
+reshaped(NRowsType nRows, NColsType nCols, OrderType order = ColOrder) const;
+
+/// \returns as expression of \c *this with columns stacked to a linear column vector
+///
+/// This overload is essentially a shortcut for
+/// \code this->reshape(AutoSize,fix<1>) \endcode
+///
+/// Example:
+/// \include MatrixBase_reshaped_all.cpp
+/// Output: \verbinclude MatrixBase_reshaped_all.out
+///
+/// \sa reshaped()
+EIGEN_DEVICE_FUNC
+inline Reshaped<Derived,SizeAtCompileTime,1>
+operator()(placeholders::all);
 
 #else
 
