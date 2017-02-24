@@ -235,6 +235,20 @@ SYCLTENSORIMAGEPATCHOP()
 #undef SYCLTENSORIMAGEPATCHOP
 
 
+
+/// specialisation of the \ref PlaceHolderExpression when the node is
+/// TensorVolumePatchOp
+#define SYCLTENSORVOLUMEPATCHOP(CVQual)\
+template<DenseIndex Planes, DenseIndex Rows, DenseIndex Cols, typename XprType, size_t N>\
+struct PlaceHolderExpression<CVQual TensorVolumePatchOp<Planes,Rows, Cols, XprType>, N> {\
+  typedef CVQual TensorVolumePatchOp<Planes,Rows, Cols, typename CalculateIndex <N, XprType>::ArgType> Type;\
+};
+
+SYCLTENSORVOLUMEPATCHOP(const)
+SYCLTENSORVOLUMEPATCHOP()
+#undef SYCLTENSORVOLUMEPATCHOP
+
+
 /// template deduction for \ref PlaceHolderExpression struct
 template <typename Expr>
 struct createPlaceHolderExpression {

@@ -404,6 +404,28 @@ SYCLTENSORIMAGEPATCHOPEXPR(const)
 SYCLTENSORIMAGEPATCHOPEXPR()
 #undef SYCLTENSORIMAGEPATCHOPEXPR
 
+// TensorVolumePatchOp
+#define SYCLTENSORVOLUMEPATCHOPEXPR(CVQual)\
+template<DenseIndex Planes, DenseIndex Rows, DenseIndex Cols, typename OrigXprType, typename XprType, typename... Params>\
+struct  ExprConstructor<CVQual TensorVolumePatchOp<Planes, Rows, Cols, OrigXprType>, CVQual TensorVolumePatchOp<Planes, Rows, Cols, XprType>, Params... > {\
+  typedef ExprConstructor<OrigXprType, XprType, Params...> my_xpr_type;\
+  typedef CVQual TensorVolumePatchOp<Planes, Rows, Cols, typename my_xpr_type::Type> Type;\
+  my_xpr_type xprExpr;\
+  Type expr;\
+  template <typename FuncDetector>\
+  ExprConstructor(FuncDetector &funcD, const utility::tuple::Tuple<Params...> &t)\
+  : xprExpr(funcD.xprExpr, t), expr(xprExpr.expr, funcD.m_patch_planes, funcD.m_patch_rows, funcD.m_patch_cols, funcD.m_plane_strides, funcD.m_row_strides, funcD.m_col_strides,\
+    funcD.m_in_plane_strides, funcD.m_in_row_strides, funcD.m_in_col_strides,funcD.m_plane_inflate_strides, funcD.m_row_inflate_strides, funcD.m_col_inflate_strides, \
+    funcD.m_padding_top_z, funcD.m_padding_bottom_z, funcD.m_padding_top, funcD.m_padding_bottom, funcD.m_padding_left, funcD.m_padding_right, funcD.m_padding_value,\
+    funcD.m_padding_type, funcD.m_padding_explicit){\
+    }\
+};
+
+SYCLTENSORVOLUMEPATCHOPEXPR(const)
+SYCLTENSORVOLUMEPATCHOPEXPR()
+#undef SYCLTENSORVOLUMEPATCHOPEXPR
+
+
 
 // TensorLayoutSwapOp
 #define SYCLTENSORLAYOUTSWAPOPEXPR(CVQual)\

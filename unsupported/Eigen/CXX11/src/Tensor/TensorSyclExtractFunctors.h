@@ -344,6 +344,50 @@ FunctorExtractor(const TensorEvaluator<Self, Device>& expr)\
 SYCLEXTRFUNCIMAGEPATCHOP(const)
 SYCLEXTRFUNCIMAGEPATCHOP()
 #undef SYCLEXTRFUNCIMAGEPATCHOP
+
+/// TensorVolumePatchOp
+#define SYCLEXTRFUNCVOLUMEPATCHOP(CVQual)\
+template<DenseIndex Planes, DenseIndex Rows, DenseIndex Cols, typename XprType, typename Device>\
+struct FunctorExtractor<TensorEvaluator<CVQual TensorVolumePatchOp<Planes, Rows, Cols, XprType>, Device> >{\
+typedef CVQual TensorVolumePatchOp<Planes, Rows, Cols, XprType> Self;\
+FunctorExtractor<Eigen::TensorEvaluator<XprType, Device> > xprExpr;\
+const DenseIndex m_patch_planes;\
+const DenseIndex m_patch_rows;\
+const DenseIndex m_patch_cols;\
+const DenseIndex m_plane_strides;\
+const DenseIndex m_row_strides;\
+const DenseIndex m_col_strides;\
+const DenseIndex m_in_plane_strides;\
+const DenseIndex m_in_row_strides;\
+const DenseIndex m_in_col_strides;\
+const DenseIndex m_plane_inflate_strides;\
+const DenseIndex m_row_inflate_strides;\
+const DenseIndex m_col_inflate_strides;\
+const bool m_padding_explicit;\
+const DenseIndex m_padding_top_z;\
+const DenseIndex m_padding_bottom_z;\
+const DenseIndex m_padding_top;\
+const DenseIndex m_padding_bottom;\
+const DenseIndex m_padding_left;\
+const DenseIndex m_padding_right;\
+const PaddingType m_padding_type;\
+const typename Self::Scalar m_padding_value;\
+FunctorExtractor(const TensorEvaluator<Self, Device>& expr)\
+: xprExpr(expr.impl()), m_patch_planes(expr.xpr().patch_planes()), m_patch_rows(expr.xpr().patch_rows()), m_patch_cols(expr.xpr().patch_cols()),\
+  m_plane_strides(expr.xpr().plane_strides()), m_row_strides(expr.xpr().row_strides()), m_col_strides(expr.xpr().col_strides()),\
+  m_in_plane_strides(expr.xpr().in_plane_strides()), m_in_row_strides(expr.xpr().in_row_strides()), m_in_col_strides(expr.xpr().in_col_strides()),\
+  m_plane_inflate_strides(expr.xpr().plane_inflate_strides()),m_row_inflate_strides(expr.xpr().row_inflate_strides()),\
+  m_col_inflate_strides(expr.xpr().col_inflate_strides()), m_padding_explicit(expr.xpr().padding_explicit()),\
+  m_padding_top_z(expr.xpr().padding_top_z()), m_padding_bottom_z(expr.xpr().padding_bottom_z()), \
+  m_padding_top(expr.xpr().padding_top()), m_padding_bottom(expr.xpr().padding_bottom()), m_padding_left(expr.xpr().padding_left()),\
+  m_padding_right(expr.xpr().padding_right()), m_padding_type(expr.xpr().padding_type()),m_padding_value(expr.xpr().padding_value()){}\
+};
+SYCLEXTRFUNCVOLUMEPATCHOP(const)
+SYCLEXTRFUNCVOLUMEPATCHOP()
+#undef SYCLEXTRFUNCVOLUMEPATCHOP
+
+
+
 /// template deduction function for FunctorExtractor
 template <typename Evaluator>
 auto inline extractFunctors(const Evaluator& evaluator)-> FunctorExtractor<Evaluator> {

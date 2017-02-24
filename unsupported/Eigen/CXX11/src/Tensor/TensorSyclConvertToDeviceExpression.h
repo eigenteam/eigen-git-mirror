@@ -177,6 +177,16 @@ KERNELBROKERCONVERTIMAGEPATCHOP()
 #undef KERNELBROKERCONVERTIMAGEPATCHOP
 
 
+/// specialisation of the \ref ConvertToDeviceExpression struct when the node type is TensorVolumePatchOp
+#define KERNELBROKERCONVERTVOLUMEPATCHOP(CVQual)\
+template<DenseIndex Plannes, DenseIndex Rows, DenseIndex Cols, typename XprType>\
+struct ConvertToDeviceExpression<CVQual TensorVolumePatchOp<Plannes, Rows, Cols, XprType> >{\
+  typedef CVQual TensorVolumePatchOp<Plannes, Rows, Cols, typename ConvertToDeviceExpression<XprType>::Type> Type;\
+};
+KERNELBROKERCONVERTVOLUMEPATCHOP(const)
+KERNELBROKERCONVERTVOLUMEPATCHOP()
+#undef KERNELBROKERCONVERTVOLUMEPATCHOP
+
 
 
 }  // namespace internal

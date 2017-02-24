@@ -151,7 +151,7 @@ CHIPPINGOPLEAFCOUNT(const)
 CHIPPINGOPLEAFCOUNT()
 #undef CHIPPINGOPLEAFCOUNT
 
-
+///TensorStridingSlicingOp
 #define SLICESTRIDEOPLEAFCOUNT(CVQual)\
 template<typename StartIndices, typename StopIndices, typename Strides, typename XprType>\
 struct LeafCount<CVQual TensorStridingSlicingOp<StartIndices, StopIndices, Strides, XprType> >:CategoryCount<XprType>{};
@@ -160,7 +160,7 @@ SLICESTRIDEOPLEAFCOUNT(const)
 SLICESTRIDEOPLEAFCOUNT()
 #undef SLICESTRIDEOPLEAFCOUNT
 
-
+//TensorImagePatchOp
 #define TENSORIMAGEPATCHOPLEAFCOUNT(CVQual)\
 template<DenseIndex Rows, DenseIndex Cols, typename XprType>\
 struct LeafCount<CVQual TensorImagePatchOp<Rows, Cols, XprType> >:CategoryCount<XprType>{};
@@ -170,6 +170,15 @@ TENSORIMAGEPATCHOPLEAFCOUNT(const)
 TENSORIMAGEPATCHOPLEAFCOUNT()
 #undef TENSORIMAGEPATCHOPLEAFCOUNT
 
+// TensorVolumePatchOp
+#define TENSORVOLUMEPATCHOPLEAFCOUNT(CVQual)\
+template<DenseIndex Planes, DenseIndex Rows, DenseIndex Cols, typename XprType>\
+struct LeafCount<CVQual TensorVolumePatchOp<Planes, Rows, Cols, XprType> >:CategoryCount<XprType>{};
+
+
+TENSORVOLUMEPATCHOPLEAFCOUNT(const)
+TENSORVOLUMEPATCHOPLEAFCOUNT()
+#undef TENSORVOLUMEPATCHOPLEAFCOUNT
 
 } /// namespace TensorSycl
 } /// namespace internal

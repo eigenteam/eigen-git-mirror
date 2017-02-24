@@ -240,6 +240,21 @@ SYCLTENSORIMAGEPATCHOPEXTACC()
 #undef SYCLTENSORIMAGEPATCHOPEXTACC
 
 
+
+// specialisation of the \ref ExtractAccessor struct when the node type is
+/// TensorVolumePatchOp.
+#define SYCLTENSORVOLUMEPATCHOPEXTACC(CVQual)\
+template<DenseIndex Planes, DenseIndex Rows, DenseIndex Cols, typename XprType, typename Dev>\
+struct ExtractAccessor<TensorEvaluator<CVQual TensorVolumePatchOp<Planes, Rows, Cols, XprType>, Dev> >{\
+  static inline auto getTuple(cl::sycl::handler& cgh, const TensorEvaluator<CVQual TensorVolumePatchOp<Planes, Rows, Cols, XprType>, Dev>& eval)\
+  RETURN_CPP11(AccessorConstructor::getTuple(cgh, eval.impl()))\
+};
+
+SYCLTENSORVOLUMEPATCHOPEXTACC(const)
+SYCLTENSORVOLUMEPATCHOPEXTACC()
+#undef SYCLTENSORVOLUMEPATCHOPEXTACC
+
+
 // specialisation of the \ref ExtractAccessor struct when the node type is
 /// TensorLayoutSwapOp.
 #define SYCLTENSORLAYOUTSWAPOPEXTACC(CVQual)\
