@@ -230,13 +230,13 @@ typename HostExpr::Index LocalThreadSizeM, typename HostExpr::Index LocalThreadS
       const Index nGroupId = itemID.get_group(1); // Work-group ID localCol
       const Index linearLocalThreadId = nLocalThreadId*LocalThreadSizeM + mLocalThreadId; // linear local thread ID
       // Allocate register space
-      float privateLhs;
-      float privateRhs[WorkLoadPerThreadN];
-      float privateRes[WorkLoadPerThreadM][WorkLoadPerThreadN];
+      LhsScalar privateLhs;
+      RhsScalar privateRhs[WorkLoadPerThreadN];
+      OutScalar privateRes[WorkLoadPerThreadM][WorkLoadPerThreadN];
       // Initialise the privateResumulation registers
       for (Index wLPTM=0; wLPTM<WorkLoadPerThreadM; wLPTM++) {
           for (Index wLPTN=0; wLPTN<WorkLoadPerThreadN; wLPTN++) {
-              privateRes[wLPTM][wLPTN] = 0.0f;
+              privateRes[wLPTM][wLPTN] = static_cast<OutScalar>(0);
           }
       }
 
