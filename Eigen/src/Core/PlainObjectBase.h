@@ -812,6 +812,13 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
       this->_set_noalias(other);
     }
 
+    // Initialize an arbitrary matrix from an object convertible to the Derived type.
+    template<typename T>
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE void _init1(const Derived& other){
+      this->_set_noalias(other);
+    }
+
     // Initialize an arbitrary matrix from a generic Eigen expression
     template<typename T, typename OtherDerived>
     EIGEN_DEVICE_FUNC
@@ -834,7 +841,7 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
       this->derived() = r;
     }
     
-    // For fixed -size arrays:
+    // For fixed-size Array<Scalar,...>
     template<typename T>
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE void _init1(const Scalar& val0,
@@ -846,6 +853,7 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
       Base::setConstant(val0);
     }
     
+    // For fixed-size Array<Index,...>
     template<typename T>
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE void _init1(const Index& val0,

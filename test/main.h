@@ -41,6 +41,7 @@
 #include <complex>
 #include <deque>
 #include <queue>
+#include <cassert>
 #include <list>
 #if __cplusplus >= 201103L
 #include <random>
@@ -79,10 +80,12 @@
 #ifdef TEST_ENABLE_TEMPORARY_TRACKING
 
 static long int nb_temporaries;
+static long int nb_temporaries_on_assert = -1;
 
 inline void on_temporary_creation(long int size) {
   // here's a great place to set a breakpoint when debugging failures in this test!
   if(size!=0) nb_temporaries++;
+  if(nb_temporaries_on_assert>0) assert(nb_temporaries<nb_temporaries_on_assert);
 }
 
 #define EIGEN_DENSE_STORAGE_CTOR_PLUGIN { on_temporary_creation(size); }
