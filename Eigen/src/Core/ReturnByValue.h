@@ -79,7 +79,7 @@ template<typename Derived> class ReturnByValue
 
 template<typename Derived>
 template<typename OtherDerived>
-Derived& DenseBase<Derived>::operator=(const ReturnByValue<OtherDerived>& other)
+EIGEN_DEVICE_FUNC Derived& DenseBase<Derived>::operator=(const ReturnByValue<OtherDerived>& other)
 {
   other.evalTo(derived());
   return derived();
