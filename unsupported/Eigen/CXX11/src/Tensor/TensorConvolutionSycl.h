@@ -32,14 +32,15 @@ internal::IndexMapper<Index, InputDims, 1, Eigen::internal::traits<HostExpr>::La
 Kernel_accessor kernel_filter;
 const size_t kernelSize, range_x, range_y;
 Buffer_accessor buffer_acc;
+ptrdiff_t out_offset;
 Local_accessor local_acc;
 FunctorExpr functors;
 TupleType tuple_of_accessors;
 EigenConvolutionKernel1D(internal::IndexMapper<Index, InputDims, 1, Eigen::internal::traits<HostExpr>::Layout> indexMapper_,
   Kernel_accessor kernel_filter_,  const size_t kernelSize_, const size_t range_x_, const size_t range_y_,
-  Buffer_accessor buffer_acc_, Local_accessor local_acc_, FunctorExpr functors_, TupleType tuple_of_accessors_)
+  Buffer_accessor buffer_acc_, ptrdiff_t out_offset_, Local_accessor local_acc_, FunctorExpr functors_, TupleType tuple_of_accessors_)
   :indexMapper(indexMapper_), kernel_filter(kernel_filter_), kernelSize(kernelSize_), range_x(range_x_), range_y(range_y_),
-  buffer_acc(buffer_acc_), local_acc(local_acc_), functors(functors_), tuple_of_accessors(tuple_of_accessors_) {}
+  buffer_acc(buffer_acc_), out_offset(out_offset_),local_acc(local_acc_), functors(functors_), tuple_of_accessors(tuple_of_accessors_) {}
 
   void operator()(cl::sycl::nd_item<2> itemID) {
     typedef typename TensorSycl::internal::ConvertToDeviceExpression<HostExpr>::Type DevExpr;
@@ -75,7 +76,7 @@ EigenConvolutionKernel1D(internal::IndexMapper<Index, InputDims, 1, Eigen::inter
       }
       const size_t tensor_index = indexMapper.mapCudaOutputPlaneToTensorOutputOffset(itemID.get_global(1))
       +indexMapper.mapCudaOutputKernelToTensorOutputOffset(itemID.get_local(0) + first_output_start);
-      buffer_ptr[tensor_index] = result;
+      buffer_ptr[tensor_index+ConvertToActualSyclOffset(CoeffReturnType, out_offset)] = result;
     }
   }
 };
@@ -89,14 +90,15 @@ internal::IndexMapper<Index, InputDims, 2, Eigen::internal::traits<HostExpr>::La
 Kernel_accessor kernel_filter;
 const size_t kernelSize_x, kernelSize_y, range_x, range_y , range_z;
 Buffer_accessor buffer_acc;
+ptrdiff_t out_offset;
 Local_accessor local_acc;
 FunctorExpr functors;
 TupleType tuple_of_accessors;
 EigenConvolutionKernel2D(internal::IndexMapper<Index, InputDims, 2, Eigen::internal::traits<HostExpr>::Layout> indexMapper_,
   Kernel_accessor kernel_filter_,  const size_t kernelSize_x_, const size_t kernelSize_y_ ,const size_t range_x_, const size_t range_y_, const size_t range_z_,
-  Buffer_accessor buffer_acc_, Local_accessor local_acc_, FunctorExpr functors_, TupleType tuple_of_accessors_)
+  Buffer_accessor buffer_acc_, ptrdiff_t out_offset_, Local_accessor local_acc_, FunctorExpr functors_, TupleType tuple_of_accessors_)
   :indexMapper(indexMapper_), kernel_filter(kernel_filter_), kernelSize_x(kernelSize_x_), kernelSize_y(kernelSize_y_), range_x(range_x_), range_y(range_y_), range_z(range_z_),
-  buffer_acc(buffer_acc_), local_acc(local_acc_), functors(functors_), tuple_of_accessors(tuple_of_accessors_) {}
+  buffer_acc(buffer_acc_), out_offset(out_offset_), local_acc(local_acc_), functors(functors_), tuple_of_accessors(tuple_of_accessors_) {}
 
   void operator()(cl::sycl::nd_item<3> itemID) {
     typedef typename TensorSycl::internal::ConvertToDeviceExpression<HostExpr>::Type DevExpr;
@@ -141,7 +143,7 @@ EigenConvolutionKernel2D(internal::IndexMapper<Index, InputDims, 2, Eigen::inter
       }
       const size_t tensor_index = indexMapper.mapCudaOutputPlaneToTensorOutputOffset(itemID.get_global(2))
       +indexMapper.mapCudaOutputKernelToTensorOutputOffset(itemID.get_local(0) + fitst_x_output_start, itemID.get_local(1) + fitst_y_output_start);
-      buffer_ptr[tensor_index] = result;
+      buffer_ptr[tensor_index  +ConvertToActualSyclOffset(CoeffReturnType, out_offset)] = result;
     }
   }
 };
@@ -156,16 +158,17 @@ internal::IndexMapper<Index, InputDims, 3, Eigen::internal::traits<HostExpr>::La
 Kernel_accessor kernel_filter;
 const size_t kernelSize_x, kernelSize_y, kernelSize_z, range_x, range_y , range_z, numP;
 Buffer_accessor buffer_acc;
+ptrdiff_t out_offset;
 Local_accessor local_acc;
 FunctorExpr functors;
 TupleType tuple_of_accessors;
 EigenConvolutionKernel3D(internal::IndexMapper<Index, InputDims, 3, Eigen::internal::traits<HostExpr>::Layout> indexMapper_,
   Kernel_accessor kernel_filter_,  const size_t kernelSize_x_, const size_t kernelSize_y_ , const size_t kernelSize_z_ ,
   const size_t range_x_, const size_t range_y_, const size_t range_z_, const size_t numP_,
-  Buffer_accessor buffer_acc_, Local_accessor local_acc_, FunctorExpr functors_, TupleType tuple_of_accessors_)
+  Buffer_accessor buffer_acc_, ptrdiff_t out_offset_, Local_accessor local_acc_, FunctorExpr functors_, TupleType tuple_of_accessors_)
   :indexMapper(indexMapper_), kernel_filter(kernel_filter_), kernelSize_x(kernelSize_x_), kernelSize_y(kernelSize_y_),
   kernelSize_z(kernelSize_z_), range_x(range_x_), range_y(range_y_), range_z(range_z_), numP(numP_),
-  buffer_acc(buffer_acc_), local_acc(local_acc_), functors(functors_), tuple_of_accessors(tuple_of_accessors_) {}
+  buffer_acc(buffer_acc_), out_offset(out_offset_), local_acc(local_acc_), functors(functors_), tuple_of_accessors(tuple_of_accessors_) {}
 
   void operator()(cl::sycl::nd_item<3> itemID) {
     typedef typename TensorSycl::internal::ConvertToDeviceExpression<HostExpr>::Type DevExpr;
@@ -215,7 +218,7 @@ EigenConvolutionKernel3D(internal::IndexMapper<Index, InputDims, 3, Eigen::inter
         }
         const size_t tensor_index = indexMapper.mapCudaOutputPlaneToTensorOutputOffset(p)
         +indexMapper.mapCudaOutputKernelToTensorOutputOffset(itemID.get_local(0) + fitst_x_output_start, itemID.get_local(1) + fitst_y_output_start, itemID.get_local(2) + fitst_z_output_start );
-        buffer_ptr[tensor_index] = result;
+        buffer_ptr[tensor_index+ConvertToActualSyclOffset(CoeffReturnType, out_offset)] = result;
       }
 
       itemID.barrier(cl::sycl::access::fence_space::local_space);
@@ -307,7 +310,7 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
       m_kernel = in_place;
       m_local_kernel = false;
     } else {
-      size_t kernel_sz = m_kernelImpl.dimensions().TotalSize() * sizeof(Scalar);
+      ptrdiff_t kernel_sz = m_kernelImpl.dimensions().TotalSize() * sizeof(Scalar);
       Scalar* local = (Scalar*)m_device.allocate(kernel_sz);
       typedef TensorEvalToOp<const KernelArgType> EvalTo;
       EvalTo evalToTmp(local, m_kernelArg);
@@ -325,6 +328,7 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
     typedef Eigen::TensorSycl::internal::FunctorExtractor<InputEvaluator> InputFunctorExpr;
     // extract input functor list
     InputFunctorExpr input_functors = Eigen::TensorSycl::internal::extractFunctors(m_inputImpl);
+    ptrdiff_t out_offset = m_device.get_offset(data);
 
 
     m_device.sycl_queue().submit([&](cl::sycl::handler &cgh) {
@@ -358,7 +362,7 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
           cgh.parallel_for(cl::sycl::nd_range<2>(global_range, local_range),
           EigenConvolutionKernel1D<CoeffReturnType, Scalar, InputArgType, InputFunctorExpr, Index,
           InputDims, KernelAccessorType, OutputAccessorType, InputLocalAcc, InputTupleType>(
-          indexMapper,kernel_acc, kernel_size, numX, numP, out_res, local_acc, input_functors, tuple_of_accessors));
+          indexMapper,kernel_acc, kernel_size, numX, numP, out_res, out_offset, local_acc, input_functors, tuple_of_accessors));
           break;
         }
 
@@ -383,7 +387,7 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
           cgh.parallel_for(cl::sycl::nd_range<3>(global_range, local_range),
           EigenConvolutionKernel2D<CoeffReturnType, Scalar, InputArgType, InputFunctorExpr, Index,
           InputDims, KernelAccessorType, OutputAccessorType, InputLocalAcc, InputTupleType>(
-          indexMapper,kernel_acc, kernel_size_x,  kernel_size_y, numX, numY, numP, out_res, local_acc, input_functors, tuple_of_accessors));
+          indexMapper,kernel_acc, kernel_size_x,  kernel_size_y, numX, numY, numP, out_res, out_offset, local_acc, input_functors, tuple_of_accessors));
           break;
         }
 
@@ -412,7 +416,7 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
           EigenConvolutionKernel3D<CoeffReturnType, Scalar, InputArgType, InputFunctorExpr, Index,
           InputDims, KernelAccessorType, OutputAccessorType, InputLocalAcc, InputTupleType>(
           indexMapper,kernel_acc, kernel_size_x,  kernel_size_y, kernel_size_z, numX, numY,
-          numZ, numP, out_res, local_acc, input_functors, tuple_of_accessors));
+          numZ, numP, out_res, out_offset, local_acc, input_functors, tuple_of_accessors));
           break;
         }
 

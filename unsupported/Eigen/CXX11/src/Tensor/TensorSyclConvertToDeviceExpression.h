@@ -109,6 +109,7 @@ struct ConvertToDeviceExpression<CVQual ExprNode<Expr> > {\
   typedef CVQual ExprNode< typename ConvertToDeviceExpression<Expr>::Type> Type;\
 };
 
+
 // TensorForcedEvalOp
 KERNELBROKERCONVERTFORCEDEVALLAYOUTSWAP(const,TensorForcedEvalOp)
 KERNELBROKERCONVERTFORCEDEVALLAYOUTSWAP(,TensorForcedEvalOp)

@@ -140,6 +140,9 @@ struct TensorEvaluator<const TensorCustomUnaryOp<CustomUnaryFunc, XprType>, Devi
 
   EIGEN_DEVICE_FUNC CoeffReturnType* data() const { return m_result; }
 
+  /// used by sycl in order to build the sycl buffer
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Device& device() const{return m_device;}
+
  protected:
   EIGEN_DEVICE_FUNC void evalTo(Scalar* data) {
     TensorMap<Tensor<CoeffReturnType, NumDims, Layout, Index> > result(
@@ -294,6 +297,9 @@ struct TensorEvaluator<const TensorCustomBinaryOp<CustomBinaryFunc, LhsXprType, 
   }
 
   EIGEN_DEVICE_FUNC CoeffReturnType* data() const { return m_result; }
+
+  /// used by sycl in order to build the sycl buffer
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Device& device() const{return m_device;}
 
  protected:
   EIGEN_DEVICE_FUNC void evalTo(Scalar* data) {

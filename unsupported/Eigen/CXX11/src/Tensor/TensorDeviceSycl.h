@@ -18,6 +18,8 @@
 namespace Eigen {
 
   #define ConvertToActualTypeSycl(Scalar, buf_acc) reinterpret_cast<typename cl::sycl::global_ptr<Scalar>::pointer_t>((&(*buf_acc.get_pointer())))
+  #define ConvertToActualSyclOffset(Scalar, offset) offset/sizeof(Scalar)
+
 
   template <typename Scalar, typename read_accessor, typename write_accessor> class MemCopyFunctor {
   public:
@@ -43,11 +45,12 @@ namespace Eigen {
   struct memsetkernelFunctor{
    typedef cl::sycl::accessor<uint8_t, 1, cl::sycl::access::mode::discard_write, cl::sycl::access::target::global_buffer> AccType;
    AccType m_acc;
+   const ptrdiff_t buff_offset;
    const size_t m_rng, m_c;
-   memsetkernelFunctor(AccType acc, const size_t rng, const size_t c):m_acc(acc), m_rng(rng), m_c(c){}
+   memsetkernelFunctor(AccType acc, const ptrdiff_t buff_offset_, const size_t rng, const size_t c):m_acc(acc),  buff_offset(buff_offset_), m_rng(rng), m_c(c){}
    void operator()(cl::sycl::nd_item<1> itemID) {
      auto globalid=itemID.get_global_linear_id();
-     if (globalid< m_rng) m_acc[globalid] = m_c;
+     if (globalid< m_rng) m_acc[globalid + buff_offset] = m_c;
    }
 
   };
@@ -305,6 +308,11 @@ struct SyclDevice {
     synchronize();
   }
 
+  EIGEN_STRONG_INLINE ptrdiff_t get_offset(const void *ptr) const {
+    auto it = m_queue_stream->find_buffer(ptr);
+    return (static_cast<const uint8_t*>(ptr))-it->first;
+
+  }
   /// The memcpyHostToDevice is used to copy the device only pointer to a host pointer. Using the device
   /// pointer created as a key we find the sycl buffer and get the host accessor with discard_write mode
   /// on it. Using a discard_write accessor guarantees that we do not bring back the current value of the
@@ -343,20 +351,23 @@ struct SyclDevice {
   EIGEN_STRONG_INLINE void memset(void *data, int c, size_t n) const {
     size_t rng, GRange, tileSize;
     parallel_for_setup(n, tileSize, rng, GRange);
-    sycl_queue().submit(memsetCghFunctor(get_sycl_buffer(static_cast<uint8_t*>(static_cast<void*>(data))),rng, GRange, tileSize, c ));
+    auto it1 = m_queue_stream->find_buffer(static_cast<const void*>(data));
+    ptrdiff_t buff_offset= (static_cast<const uint8_t*>(data)) - it1->first;
+    sycl_queue().submit(memsetCghFunctor(it1->second, buff_offset, rng, GRange, tileSize, c ));
     synchronize();
   }
 
   struct memsetCghFunctor{
     cl::sycl::buffer<uint8_t, 1>& m_buf;
+    const ptrdiff_t& buff_offset;
     const size_t& rng , GRange, tileSize;
     const int  &c;
-    memsetCghFunctor(cl::sycl::buffer<uint8_t, 1>& buff,  const size_t& rng_,  const size_t& GRange_,  const size_t& tileSize_, const int& c_)
-    :m_buf(buff), rng(rng_), GRange(GRange_), tileSize(tileSize_), c(c_){}
+    memsetCghFunctor(cl::sycl::buffer<uint8_t, 1>& buff,  const ptrdiff_t& buff_offset_, const size_t& rng_,  const size_t& GRange_,  const size_t& tileSize_, const int& c_)
+    :m_buf(buff), buff_offset(buff_offset_), rng(rng_), GRange(GRange_), tileSize(tileSize_), c(c_){}
 
     void operator()(cl::sycl::handler &cgh) const {
       auto buf_acc = m_buf.template get_access<cl::sycl::access::mode::discard_write, cl::sycl::access::target::global_buffer>(cgh);
-      cgh.parallel_for(cl::sycl::nd_range<1>(cl::sycl::range<1>(GRange), cl::sycl::range<1>(tileSize)), memsetkernelFunctor(buf_acc, rng, c));
+      cgh.parallel_for(cl::sycl::nd_range<1>(cl::sycl::range<1>(GRange), cl::sycl::range<1>(tileSize)), memsetkernelFunctor(buf_acc, buff_offset, rng, c));
     }
   };
 

@@ -143,6 +143,33 @@ FORCEDEVAL(const)
 FORCEDEVAL()
 #undef FORCEDEVAL
 
+
+/// specialisation of the \ref PlaceHolderExpression when the node is
+/// TensorForcedEvalOp
+#define CUSTOMUNARYOPEVAL(CVQual)\
+template <typename CustomUnaryFunc, typename XprType, size_t N>\
+struct PlaceHolderExpression<CVQual TensorCustomUnaryOp<CustomUnaryFunc, XprType>, N> {\
+  typedef CVQual PlaceHolder<CVQual TensorCustomUnaryOp<CustomUnaryFunc, XprType>, N> Type;\
+};
+
+CUSTOMUNARYOPEVAL(const)
+CUSTOMUNARYOPEVAL()
+#undef CUSTOMUNARYOPEVAL
+
+
+/// specialisation of the \ref PlaceHolderExpression when the node is
+/// TensorForcedEvalOp
+#define CUSTOMBINARYOPEVAL(CVQual)\
+template <typename CustomBinaryFunc, typename LhsXprType, typename RhsXprType, size_t N>\
+struct PlaceHolderExpression<CVQual TensorCustomBinaryOp<CustomBinaryFunc, LhsXprType, RhsXprType>, N> {\
+  typedef CVQual PlaceHolder<CVQual TensorCustomBinaryOp<CustomBinaryFunc, LhsXprType, RhsXprType>, N> Type;\
+};
+
+CUSTOMBINARYOPEVAL(const)
+CUSTOMBINARYOPEVAL()
+#undef CUSTOMBINARYOPEVAL
+
+
 /// specialisation of the \ref PlaceHolderExpression when the node is
 /// TensorEvalToOp, TensorLayoutSwapOp
 #define EVALTOLAYOUTSWAP(CVQual, ExprNode)\

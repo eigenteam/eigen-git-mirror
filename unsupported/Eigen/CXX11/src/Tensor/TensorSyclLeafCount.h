@@ -93,6 +93,26 @@ SYCLFORCEDEVALLEAFCOUNT(const)
 SYCLFORCEDEVALLEAFCOUNT()
 #undef SYCLFORCEDEVALLEAFCOUNT
 
+#define SYCLCUSTOMUNARYOPLEAFCOUNT(CVQual)\
+template <typename CustomUnaryFunc, typename XprType>\
+struct LeafCount<CVQual TensorCustomUnaryOp<CustomUnaryFunc, XprType> > {\
+static const size_t Count =1;\
+};
+
+SYCLCUSTOMUNARYOPLEAFCOUNT(const)
+SYCLCUSTOMUNARYOPLEAFCOUNT()
+#undef SYCLCUSTOMUNARYOPLEAFCOUNT
+
+
+#define SYCLCUSTOMBINARYOPLEAFCOUNT(CVQual)\
+template <typename CustomBinaryFunc, typename LhsXprType, typename RhsXprType>\
+struct LeafCount<CVQual TensorCustomBinaryOp<CustomBinaryFunc, LhsXprType, RhsXprType> > {\
+static const size_t Count =1;\
+};
+SYCLCUSTOMBINARYOPLEAFCOUNT( const)
+SYCLCUSTOMBINARYOPLEAFCOUNT()
+#undef SYCLCUSTOMBINARYOPLEAFCOUNT
+
 /// specialisation of the \ref LeafCount struct when the node type is TensorEvalToOp
 #define EVALTOLAYOUTSWAPLEAFCOUNT(CVQual , ExprNode, Num)\
 template <typename Expr>\

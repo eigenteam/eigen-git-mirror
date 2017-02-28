@@ -148,6 +148,33 @@ SYCLFORCEDEVALEXTACC()
 #undef SYCLFORCEDEVALEXTACC
 
 
+#define SYCLCUSTOMUNARYOPEXTACC(CVQual)\
+template <typename CustomUnaryFunc, typename XprType, typename Dev >\
+struct ExtractAccessor<TensorEvaluator<CVQual TensorCustomUnaryOp<CustomUnaryFunc, XprType>, Dev> > {\
+  static inline auto getTuple(cl::sycl::handler& cgh, const TensorEvaluator<CVQual TensorCustomUnaryOp<CustomUnaryFunc, XprType>, Dev>& eval)\
+  RETURN_CPP11(AccessorConstructor::template getAccessor<cl::sycl::access::mode::read>(cgh, eval))\
+};
+
+
+SYCLCUSTOMUNARYOPEXTACC(const)
+SYCLCUSTOMUNARYOPEXTACC()
+#undef SYCLCUSTOMUNARYOPEXTACC
+
+
+#define SYCLCUSTOMBINARYOPEXTACC(CVQual)\
+template <typename CustomBinaryFunc, typename LhsXprType, typename RhsXprType , typename Dev>\
+struct ExtractAccessor<TensorEvaluator<CVQual TensorCustomBinaryOp<CustomBinaryFunc, LhsXprType, RhsXprType>, Dev> > {\
+  static inline auto getTuple(cl::sycl::handler& cgh, const TensorEvaluator<CVQual TensorCustomBinaryOp<CustomBinaryFunc, LhsXprType, RhsXprType>, Dev>& eval)\
+  RETURN_CPP11(AccessorConstructor::template getAccessor<cl::sycl::access::mode::read>(cgh, eval))\
+};
+
+SYCLCUSTOMBINARYOPEXTACC(const)
+SYCLCUSTOMBINARYOPEXTACC()
+#undef SYCLCUSTOMBIBARYOPEXTACC
+
+
+
+
 /// specialisation of the \ref ExtractAccessor struct when the node type is TensorEvalToOp
 #define SYCLEVALTOEXTACC(CVQual)\
 template <typename Expr, typename Dev>\

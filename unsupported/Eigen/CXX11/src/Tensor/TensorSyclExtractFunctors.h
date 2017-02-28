@@ -33,13 +33,16 @@ namespace internal {
 /// re-instantiate them on the device.
 /// We have to pass instantiated functors to the device.
 // This struct is used for leafNode (TensorMap) and nodes behaving like leafNode (TensorForcedEval).
+#define DEFALTACTION(Evaluator)\
+typedef typename Evaluator::Dimensions Dimensions;\
+const Dimensions m_dimensions;\
+EIGEN_STRONG_INLINE const Dimensions& dimensions() const { return m_dimensions; }\
+FunctorExtractor(const Evaluator& expr): m_dimensions(expr.dimensions()) {}
+
 template <typename Evaluator> struct FunctorExtractor{
-  typedef typename Evaluator::Dimensions Dimensions;
-  const Dimensions m_dimensions;
-  EIGEN_STRONG_INLINE const Dimensions& dimensions() const { return m_dimensions; }
-  FunctorExtractor(const Evaluator& expr)
-  : m_dimensions(expr.dimensions()) {}
+  DEFALTACTION(Evaluator)
 };
+
 
 /// specialisation of the \ref FunctorExtractor struct when the node type does not require anything
 ///TensorConversionOp
@@ -111,6 +114,36 @@ struct FunctorExtractor<TensorEvaluator<CVQual TernaryCategory<OP, Arg1Expr, Arg
 SYCLEXTRFUNCTERNARY(const)
 SYCLEXTRFUNCTERNARY()
 #undef SYCLEXTRFUNCTERNARY
+
+
+
+//TensorCustomOp must be specialised otherewise it will be captured by UnaryCategory while its action is different
+//from the UnaryCategory and it is similar to the general FunctorExtractor.
+/// specialisation of TensorCustomOp
+#define SYCLEXTRFUNCCUSTOMUNARYOP(CVQual)\
+template <typename CustomUnaryFunc, typename ArgType, typename Dev >\
+struct FunctorExtractor<TensorEvaluator<CVQual TensorCustomUnaryOp<CustomUnaryFunc, ArgType>, Dev> > {\
+  typedef TensorEvaluator<CVQual TensorCustomUnaryOp<CustomUnaryFunc, ArgType>, Dev> Evaluator;\
+  DEFALTACTION(Evaluator)\
+};
+
+SYCLEXTRFUNCCUSTOMUNARYOP(const)
+SYCLEXTRFUNCCUSTOMUNARYOP()
+#undef SYCLEXTRFUNCCUSTOMUNARYOP
+
+
+#define SYCLEXTRFUNCCUSTOMBIBARYOP(CVQual)\
+template <typename CustomBinaryFunc, typename ArgType1, typename ArgType2, typename Dev >\
+struct FunctorExtractor<TensorEvaluator<CVQual TensorCustomBinaryOp<CustomBinaryFunc, ArgType1, ArgType2>, Dev> > {\
+  typedef TensorEvaluator<CVQual TensorCustomBinaryOp<CustomBinaryFunc, ArgType1, ArgType2>, Dev> Evaluator;\
+  DEFALTACTION(Evaluator)\
+};
+
+SYCLEXTRFUNCCUSTOMBIBARYOP(const)
+SYCLEXTRFUNCCUSTOMBIBARYOP()
+#undef SYCLEXTRFUNCCUSTOMBIBARYOP
+
+
 
 /// specialisation of the \ref FunctorExtractor struct when the node type is
 /// TensorCwiseSelectOp. This is an specialisation without OP so it has to be separated.

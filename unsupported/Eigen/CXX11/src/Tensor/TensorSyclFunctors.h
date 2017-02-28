@@ -21,11 +21,12 @@ namespace internal {
   template<typename CoeffReturnType, typename OP, typename OutputAccessor, typename InputAccessor, typename LocalAccessor> struct GenericKernelReducer{
     OP op;
     OutputAccessor aOut;
+    ptrdiff_t out_offset;
     InputAccessor aI;
     LocalAccessor scratch;
     size_t length, local;
-    GenericKernelReducer(OP op_, OutputAccessor aOut_, InputAccessor aI_, LocalAccessor scratch_, size_t length_, size_t local_)
-    : op(op_), aOut(aOut_), aI(aI_), scratch(scratch_), length(length_), local(local_){}
+    GenericKernelReducer(OP op_, OutputAccessor aOut_, ptrdiff_t out_offset_, InputAccessor aI_, LocalAccessor scratch_, size_t length_, size_t local_)
+    : op(op_), aOut(aOut_), out_offset(out_offset_), aI(aI_), scratch(scratch_), length(length_), local(local_){}
     void operator()(cl::sycl::nd_item<1> itemID) {
       size_t globalid = itemID.get_global(0);
       size_t localid = itemID.get_local(0);
@@ -59,7 +60,7 @@ namespace internal {
           aI[itemID.get_group(0)] = scratch[localid];
           if((length<=local) && globalid ==0){
             auto aOutPtr = ConvertToActualTypeSycl(CoeffReturnType, aOut);
-            aOutPtr[0]=scratch[0];
+            aOutPtr[0 + ConvertToActualSyclOffset(CoeffReturnType, out_offset)]=scratch[0];
           }
         }
       }
@@ -72,8 +73,8 @@ template < typename HostExpr, typename FunctorExpr, typename Tuple_of_Acc, typen
  public:
   typedef  typename TensorSycl::internal::createPlaceHolderExpression<HostExpr>::Type PlaceHolderExpr;
   typedef cl::sycl::accessor<uint8_t, 1, cl::sycl::access::mode::discard_write, cl::sycl::access::target::global_buffer> write_accessor;
-  ReductionFunctor(write_accessor output_accessor_, FunctorExpr functors_, Tuple_of_Acc tuple_of_accessors_,Dims dims_, Op functor_, Index range_, Index)
-  :output_accessor(output_accessor_), functors(functors_), tuple_of_accessors(tuple_of_accessors_), dims(dims_), functor(functor_), range(range_) {}
+  ReductionFunctor(write_accessor output_accessor_, ptrdiff_t out_offset_, FunctorExpr functors_, Tuple_of_Acc tuple_of_accessors_,Dims dims_, Op functor_, Index range_, Index)
+  :output_accessor(output_accessor_), out_offset(out_offset_), functors(functors_), tuple_of_accessors(tuple_of_accessors_), dims(dims_), functor(functor_), range(range_) {}
   void operator()(cl::sycl::nd_item<1> itemID) {
 
     typedef typename ConvertToDeviceExpression<const HostExpr>::Type DevExpr;
@@ -93,11 +94,12 @@ template < typename HostExpr, typename FunctorExpr, typename Tuple_of_Acc, typen
       typename DeviceSelf::CoeffReturnType accum = functor.initialize();
       Eigen::internal::GenericDimReducer<DeviceSelf::NumReducedDims-1, DeviceSelf, Op>::reduce(device_self_evaluator, device_self_evaluator.firstInput(static_cast<typename DevExpr::Index>(globalid)),const_cast<Op&>(functor), &accum);
       functor.finalize(accum);
-      output_accessor_ptr[globalid]= accum;
+      output_accessor_ptr[globalid + ConvertToActualSyclOffset(typename DeviceSelf::CoeffReturnType, out_offset)]= accum;
     }
   }
  private:
   write_accessor output_accessor;
+  ptrdiff_t out_offset;
   FunctorExpr functors;
   Tuple_of_Acc tuple_of_accessors;
   Dims dims;
@@ -111,9 +113,9 @@ class ReductionFunctor<HostExpr, FunctorExpr, Tuple_of_Acc, Dims, Eigen::interna
   typedef  typename TensorSycl::internal::createPlaceHolderExpression<HostExpr>::Type PlaceHolderExpr;
   typedef cl::sycl::accessor<uint8_t, 1, cl::sycl::access::mode::discard_write, cl::sycl::access::target::global_buffer> write_accessor;
   typedef Eigen::internal::SumReducer<typename HostExpr::CoeffReturnType> Op;
-  ReductionFunctor(write_accessor output_accessor_, FunctorExpr functors_, Tuple_of_Acc tuple_of_accessors_,Dims dims_,
+  ReductionFunctor(write_accessor output_accessor_, ptrdiff_t out_offset_, FunctorExpr functors_, Tuple_of_Acc tuple_of_accessors_,Dims dims_,
     Eigen::internal::MeanReducer<typename HostExpr::CoeffReturnType>,  Index range_, Index num_values_to_reduce_)
-  :output_accessor(output_accessor_), functors(functors_), tuple_of_accessors(tuple_of_accessors_), dims(dims_), functor(Op()), range(range_), num_values_to_reduce(num_values_to_reduce_) {}
+  :output_accessor(output_accessor_),  out_offset(out_offset_), functors(functors_), tuple_of_accessors(tuple_of_accessors_), dims(dims_), functor(Op()), range(range_), num_values_to_reduce(num_values_to_reduce_) {}
   void operator()(cl::sycl::nd_item<1> itemID) {
 
     typedef typename ConvertToDeviceExpression<const HostExpr>::Type DevExpr;
@@ -133,11 +135,12 @@ class ReductionFunctor<HostExpr, FunctorExpr, Tuple_of_Acc, Dims, Eigen::interna
       typename DeviceSelf::CoeffReturnType accum = functor.initialize();
       Eigen::internal::GenericDimReducer<DeviceSelf::NumReducedDims-1, DeviceSelf, Op>::reduce(device_self_evaluator, device_self_evaluator.firstInput(static_cast<typename DevExpr::Index>(globalid)),const_cast<Op&>(functor), &accum);
       functor.finalize(accum);
-      output_accessor_ptr[globalid]= accum/num_values_to_reduce;
+      output_accessor_ptr[globalid+ ConvertToActualSyclOffset(typename DeviceSelf::CoeffReturnType, out_offset)]= accum/num_values_to_reduce;
     }
   }
  private:
   write_accessor output_accessor;
+  ptrdiff_t out_offset;
   FunctorExpr functors;
   Tuple_of_Acc tuple_of_accessors;
   Dims dims;
