@@ -168,7 +168,7 @@ template<typename MatrixType> class TransposeImpl<MatrixType,Dense>
   *
   * \sa transposeInPlace(), adjoint() */
 template<typename Derived>
-inline Transpose<Derived>
+EIGEN_DEVICE_FUNC inline Transpose<Derived>
 DenseBase<Derived>::transpose()
 {
   return TransposeReturnType(derived());
@@ -180,7 +180,7 @@ DenseBase<Derived>::transpose()
   *
   * \sa transposeInPlace(), adjoint() */
 template<typename Derived>
-inline typename DenseBase<Derived>::ConstTransposeReturnType
+EIGEN_DEVICE_FUNC inline typename DenseBase<Derived>::ConstTransposeReturnType
 DenseBase<Derived>::transpose() const
 {
   return ConstTransposeReturnType(derived());
@@ -206,7 +206,7 @@ DenseBase<Derived>::transpose() const
   *
   * \sa adjointInPlace(), transpose(), conjugate(), class Transpose, class internal::scalar_conjugate_op */
 template<typename Derived>
-inline const typename MatrixBase<Derived>::AdjointReturnType
+EIGEN_DEVICE_FUNC inline const typename MatrixBase<Derived>::AdjointReturnType
 MatrixBase<Derived>::adjoint() const
 {
   return AdjointReturnType(this->transpose());
@@ -281,7 +281,7 @@ struct inplace_transpose_selector<MatrixType,false,MatchPacketSize> { // non squ
   *
   * \sa transpose(), adjoint(), adjointInPlace() */
 template<typename Derived>
-inline void DenseBase<Derived>::transposeInPlace()
+EIGEN_DEVICE_FUNC inline void DenseBase<Derived>::transposeInPlace()
 {
   eigen_assert((rows() == cols() || (RowsAtCompileTime == Dynamic && ColsAtCompileTime == Dynamic))
                && "transposeInPlace() called on a non-square non-resizable matrix");
@@ -312,7 +312,7 @@ inline void DenseBase<Derived>::transposeInPlace()
   *
   * \sa transpose(), adjoint(), transposeInPlace() */
 template<typename Derived>
-inline void MatrixBase<Derived>::adjointInPlace()
+EIGEN_DEVICE_FUNC inline void MatrixBase<Derived>::adjointInPlace()
 {
   derived() = adjoint().eval();
 }
