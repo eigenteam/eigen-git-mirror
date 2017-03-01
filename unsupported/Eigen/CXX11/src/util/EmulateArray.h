@@ -169,6 +169,7 @@ template <typename T> class array<T, 0> {
 
 #if EIGEN_HAS_VARIADIC_TEMPLATES
   EIGEN_DEVICE_FUNC array(std::initializer_list<T> l) : dummy() {
+    EIGEN_UNUSED_VARIABLE(l);
     eigen_assert(l.size() == 0);
   }
 #endif
