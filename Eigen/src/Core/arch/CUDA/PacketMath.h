@@ -167,10 +167,10 @@ template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE double2 ploadu<double2>(const d
   return make_double2(from[0], from[1]);
 }
 
-template<> EIGEN_STRONG_INLINE float4 ploaddup<float4>(const float*   from) {
+template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE float4 ploaddup<float4>(const float*   from) {
   return make_float4(from[0], from[0], from[1], from[1]);
 }
-template<> EIGEN_STRONG_INLINE double2 ploaddup<double2>(const double*  from) {
+template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE double2 ploaddup<double2>(const double*  from) {
   return make_double2(from[0], from[0]);
 }
 
