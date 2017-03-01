@@ -488,7 +488,6 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularViewImpl<_Mat
       * \sa TriangularView::solveInPlace()
       */
     template<int Side, typename Other>
-    EIGEN_DEVICE_FUNC
     inline const internal::triangular_solve_retval<Side,TriangularViewType, Other>
     solve(const MatrixBase<Other>& other) const;
 
@@ -554,7 +553,7 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularViewImpl<_Mat
 // FIXME should we keep that possibility
 template<typename MatrixType, unsigned int Mode>
 template<typename OtherDerived>
-inline TriangularView<MatrixType, Mode>&
+EIGEN_DEVICE_FUNC inline TriangularView<MatrixType, Mode>&
 TriangularViewImpl<MatrixType, Mode, Dense>::operator=(const MatrixBase<OtherDerived>& other)
 {
   internal::call_assignment_no_alias(derived(), other.derived(), internal::assign_op<Scalar,typename OtherDerived::Scalar>());
@@ -564,7 +563,7 @@ TriangularViewImpl<MatrixType, Mode, Dense>::operator=(const MatrixBase<OtherDer
 // FIXME should we keep that possibility
 template<typename MatrixType, unsigned int Mode>
 template<typename OtherDerived>
-void TriangularViewImpl<MatrixType, Mode, Dense>::lazyAssign(const MatrixBase<OtherDerived>& other)
+EIGEN_DEVICE_FUNC void TriangularViewImpl<MatrixType, Mode, Dense>::lazyAssign(const MatrixBase<OtherDerived>& other)
 {
   internal::call_assignment_no_alias(derived(), other.template triangularView<Mode>());
 }
@@ -573,7 +572,7 @@ void TriangularViewImpl<MatrixType, Mode, Dense>::lazyAssign(const MatrixBase<Ot
 
 template<typename MatrixType, unsigned int Mode>
 template<typename OtherDerived>
-inline TriangularView<MatrixType, Mode>&
+EIGEN_DEVICE_FUNC inline TriangularView<MatrixType, Mode>&
 TriangularViewImpl<MatrixType, Mode, Dense>::operator=(const TriangularBase<OtherDerived>& other)
 {
   eigen_assert(Mode == int(OtherDerived::Mode));
@@ -583,7 +582,7 @@ TriangularViewImpl<MatrixType, Mode, Dense>::operator=(const TriangularBase<Othe
 
 template<typename MatrixType, unsigned int Mode>
 template<typename OtherDerived>
-void TriangularViewImpl<MatrixType, Mode, Dense>::lazyAssign(const TriangularBase<OtherDerived>& other)
+EIGEN_DEVICE_FUNC void TriangularViewImpl<MatrixType, Mode, Dense>::lazyAssign(const TriangularBase<OtherDerived>& other)
 {
   eigen_assert(Mode == int(OtherDerived::Mode));
   internal::call_assignment_no_alias(derived(), other.derived());
@@ -598,7 +597,7 @@ void TriangularViewImpl<MatrixType, Mode, Dense>::lazyAssign(const TriangularBas
   * If the matrix is triangular, the opposite part is set to zero. */
 template<typename Derived>
 template<typename DenseDerived>
-void TriangularBase<Derived>::evalTo(MatrixBase<DenseDerived> &other) const
+EIGEN_DEVICE_FUNC void TriangularBase<Derived>::evalTo(MatrixBase<DenseDerived> &other) const
 {
   evalToLazy(other.derived());
 }
@@ -624,6 +623,7 @@ void TriangularBase<Derived>::evalTo(MatrixBase<DenseDerived> &other) const
   */
 template<typename Derived>
 template<unsigned int Mode>
+EIGEN_DEVICE_FUNC
 typename MatrixBase<Derived>::template TriangularViewReturnType<Mode>::Type
 MatrixBase<Derived>::triangularView()
 {
@@ -633,6 +633,7 @@ MatrixBase<Derived>::triangularView()
 /** This is the const version of MatrixBase::triangularView() */
 template<typename Derived>
 template<unsigned int Mode>
+EIGEN_DEVICE_FUNC
 typename MatrixBase<Derived>::template ConstTriangularViewReturnType<Mode>::Type
 MatrixBase<Derived>::triangularView() const
 {
@@ -930,7 +931,7 @@ struct triangular_assignment_loop<Kernel, Mode, Dynamic, SetOpposite>
   * If the matrix is triangular, the opposite part is set to zero. */
 template<typename Derived>
 template<typename DenseDerived>
-void TriangularBase<Derived>::evalToLazy(MatrixBase<DenseDerived> &other) const
+EIGEN_DEVICE_FUNC void TriangularBase<Derived>::evalToLazy(MatrixBase<DenseDerived> &other) const
 {
   other.derived().resize(this->rows(), this->cols());
   internal::call_triangular_assignment_loop<Derived::Mode,(Derived::Mode&SelfAdjoint)==0 /* SetOpposite */>(other.derived(), derived().nestedExpression());

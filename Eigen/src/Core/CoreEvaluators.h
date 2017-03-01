@@ -134,7 +134,7 @@ private:
 // this helper permits to completely eliminate m_outerStride if it is known at compiletime.
 template<typename Scalar,int OuterStride> class plainobjectbase_evaluator_data {
 public:
-  plainobjectbase_evaluator_data(const Scalar* ptr, Index outerStride) : data(ptr)
+  EIGEN_DEVICE_FUNC plainobjectbase_evaluator_data(const Scalar* ptr, Index outerStride) : data(ptr)
   {
     EIGEN_ONLY_USED_FOR_DEBUG(outerStride);
     eigen_internal_assert(outerStride==OuterStride);
@@ -145,7 +145,7 @@ public:
 
 template<typename Scalar> class plainobjectbase_evaluator_data<Scalar,Dynamic> {
 public:
-  plainobjectbase_evaluator_data(const Scalar* ptr, Index outerStride) : data(ptr), m_outerStride(outerStride) {}
+  EIGEN_DEVICE_FUNC plainobjectbase_evaluator_data(const Scalar* ptr, Index outerStride) : data(ptr), m_outerStride(outerStride) {}
   EIGEN_DEVICE_FUNC Index outerStride() const { return m_outerStride; }
   const Scalar *data;
 protected:
