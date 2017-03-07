@@ -171,19 +171,24 @@ CUSTOMBINARYOPEVAL()
 
 
 /// specialisation of the \ref PlaceHolderExpression when the node is
-/// TensorEvalToOp, TensorLayoutSwapOp
-#define EVALTOLAYOUTSWAP(CVQual, ExprNode)\
+/// TensoroOp, TensorLayoutSwapOp, and TensorIndexTupleOp
+#define EVALTOLAYOUTSWAPINDEXTUPLE(CVQual, ExprNode)\
 template <typename Expr, size_t N>\
 struct PlaceHolderExpression<CVQual ExprNode<Expr>, N> {\
   typedef CVQual ExprNode<typename CalculateIndex <N, Expr>::ArgType> Type;\
 };
 
-EVALTOLAYOUTSWAP(const, TensorEvalToOp)
-EVALTOLAYOUTSWAP(, TensorEvalToOp)
-EVALTOLAYOUTSWAP(const, TensorLayoutSwapOp)
-EVALTOLAYOUTSWAP(, TensorLayoutSwapOp)
+// TensorEvalToOp
+EVALTOLAYOUTSWAPINDEXTUPLE(const, TensorEvalToOp)
+EVALTOLAYOUTSWAPINDEXTUPLE(, TensorEvalToOp)
+//TensorLayoutSwapOp
+EVALTOLAYOUTSWAPINDEXTUPLE(const, TensorLayoutSwapOp)
+EVALTOLAYOUTSWAPINDEXTUPLE(, TensorLayoutSwapOp)
+//TensorIndexTupleOp
+EVALTOLAYOUTSWAPINDEXTUPLE(const, TensorIndexTupleOp)
+EVALTOLAYOUTSWAPINDEXTUPLE(, TensorIndexTupleOp)
 
-#undef EVALTOLAYOUTSWAP
+#undef EVALTOLAYOUTSWAPINDEXTUPLE
 
 
 /// specialisation of the \ref PlaceHolderExpression when the node is
@@ -199,15 +204,22 @@ CHIPPINGOP()
 #undef CHIPPINGOP
 
 /// specialisation of the \ref PlaceHolderExpression when the node is
-/// TensorReductionOp
-#define SYCLREDUCTION(CVQual)\
+/// TensorReductionOp and TensorTupleReducerOp (Argmax)
+#define SYCLREDUCTION(CVQual, ExprNode)\
 template <typename OP, typename Dims, typename Expr, size_t N>\
-struct PlaceHolderExpression<CVQual TensorReductionOp<OP, Dims, Expr>, N>{\
-  typedef CVQual PlaceHolder<CVQual TensorReductionOp<OP, Dims,Expr>, N> Type;\
+struct PlaceHolderExpression<CVQual ExprNode<OP, Dims, Expr>, N>{\
+  typedef CVQual PlaceHolder<CVQual ExprNode<OP, Dims,Expr>, N> Type;\
 };
-SYCLREDUCTION(const)
-SYCLREDUCTION()
+
+// tensor reduction
+SYCLREDUCTION(const, TensorReductionOp)
+SYCLREDUCTION(, TensorReductionOp)
+
+// tensor Argmax -TensorTupleReducerOp
+SYCLREDUCTION(const, TensorTupleReducerOp)
+SYCLREDUCTION(, TensorTupleReducerOp)
 #undef SYCLREDUCTION
+
 
 
 /// specialisation of the \ref PlaceHolderExpression when the node is

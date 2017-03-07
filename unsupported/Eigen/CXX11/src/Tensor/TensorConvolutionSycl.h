@@ -45,7 +45,7 @@ EigenConvolutionKernel1D(internal::IndexMapper<Index, InputDims, 1, Eigen::inter
   void operator()(cl::sycl::nd_item<2> itemID) {
     typedef typename TensorSycl::internal::ConvertToDeviceExpression<HostExpr>::Type DevExpr;
     auto device_expr =TensorSycl::internal::createDeviceExpression<DevExpr, PlaceHolderExpr>(functors, tuple_of_accessors);
-    auto device_evaluator = Eigen::TensorEvaluator<DevExpr, Eigen::DefaultDevice>(device_expr.expr, Eigen::DefaultDevice());
+    auto device_evaluator = Eigen::TensorEvaluator<DevExpr, Eigen::SyclKernelDevice>(device_expr.expr, Eigen::SyclKernelDevice());
 
     auto buffer_ptr = ConvertToActualTypeSycl(CoeffReturnType, buffer_acc);
     auto kernel_ptr = ConvertToActualTypeSycl(KernelType, kernel_filter);
@@ -103,7 +103,7 @@ EigenConvolutionKernel2D(internal::IndexMapper<Index, InputDims, 2, Eigen::inter
   void operator()(cl::sycl::nd_item<3> itemID) {
     typedef typename TensorSycl::internal::ConvertToDeviceExpression<HostExpr>::Type DevExpr;
     auto device_expr =TensorSycl::internal::createDeviceExpression<DevExpr, PlaceHolderExpr>(functors, tuple_of_accessors);
-    auto device_evaluator = Eigen::TensorEvaluator<DevExpr, Eigen::DefaultDevice>(device_expr.expr, Eigen::DefaultDevice());
+    auto device_evaluator = Eigen::TensorEvaluator<DevExpr, Eigen::SyclKernelDevice>(device_expr.expr, Eigen::SyclKernelDevice());
 
     auto buffer_ptr = ConvertToActualTypeSycl(CoeffReturnType, buffer_acc);
     auto kernel_ptr = ConvertToActualTypeSycl(KernelType, kernel_filter);
@@ -173,7 +173,7 @@ EigenConvolutionKernel3D(internal::IndexMapper<Index, InputDims, 3, Eigen::inter
   void operator()(cl::sycl::nd_item<3> itemID) {
     typedef typename TensorSycl::internal::ConvertToDeviceExpression<HostExpr>::Type DevExpr;
     auto device_expr =TensorSycl::internal::createDeviceExpression<DevExpr, PlaceHolderExpr>(functors, tuple_of_accessors);
-    auto device_evaluator = Eigen::TensorEvaluator<DevExpr, Eigen::DefaultDevice>(device_expr.expr, Eigen::DefaultDevice());
+    auto device_evaluator = Eigen::TensorEvaluator<DevExpr, Eigen::SyclKernelDevice>(device_expr.expr, Eigen::SyclKernelDevice());
 
     auto buffer_ptr = ConvertToActualTypeSycl(CoeffReturnType, buffer_acc);
     auto kernel_ptr = ConvertToActualTypeSycl(KernelType, kernel_filter);
@@ -339,8 +339,8 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
       // create input tuple of accessors
       InputTupleType tuple_of_accessors = Eigen::TensorSycl::internal::createTupleOfAccessors<InputEvaluator>(cgh, m_inputImpl);
 
-      typedef cl::sycl::accessor<uint8_t, 1, cl::sycl::access::mode::discard_write, cl::sycl::access::target::global_buffer> OutputAccessorType;
-      OutputAccessorType out_res= m_device. template get_sycl_accessor<cl::sycl::access::mode::discard_write>(cgh, data);
+      typedef cl::sycl::accessor<uint8_t, 1, cl::sycl::access::mode::write, cl::sycl::access::target::global_buffer> OutputAccessorType;
+      OutputAccessorType out_res= m_device. template get_sycl_accessor<cl::sycl::access::mode::write>(cgh, data);
       typedef cl::sycl::accessor<uint8_t, 1, cl::sycl::access::mode::read, cl::sycl::access::target::global_buffer> KernelAccessorType;
       KernelAccessorType kernel_acc= m_device. template get_sycl_accessor<cl::sycl::access::mode::read>(cgh, m_kernel);
 

@@ -193,7 +193,12 @@ struct TensorEvaluator<const Derived, Device>
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE CoeffReturnType coeff(Index index) const {
     eigen_assert(m_data);
+#ifndef __SYCL_DEVICE_ONLY__
     return loadConstant(m_data+index);
+#else
+    CoeffReturnType tmp = m_data[index];
+    return tmp;
+#endif
   }
 
   template<int LoadMode> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE

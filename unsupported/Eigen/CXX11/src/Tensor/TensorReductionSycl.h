@@ -35,7 +35,7 @@ static void run(OP op, BufferTOut& bufOut, ptrdiff_t out_offset, BufferTIn& bufI
             /* Two accessors are used: one to the buffer that is being reduced,
              * and a second to local memory, used to store intermediate data. */
             auto aI =bufI.template get_access<cl::sycl::access::mode::read_write>(h);
-            auto aOut =bufOut.template get_access<cl::sycl::access::mode::discard_write>(h);
+            auto aOut =bufOut.template get_access<cl::sycl::access::mode::write>(h);
             typedef decltype(aI) InputAccessor;
             typedef decltype(aOut) OutputAccessor;
             typedef cl::sycl::accessor<CoeffReturnType, 1, cl::sycl::access::mode::read_write,cl::sycl::access::target::local> LocalAccessor;
@@ -158,7 +158,7 @@ struct InnerReducer<Self, Op, const Eigen::SyclDevice> {
       typedef decltype(TensorSycl::internal::createTupleOfAccessors(cgh, self.impl())) Tuple_of_Acc;
       // create a tuple of accessors from Evaluator
       Tuple_of_Acc tuple_of_accessors =  TensorSycl::internal::createTupleOfAccessors(cgh, self.impl());
-      auto output_accessor = dev.template get_sycl_accessor<cl::sycl::access::mode::discard_write>(cgh, output);
+      auto output_accessor = dev.template get_sycl_accessor<cl::sycl::access::mode::write>(cgh, output);
       ptrdiff_t out_offset = dev.get_offset(output);
       Index red_size = (num_values_to_reduce!=0)? num_values_to_reduce : static_cast<Index>(1);
       cgh.parallel_for( cl::sycl::nd_range<1>(cl::sycl::range<1>(GRange), cl::sycl::range<1>(tileSize)),

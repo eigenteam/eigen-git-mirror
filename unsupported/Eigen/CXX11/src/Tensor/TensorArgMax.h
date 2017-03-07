@@ -119,6 +119,12 @@ struct TensorEvaluator<const TensorIndexTupleOp<ArgType>, Device>
 
   EIGEN_DEVICE_FUNC Scalar* data() const { return NULL; }
 
+  // required by sycl
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const TensorEvaluator<ArgType, Device>& impl() const {
+    return m_impl;
+  }
+
+
  protected:
   TensorEvaluator<ArgType, Device> m_impl;
 };
@@ -222,7 +228,7 @@ struct TensorEvaluator<const TensorTupleReducerOp<ReduceOp, Dims, ArgType>, Devi
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
       : m_orig_impl(op.expression(), device),
         m_impl(op.expression().index_tuples().reduce(op.reduce_dims(), op.reduce_op()), device),
-        m_return_dim(op.return_dim()) {
+        m_return_dim(op.return_dim()), m_device(device) {
 
     gen_strides(m_orig_impl.dimensions(), m_strides);
     if (Layout == static_cast<int>(ColMajor)) {
@@ -252,7 +258,16 @@ struct TensorEvaluator<const TensorTupleReducerOp<ReduceOp, Dims, ArgType>, Devi
     return (m_return_dim < 0) ? v.first : (v.first % m_stride_mod) / m_stride_div;
   }
 
+  #ifndef EIGEN_USE_SYCL
   EIGEN_DEVICE_FUNC Scalar* data() const { return NULL; }
+  #else // following functions are required by sycl
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TupleType* data() const { return m_impl.data(); }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE int return_dim() const {return m_return_dim;}
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const StrideDims& strides() const {return m_strides;}
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Index& stride_mod() const {return m_stride_mod;}
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Index& stride_div() const {return m_stride_div;}
+  const Device& device() const{return m_device;}
+  #endif
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorOpCost
   costPerCoeff(bool vectorized) const {
@@ -292,6 +307,8 @@ struct TensorEvaluator<const TensorTupleReducerOp<ReduceOp, Dims, ArgType>, Devi
   StrideDims m_strides;
   Index m_stride_mod;
   Index m_stride_div;
+ // required by sycl
+  const Device& m_device;
 };
 
 } // end namespace Eigen

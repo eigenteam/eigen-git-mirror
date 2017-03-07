@@ -124,7 +124,9 @@ template <typename U, typename V> struct Tuple {
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
   Tuple& operator= (const Tuple& rhs) {
+  #ifndef __SYCL_DEVICE_ONLY__
     if (&rhs == this) return *this;
+  #endif
     first = rhs.first;
     second = rhs.second;
     return *this;

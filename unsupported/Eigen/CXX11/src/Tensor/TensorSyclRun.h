@@ -25,7 +25,6 @@
 
 namespace Eigen {
 namespace TensorSycl {
-
 template<typename Expr, typename FunctorExpr, typename TupleType > struct ExecExprFunctorKernel{
   typedef  typename internal::createPlaceHolderExpression<Expr>::Type PlaceHolderExpr;
 
@@ -38,7 +37,7 @@ template<typename Expr, typename FunctorExpr, typename TupleType > struct ExecEx
   void operator()(cl::sycl::nd_item<1> itemID) {
     typedef  typename internal::ConvertToDeviceExpression<Expr>::Type DevExpr;
     auto device_expr =internal::createDeviceExpression<DevExpr, PlaceHolderExpr>(functors, tuple_of_accessors);
-    auto device_evaluator = Eigen::TensorEvaluator<decltype(device_expr.expr), Eigen::DefaultDevice>(device_expr.expr, Eigen::DefaultDevice());
+    auto device_evaluator = Eigen::TensorEvaluator<decltype(device_expr.expr), Eigen::SyclKernelDevice>(device_expr.expr, Eigen::SyclKernelDevice());
     typename DevExpr::Index gId = static_cast<typename DevExpr::Index>(itemID.get_global_linear_id());
     if (gId < range)
       device_evaluator.evalScalar(gId);

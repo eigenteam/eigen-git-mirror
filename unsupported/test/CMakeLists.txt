@@ -173,6 +173,7 @@ if(EIGEN_TEST_CXX11)
     ei_add_test_sycl(cxx11_tensor_patch_sycl "-std=c++11")
     ei_add_test_sycl(cxx11_tensor_image_patchOP_sycl "-std=c++11")
     ei_add_test_sycl(cxx11_tensor_volume_patchOP_sycl "-std=c++11")
+    ei_add_test_sycl(cxx11_tensor_argmax_sycl "-std=c++11")
     ei_add_test_sycl(cxx11_tensor_custom_op_sycl "-std=c++11")
   endif(EIGEN_TEST_SYCL)
   # It should be safe to always run these tests as there is some fallback code for

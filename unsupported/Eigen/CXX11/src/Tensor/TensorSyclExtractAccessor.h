@@ -147,7 +147,7 @@ SYCLFORCEDEVALEXTACC(const)
 SYCLFORCEDEVALEXTACC()
 #undef SYCLFORCEDEVALEXTACC
 
-
+//TensorCustomUnaryOp
 #define SYCLCUSTOMUNARYOPEXTACC(CVQual)\
 template <typename CustomUnaryFunc, typename XprType, typename Dev >\
 struct ExtractAccessor<TensorEvaluator<CVQual TensorCustomUnaryOp<CustomUnaryFunc, XprType>, Dev> > {\
@@ -160,7 +160,7 @@ SYCLCUSTOMUNARYOPEXTACC(const)
 SYCLCUSTOMUNARYOPEXTACC()
 #undef SYCLCUSTOMUNARYOPEXTACC
 
-
+//TensorCustomBinaryOp
 #define SYCLCUSTOMBINARYOPEXTACC(CVQual)\
 template <typename CustomBinaryFunc, typename LhsXprType, typename RhsXprType , typename Dev>\
 struct ExtractAccessor<TensorEvaluator<CVQual TensorCustomBinaryOp<CustomBinaryFunc, LhsXprType, RhsXprType>, Dev> > {\
@@ -171,9 +171,6 @@ struct ExtractAccessor<TensorEvaluator<CVQual TensorCustomBinaryOp<CustomBinaryF
 SYCLCUSTOMBINARYOPEXTACC(const)
 SYCLCUSTOMBINARYOPEXTACC()
 #undef SYCLCUSTOMBIBARYOPEXTACC
-
-
-
 
 /// specialisation of the \ref ExtractAccessor struct when the node type is TensorEvalToOp
 #define SYCLEVALTOEXTACC(CVQual)\
@@ -188,15 +185,19 @@ SYCLEVALTOEXTACC()
 #undef SYCLEVALTOEXTACC
 
 /// specialisation of the \ref ExtractAccessor struct when the node type is TensorReductionOp
-#define SYCLREDUCTIONEXTACC(CVQual)\
+#define SYCLREDUCTIONEXTACC(CVQual, ExprNode)\
 template <typename OP, typename Dim, typename Expr, typename Dev>\
-struct ExtractAccessor<TensorEvaluator<CVQual TensorReductionOp<OP, Dim, Expr>, Dev> > {\
-  static inline auto getTuple(cl::sycl::handler& cgh, const TensorEvaluator<CVQual TensorReductionOp<OP, Dim, Expr>, Dev>& eval)\
+struct ExtractAccessor<TensorEvaluator<CVQual ExprNode<OP, Dim, Expr>, Dev> > {\
+  static inline auto getTuple(cl::sycl::handler& cgh, const TensorEvaluator<CVQual ExprNode<OP, Dim, Expr>, Dev>& eval)\
   RETURN_CPP11(AccessorConstructor::template getAccessor<cl::sycl::access::mode::read>(cgh, eval))\
 };
+// TensorReductionOp
+SYCLREDUCTIONEXTACC(const,TensorReductionOp)
+SYCLREDUCTIONEXTACC(,TensorReductionOp)
 
-SYCLREDUCTIONEXTACC(const)
-SYCLREDUCTIONEXTACC()
+// TensorTupleReducerOp
+SYCLREDUCTIONEXTACC(const,TensorTupleReducerOp)
+SYCLREDUCTIONEXTACC(,TensorTupleReducerOp)
 #undef SYCLREDUCTIONEXTACC
 
 /// specialisation of the \ref ExtractAccessor struct when the node type is TensorContractionOp and TensorConvolutionOp
@@ -206,13 +207,13 @@ template<typename Indices, typename LhsXprType, typename RhsXprType, typename De
   static inline auto getTuple(cl::sycl::handler& cgh, const TensorEvaluator<CVQual ExprNode<Indices, LhsXprType, RhsXprType>, Dev>& eval)\
   RETURN_CPP11(AccessorConstructor::template getAccessor<cl::sycl::access::mode::read>(cgh, eval))\
 };
-
+//TensorContractionOp
 SYCLCONTRACTIONCONVOLUTIONEXTACC(const,TensorContractionOp)
 SYCLCONTRACTIONCONVOLUTIONEXTACC(,TensorContractionOp)
+//TensorConvolutionOp
 SYCLCONTRACTIONCONVOLUTIONEXTACC(const,TensorConvolutionOp)
 SYCLCONTRACTIONCONVOLUTIONEXTACC(,TensorConvolutionOp)
 #undef SYCLCONTRACTIONCONVOLUTIONEXTACC
-
 
 /// specialisation of the \ref ExtractAccessor struct when the node type is
 /// const TensorSlicingOp.
@@ -252,7 +253,6 @@ SYCLTENSORCHIPPINGOPEXTACC(const)
 SYCLTENSORCHIPPINGOPEXTACC()
 #undef SYCLTENSORCHIPPINGOPEXTACC
 
-
 // specialisation of the \ref ExtractAccessor struct when the node type is
 /// TensorImagePatchOp.
 #define SYCLTENSORIMAGEPATCHOPEXTACC(CVQual)\
@@ -265,8 +265,6 @@ struct ExtractAccessor<TensorEvaluator<CVQual TensorImagePatchOp<Rows, Cols, Xpr
 SYCLTENSORIMAGEPATCHOPEXTACC(const)
 SYCLTENSORIMAGEPATCHOPEXTACC()
 #undef SYCLTENSORIMAGEPATCHOPEXTACC
-
-
 
 // specialisation of the \ref ExtractAccessor struct when the node type is
 /// TensorVolumePatchOp.
@@ -281,21 +279,23 @@ SYCLTENSORVOLUMEPATCHOPEXTACC(const)
 SYCLTENSORVOLUMEPATCHOPEXTACC()
 #undef SYCLTENSORVOLUMEPATCHOPEXTACC
 
-
 // specialisation of the \ref ExtractAccessor struct when the node type is
-/// TensorLayoutSwapOp.
-#define SYCLTENSORLAYOUTSWAPOPEXTACC(CVQual)\
+/// TensorLayoutSwapOp, TensorIndexTupleOp
+#define SYCLTENSORLAYOUTSWAPINDEXTUPLEOPEXTACC(CVQual, ExprNode)\
 template<typename XprType, typename Dev>\
-struct ExtractAccessor<TensorEvaluator<CVQual TensorLayoutSwapOp<XprType>, Dev> >{\
-  static inline auto getTuple(cl::sycl::handler& cgh, const TensorEvaluator<CVQual TensorLayoutSwapOp<XprType>, Dev>& eval)\
+struct ExtractAccessor<TensorEvaluator<CVQual ExprNode<XprType>, Dev> >{\
+  static inline auto getTuple(cl::sycl::handler& cgh, const TensorEvaluator<CVQual ExprNode<XprType>, Dev>& eval)\
   RETURN_CPP11(AccessorConstructor::getTuple(cgh, eval.impl()))\
 };
 
-SYCLTENSORLAYOUTSWAPOPEXTACC(const)
-SYCLTENSORLAYOUTSWAPOPEXTACC()
-#undef SYCLTENSORLAYOUTSWAPOPEXTACC
+// TensorLayoutSwapOp
+SYCLTENSORLAYOUTSWAPINDEXTUPLEOPEXTACC(const,TensorLayoutSwapOp)
+SYCLTENSORLAYOUTSWAPINDEXTUPLEOPEXTACC(,TensorLayoutSwapOp)
+//TensorIndexTupleOp
+SYCLTENSORLAYOUTSWAPINDEXTUPLEOPEXTACC(const,TensorIndexTupleOp)
+SYCLTENSORLAYOUTSWAPINDEXTUPLEOPEXTACC(,TensorIndexTupleOp)
 
-
+#undef SYCLTENSORLAYOUTSWAPINDEXTUPLEOPEXTACC
 
 /// template deduction for \ref ExtractAccessor
 template <typename Evaluator>

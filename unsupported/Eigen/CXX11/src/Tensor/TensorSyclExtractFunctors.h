@@ -126,19 +126,19 @@ struct FunctorExtractor<TensorEvaluator<CVQual TensorCustomUnaryOp<CustomUnaryFu
   typedef TensorEvaluator<CVQual TensorCustomUnaryOp<CustomUnaryFunc, ArgType>, Dev> Evaluator;\
   DEFALTACTION(Evaluator)\
 };
-
+//TensorCustomUnaryOp
 SYCLEXTRFUNCCUSTOMUNARYOP(const)
 SYCLEXTRFUNCCUSTOMUNARYOP()
 #undef SYCLEXTRFUNCCUSTOMUNARYOP
 
-
+//TensorCustomBinaryOp
 #define SYCLEXTRFUNCCUSTOMBIBARYOP(CVQual)\
 template <typename CustomBinaryFunc, typename ArgType1, typename ArgType2, typename Dev >\
 struct FunctorExtractor<TensorEvaluator<CVQual TensorCustomBinaryOp<CustomBinaryFunc, ArgType1, ArgType2>, Dev> > {\
   typedef TensorEvaluator<CVQual TensorCustomBinaryOp<CustomBinaryFunc, ArgType1, ArgType2>, Dev> Evaluator;\
   DEFALTACTION(Evaluator)\
 };
-
+//TensorCustomBinaryOp
 SYCLEXTRFUNCCUSTOMBIBARYOP(const)
 SYCLEXTRFUNCCUSTOMBIBARYOP()
 #undef SYCLEXTRFUNCCUSTOMBIBARYOP
@@ -177,7 +177,7 @@ SYCLEXTRFUNCASSIGNOP()
 
 /// specialisation of the \ref FunctorExtractor struct when the node types are
 /// TensorEvalToOp, TensorLayoutSwapOp. This is an specialisation without OP so it has to be separated.
-#define SYCLEXTRFUNCEVALTOOPSWAPLAYOUT(CVQual, ExprNode)\
+#define SYCLEXTRFUNCEVALTOOPSWAPLAYOUTINDEXTUPLE(CVQual, ExprNode)\
 template <typename Expr, typename Dev>\
 struct FunctorExtractor<TensorEvaluator<CVQual ExprNode<Expr>, Dev> > {\
   FunctorExtractor<TensorEvaluator<Expr, Dev> > xprExpr;\
@@ -185,13 +185,16 @@ struct FunctorExtractor<TensorEvaluator<CVQual ExprNode<Expr>, Dev> > {\
   : xprExpr(expr.impl()) {}\
 };
 //TensorEvalToOp
-SYCLEXTRFUNCEVALTOOPSWAPLAYOUT(const, TensorEvalToOp)
-SYCLEXTRFUNCEVALTOOPSWAPLAYOUT(, TensorEvalToOp)
+SYCLEXTRFUNCEVALTOOPSWAPLAYOUTINDEXTUPLE(const, TensorEvalToOp)
+SYCLEXTRFUNCEVALTOOPSWAPLAYOUTINDEXTUPLE(, TensorEvalToOp)
 // TensorLayoutSwapOp
-SYCLEXTRFUNCEVALTOOPSWAPLAYOUT(const, TensorLayoutSwapOp)
-SYCLEXTRFUNCEVALTOOPSWAPLAYOUT(, TensorLayoutSwapOp)
+SYCLEXTRFUNCEVALTOOPSWAPLAYOUTINDEXTUPLE(const, TensorLayoutSwapOp)
+SYCLEXTRFUNCEVALTOOPSWAPLAYOUTINDEXTUPLE(, TensorLayoutSwapOp)
+// TensorIndexTupleOp
+SYCLEXTRFUNCEVALTOOPSWAPLAYOUTINDEXTUPLE(const, TensorIndexTupleOp)
+SYCLEXTRFUNCEVALTOOPSWAPLAYOUTINDEXTUPLE(, TensorIndexTupleOp)
 
-#undef SYCLEXTRFUNCEVALTOOPSWAPLAYOUT
+#undef SYCLEXTRFUNCEVALTOOPSWAPLAYOUTINDEXTUPLE
 
 template<typename Dim, size_t NumOutputDim> struct DimConstr {
 template<typename InDim>
@@ -202,10 +205,10 @@ template<typename Dim> struct DimConstr<Dim, 0> {
   template<typename InDim>
     static EIGEN_STRONG_INLINE Dim getDim(InDim dims ) {return Dim(static_cast<Dim>(dims.TotalSize()));}
 };
-
+//TensorReductionOp
 #define SYCLEXTRFUNCREDUCTIONOP(CVQual)\
 template<typename Op, typename Dims, typename ArgType, template <class> class MakePointer_, typename Device>\
-struct FunctorExtractor<TensorEvaluator<CVQual TensorReductionOp<Op, Dims, ArgType, MakePointer_>, Device>>{\
+struct FunctorExtractor<TensorEvaluator<CVQual TensorReductionOp<Op, Dims, ArgType, MakePointer_>, Device> >{\
   typedef TensorEvaluator<CVQual TensorReductionOp<Op, Dims, ArgType, MakePointer_>, Device> Evaluator;\
   typedef typename Eigen::internal::conditional<Evaluator::NumOutputDims==0, DSizes<typename Evaluator::Index, 1>, typename Evaluator::Dimensions >::type Dimensions;\
   const Dimensions m_dimensions;\
@@ -213,12 +216,39 @@ struct FunctorExtractor<TensorEvaluator<CVQual TensorReductionOp<Op, Dims, ArgTy
   FunctorExtractor(const TensorEvaluator<CVQual TensorReductionOp<Op, Dims, ArgType, MakePointer_>, Device>& expr)\
   : m_dimensions(DimConstr<Dimensions, Evaluator::NumOutputDims>::getDim(expr.dimensions())) {}\
 };
-
-
 SYCLEXTRFUNCREDUCTIONOP(const)
 SYCLEXTRFUNCREDUCTIONOP()
 #undef SYCLEXTRFUNCREDUCTIONOP
 
+//TensorTupleReducerOp
+#define SYCLEXTRFUNCTUPLEREDUCTIONOP(CVQual)\
+template<typename ReduceOp, typename Dims, typename ArgType, typename Device>\
+ struct FunctorExtractor<TensorEvaluator<CVQual TensorTupleReducerOp<ReduceOp, Dims, ArgType>, Device> >{\
+ typedef TensorEvaluator<CVQual TensorTupleReducerOp<ReduceOp, Dims, ArgType>, Device> Evaluator;\
+ static const int  NumOutputDims= Eigen::internal::traits<TensorTupleReducerOp<ReduceOp, Dims, ArgType> >::NumDimensions;\
+ typedef typename Evaluator::StrideDims StrideDims;\
+ typedef typename Evaluator::Index Index;\
+ typedef typename Eigen::internal::conditional<NumOutputDims==0, DSizes<Index, 1>, typename Evaluator::Dimensions >::type Dimensions;\
+ const Dimensions m_dimensions;\
+ const int m_return_dim;\
+ const StrideDims m_strides;\
+ const Index m_stride_mod;\
+ const Index m_stride_div;\
+ EIGEN_STRONG_INLINE const Dimensions& dimensions() const { return m_dimensions; }\
+ EIGEN_STRONG_INLINE  int return_dim() const {return m_return_dim;}\
+ EIGEN_STRONG_INLINE const StrideDims& strides() const {return m_strides;}\
+ EIGEN_STRONG_INLINE const Index& stride_mod() const {return m_stride_mod;}\
+ EIGEN_STRONG_INLINE const Index& stride_div() const {return m_stride_div;}\
+ FunctorExtractor(const TensorEvaluator<CVQual TensorTupleReducerOp<ReduceOp, Dims, ArgType>, Device>& expr)\
+ : m_dimensions(DimConstr<Dimensions, NumOutputDims>::getDim(expr.dimensions())), m_return_dim(expr.return_dim()),\
+   m_strides(expr.strides()), m_stride_mod(expr.stride_mod()), m_stride_div(expr.stride_div()){}\
+};
+
+SYCLEXTRFUNCTUPLEREDUCTIONOP(const)
+SYCLEXTRFUNCTUPLEREDUCTIONOP()
+#undef SYCLEXTRFUNCTUPLEREDUCTIONOP
+
+//TensorContractionOp and TensorConvolutionOp
 #define SYCLEXTRFUNCCONTRACTCONVOLUTIONOP(CVQual, ExprNode)\
 template<typename Indices, typename LhsXprType, typename RhsXprType, typename Device>\
 struct FunctorExtractor<TensorEvaluator<CVQual ExprNode<Indices, LhsXprType, RhsXprType>, Device>>{\
@@ -230,9 +260,10 @@ struct FunctorExtractor<TensorEvaluator<CVQual ExprNode<Indices, LhsXprType, Rhs
   : m_dimensions(expr.dimensions()) {}\
 };
 
-
+//TensorContractionOp
 SYCLEXTRFUNCCONTRACTCONVOLUTIONOP(const,TensorContractionOp)
 SYCLEXTRFUNCCONTRACTCONVOLUTIONOP(,TensorContractionOp)
+//TensorConvolutionOp
 SYCLEXTRFUNCCONTRACTCONVOLUTIONOP(const,TensorConvolutionOp)
 SYCLEXTRFUNCCONTRACTCONVOLUTIONOP(,TensorConvolutionOp)
 #undef SYCLEXTRFUNCCONTRACTCONVOLUTIONOP
@@ -255,6 +286,7 @@ SYCLEXTRFUNCTSLICEOP(const)
 SYCLEXTRFUNCTSLICEOP()
 #undef SYCLEXTRFUNCTSLICEOP
 
+//TensorStridingSlicingOp
 #define SYCLEXTRFUNCTSLICESTRIDEOP(CVQual)\
 template<typename StartIndices, typename StopIndices, typename Strides, typename XprType, typename Dev>\
 struct FunctorExtractor<TensorEvaluator<CVQual TensorStridingSlicingOp<StartIndices, StopIndices, Strides, XprType>, Dev> >{\
@@ -273,7 +305,7 @@ SYCLEXTRFUNCTSLICESTRIDEOP(const)
 SYCLEXTRFUNCTSLICESTRIDEOP()
 #undef SYCLEXTRFUNCTSLICESTRIDEOP
 
-// Had to separate reshapeOP otherwise it will be mistaken by UnaryCategory
+// Had to separate TensorReshapingOp and TensorShufflingOp. Otherwise it will be mistaken by UnaryCategory
 #define SYCLRESHAPEANDSHUFFLEOPFUNCEXT(OPEXPR, FUNCCALL, CVQual)\
 template<typename Param, typename XprType, typename Dev>\
 struct FunctorExtractor<Eigen::TensorEvaluator<CVQual Eigen::OPEXPR<Param, XprType>, Dev> > {\
@@ -284,9 +316,11 @@ struct FunctorExtractor<Eigen::TensorEvaluator<CVQual Eigen::OPEXPR<Param, XprTy
   : xprExpr(expr.impl()), m_param(expr.FUNCCALL) {}\
 };
 
+//TensorReshapingOp
 SYCLRESHAPEANDSHUFFLEOPFUNCEXT(TensorReshapingOp, dimensions(), const)
 SYCLRESHAPEANDSHUFFLEOPFUNCEXT(TensorReshapingOp, dimensions(), )
 
+//TensorShufflingOp
 SYCLRESHAPEANDSHUFFLEOPFUNCEXT(TensorShufflingOp, shufflePermutation(), const)
 SYCLRESHAPEANDSHUFFLEOPFUNCEXT(TensorShufflingOp, shufflePermutation(), )
 #undef SYCLRESHAPEANDSHUFFLEOPFUNCEXT
@@ -343,6 +377,7 @@ SYCLEXTRFUNCCHIPPINGOP(const)
 SYCLEXTRFUNCCHIPPINGOP()
 #undef SYCLEXTRFUNCCHIPPINGOP
 
+//TensorImagePatchOp
 #define SYCLEXTRFUNCIMAGEPATCHOP(CVQual)\
 template<DenseIndex Rows, DenseIndex Cols, typename XprType, typename Device>\
 struct FunctorExtractor<TensorEvaluator<CVQual TensorImagePatchOp<Rows, Cols, XprType>, Device> >{\
@@ -418,7 +453,6 @@ FunctorExtractor(const TensorEvaluator<Self, Device>& expr)\
 SYCLEXTRFUNCVOLUMEPATCHOP(const)
 SYCLEXTRFUNCVOLUMEPATCHOP()
 #undef SYCLEXTRFUNCVOLUMEPATCHOP
-
 
 
 /// template deduction function for FunctorExtractor

@@ -41,9 +41,8 @@ namespace Eigen {
     size_t m_i;
     size_t m_offset;
   };
-
+template<typename AccType>
   struct memsetkernelFunctor{
-   typedef cl::sycl::accessor<uint8_t, 1, cl::sycl::access::mode::discard_write, cl::sycl::access::target::global_buffer> AccType;
    AccType m_acc;
    const ptrdiff_t buff_offset;
    const size_t m_rng, m_c;
@@ -55,14 +54,18 @@ namespace Eigen {
 
   };
 
+  //get_devices returns all the available opencl devices. Either use device_selector or exclude devices that computecpp does not support (AMD OpenCL for CPU  and intel GPU)
 EIGEN_STRONG_INLINE auto get_sycl_supported_devices()->decltype(cl::sycl::device::get_devices()){
   auto devices = cl::sycl::device::get_devices();
   std::vector<cl::sycl::device>::iterator it =devices.begin();
   while(it!=devices.end()) {
-    /// get_devices returns all the available opencl devices. Either use device_selector or exclude devices that computecpp does not support (AMD OpenCL for CPU )
+    ///FIXME: Currently there is a bug in amd cpu OpenCL
     auto s=  (*it).template get_info<cl::sycl::info::device::vendor>();
     std::transform(s.begin(), s.end(), s.begin(), ::tolower);
     if((*it).is_cpu() && s.find("amd")!=std::string::npos && s.find("apu") == std::string::npos){ // remove amd cpu as it is not supported by computecpp allow APUs
+      it=devices.erase(it);
+      //FIXME: currently there is a bug in intel gpu driver regarding memory allignment issue.
+    }else if((*it).is_gpu() && s.find("intel")!=std::string::npos){
       it=devices.erase(it);
     }
     else{
@@ -112,6 +115,154 @@ m_queue(cl::sycl::queue(s, [&](cl::sycl::exception_list l) {
 }))
 #endif
   {}
+//FIXME: currently we have to switch back to write as discard_write doesnot work in forloop
+template<typename Index> EIGEN_STRONG_INLINE void memcpyHostToDevice(Index *dst, const Index *src, size_t n) const {
+      std::lock_guard<std::mutex> lock(mutex_);
+      auto host_acc= find_buffer(dst)->second. template get_access<cl::sycl::access::mode::write, cl::sycl::access::target::host_buffer>();
+      ::memcpy(host_acc.get_pointer(), src, n);
+}
+
+template<typename Index> EIGEN_STRONG_INLINE void memcpyDeviceToHost(void *dst, const Index *src, size_t n) const {
+  std::lock_guard<std::mutex> lock(mutex_);
+  // Assuming that the dst is the start of the destination pointer
+auto it =find_buffer(src);
+auto offset =static_cast<const uint8_t*>(static_cast<const void*>(src))- it->first;
+offset/=sizeof(Index);
+size_t rng, GRange, tileSize;
+parallel_for_setup(n/sizeof(Index), tileSize, rng, GRange);
+  auto dest_buf = cl::sycl::buffer<uint8_t, 1, cl::sycl::map_allocator<uint8_t> >(static_cast<uint8_t*>(dst), cl::sycl::range<1>(n));
+  m_queue.submit([&](cl::sycl::handler &cgh) {
+    auto src_acc= it->second.template get_access<cl::sycl::access::mode::read, cl::sycl::access::target::global_buffer>(cgh);
+    auto dst_acc =dest_buf.template get_access<cl::sycl::access::mode::discard_write, cl::sycl::access::target::global_buffer>(cgh);
+    typedef decltype(src_acc) read_accessor;
+    typedef decltype(dst_acc) write_accessor;
+    cgh.parallel_for( cl::sycl::nd_range<1>(cl::sycl::range<1>(GRange), cl::sycl::range<1>(tileSize)), MemCopyFunctor<Index, read_accessor, write_accessor>(src_acc, dst_acc, rng, 0, offset));
+  });
+  synchronize();
+
+}
+
+EIGEN_STRONG_INLINE void synchronize() const {
+  std::lock_guard<std::mutex> lock(mutex_);
+  m_queue.wait_and_throw(); //pass
+}
+EIGEN_STRONG_INLINE void asynchronousExec() const {
+  ///FIXEDME:: currently there is a race condition regarding the asynch scheduler.
+  //sycl_queue().throw_asynchronous();// does not pass. Temporarily disabled
+  std::lock_guard<std::mutex> lock(mutex_);
+  m_queue.wait_and_throw(); //pass
+
+}
+
+template<typename Index>
+EIGEN_STRONG_INLINE void parallel_for_setup(Index n, Index &tileSize, Index &rng, Index &GRange)  const {
+  tileSize =static_cast<Index>(m_queue.get_device(). template get_info<cl::sycl::info::device::max_work_group_size>());
+  auto s=  m_queue.get_device().template get_info<cl::sycl::info::device::vendor>();
+  std::transform(s.begin(), s.end(), s.begin(), ::tolower);
+  if(m_queue.get_device().is_cpu()){ // intel doesnot allow to use max workgroup size
+    tileSize=std::min(static_cast<Index>(256), static_cast<Index>(tileSize));
+  }
+  rng = n;
+  if (rng==0) rng=static_cast<Index>(1);
+  GRange=rng;
+  if (tileSize>GRange) tileSize=GRange;
+  else if(GRange>tileSize){
+    Index xMode =  static_cast<Index>(GRange % tileSize);
+    if (xMode != 0) GRange += static_cast<Index>(tileSize - xMode);
+  }
+}
+
+/// This is used to prepare the number of threads and also the number of threads per block for sycl kernels
+template<typename Index>
+EIGEN_STRONG_INLINE void parallel_for_setup(Index dim0, Index dim1, Index &tileSize0, Index &tileSize1, Index &rng0, Index &rng1, Index &GRange0, Index &GRange1)  const {
+  Index max_workgroup_Size = static_cast<Index>(maxSyclThreadsPerBlock());
+  if(m_queue.get_device().is_cpu()){ // intel doesnot allow to use max workgroup size
+    max_workgroup_Size=std::min(static_cast<Index>(256), static_cast<Index>(max_workgroup_Size));
+  }
+  Index pow_of_2 = static_cast<Index>(std::log2(max_workgroup_Size));
+  tileSize1 =static_cast<Index>(std::pow(2, static_cast<Index>(pow_of_2/2)));
+  rng1=dim1;
+  if (rng1==0 ) rng1=static_cast<Index>(1);
+  GRange1=rng1;
+  if (tileSize1>GRange1) tileSize1=GRange1;
+  else if(GRange1>tileSize1){
+    Index xMode =  static_cast<Index>(GRange1 % tileSize1);
+    if (xMode != 0) GRange1 += static_cast<Index>(tileSize1 - xMode);
+  }
+  tileSize0 = static_cast<Index>(max_workgroup_Size/tileSize1);
+  rng0 = dim0;
+  if (rng0==0 ) rng0=static_cast<Index>(1);
+  GRange0=rng0;
+  if (tileSize0>GRange0) tileSize0=GRange0;
+  else if(GRange0>tileSize0){
+    Index xMode =  static_cast<Index>(GRange0 % tileSize0);
+    if (xMode != 0) GRange0 += static_cast<Index>(tileSize0 - xMode);
+  }
+}
+
+
+
+/// This is used to prepare the number of threads and also the number of threads per block for sycl kernels
+template<typename Index>
+EIGEN_STRONG_INLINE void parallel_for_setup(Index dim0, Index dim1,Index dim2, Index &tileSize0, Index &tileSize1, Index &tileSize2, Index &rng0, Index &rng1, Index &rng2, Index &GRange0, Index &GRange1, Index &GRange2)  const {
+  Index max_workgroup_Size = static_cast<Index>(maxSyclThreadsPerBlock());
+  if(m_queue.get_device().is_cpu()){ // intel doesnot allow to use max workgroup size
+    max_workgroup_Size=std::min(static_cast<Index>(256), static_cast<Index>(max_workgroup_Size));
+  }
+  Index pow_of_2 = static_cast<Index>(std::log2(max_workgroup_Size));
+  tileSize2 =static_cast<Index>(std::pow(2, static_cast<Index>(pow_of_2/3)));
+  rng2=dim2;
+  if (rng2==0 ) rng1=static_cast<Index>(1);
+  GRange2=rng2;
+  if (tileSize2>GRange2) tileSize2=GRange2;
+  else if(GRange2>tileSize2){
+    Index xMode =  static_cast<Index>(GRange2 % tileSize2);
+    if (xMode != 0) GRange2 += static_cast<Index>(tileSize2 - xMode);
+  }
+  pow_of_2 = static_cast<Index>(std::log2(static_cast<Index>(max_workgroup_Size/tileSize2)));
+  tileSize1 =static_cast<Index>(std::pow(2, static_cast<Index>(pow_of_2/2)));
+  rng1=dim1;
+  if (rng1==0 ) rng1=static_cast<Index>(1);
+  GRange1=rng1;
+  if (tileSize1>GRange1) tileSize1=GRange1;
+  else if(GRange1>tileSize1){
+    Index xMode =  static_cast<Index>(GRange1 % tileSize1);
+    if (xMode != 0) GRange1 += static_cast<Index>(tileSize1 - xMode);
+  }
+  tileSize0 = static_cast<Index>(max_workgroup_Size/(tileSize1*tileSize2));
+  rng0 = dim0;
+  if (rng0==0 ) rng0=static_cast<Index>(1);
+  GRange0=rng0;
+  if (tileSize0>GRange0) tileSize0=GRange0;
+  else if(GRange0>tileSize0){
+    Index xMode =  static_cast<Index>(GRange0 % tileSize0);
+    if (xMode != 0) GRange0 += static_cast<Index>(tileSize0 - xMode);
+  }
+}
+
+
+EIGEN_STRONG_INLINE unsigned long getNumSyclMultiProcessors() const {
+  std::lock_guard<std::mutex> lock(mutex_);
+  return m_queue.get_device(). template get_info<cl::sycl::info::device::max_compute_units>();
+//  return stream_->deviceProperties().multiProcessorCount;
+}
+EIGEN_STRONG_INLINE unsigned long maxSyclThreadsPerBlock() const {
+  std::lock_guard<std::mutex> lock(mutex_);
+  return m_queue.get_device(). template get_info<cl::sycl::info::device::max_work_group_size>();
+
+//  return stream_->deviceProperties().maxThreadsPerBlock;
+}
+EIGEN_STRONG_INLINE unsigned long maxSyclThreadsPerMultiProcessor() const {
+  std::lock_guard<std::mutex> lock(mutex_);
+  // OpenCL doesnot have such concept
+  return 2;//sycl_queue().get_device(). template get_info<cl::sycl::info::device::max_work_group_size>();
+//  return stream_->deviceProperties().maxThreadsPerMultiProcessor;
+}
+EIGEN_STRONG_INLINE size_t sharedMemPerBlock() const {
+  std::lock_guard<std::mutex> lock(mutex_);
+  return m_queue.get_device(). template get_info<cl::sycl::info::device::local_mem_size>();
+//  return stream_->deviceProperties().sharedMemPerBlock;
+}
 
   /// Allocating device pointer. This pointer is actually an 8 bytes host pointer used as key to access the sycl device buffer.
   /// The reason is that we cannot use device buffer as a pointer as a m_data in Eigen leafNode expressions. So we create a key
@@ -119,10 +270,10 @@ m_queue(cl::sycl::queue(s, [&](cl::sycl::exception_list l) {
   /// use this pointer as a key in our buffer_map and we make sure that we dedicate only one buffer only for this pointer.
   /// The device pointer would be deleted by calling deallocate function.
   EIGEN_STRONG_INLINE void* allocate(size_t num_bytes) const {
+    std::lock_guard<std::mutex> lock(mutex_);
     auto buf = cl::sycl::buffer<uint8_t,1>(cl::sycl::range<1>(num_bytes));
     auto ptr =buf.get_access<cl::sycl::access::mode::discard_write, cl::sycl::access::target::host_buffer>().get_pointer();
     buf.set_final_data(nullptr);
-    std::lock_guard<std::mutex> lock(mutex_);
     buffer_map.insert(std::pair<const uint8_t *, cl::sycl::buffer<uint8_t, 1>>(static_cast<const uint8_t*>(ptr),buf));
     return static_cast<void*>(ptr);
   }
@@ -193,48 +344,13 @@ struct SyclDevice {
   /// This is used to prepare the number of threads and also the number of threads per block for sycl kernels
   template<typename Index>
   EIGEN_STRONG_INLINE void parallel_for_setup(Index n, Index &tileSize, Index &rng, Index &GRange)  const {
-    tileSize =static_cast<Index>(sycl_queue().get_device(). template get_info<cl::sycl::info::device::max_work_group_size>());
-    auto s=  sycl_queue().get_device().template get_info<cl::sycl::info::device::vendor>();
-    std::transform(s.begin(), s.end(), s.begin(), ::tolower);
-    if(sycl_queue().get_device().is_cpu()){ // intel doesnot allow to use max workgroup size
-      tileSize=std::min(static_cast<Index>(256), static_cast<Index>(tileSize));
-    }
-    rng = n;
-    if (rng==0) rng=static_cast<Index>(1);
-    GRange=rng;
-    if (tileSize>GRange) tileSize=GRange;
-    else if(GRange>tileSize){
-      Index xMode =  static_cast<Index>(GRange % tileSize);
-      if (xMode != 0) GRange += static_cast<Index>(tileSize - xMode);
-    }
+  m_queue_stream->parallel_for_setup(n, tileSize, rng, GRange);
   }
 
   /// This is used to prepare the number of threads and also the number of threads per block for sycl kernels
   template<typename Index>
   EIGEN_STRONG_INLINE void parallel_for_setup(Index dim0, Index dim1, Index &tileSize0, Index &tileSize1, Index &rng0, Index &rng1, Index &GRange0, Index &GRange1)  const {
-    Index max_workgroup_Size = static_cast<Index>(maxSyclThreadsPerBlock());
-    if(sycl_queue().get_device().is_cpu()){ // intel doesnot allow to use max workgroup size
-      max_workgroup_Size=std::min(static_cast<Index>(256), static_cast<Index>(max_workgroup_Size));
-    }
-    Index pow_of_2 = static_cast<Index>(std::log2(max_workgroup_Size));
-    tileSize1 =static_cast<Index>(std::pow(2, static_cast<Index>(pow_of_2/2)));
-    rng1=dim1;
-    if (rng1==0 ) rng1=static_cast<Index>(1);
-    GRange1=rng1;
-    if (tileSize1>GRange1) tileSize1=GRange1;
-    else if(GRange1>tileSize1){
-      Index xMode =  static_cast<Index>(GRange1 % tileSize1);
-      if (xMode != 0) GRange1 += static_cast<Index>(tileSize1 - xMode);
-    }
-    tileSize0 = static_cast<Index>(max_workgroup_Size/tileSize1);
-    rng0 = dim0;
-    if (rng0==0 ) rng0=static_cast<Index>(1);
-    GRange0=rng0;
-    if (tileSize0>GRange0) tileSize0=GRange0;
-    else if(GRange0>tileSize0){
-      Index xMode =  static_cast<Index>(GRange0 % tileSize0);
-      if (xMode != 0) GRange0 += static_cast<Index>(tileSize0 - xMode);
-    }
+    m_queue_stream->parallel_for_setup(dim0, dim1, tileSize0, tileSize1, rng0, rng1, GRange0, GRange1);
   }
 
 
@@ -242,39 +358,8 @@ struct SyclDevice {
   /// This is used to prepare the number of threads and also the number of threads per block for sycl kernels
   template<typename Index>
   EIGEN_STRONG_INLINE void parallel_for_setup(Index dim0, Index dim1,Index dim2, Index &tileSize0, Index &tileSize1, Index &tileSize2, Index &rng0, Index &rng1, Index &rng2, Index &GRange0, Index &GRange1, Index &GRange2)  const {
-    Index max_workgroup_Size = static_cast<Index>(maxSyclThreadsPerBlock());
-    if(sycl_queue().get_device().is_cpu()){ // intel doesnot allow to use max workgroup size
-      max_workgroup_Size=std::min(static_cast<Index>(256), static_cast<Index>(max_workgroup_Size));
-    }
-    Index pow_of_2 = static_cast<Index>(std::log2(max_workgroup_Size));
-    tileSize2 =static_cast<Index>(std::pow(2, static_cast<Index>(pow_of_2/3)));
-    rng2=dim2;
-    if (rng2==0 ) rng1=static_cast<Index>(1);
-    GRange2=rng2;
-    if (tileSize2>GRange2) tileSize2=GRange2;
-    else if(GRange2>tileSize2){
-      Index xMode =  static_cast<Index>(GRange2 % tileSize2);
-      if (xMode != 0) GRange2 += static_cast<Index>(tileSize2 - xMode);
-    }
-    pow_of_2 = static_cast<Index>(std::log2(static_cast<Index>(max_workgroup_Size/tileSize2)));
-    tileSize1 =static_cast<Index>(std::pow(2, static_cast<Index>(pow_of_2/2)));
-    rng1=dim1;
-    if (rng1==0 ) rng1=static_cast<Index>(1);
-    GRange1=rng1;
-    if (tileSize1>GRange1) tileSize1=GRange1;
-    else if(GRange1>tileSize1){
-      Index xMode =  static_cast<Index>(GRange1 % tileSize1);
-      if (xMode != 0) GRange1 += static_cast<Index>(tileSize1 - xMode);
-    }
-    tileSize0 = static_cast<Index>(max_workgroup_Size/(tileSize1*tileSize2));
-    rng0 = dim0;
-    if (rng0==0 ) rng0=static_cast<Index>(1);
-    GRange0=rng0;
-    if (tileSize0>GRange0) tileSize0=GRange0;
-    else if(GRange0>tileSize0){
-      Index xMode =  static_cast<Index>(GRange0 % tileSize0);
-      if (xMode != 0) GRange0 += static_cast<Index>(tileSize0 - xMode);
-    }
+    m_queue_stream->parallel_for_setup(dim0, dim1, dim2, tileSize0, tileSize1, tileSize2, rng0, rng1, rng2, GRange0, GRange1, GRange2);
+
   }
   /// allocate device memory
   EIGEN_STRONG_INLINE void *allocate(size_t num_bytes) const {
@@ -319,8 +404,7 @@ struct SyclDevice {
   /// buffer to host. Then we use the memcpy to copy the data to the host accessor. The first time that
   /// this buffer is accessed, the data will be copied to the device.
   template<typename Index> EIGEN_STRONG_INLINE void memcpyHostToDevice(Index *dst, const Index *src, size_t n) const {
-    auto host_acc= get_sycl_buffer(dst). template get_access<cl::sycl::access::mode::discard_write, cl::sycl::access::target::host_buffer>();
-    ::memcpy(host_acc.get_pointer(), src, n);
+     m_queue_stream->memcpyHostToDevice(dst,src,n);
   }
   /// The memcpyDeviceToHost is used to copy the data from host to device. Here, in order to avoid double copying the data. We create a sycl
   /// buffer with map_allocator for the destination pointer with a discard_write accessor on it. The lifespan of the buffer is bound to the
@@ -329,21 +413,7 @@ struct SyclDevice {
   /// would be available on the dst pointer using fast copy technique (map_allocator). In this case we can make sure that we copy the data back
   /// to the cpu only once per function call.
   template<typename Index> EIGEN_STRONG_INLINE void memcpyDeviceToHost(void *dst, const Index *src, size_t n) const {
-    auto it = m_queue_stream->find_buffer(src);
-    auto offset =static_cast<const uint8_t*>(static_cast<const void*>(src))- it->first;
-    offset/=sizeof(Index);
-    size_t rng, GRange, tileSize;
-    parallel_for_setup(n/sizeof(Index), tileSize, rng, GRange);
-    // Assuming that the dst is the start of the destination pointer
-    auto dest_buf = cl::sycl::buffer<uint8_t, 1, cl::sycl::map_allocator<uint8_t> >(static_cast<uint8_t*>(dst), cl::sycl::range<1>(n));
-    sycl_queue().submit([&](cl::sycl::handler &cgh) {
-      auto src_acc= it->second.template get_access<cl::sycl::access::mode::read, cl::sycl::access::target::global_buffer>(cgh);
-      auto dst_acc =dest_buf.template get_access<cl::sycl::access::mode::discard_write, cl::sycl::access::target::global_buffer>(cgh);
-      typedef decltype(src_acc) read_accessor;
-      typedef decltype(dst_acc) write_accessor;
-      cgh.parallel_for( cl::sycl::nd_range<1>(cl::sycl::range<1>(GRange), cl::sycl::range<1>(tileSize)), MemCopyFunctor<Index, read_accessor, write_accessor>(src_acc, dst_acc, rng, 0, offset));
-    });
-    synchronize();
+    m_queue_stream->memcpyDeviceToHost(dst,src,n);
   }
   /// returning the sycl queue
   EIGEN_STRONG_INLINE cl::sycl::queue& sycl_queue() const { return m_queue_stream->m_queue;}
@@ -366,8 +436,9 @@ struct SyclDevice {
     :m_buf(buff), buff_offset(buff_offset_), rng(rng_), GRange(GRange_), tileSize(tileSize_), c(c_){}
 
     void operator()(cl::sycl::handler &cgh) const {
-      auto buf_acc = m_buf.template get_access<cl::sycl::access::mode::discard_write, cl::sycl::access::target::global_buffer>(cgh);
-      cgh.parallel_for(cl::sycl::nd_range<1>(cl::sycl::range<1>(GRange), cl::sycl::range<1>(tileSize)), memsetkernelFunctor(buf_acc, buff_offset, rng, c));
+      auto buf_acc = m_buf.template get_access<cl::sycl::access::mode::write, cl::sycl::access::target::global_buffer>(cgh);
+      typedef decltype(buf_acc) AccType;
+      cgh.parallel_for(cl::sycl::nd_range<1>(cl::sycl::range<1>(GRange), cl::sycl::range<1>(tileSize)), memsetkernelFunctor<AccType>(buf_acc, buff_offset, rng, c));
     }
   };
 
@@ -403,14 +474,13 @@ struct SyclDevice {
   EIGEN_STRONG_INLINE int majorDeviceVersion() const { return 1; }
 
   EIGEN_STRONG_INLINE void synchronize() const {
-    sycl_queue().wait_and_throw(); //pass
+    m_queue_stream->synchronize(); //pass
   }
 
   EIGEN_STRONG_INLINE void asynchronousExec() const {
     ///FIXEDME:: currently there is a race condition regarding the asynch scheduler.
     //sycl_queue().throw_asynchronous();// does not pass. Temporarily disabled
-    sycl_queue().wait_and_throw(); //pass
-
+    m_queue_stream->asynchronousExec();
   }
   // This function checks if the runtime recorded an error for the
   // underlying stream device.
@@ -418,8 +488,10 @@ struct SyclDevice {
     return m_queue_stream->ok();
   }
 };
-
-
+// This is used as a distingushable device inside the kernel as the sycl device class is not Standard layout.
+// This is internal and must not be used by user. This dummy device allow us to specialise the tensor evaluator
+// inside the kenrel. So we can have two types of eval for host and device. This is required for TensorArgMax operation
+struct SyclKernelDevice:DefaultDevice{};
 
 }  // end namespace Eigen
 
