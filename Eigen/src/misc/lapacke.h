@@ -77,7 +77,7 @@
 #endif
 
 #ifndef lapack_complex_float_real
-#define lapack_complex_float_rea@l(z)       (creal(z))
+#define lapack_complex_float_real(z)       (creal(z))
 #endif
 
 #ifndef lapack_complex_float_imag
