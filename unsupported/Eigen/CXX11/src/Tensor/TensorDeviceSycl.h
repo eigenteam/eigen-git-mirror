@@ -149,16 +149,27 @@ m_queue(cl::sycl::queue(s, [&](cl::sycl::exception_list l) {
     std::lock_guard<std::mutex> lock(mutex_);
     buffer_map.clear();
   }
-  //FIXME: currently we have to switch back to write as discard_write doesnot work in forloop
   /// The memcpyHostToDevice is used to copy the device only pointer to a host pointer. Using the device
-  /// pointer created as a key we find the sycl buffer and get the host accessor with discard_write mode
-  /// on it. Using a discard_write accessor guarantees that we do not bring back the current value of the
-  /// buffer to host. Then we use the memcpy to copy the data to the host accessor. The first time that
+  /// pointer created as a key we find the sycl buffer and get the host accessor with write mode
+  /// on it. Then we use the memcpy to copy the data to the host accessor. The first time that
   /// this buffer is accessed, the data will be copied to the device.
+  /// In this case we can separate the kernel actual execution from data transfer which is required for benchmark
+  /// Also, this is faster as it uses the map_allocator instead of memcpy
   template<typename Index> EIGEN_STRONG_INLINE void memcpyHostToDevice(Index *dst, const Index *src, size_t n) const {
-        std::lock_guard<std::mutex> lock(mutex_);
-        auto host_acc= find_buffer(dst)->second. template get_access<cl::sycl::access::mode::write, cl::sycl::access::target::host_buffer>();
-        ::memcpy(host_acc.get_pointer(), src, n);
+    auto it =find_buffer(dst);
+    auto offset =static_cast<const uint8_t*>(static_cast<const void*>(dst))- it->first;
+    offset/=sizeof(Index);
+    size_t rng, GRange, tileSize;
+    parallel_for_setup(n/sizeof(Index), tileSize, rng, GRange);
+      auto src_buf = cl::sycl::buffer<uint8_t, 1, cl::sycl::map_allocator<uint8_t> >(static_cast<uint8_t*>(static_cast<void*>(const_cast<Index*>(src))), cl::sycl::range<1>(n));
+      m_queue.submit([&](cl::sycl::handler &cgh) {
+        auto dst_acc= it->second.template get_access<cl::sycl::access::mode::write, cl::sycl::access::target::global_buffer>(cgh);
+        auto src_acc =src_buf.template get_access<cl::sycl::access::mode::read, cl::sycl::access::target::global_buffer>(cgh);
+        typedef decltype(src_acc) read_accessor;
+        typedef decltype(dst_acc) write_accessor;
+        cgh.parallel_for( cl::sycl::nd_range<1>(cl::sycl::range<1>(GRange), cl::sycl::range<1>(tileSize)), MemCopyFunctor<Index, read_accessor, write_accessor>(src_acc, dst_acc, rng, offset, 0));
+      });
+      synchronize();
   }
   /// The memcpyDeviceToHost is used to copy the data from host to device. Here, in order to avoid double copying the data. We create a sycl
   /// buffer with map_allocator for the destination pointer with a discard_write accessor on it. The lifespan of the buffer is bound to the
@@ -167,7 +178,6 @@ m_queue(cl::sycl::queue(s, [&](cl::sycl::exception_list l) {
   /// would be available on the dst pointer using fast copy technique (map_allocator). In this case we can make sure that we copy the data back
   /// to the cpu only once per function call.
   template<typename Index> EIGEN_STRONG_INLINE void memcpyDeviceToHost(void *dst, const Index *src, size_t n) const {
-    std::lock_guard<std::mutex> lock(mutex_);
     auto it =find_buffer(src);
     auto offset =static_cast<const uint8_t*>(static_cast<const void*>(src))- it->first;
     offset/=sizeof(Index);
@@ -186,7 +196,6 @@ m_queue(cl::sycl::queue(s, [&](cl::sycl::exception_list l) {
 
   /// the memcpy function
   template<typename Index> EIGEN_STRONG_INLINE void memcpy(void *dst, const Index *src, size_t n) const {
-    std::lock_guard<std::mutex> lock(mutex_);
     auto it1 = find_buffer(static_cast<const void*>(src));
     auto it2 = find_buffer(dst);
     auto offset= (static_cast<const uint8_t*>(static_cast<const void*>(src))) - it1->first;
@@ -206,7 +215,6 @@ m_queue(cl::sycl::queue(s, [&](cl::sycl::exception_list l) {
   }
 
   EIGEN_STRONG_INLINE void memset(void *data, int c, size_t n) const {
-    std::lock_guard<std::mutex> lock(mutex_);
     size_t rng, GRange, tileSize;
     parallel_for_setup(n, tileSize, rng, GRange);
     auto it1 = find_buffer(static_cast<const void*>(data));
@@ -220,18 +228,15 @@ m_queue(cl::sycl::queue(s, [&](cl::sycl::exception_list l) {
   /// the function then adds an entry by creating a sycl buffer for that particular pointer.
   template <cl::sycl::access::mode AcMd> EIGEN_STRONG_INLINE cl::sycl::accessor<uint8_t, 1, AcMd, cl::sycl::access::target::global_buffer>
   get_sycl_accessor(cl::sycl::handler &cgh, const void* ptr) const {
-    std::lock_guard<std::mutex> lock(mutex_);
     return (find_buffer(ptr)->second.template get_access<AcMd, cl::sycl::access::target::global_buffer>(cgh));
   }
 
   /// Accessing the created sycl device buffer for the device pointer
   EIGEN_STRONG_INLINE cl::sycl::buffer<uint8_t, 1>& get_sycl_buffer(const void * ptr) const {
-    std::lock_guard<std::mutex> lock(mutex_);
     return find_buffer(ptr)->second;
   }
 
   EIGEN_STRONG_INLINE ptrdiff_t get_offset(const void *ptr) const {
-    std::lock_guard<std::mutex> lock(mutex_);
     return (static_cast<const uint8_t*>(ptr))-(find_buffer(ptr)->first);
   }
 
@@ -375,7 +380,9 @@ private:
   mutable std::map<const uint8_t *, cl::sycl::buffer<uint8_t, 1>> buffer_map;
   /// sycl queue
   mutable cl::sycl::queue m_queue;
+
   EIGEN_STRONG_INLINE std::map<const uint8_t *, cl::sycl::buffer<uint8_t,1>>::iterator find_buffer(const void* ptr) const {
+    std::lock_guard<std::mutex> lock(mutex_);
     auto it1 = buffer_map.find(static_cast<const uint8_t*>(ptr));
     if (it1 != buffer_map.end()){
       return it1;
