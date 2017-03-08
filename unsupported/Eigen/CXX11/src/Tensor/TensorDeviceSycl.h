@@ -76,7 +76,7 @@ EIGEN_STRONG_INLINE auto get_sycl_supported_devices()->decltype(cl::sycl::device
   std::vector<cl::sycl::device>::iterator it =devices.begin();
   while(it!=devices.end()) {
     ///FIXME: Currently there is a bug in amd cpu OpenCL
-    auto s=  (*it).template get_info<cl::sycl::info::device::vendor>();
+    auto s=  (*it).template get_info<cl::sycl::info::device::name>();
     std::transform(s.begin(), s.end(), s.begin(), ::tolower);
     if((*it).is_cpu() && s.find("amd")!=std::string::npos && s.find("apu") == std::string::npos){ // remove amd cpu as it is not supported by computecpp allow APUs
       it=devices.erase(it);
