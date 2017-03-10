@@ -19,22 +19,6 @@ class NonBlockingThreadPoolTempl : public Eigen::ThreadPoolInterface {
   typedef typename Environment::Task Task;
   typedef RunQueue<Task, 1024> Queue;
 
-  NonBlockingThreadPoolTempl(int num_threads, Environment env = Environment())
-      : num_threads_(num_threads),
-        allow_spinning_(true),
-        env_(env),
-        threads_(num_threads),
-        queues_(num_threads),
-        coprimes_(num_threads),
-        waiters_(num_threads),
-        blocked_(0),
-        spinning_(0),
-        done_(false),
-        cancelled_(false),
-        ec_(waiters_) {
-    Init();
-  }
-
   NonBlockingThreadPoolTempl(int num_threads, bool allow_spinning,
                              Environment env = Environment())
       : num_threads_(num_threads),
@@ -51,6 +35,9 @@ class NonBlockingThreadPoolTempl : public Eigen::ThreadPoolInterface {
         ec_(waiters_) {
     Init();
   }
+
+  NonBlockingThreadPoolTempl(int num_threads, Environment env = Environment())
+      : NonBlockingThreadPoolTempl(num_threads, true, env) {}
 
   ~NonBlockingThreadPoolTempl() {
     done_ = true;
