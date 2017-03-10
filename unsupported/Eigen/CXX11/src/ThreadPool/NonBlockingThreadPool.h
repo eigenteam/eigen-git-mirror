@@ -19,6 +19,9 @@ class NonBlockingThreadPoolTempl : public Eigen::ThreadPoolInterface {
   typedef typename Environment::Task Task;
   typedef RunQueue<Task, 1024> Queue;
 
+  NonBlockingThreadPoolTempl(int num_threads, Environment env = Environment())
+      : NonBlockingThreadPoolTempl(num_threads, true, env) {}
+
   NonBlockingThreadPoolTempl(int num_threads, bool allow_spinning,
                              Environment env = Environment())
       : num_threads_(num_threads),
@@ -33,11 +36,35 @@ class NonBlockingThreadPoolTempl : public Eigen::ThreadPoolInterface {
         done_(false),
         cancelled_(false),
         ec_(waiters_) {
-    Init();
-  }
+    waiters_.resize(num_threads_);
 
-  NonBlockingThreadPoolTempl(int num_threads, Environment env = Environment())
-      : NonBlockingThreadPoolTempl(num_threads, true, env) {}
+    // Calculate coprimes of num_threads_.
+    // Coprimes are used for a random walk over all threads in Steal
+    // and NonEmptyQueueIndex. Iteration is based on the fact that if we take
+    // a walk starting thread index t and calculate num_threads - 1 subsequent
+    // indices as (t + coprime) % num_threads, we will cover all threads without
+    // repetitions (effectively getting a presudo-random permutation of thread
+    // indices).
+    for (int i = 1; i <= num_threads_; i++) {
+      unsigned a = i;
+      unsigned b = num_threads_;
+      // If GCD(a, b) == 1, then a and b are coprimes.
+      while (b != 0) {
+        unsigned tmp = a;
+        a = b;
+        b = tmp % b;
+      }
+      if (a == 1) {
+        coprimes_.push_back(i);
+      }
+    }
+    for (int i = 0; i < num_threads_; i++) {
+      queues_.push_back(new Queue());
+    }
+    for (int i = 0; i < num_threads_; i++) {
+      threads_.push_back(env_.CreateThread([this, i]() { WorkerLoop(i); }));
+    }
+  }
 
   ~NonBlockingThreadPoolTempl() {
     done_ = true;
@@ -139,37 +166,6 @@ class NonBlockingThreadPoolTempl : public Eigen::ThreadPoolInterface {
   std::atomic<bool> done_;
   std::atomic<bool> cancelled_;
   EventCount ec_;
-
-  void Init() {
-    waiters_.resize(num_threads_);
-
-    // Calculate coprimes of num_threads_.
-    // Coprimes are used for a random walk over all threads in Steal
-    // and NonEmptyQueueIndex. Iteration is based on the fact that if we take
-    // a walk starting thread index t and calculate num_threads - 1 subsequent
-    // indices as (t + coprime) % num_threads, we will cover all threads without
-    // repetitions (effectively getting a presudo-random permutation of thread
-    // indices).
-    for (int i = 1; i <= num_threads_; i++) {
-      unsigned a = i;
-      unsigned b = num_threads_;
-      // If GCD(a, b) == 1, then a and b are coprimes.
-      while (b != 0) {
-        unsigned tmp = a;
-        a = b;
-        b = tmp % b;
-      }
-      if (a == 1) {
-        coprimes_.push_back(i);
-      }
-    }
-    for (int i = 0; i < num_threads_; i++) {
-      queues_.push_back(new Queue());
-    }
-    for (int i = 0; i < num_threads_; i++) {
-      threads_.push_back(env_.CreateThread([this, i]() { WorkerLoop(i); }));
-    }
-  }
 
   // Main worker thread loop.
   void WorkerLoop(int thread_id) {
