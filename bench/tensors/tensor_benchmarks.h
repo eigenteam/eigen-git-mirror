@@ -539,6 +539,11 @@ for (int iter = 0; iter < 10; ++iter) {
     if (Eigen::internal::is_same<Device, Eigen::GpuDevice>::value) {
       device_.synchronize();
     }
+#elif defined(EIGEN_USE_SYCL)
+    if (Eigen::internal::is_same<Device, Eigen::SyclDevice>::value) {
+      device_.synchronize();
+    }
+
 #endif
     StopBenchmarkTiming();
     SetBenchmarkFlopsProcessed(num_items);
