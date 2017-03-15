@@ -76,13 +76,16 @@ EIGEN_STRONG_INLINE auto get_sycl_supported_devices()->decltype(cl::sycl::device
   std::vector<cl::sycl::device>::iterator it =devices.begin();
   while(it!=devices.end()) {
     ///FIXME: Currently there is a bug in amd cpu OpenCL
-    auto s=  (*it).template get_info<cl::sycl::info::device::name>();
-    std::transform(s.begin(), s.end(), s.begin(), ::tolower);
-    if((*it).is_cpu() && s.find("amd")!=std::string::npos && s.find("apu") == std::string::npos){ // remove amd cpu as it is not supported by computecpp allow APUs
-      it=devices.erase(it);
+    auto name = (*it).template get_info<cl::sycl::info::device::name>();
+    std::transform(name.begin(), name.end(), name.begin(), ::tolower);
+    auto vendor = (*it).template get_info<cl::sycl::info::device::vendor>();
+    std::transform(vendor.begin(), vendor.end(), vendor.begin(), ::tolower);
+
+    if((*it).is_cpu() && vendor.find("amd")!=std::string::npos && vendor.find("apu") == std::string::npos){ // remove amd cpu as it is not supported by computecpp allow APUs
+      it = devices.erase(it);
       //FIXME: currently there is a bug in intel gpu driver regarding memory allignment issue.
-    }else if((*it).is_gpu() && s.find("intel")!=std::string::npos){
-      it=devices.erase(it);
+    }else if((*it).is_gpu() && name.find("intel")!=std::string::npos){
+      it = devices.erase(it);
     }
     else{
       ++it;
