@@ -51,14 +51,17 @@ typedef uint32x4_t  Packet4ui;
 #define _EIGEN_DECLARE_CONST_Packet4i(NAME,X) \
   const Packet4i p4i_##NAME = pset1<Packet4i>(X)
 
-// arm64 does have the pld instruction. If available, let's trust the __builtin_prefetch built-in function
-// which available on LLVM and GCC (at least)
-#if EIGEN_HAS_BUILTIN(__builtin_prefetch) || EIGEN_COMP_GNUC
+#if EIGEN_ARCH_ARM64
+  // __builtin_prefetch tends to do nothing on ARM64 compilers because the
+  // prefetch instructions there are too detailed for __builtin_prefetch to map
+  // meaningfully to them.
+  #define EIGEN_ARM_PREFETCH(ADDR)  __asm__ __volatile__("prfm pldl1keep, [%[addr]]\n" ::[addr] "r"(ADDR) : );
+#elif EIGEN_HAS_BUILTIN(__builtin_prefetch) || EIGEN_COMP_GNUC
   #define EIGEN_ARM_PREFETCH(ADDR) __builtin_prefetch(ADDR);
 #elif defined __pld
   #define EIGEN_ARM_PREFETCH(ADDR) __pld(ADDR)
-#elif !EIGEN_ARCH_ARM64
-  #define EIGEN_ARM_PREFETCH(ADDR) __asm__ __volatile__ ( "   pld [%[addr]]\n" :: [addr] "r" (ADDR) : "cc" );
+#elif EIGEN_ARCH_ARM32
+  #define EIGEN_ARM_PREFETCH(ADDR) __asm__ __volatile__ ("pld [%[addr]]\n" :: [addr] "r" (ADDR) : );
 #else
   // by default no explicit prefetching
   #define EIGEN_ARM_PREFETCH(ADDR)
