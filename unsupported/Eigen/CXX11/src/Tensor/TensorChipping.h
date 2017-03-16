@@ -50,6 +50,7 @@ template <DenseIndex DimId>
 struct DimensionId
 {
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE DimensionId(DenseIndex dim) {
+    EIGEN_UNUSED_VARIABLE(dim);
     eigen_assert(dim == DimId);
   }
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE DenseIndex actualDim() const {
