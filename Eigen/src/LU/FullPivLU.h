@@ -411,11 +411,9 @@ template<typename _MatrixType> class FullPivLU
 
     #ifndef EIGEN_PARSED_BY_DOXYGEN
     template<typename RhsType, typename DstType>
-    EIGEN_DEVICE_FUNC
     void _solve_impl(const RhsType &rhs, DstType &dst) const;
 
     template<bool Conjugate, typename RhsType, typename DstType>
-    EIGEN_DEVICE_FUNC
     void _solve_impl_transposed(const RhsType &rhs, DstType &dst) const;
     #endif
 

@@ -151,9 +151,9 @@ struct get_fixed_value<variable_if_dynamic<T,N>,Default> {
   static const int value = N;
 };
 
-template<typename T> Index get_runtime_value(const T &x) { return x; }
+template<typename T> EIGEN_DEVICE_FUNC Index get_runtime_value(const T &x) { return x; }
 #if !EIGEN_HAS_CXX14
-template<int N> Index get_runtime_value(FixedInt<N> (*)()) { return N; }
+template<int N> EIGEN_DEVICE_FUNC Index get_runtime_value(FixedInt<N> (*)()) { return N; }
 #endif
 
 // Cleanup integer/FixedInt/VariableAndFixedInt/etc types:

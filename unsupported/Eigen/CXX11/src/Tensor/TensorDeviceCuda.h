@@ -217,7 +217,10 @@ struct GpuDevice {
     EIGEN_UNUSED_VARIABLE(err)
     assert(err == cudaSuccess);
 #else
-  eigen_assert(false && "The default device should be used instead to generate kernel code");
+    EIGEN_UNUSED_VARIABLE(dst);
+    EIGEN_UNUSED_VARIABLE(src);
+    EIGEN_UNUSED_VARIABLE(n);
+    eigen_assert(false && "The default device should be used instead to generate kernel code");
 #endif
   }
 

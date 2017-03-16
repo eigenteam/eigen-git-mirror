@@ -407,7 +407,7 @@ protected:
   */
 template<typename Derived>
 template<typename Func>
-typename internal::traits<Derived>::Scalar
+EIGEN_DEVICE_FUNC typename internal::traits<Derived>::Scalar
 DenseBase<Derived>::redux(const Func& func) const
 {
   eigen_assert(this->rows()>0 && this->cols()>0 && "you are using an empty matrix");
@@ -422,7 +422,7 @@ DenseBase<Derived>::redux(const Func& func) const
   * \warning the result is undefined if \c *this contains NaN.
   */
 template<typename Derived>
-EIGEN_STRONG_INLINE typename internal::traits<Derived>::Scalar
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE typename internal::traits<Derived>::Scalar
 DenseBase<Derived>::minCoeff() const
 {
   return derived().redux(Eigen::internal::scalar_min_op<Scalar,Scalar>());
@@ -432,7 +432,7 @@ DenseBase<Derived>::minCoeff() const
   * \warning the result is undefined if \c *this contains NaN.
   */
 template<typename Derived>
-EIGEN_STRONG_INLINE typename internal::traits<Derived>::Scalar
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE typename internal::traits<Derived>::Scalar
 DenseBase<Derived>::maxCoeff() const
 {
   return derived().redux(Eigen::internal::scalar_max_op<Scalar,Scalar>());
@@ -445,7 +445,7 @@ DenseBase<Derived>::maxCoeff() const
   * \sa trace(), prod(), mean()
   */
 template<typename Derived>
-EIGEN_STRONG_INLINE typename internal::traits<Derived>::Scalar
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE typename internal::traits<Derived>::Scalar
 DenseBase<Derived>::sum() const
 {
   if(SizeAtCompileTime==0 || (SizeAtCompileTime==Dynamic && size()==0))
@@ -458,7 +458,7 @@ DenseBase<Derived>::sum() const
 * \sa trace(), prod(), sum()
 */
 template<typename Derived>
-EIGEN_STRONG_INLINE typename internal::traits<Derived>::Scalar
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE typename internal::traits<Derived>::Scalar
 DenseBase<Derived>::mean() const
 {
 #ifdef __INTEL_COMPILER
@@ -479,7 +479,7 @@ DenseBase<Derived>::mean() const
   * \sa sum(), mean(), trace()
   */
 template<typename Derived>
-EIGEN_STRONG_INLINE typename internal::traits<Derived>::Scalar
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE typename internal::traits<Derived>::Scalar
 DenseBase<Derived>::prod() const
 {
   if(SizeAtCompileTime==0 || (SizeAtCompileTime==Dynamic && size()==0))
@@ -494,7 +494,7 @@ DenseBase<Derived>::prod() const
   * \sa diagonal(), sum()
   */
 template<typename Derived>
-EIGEN_STRONG_INLINE typename internal::traits<Derived>::Scalar
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE typename internal::traits<Derived>::Scalar
 MatrixBase<Derived>::trace() const
 {
   return derived().diagonal().sum();

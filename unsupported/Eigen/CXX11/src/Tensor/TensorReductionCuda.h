@@ -287,7 +287,6 @@ struct FullReductionLauncher<
     void>::type> {
   static void run(const Self& self, Op& reducer, const GpuDevice& device, OutputType* output, typename Self::Index num_coeffs) {
     typedef typename Self::Index Index;
-    typedef typename Self::CoeffReturnType Scalar;
     const int block_size = 256;
     const int num_per_thread = 128;
     const int num_blocks = divup<int>(num_coeffs, block_size * num_per_thread);

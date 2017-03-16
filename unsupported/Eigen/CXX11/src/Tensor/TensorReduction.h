@@ -11,6 +11,17 @@
 #ifndef EIGEN_CXX11_TENSOR_TENSOR_REDUCTION_H
 #define EIGEN_CXX11_TENSOR_TENSOR_REDUCTION_H
 
+// clang is incompatible with the CUDA syntax wrt making a kernel a class friend,
+// so we'll use a macro to make clang happy.
+#ifndef KERNEL_FRIEND
+#if defined(__clang__) && defined(__CUDA__)
+#define KERNEL_FRIEND friend __global__
+#else
+#define KERNEL_FRIEND friend
+#endif
+#endif
+
+
 namespace Eigen {
 
 
@@ -681,15 +692,15 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType, MakePointer_>,
   template <typename S, typename O, bool V> friend struct internal::FullReducerShard;
 #endif
 #if defined(EIGEN_USE_GPU) && defined(__CUDACC__)
-  template <int B, int N, typename S, typename R, typename I> friend void internal::FullReductionKernel(R, const S, I, typename S::CoeffReturnType*, unsigned int*);
+  template <int B, int N, typename S, typename R, typename I> KERNEL_FRIEND void internal::FullReductionKernel(R, const S, I, typename S::CoeffReturnType*, unsigned int*);
 #ifdef EIGEN_HAS_CUDA_FP16
-  template <typename S, typename R, typename I> friend void internal::ReductionInitFullReduxKernelHalfFloat(R, const S, I, half2*);
-  template <int B, int N, typename S, typename R, typename I> friend void internal::FullReductionKernelHalfFloat(R, const S, I, half*, half2*);
-  template <int NPT, typename S, typename R, typename I> friend void internal::InnerReductionKernelHalfFloat(R, const S, I, I, half*);
+  template <typename S, typename R, typename I> KERNEL_FRIEND void internal::ReductionInitFullReduxKernelHalfFloat(R, const S, I, half2*);
+  template <int B, int N, typename S, typename R, typename I> KERNEL_FRIEND void internal::FullReductionKernelHalfFloat(R, const S, I, half*, half2*);
+  template <int NPT, typename S, typename R, typename I> KERNEL_FRIEND void internal::InnerReductionKernelHalfFloat(R, const S, I, I, half*);
 #endif
-  template <int NPT, typename S, typename R, typename I> friend void internal::InnerReductionKernel(R, const S, I, I, typename S::CoeffReturnType*);
+  template <int NPT, typename S, typename R, typename I> KERNEL_FRIEND void internal::InnerReductionKernel(R, const S, I, I, typename S::CoeffReturnType*);
 
-  template <int NPT, typename S, typename R, typename I> friend void internal::OuterReductionKernel(R, const S, I, I, typename S::CoeffReturnType*);
+  template <int NPT, typename S, typename R, typename I> KERNEL_FRIEND void internal::OuterReductionKernel(R, const S, I, I, typename S::CoeffReturnType*);
 #endif
 
 #if defined(EIGEN_USE_SYCL)

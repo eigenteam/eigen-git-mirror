@@ -120,7 +120,7 @@ struct selfadjoint_product_selector<MatrixType,OtherType,UpLo,false>
 
 template<typename MatrixType, unsigned int UpLo>
 template<typename DerivedU>
-SelfAdjointView<MatrixType,UpLo>& SelfAdjointView<MatrixType,UpLo>
+EIGEN_DEVICE_FUNC SelfAdjointView<MatrixType,UpLo>& SelfAdjointView<MatrixType,UpLo>
 ::rankUpdate(const MatrixBase<DerivedU>& u, const Scalar& alpha)
 {
   selfadjoint_product_selector<MatrixType,DerivedU,UpLo>::run(_expression().const_cast_derived(), u.derived(), alpha);
