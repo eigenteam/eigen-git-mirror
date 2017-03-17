@@ -433,10 +433,10 @@ struct meta_no  { char a[2]; };
 template <typename T>
 struct has_ReturnType
 {
-  template <typename C> static meta_yes testFunctor(typename C::ReturnType const *);
-  template <typename C> static meta_no testFunctor(...);
+  template <typename C> static meta_yes testFunctor(C const *, typename C::ReturnType const * = 0);
+  template <typename C> static meta_no  testFunctor(...);
 
-  enum { value = sizeof(testFunctor<T>(0)) == sizeof(meta_yes) };
+  enum { value = sizeof(testFunctor<T>(static_cast<T*>(0))) == sizeof(meta_yes) };
 };
 
 template<typename T> const T* return_ptr();
