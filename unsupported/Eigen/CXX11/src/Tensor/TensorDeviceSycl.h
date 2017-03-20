@@ -15,6 +15,17 @@
 #if defined(EIGEN_USE_SYCL) && !defined(EIGEN_CXX11_TENSOR_TENSOR_DEVICE_SYCL_H)
 #define EIGEN_CXX11_TENSOR_TENSOR_DEVICE_SYCL_H
 
+template <typename Scalar, size_t Align = EIGEN_MAX_ALIGN_BYTES, class Allocator = std::allocator<Scalar>>
+struct SyclAllocator {
+  typedef Scalar value_type;
+  typedef typename std::allocator_traits<Allocator>::pointer pointer;
+  typedef typename std::allocator_traits<Allocator>::size_type size_type;
+
+  SyclAllocator( ){};
+  Scalar* allocate(std::size_t elements) { return static_cast<Scalar*>(aligned_alloc(Align, elements)); }
+  void deallocate(Scalar * p, std::size_t size) { EIGEN_UNUSED_VARIABLE(size); free(p); }
+};
+
 namespace Eigen {
 
   #define ConvertToActualTypeSycl(Scalar, buf_acc) reinterpret_cast<typename cl::sycl::global_ptr<Scalar>::pointer_t>((&(*buf_acc.get_pointer())))
@@ -56,11 +67,11 @@ template<typename AccType>
   };
 
 struct memsetCghFunctor{
-  cl::sycl::buffer<uint8_t, 1>& m_buf;
+  cl::sycl::buffer<uint8_t, 1, SyclAllocator<uint8_t, EIGEN_MAX_ALIGN_BYTES> >& m_buf;
   const ptrdiff_t& buff_offset;
   const size_t& rng , GRange, tileSize;
   const int  &c;
-  memsetCghFunctor(cl::sycl::buffer<uint8_t, 1>& buff,  const ptrdiff_t& buff_offset_, const size_t& rng_,  const size_t& GRange_,  const size_t& tileSize_, const int& c_)
+  memsetCghFunctor(cl::sycl::buffer<uint8_t, 1, SyclAllocator<uint8_t, EIGEN_MAX_ALIGN_BYTES> >& buff,  const ptrdiff_t& buff_offset_, const size_t& rng_,  const size_t& GRange_,  const size_t& tileSize_, const int& c_)
   :m_buf(buff), buff_offset(buff_offset_), rng(rng_), GRange(GRange_), tileSize(tileSize_), c(c_){}
 
   void operator()(cl::sycl::handler &cgh) const {
@@ -124,6 +135,7 @@ m_queue(cl::sycl::queue(s, [&](cl::sycl::exception_list l) {
 }))
 #endif
   {}
+
   /// Allocating device pointer. This pointer is actually an 8 bytes host pointer used as key to access the sycl device buffer.
   /// The reason is that we cannot use device buffer as a pointer as a m_data in Eigen leafNode expressions. So we create a key
   /// pointer to be used in Eigen expression construction. When we convert the Eigen construction into the sycl construction we
@@ -131,10 +143,10 @@ m_queue(cl::sycl::queue(s, [&](cl::sycl::exception_list l) {
   /// The device pointer would be deleted by calling deallocate function.
   EIGEN_STRONG_INLINE void* allocate(size_t num_bytes) const {
     std::lock_guard<std::mutex> lock(mutex_);
-    auto buf = cl::sycl::buffer<uint8_t,1>(cl::sycl::range<1>(num_bytes));
+    auto buf = cl::sycl::buffer<uint8_t,1, SyclAllocator<uint8_t, EIGEN_MAX_ALIGN_BYTES> >(cl::sycl::range<1>(num_bytes));
     auto ptr =buf.get_access<cl::sycl::access::mode::discard_write, cl::sycl::access::target::host_buffer>().get_pointer();
     buf.set_final_data(nullptr);
-    buffer_map.insert(std::pair<const uint8_t *, cl::sycl::buffer<uint8_t, 1>>(static_cast<const uint8_t*>(ptr),buf));
+    buffer_map.insert(std::pair<const uint8_t *, cl::sycl::buffer<uint8_t, 1, SyclAllocator<uint8_t, EIGEN_MAX_ALIGN_BYTES> > >(static_cast<const uint8_t*>(ptr),buf));
     return static_cast<void*>(ptr);
   }
 
@@ -235,7 +247,7 @@ m_queue(cl::sycl::queue(s, [&](cl::sycl::exception_list l) {
   }
 
   /// Accessing the created sycl device buffer for the device pointer
-  EIGEN_STRONG_INLINE cl::sycl::buffer<uint8_t, 1>& get_sycl_buffer(const void * ptr) const {
+  EIGEN_STRONG_INLINE cl::sycl::buffer<uint8_t, 1, SyclAllocator<uint8_t, EIGEN_MAX_ALIGN_BYTES> >& get_sycl_buffer(const void * ptr) const {
     return find_buffer(ptr)->second;
   }
 
@@ -380,18 +392,18 @@ private:
   /// std::map is the container used to make sure that we create only one buffer
   /// per pointer. The lifespan of the buffer now depends on the lifespan of SyclDevice.
   /// If a non-read-only pointer is needed to be accessed on the host we should manually deallocate it.
-  mutable std::map<const uint8_t *, cl::sycl::buffer<uint8_t, 1>> buffer_map;
+  mutable std::map<const uint8_t *, cl::sycl::buffer<uint8_t, 1, SyclAllocator<uint8_t, EIGEN_MAX_ALIGN_BYTES> > > buffer_map;
   /// sycl queue
   mutable cl::sycl::queue m_queue;
 
-  EIGEN_STRONG_INLINE std::map<const uint8_t *, cl::sycl::buffer<uint8_t,1>>::iterator find_buffer(const void* ptr) const {
+  EIGEN_STRONG_INLINE std::map<const uint8_t *, cl::sycl::buffer<uint8_t,1, SyclAllocator<uint8_t, EIGEN_MAX_ALIGN_BYTES> > >::iterator find_buffer(const void* ptr) const {
     std::lock_guard<std::mutex> lock(mutex_);
     auto it1 = buffer_map.find(static_cast<const uint8_t*>(ptr));
     if (it1 != buffer_map.end()){
       return it1;
     }
     else{
-      for(std::map<const uint8_t *, cl::sycl::buffer<uint8_t,1>>::iterator it=buffer_map.begin(); it!=buffer_map.end(); ++it){
+      for(std::map<const uint8_t *, cl::sycl::buffer<uint8_t,1, SyclAllocator<uint8_t, EIGEN_MAX_ALIGN_BYTES> > >::iterator it=buffer_map.begin(); it!=buffer_map.end(); ++it){
         auto size = it->second.get_size();
         if((it->first <  (static_cast<const uint8_t*>(ptr))) && ((static_cast<const uint8_t*>(ptr)) < (it->first + size)) ) return it;
       }
@@ -416,7 +428,7 @@ struct SyclDevice {
   }
 
   /// Accessing the created sycl device buffer for the device pointer
-  EIGEN_STRONG_INLINE cl::sycl::buffer<uint8_t, 1>& get_sycl_buffer(const void * ptr) const {
+  EIGEN_STRONG_INLINE cl::sycl::buffer<uint8_t, 1, SyclAllocator<uint8_t, EIGEN_MAX_ALIGN_BYTES> >& get_sycl_buffer(const void * ptr) const {
     return m_queue_stream->get_sycl_buffer(ptr);
   }
 
