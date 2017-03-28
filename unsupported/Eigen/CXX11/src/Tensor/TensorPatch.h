@@ -268,7 +268,7 @@ struct TensorEvaluator<const TensorPatchOp<PatchDim, ArgType>, Device>
 
   TensorEvaluator<ArgType, Device> m_impl;
   // required by sycl
-  const PatchDim& patch_dims;
+  const PatchDim patch_dims;
 };
 
 } // end namespace Eigen

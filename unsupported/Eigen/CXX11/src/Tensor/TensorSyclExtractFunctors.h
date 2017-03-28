@@ -230,15 +230,15 @@ template<typename ReduceOp, typename Dims, typename ArgType, typename Device>\
  typedef typename Evaluator::Index Index;\
  typedef typename Eigen::internal::conditional<NumOutputDims==0, DSizes<Index, 1>, typename Evaluator::Dimensions >::type Dimensions;\
  const Dimensions m_dimensions;\
- const int m_return_dim;\
+ const Index m_return_dim;\
  const StrideDims m_strides;\
  const Index m_stride_mod;\
  const Index m_stride_div;\
  EIGEN_STRONG_INLINE const Dimensions& dimensions() const { return m_dimensions; }\
- EIGEN_STRONG_INLINE  int return_dim() const {return m_return_dim;}\
- EIGEN_STRONG_INLINE const StrideDims& strides() const {return m_strides;}\
- EIGEN_STRONG_INLINE const Index& stride_mod() const {return m_stride_mod;}\
- EIGEN_STRONG_INLINE const Index& stride_div() const {return m_stride_div;}\
+ EIGEN_STRONG_INLINE  Index return_dim() const {return m_return_dim;}\
+ EIGEN_STRONG_INLINE const StrideDims strides() const {return m_strides;}\
+ EIGEN_STRONG_INLINE const Index stride_mod() const {return m_stride_mod;}\
+ EIGEN_STRONG_INLINE const Index stride_div() const {return m_stride_div;}\
  FunctorExtractor(const TensorEvaluator<CVQual TensorTupleReducerOp<ReduceOp, Dims, ArgType>, Device>& expr)\
  : m_dimensions(DimConstr<Dimensions, NumOutputDims>::getDim(expr.dimensions())), m_return_dim(expr.return_dim()),\
    m_strides(expr.strides()), m_stride_mod(expr.stride_mod()), m_stride_div(expr.stride_div()){}\

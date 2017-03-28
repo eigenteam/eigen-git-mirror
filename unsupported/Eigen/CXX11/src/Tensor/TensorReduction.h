@@ -791,7 +791,7 @@ static const bool RunningOnGPU = false;
   typename MakePointer_<CoeffReturnType>::Type m_result;
 
   const Device& m_device;
-  const Dims& m_xpr_dims;
+  const Dims m_xpr_dims;
 };
 
 } // end namespace Eigen

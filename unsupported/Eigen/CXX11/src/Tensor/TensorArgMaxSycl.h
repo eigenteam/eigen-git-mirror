@@ -61,9 +61,9 @@ class TensorTupleReducerDeviceOp : public TensorBase<TensorTupleReducerDeviceOp<
   typedef typename XprType::CoeffReturnType CoeffReturnType;
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorTupleReducerDeviceOp(XprType expr,
-                                                              const int return_dim,
-                                                              const StrideDims& strides,
-                                                              const Index& stride_mod, const Index& stride_div)
+                                                              const Index return_dim,
+                                                              const StrideDims strides,
+                                                              const Index stride_mod, const Index stride_div)
           :m_xpr(expr), m_return_dim(return_dim), m_strides(strides), m_stride_mod(stride_mod), m_stride_div(stride_div) {}
 
   EIGEN_DEVICE_FUNC
@@ -71,7 +71,7 @@ class TensorTupleReducerDeviceOp : public TensorBase<TensorTupleReducerDeviceOp<
   expression() const { return m_xpr; }
 
   EIGEN_DEVICE_FUNC
-  int return_dim() const { return m_return_dim; }
+  Index return_dim() const { return m_return_dim; }
 
   EIGEN_DEVICE_FUNC
   const StrideDims& strides() const { return m_strides; }
@@ -86,8 +86,8 @@ class TensorTupleReducerDeviceOp : public TensorBase<TensorTupleReducerDeviceOp<
     typename Eigen::internal::remove_all<typename
     XprType::Nested
     >::type m_xpr;
-    const int m_return_dim;
-    const StrideDims& m_strides;
+    const Index m_return_dim;
+    const StrideDims m_strides;
     const Index m_stride_mod;
     const Index m_stride_div;
 };
@@ -137,10 +137,10 @@ typedef typename MakeGlobalPointer<typename TensorEvaluator<ArgType , SyclKernel
 
 protected:
  TensorEvaluator<ArgType , SyclKernelDevice> m_impl;
- const int m_return_dim;
- const StrideDims& m_strides;
- const Index& m_stride_mod;
- const Index& m_stride_div;
+ const Index m_return_dim;
+ const StrideDims m_strides;
+ const Index m_stride_mod;
+ const Index m_stride_div;
 };
 } // end namespace Eigen
 #endif //UNSUPPORTED_EIGEN_CXX11_SRC_TENSOR_TENSOR_ARGMAX_SYCL_HPP

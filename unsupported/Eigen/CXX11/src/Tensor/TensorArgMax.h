@@ -178,7 +178,7 @@ class TensorTupleReducerOp : public TensorBase<TensorTupleReducerOp<ReduceOp, Di
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorTupleReducerOp(const XprType& expr,
                                                           const ReduceOp& reduce_op,
-                                                          const int return_dim,
+                                                          const Index return_dim,
                                                           const Dims& reduce_dims)
       : m_xpr(expr), m_reduce_op(reduce_op), m_return_dim(return_dim), m_reduce_dims(reduce_dims) {}
 
@@ -193,12 +193,12 @@ class TensorTupleReducerOp : public TensorBase<TensorTupleReducerOp<ReduceOp, Di
   const Dims& reduce_dims() const { return m_reduce_dims; }
 
   EIGEN_DEVICE_FUNC
-  int return_dim() const { return m_return_dim; }
+  Index return_dim() const { return m_return_dim; }
 
   protected:
     typename XprType::Nested m_xpr;
     const ReduceOp m_reduce_op;
-    const int m_return_dim;
+    const Index m_return_dim;
     const Dims m_reduce_dims;
 };
 
@@ -262,7 +262,7 @@ struct TensorEvaluator<const TensorTupleReducerOp<ReduceOp, Dims, ArgType>, Devi
   EIGEN_DEVICE_FUNC Scalar* data() const { return NULL; }
   #else // following functions are required by sycl
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TupleType* data() const { return m_impl.data(); }
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE int return_dim() const {return m_return_dim;}
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Index return_dim() const {return m_return_dim;}
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const StrideDims& strides() const {return m_strides;}
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Index& stride_mod() const {return m_stride_mod;}
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Index& stride_div() const {return m_stride_div;}
@@ -303,7 +303,7 @@ struct TensorEvaluator<const TensorTupleReducerOp<ReduceOp, Dims, ArgType>, Devi
  protected:
   TensorEvaluator<const TensorIndexTupleOp<ArgType>, Device> m_orig_impl;
   TensorEvaluator<const TensorReductionOp<ReduceOp, Dims, const TensorIndexTupleOp<ArgType> >, Device> m_impl;
-  const int m_return_dim;
+  const Index m_return_dim;
   StrideDims m_strides;
   Index m_stride_mod;
   Index m_stride_div;
