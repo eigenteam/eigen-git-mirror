@@ -228,7 +228,11 @@ struct TensorEvaluator<const TensorTupleReducerOp<ReduceOp, Dims, ArgType>, Devi
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
       : m_orig_impl(op.expression(), device),
         m_impl(op.expression().index_tuples().reduce(op.reduce_dims(), op.reduce_op()), device),
-        m_return_dim(op.return_dim()), m_device(device) {
+        m_return_dim(op.return_dim())
+#ifdef EIGEN_USE_SYCL
+       ,m_device(device)
+#endif
+  {
 
     gen_strides(m_orig_impl.dimensions(), m_strides);
     if (Layout == static_cast<int>(ColMajor)) {
@@ -307,8 +311,9 @@ struct TensorEvaluator<const TensorTupleReducerOp<ReduceOp, Dims, ArgType>, Devi
   StrideDims m_strides;
   Index m_stride_mod;
   Index m_stride_div;
- // required by sycl
+#ifdef EIGEN_USE_SYCL
   const Device& m_device;
+#endif
 };
 
 } // end namespace Eigen

@@ -154,11 +154,10 @@ struct TensorEvaluator<const TensorGeneratorOp<Generator, ArgType>, Device>
 
   EIGEN_DEVICE_FUNC Scalar* data() const { return NULL; }
 
-  /// required by sycl in order to extract the accessor
+#ifdef EIGEN_USE_SYCL
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const TensorEvaluator<ArgType, Device>& impl() const { return m_argImpl; }
-  /// required by sycl in order to extract the accessor
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Generator& functor() const { return m_generator; }
-
+#endif
 
  protected:
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
@@ -183,8 +182,9 @@ struct TensorEvaluator<const TensorGeneratorOp<Generator, ArgType>, Device>
   Dimensions m_dimensions;
   array<Index, NumDims> m_strides;
   Generator m_generator;
-  // required by sycl
+#ifdef EIGEN_USE_SYCL
   TensorEvaluator<ArgType, Device> m_argImpl;
+#endif
 };
 
 } // end namespace Eigen
