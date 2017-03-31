@@ -64,9 +64,13 @@ class TensorVolumePatchOp : public TensorBase<TensorVolumePatchOp<Planes, Rows, 
                                                             DenseIndex plane_strides, DenseIndex row_strides, DenseIndex col_strides,
                                                             DenseIndex in_plane_strides, DenseIndex in_row_strides, DenseIndex in_col_strides,
                                                             DenseIndex plane_inflate_strides, DenseIndex row_inflate_strides, DenseIndex col_inflate_strides,
-                                                            PaddingType padding_type, Scalar padding_value)
-      : TensorVolumePatchOp(expr, patch_planes, patch_rows, patch_cols, plane_strides, row_strides, col_strides, in_plane_strides, in_row_strides, in_col_strides,
-      plane_inflate_strides, row_inflate_strides, col_inflate_strides, 0,0,0,0,0,0,padding_value, padding_type, false) {}
+                                                            PaddingType padding_type, Scalar padding_value) :
+        m_xpr(expr), m_patch_planes(patch_planes), m_patch_rows(patch_rows), m_patch_cols(patch_cols),
+        m_plane_strides(plane_strides), m_row_strides(row_strides), m_col_strides(col_strides),
+        m_in_plane_strides(in_plane_strides), m_in_row_strides(in_row_strides), m_in_col_strides(in_col_strides),
+        m_plane_inflate_strides(plane_inflate_strides), m_row_inflate_strides(row_inflate_strides), m_col_inflate_strides(col_inflate_strides),
+        m_padding_explicit(false), m_padding_top_z(0), m_padding_bottom_z(0), m_padding_top(0), m_padding_bottom(0), m_padding_left(0), m_padding_right(0),
+        m_padding_type(padding_type), m_padding_value(padding_value) {}
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorVolumePatchOp(const XprType& expr, DenseIndex patch_planes, DenseIndex patch_rows, DenseIndex patch_cols,
                                                            DenseIndex plane_strides, DenseIndex row_strides, DenseIndex col_strides,
@@ -75,14 +79,14 @@ class TensorVolumePatchOp : public TensorBase<TensorVolumePatchOp<Planes, Rows, 
                                                            DenseIndex padding_top_z, DenseIndex padding_bottom_z,
                                                            DenseIndex padding_top, DenseIndex padding_bottom,
                                                            DenseIndex padding_left, DenseIndex padding_right,
-                                                           Scalar padding_value, PaddingType padding_type=PADDING_VALID, bool padding_explicit=true)
+                                                           Scalar padding_value)
       : m_xpr(expr), m_patch_planes(patch_planes), m_patch_rows(patch_rows), m_patch_cols(patch_cols),
         m_plane_strides(plane_strides), m_row_strides(row_strides), m_col_strides(col_strides),
         m_in_plane_strides(in_plane_strides), m_in_row_strides(in_row_strides), m_in_col_strides(in_col_strides),
         m_plane_inflate_strides(plane_inflate_strides), m_row_inflate_strides(row_inflate_strides), m_col_inflate_strides(col_inflate_strides),
-        m_padding_explicit(padding_explicit), m_padding_top_z(padding_top_z), m_padding_bottom_z(padding_bottom_z), m_padding_top(padding_top), m_padding_bottom(padding_bottom),
+        m_padding_explicit(true), m_padding_top_z(padding_top_z), m_padding_bottom_z(padding_bottom_z), m_padding_top(padding_top), m_padding_bottom(padding_bottom),
         m_padding_left(padding_left), m_padding_right(padding_right),
-        m_padding_type(padding_type), m_padding_value(padding_value) {}
+        m_padding_type(PADDING_VALID), m_padding_value(padding_value) {}
 
     EIGEN_DEVICE_FUNC
     DenseIndex patch_planes() const { return m_patch_planes; }

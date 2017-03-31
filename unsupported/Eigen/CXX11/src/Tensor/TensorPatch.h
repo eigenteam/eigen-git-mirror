@@ -255,10 +255,10 @@ struct TensorEvaluator<const TensorPatchOp<PatchDim, ArgType>, Device>
 
   EIGEN_DEVICE_FUNC Scalar* data() const { return NULL; }
 
-  /// required by sycl in order to extract the accessor
+#ifdef EIGEN_USE_SYCL
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const TensorEvaluator<ArgType, Device>& impl() const { return m_impl; }
-  /// required by sycl in order to extract the accessor
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const PatchDim& functor() const { return patch_dims; }
+#endif
 
  protected:
   Dimensions m_dimensions;
