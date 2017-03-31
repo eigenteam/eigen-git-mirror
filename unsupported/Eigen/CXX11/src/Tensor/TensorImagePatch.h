@@ -70,8 +70,12 @@ class TensorImagePatchOp : public TensorBase<TensorImagePatchOp<Rows, Cols, XprT
                                                            DenseIndex in_row_strides, DenseIndex in_col_strides,
                                                            DenseIndex row_inflate_strides, DenseIndex col_inflate_strides,
                                                            PaddingType padding_type, Scalar padding_value)
-      : TensorImagePatchOp(expr, patch_rows, patch_cols, row_strides,col_strides, in_row_strides, in_col_strides, row_inflate_strides,
-         col_inflate_strides, 0,0,0,0,padding_value, padding_type, false ){}
+        : m_xpr(expr), m_patch_rows(patch_rows), m_patch_cols(patch_cols),
+        m_row_strides(row_strides), m_col_strides(col_strides),
+        m_in_row_strides(in_row_strides), m_in_col_strides(in_col_strides),
+        m_row_inflate_strides(row_inflate_strides), m_col_inflate_strides(col_inflate_strides),
+        m_padding_explicit(false), m_padding_top(0), m_padding_bottom(0), m_padding_left(0), m_padding_right(0),
+        m_padding_type(padding_type), m_padding_value(padding_value) {}
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorImagePatchOp(const XprType& expr, DenseIndex patch_rows, DenseIndex patch_cols,
                                                            DenseIndex row_strides, DenseIndex col_strides,
@@ -79,15 +83,14 @@ class TensorImagePatchOp : public TensorBase<TensorImagePatchOp<Rows, Cols, XprT
                                                            DenseIndex row_inflate_strides, DenseIndex col_inflate_strides,
                                                            DenseIndex padding_top, DenseIndex padding_bottom,
                                                            DenseIndex padding_left, DenseIndex padding_right,
-                                                           Scalar padding_value, PaddingType padding_type=PADDING_VALID,
-                                                           bool padding_explicit=true)
+                                                           Scalar padding_value)
       : m_xpr(expr), m_patch_rows(patch_rows), m_patch_cols(patch_cols),
         m_row_strides(row_strides), m_col_strides(col_strides),
         m_in_row_strides(in_row_strides), m_in_col_strides(in_col_strides),
         m_row_inflate_strides(row_inflate_strides), m_col_inflate_strides(col_inflate_strides),
-        m_padding_explicit(padding_explicit), m_padding_top(padding_top), m_padding_bottom(padding_bottom),
+        m_padding_explicit(true), m_padding_top(padding_top), m_padding_bottom(padding_bottom),
         m_padding_left(padding_left), m_padding_right(padding_right),
-        m_padding_type(padding_type), m_padding_value(padding_value) {}
+        m_padding_type(PADDING_VALID), m_padding_value(padding_value) {}
 
     EIGEN_DEVICE_FUNC
     DenseIndex patch_rows() const { return m_patch_rows; }
