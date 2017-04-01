@@ -83,8 +83,8 @@ large enough to hold all the data.
 
     // You can also map fixed-size tensors.  Here we get a 1d view of
     // the 2d fixed-size tensor.
-    Tensor<float, Sizes<4, 5>> t_4x3;
-    TensorMap<Tensor<float, 1>> t_12(t_4x3, 12);
+    TensorFixedSize<float, Sizes<4, 5>> t_4x3;
+    TensorMap<Tensor<float, 1>> t_12(t_4x3.data(), 12);
 
 
 #### Class TensorRef
@@ -272,7 +272,7 @@ Operation to a TensorFixedSize instead of a Tensor, which is a bit more
 efficient.
 
     // We know that the result is a 4x4x2 tensor!
-    TensorFixedSize<float, 4, 4, 2> result = t5;
+    TensorFixedSize<float, Sizes<4, 4, 2>> result = t5;
 
 Simiarly, assigning an expression to a TensorMap causes its evaluation.  Like
 tensors of type TensorFixedSize, TensorMaps cannot be resized so they have to
@@ -296,7 +296,7 @@ the expression in a temporary Tensor of the right size.  The code above in
 effect does:
 
     // .eval() knows the size!
-    TensorFixedSize<float, 4, 4, 2> tmp = t1 + t2;
+    TensorFixedSize<float, Sizes<4, 4, 2>> tmp = t1 + t2;
     Tensor<float, 3> result = (tmp * 0.2f).exp();
 
 Note that the return value of ```eval()``` is itself an Operation, so the
@@ -567,11 +567,11 @@ to the rank of the tensor. The content of the tensor is not initialized.
 
 ### TensorFixedSize
 
-Creates a tensor of the specified size. The number of arguments in the Size<>
+Creates a tensor of the specified size. The number of arguments in the Sizes<>
 template parameter determines the rank of the tensor. The content of the tensor
 is not initialized.
 
-    Eigen::TensorFixedSize<float, Size<3, 4>> a;
+    Eigen::TensorFixedSize<float, Sizes<3, 4>> a;
     cout << "Rank: " << a.rank() << endl;
     => Rank: 2
     cout << "NumRows: " << a.dimension(0) << " NumCols: " << a.dimension(1) << endl;
@@ -584,11 +584,11 @@ until the TensorMap is discarded, and the size of the data must be large enough
 to accomodate of the coefficients of the tensor.
 
     float data[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
-    Eigen::TensorMap<float, 2> a(data, 3, 4);
+    Eigen::TensorMap<Tensor<float, 2>> a(data, 3, 4);
     cout << "NumRows: " << a.dimension(0) << " NumCols: " << a.dimension(1) << endl;
     => NumRows: 3 NumCols: 4
     cout << "a(1, 2): " << a(1, 2) << endl;
-    => a(1, 2): 9
+    => a(1, 2): 7
 
 
 ## Contents Initialization
@@ -1314,7 +1314,7 @@ The previous example can be rewritten as follow:
     Eigen::Tensor<float, 2, Eigen::ColMajor> a(2, 3);
     a.setValues({{0.0f, 100.0f, 200.0f}, {300.0f, 400.0f, 500.0f}});
     Eigen::array<Eigen::DenseIndex, 2> two_dim({2, 3});
-    Eigen::Tensor<float, 1, Eigen::ColMajor> b;
+    Eigen::Tensor<float, 1, Eigen::ColMajor> b(6);
     b.reshape(two_dim) = a;
     cout << "b" << endl << b << endl;
     =>

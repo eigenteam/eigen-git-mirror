@@ -20,7 +20,7 @@ namespace Eigen {
   * The fixed sized equivalent of
   * Eigen::Tensor<float, 3> t(3, 5, 7);
   * is
-  * Eigen::TensorFixedSize<float, Size<3,5,7>> t;
+  * Eigen::TensorFixedSize<float, Sizes<3,5,7>> t;
   */
 
 template<typename Scalar_, typename Dimensions_, int Options_, typename IndexType>
