@@ -97,9 +97,13 @@ struct TensorEvaluator<const TensorGeneratorOp<Generator, ArgType>, Device>
   };
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
-      : m_generator(op.generator()), m_argImpl(op.expression(), device)
+      : m_generator(op.generator())
+#ifdef EIGEN_USE_SYCL
+      , m_argImpl(op.expression(), device)
+#endif
   {
-    m_dimensions = m_argImpl.dimensions();
+    TensorEvaluator<ArgType, Device> argImpl(op.expression(), device);
+    m_dimensions = argImpl.dimensions();
 
     if (static_cast<int>(Layout) == static_cast<int>(ColMajor)) {
       m_strides[0] = 1;
