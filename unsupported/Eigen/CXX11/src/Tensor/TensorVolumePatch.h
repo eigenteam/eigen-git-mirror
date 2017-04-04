@@ -359,7 +359,6 @@ struct TensorEvaluator<const TensorVolumePatchOp<Planes, Rows, Cols, ArgType>, D
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE CoeffReturnType coeff(Index index) const
   {
-
     // Patch index corresponding to the passed in index.
     const Index patchIndex = index / m_fastPatchStride;
 
