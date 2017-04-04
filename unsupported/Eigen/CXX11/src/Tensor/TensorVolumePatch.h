@@ -325,7 +325,6 @@ struct TensorEvaluator<const TensorVolumePatchOp<Planes, Rows, Cols, ArgType>, D
     m_outputPlanesRows = m_outputPlanes * m_outputRows;
 
     // Fast representations of different variables.
-  //  printf("THis is m_otherStride: %lu\n", m_otherStride );
     m_fastOtherStride = internal::TensorIntDivisor<Index>(m_otherStride);
 
     m_fastPatchStride = internal::TensorIntDivisor<Index>(m_patchStride);
