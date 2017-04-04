@@ -119,11 +119,11 @@ struct TensorEvaluator<const TensorIndexTupleOp<ArgType>, Device>
 
   EIGEN_DEVICE_FUNC Scalar* data() const { return NULL; }
 
-  // required by sycl
+#ifdef EIGEN_USE_SYCL
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const TensorEvaluator<ArgType, Device>& impl() const {
     return m_impl;
   }
-
+#endif
 
  protected:
   TensorEvaluator<ArgType, Device> m_impl;

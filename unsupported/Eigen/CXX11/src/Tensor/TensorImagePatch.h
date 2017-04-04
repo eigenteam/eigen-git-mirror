@@ -70,7 +70,7 @@ class TensorImagePatchOp : public TensorBase<TensorImagePatchOp<Rows, Cols, XprT
                                                            DenseIndex in_row_strides, DenseIndex in_col_strides,
                                                            DenseIndex row_inflate_strides, DenseIndex col_inflate_strides,
                                                            PaddingType padding_type, Scalar padding_value)
-        : m_xpr(expr), m_patch_rows(patch_rows), m_patch_cols(patch_cols),
+      : m_xpr(expr), m_patch_rows(patch_rows), m_patch_cols(patch_cols),
         m_row_strides(row_strides), m_col_strides(col_strides),
         m_in_row_strides(in_row_strides), m_in_col_strides(in_col_strides),
         m_row_inflate_strides(row_inflate_strides), m_col_inflate_strides(col_inflate_strides),
@@ -172,7 +172,10 @@ struct TensorEvaluator<const TensorImagePatchOp<Rows, Cols, ArgType>, Device>
   };
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
-      : m_impl(op.expression(), device), m_op(op)
+      : m_impl(op.expression(), device)
+#ifdef EIGEN_USE_SYCL
+      , m_op(op)
+#endif
   {
     EIGEN_STATIC_ASSERT((NumDims >= 4), YOU_MADE_A_PROGRAMMING_MISTAKE);
 
@@ -423,9 +426,10 @@ struct TensorEvaluator<const TensorImagePatchOp<Rows, Cols, ArgType>, Device>
   EIGEN_DEVICE_FUNC Scalar* data() const { return NULL; }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const TensorEvaluator<ArgType, Device>& impl() const { return m_impl; }
-  // required by sycl
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const XprType& xpr() const { return m_op; }
 
+#ifdef EIGEN_USE_SYCL
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const XprType& xpr() const { return m_op; }
+#endif
 
   Index rowPaddingTop() const { return m_rowPaddingTop; }
   Index colPaddingLeft() const { return m_colPaddingLeft; }
@@ -506,8 +510,10 @@ struct TensorEvaluator<const TensorImagePatchOp<Rows, Cols, ArgType>, Device>
   Scalar m_paddingValue;
 
   TensorEvaluator<ArgType, Device> m_impl;
-  // required for sycl
+
+#ifdef EIGEN_USE_SYCL
   const XprType& m_op;
+#endif
 };
 
 
