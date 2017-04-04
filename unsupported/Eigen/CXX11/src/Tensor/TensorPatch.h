@@ -99,11 +99,14 @@ struct TensorEvaluator<const TensorPatchOp<PatchDim, ArgType>, Device>
  };
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
-      : m_impl(op.expression(), device), patch_dims(op.patch_dims())
+      : m_impl(op.expression(), device)
+#ifdef EIGEN_USE_SYCL
+      , m_patch_dims(op.patch_dims())
+#endif
   {
     Index num_patches = 1;
     const typename TensorEvaluator<ArgType, Device>::Dimensions& input_dims = m_impl.dimensions();
-  //  const PatchDim& patch_dims = op.patch_dims();
+    const PatchDim& patch_dims = op.patch_dims();
     if (static_cast<int>(Layout) == static_cast<int>(ColMajor)) {
       for (int i = 0; i < NumDims-1; ++i) {
         m_dimensions[i] = patch_dims[i];
@@ -257,7 +260,7 @@ struct TensorEvaluator<const TensorPatchOp<PatchDim, ArgType>, Device>
 
 #ifdef EIGEN_USE_SYCL
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const TensorEvaluator<ArgType, Device>& impl() const { return m_impl; }
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const PatchDim& functor() const { return patch_dims; }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const PatchDim& functor() const { return m_patch_dims; }
 #endif
 
  protected:
@@ -267,8 +270,10 @@ struct TensorEvaluator<const TensorPatchOp<PatchDim, ArgType>, Device>
   array<Index, NumDims-1> m_patchStrides;
 
   TensorEvaluator<ArgType, Device> m_impl;
-  // required by sycl
-  const PatchDim patch_dims;
+
+#ifdef EIGEN_USE_SYCL
+  const PatchDim m_patch_dims;
+#endif
 };
 
 } // end namespace Eigen
