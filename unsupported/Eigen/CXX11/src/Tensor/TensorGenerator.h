@@ -98,9 +98,12 @@ struct TensorEvaluator<const TensorGeneratorOp<Generator, ArgType>, Device>
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
       : m_generator(op.generator())
+#ifdef EIGEN_USE_SYCL
+      , m_argImpl(op.expression(), device)
+#endif
   {
-    TensorEvaluator<ArgType, Device> impl(op.expression(), device);
-    m_dimensions = impl.dimensions();
+    TensorEvaluator<ArgType, Device> argImpl(op.expression(), device);
+    m_dimensions = argImpl.dimensions();
 
     if (static_cast<int>(Layout) == static_cast<int>(ColMajor)) {
       m_strides[0] = 1;
@@ -155,6 +158,11 @@ struct TensorEvaluator<const TensorGeneratorOp<Generator, ArgType>, Device>
 
   EIGEN_DEVICE_FUNC Scalar* data() const { return NULL; }
 
+#ifdef EIGEN_USE_SYCL
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const TensorEvaluator<ArgType, Device>& impl() const { return m_argImpl; }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Generator& functor() const { return m_generator; }
+#endif
+
  protected:
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
   void extract_coordinates(Index index, array<Index, NumDims>& coords) const {
@@ -178,6 +186,9 @@ struct TensorEvaluator<const TensorGeneratorOp<Generator, ArgType>, Device>
   Dimensions m_dimensions;
   array<Index, NumDims> m_strides;
   Generator m_generator;
+#ifdef EIGEN_USE_SYCL
+  TensorEvaluator<ArgType, Device> m_argImpl;
+#endif
 };
 
 } // end namespace Eigen

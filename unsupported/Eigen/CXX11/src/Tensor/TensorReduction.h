@@ -421,7 +421,10 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType, MakePointer_>,
   static const bool RunningFullReduction = (NumOutputDims==0);
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
-      : m_impl(op.expression(), device), m_reducer(op.reducer()), m_result(NULL), m_device(device), m_xpr_dims(op.dims())
+      : m_impl(op.expression(), device), m_reducer(op.reducer()), m_result(NULL), m_device(device)
+#if defined(EIGEN_USE_SYCL)
+      , m_xpr_dims(op.dims())
+#endif
   {
     EIGEN_STATIC_ASSERT((NumInputDims >= NumReducedDims), YOU_MADE_A_PROGRAMMING_MISTAKE);
     EIGEN_STATIC_ASSERT((!ReducingInnerMostDims | !PreservingInnerMostDims | (NumReducedDims == NumInputDims)),
@@ -675,13 +678,12 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType, MakePointer_>,
   }
 
   EIGEN_DEVICE_FUNC typename MakePointer_<Scalar>::Type data() const { return m_result; }
-  /// required by sycl in order to extract the accessor
-  const TensorEvaluator<ArgType, Device>& impl() const { return m_impl; }
-  /// added for sycl in order to construct the buffer from the sycl device
-  const Device& device() const{return m_device;}
-  /// added for sycl in order to re-construct the reduction eval on the device for the sub-kernel
-  const Dims& xprDims() const {return m_xpr_dims;}
 
+#if defined(EIGEN_USE_SYCL)
+  const TensorEvaluator<ArgType, Device>& impl() const { return m_impl; }
+  const Device& device() const { return m_device; }
+  const Dims& xprDims() const { return m_xpr_dims; }
+#endif
 
   private:
   template <int, typename, typename> friend struct internal::GenericDimReducer;
@@ -791,7 +793,10 @@ static const bool RunningOnGPU = false;
   typename MakePointer_<CoeffReturnType>::Type m_result;
 
   const Device& m_device;
-  const Dims& m_xpr_dims;
+
+#if defined(EIGEN_USE_SYCL)
+  const Dims m_xpr_dims;
+#endif
 };
 
 } // end namespace Eigen

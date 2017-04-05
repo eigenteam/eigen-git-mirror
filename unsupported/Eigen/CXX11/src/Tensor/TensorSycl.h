@@ -32,6 +32,8 @@ struct MakeLocalPointer {
 
 
 namespace Eigen {
+  template<typename StrideDims, typename XprType> class TensorTupleReducerDeviceOp;
+  template<typename StrideDims, typename ArgType> struct TensorEvaluator<const TensorTupleReducerDeviceOp<StrideDims, ArgType>, SyclKernelDevice>;
 namespace TensorSycl {
 namespace internal {
 
@@ -46,6 +48,13 @@ template<bool IsConst, typename T> struct GetType{
 };
 template<typename T> struct GetType<false, T>{
   typedef T Type;
+};
+
+template <bool Conds,  size_t X , size_t Y > struct ValueCondition {
+  static const size_t Res =X;
+};
+template<size_t X, size_t Y> struct ValueCondition<false, X , Y> {
+  static const size_t Res =Y;
 };
 
 }
@@ -79,6 +88,9 @@ template<typename T> struct GetType<false, T>{
 
 /// this is used for extracting tensor reduction
 #include "TensorReductionSycl.h"
+
+// TensorArgMaxSycl.h
+#include "TensorArgMaxSycl.h"
 
 /// this is used for extracting tensor convolution
 #include "TensorConvolutionSycl.h"

@@ -183,9 +183,16 @@ struct TensorEvaluator<const TensorVolumePatchOp<Planes, Rows, Cols, ArgType>, D
     CoordAccess = false,
     RawAccess = false
   };
+#ifdef __SYCL_DEVICE_ONLY__
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator( const XprType op, const Device& device)
+#else
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator( const XprType& op, const Device& device)
+#endif
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
       : m_impl(op.expression(), device)
+#ifdef EIGEN_USE_SYCL
+      , m_op(op)
+#endif
   {
     EIGEN_STATIC_ASSERT((NumDims >= 5), YOU_MADE_A_PROGRAMMING_MISTAKE);
 
@@ -322,6 +329,7 @@ struct TensorEvaluator<const TensorVolumePatchOp<Planes, Rows, Cols, ArgType>, D
 
     // Fast representations of different variables.
     m_fastOtherStride = internal::TensorIntDivisor<Index>(m_otherStride);
+
     m_fastPatchStride = internal::TensorIntDivisor<Index>(m_patchStride);
     m_fastColStride = internal::TensorIntDivisor<Index>(m_colStride);
     m_fastRowStride = internal::TensorIntDivisor<Index>(m_rowStride);
@@ -338,7 +346,6 @@ struct TensorEvaluator<const TensorVolumePatchOp<Planes, Rows, Cols, ArgType>, D
       m_fastOutputDepth = internal::TensorIntDivisor<Index>(m_dimensions[NumDims-1]);
     }
   }
-
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Dimensions& dimensions() const { return m_dimensions; }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool evalSubExprsIfNeeded(Scalar* /*data*/) {
@@ -506,6 +513,10 @@ struct TensorEvaluator<const TensorVolumePatchOp<Planes, Rows, Cols, ArgType>, D
 
   const TensorEvaluator<ArgType, Device>& impl() const { return m_impl; }
 
+#ifdef EIGEN_USE_SYCL
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const XprType& xpr() const { return m_op; }
+#endif
+
   Index planePaddingTop() const { return m_planePaddingTop; }
   Index rowPaddingTop() const { return m_rowPaddingTop; }
   Index colPaddingLeft() const { return m_colPaddingLeft; }
@@ -600,6 +611,10 @@ struct TensorEvaluator<const TensorVolumePatchOp<Planes, Rows, Cols, ArgType>, D
   Scalar m_paddingValue;
 
   TensorEvaluator<ArgType, Device> m_impl;
+
+#ifdef EIGEN_USE_SYCL
+  XprType m_op;
+#endif
 };
 
 

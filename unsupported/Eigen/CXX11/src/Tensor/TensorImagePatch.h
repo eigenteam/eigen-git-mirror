@@ -173,6 +173,9 @@ struct TensorEvaluator<const TensorImagePatchOp<Rows, Cols, ArgType>, Device>
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
       : m_impl(op.expression(), device)
+#ifdef EIGEN_USE_SYCL
+      , m_op(op)
+#endif
   {
     EIGEN_STATIC_ASSERT((NumDims >= 4), YOU_MADE_A_PROGRAMMING_MISTAKE);
 
@@ -241,6 +244,8 @@ struct TensorEvaluator<const TensorImagePatchOp<Rows, Cols, ArgType>, Device>
           break;
         default:
           eigen_assert(false && "unexpected padding");
+          m_outputCols=0; // silence the uninitialised warnig;
+          m_outputRows=0; //// silence the uninitialised warnig;
       }
     }
     eigen_assert(m_outputRows > 0);
@@ -420,7 +425,11 @@ struct TensorEvaluator<const TensorImagePatchOp<Rows, Cols, ArgType>, Device>
 
   EIGEN_DEVICE_FUNC Scalar* data() const { return NULL; }
 
-  const TensorEvaluator<ArgType, Device>& impl() const { return m_impl; }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const TensorEvaluator<ArgType, Device>& impl() const { return m_impl; }
+
+#ifdef EIGEN_USE_SYCL
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const XprType& xpr() const { return m_op; }
+#endif
 
   Index rowPaddingTop() const { return m_rowPaddingTop; }
   Index colPaddingLeft() const { return m_colPaddingLeft; }
@@ -501,6 +510,10 @@ struct TensorEvaluator<const TensorImagePatchOp<Rows, Cols, ArgType>, Device>
   Scalar m_paddingValue;
 
   TensorEvaluator<ArgType, Device> m_impl;
+
+#ifdef EIGEN_USE_SYCL
+  const XprType& m_op;
+#endif
 };
 
 

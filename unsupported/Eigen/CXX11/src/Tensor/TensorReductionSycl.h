@@ -27,15 +27,15 @@ namespace internal {
 
 template<typename OP, typename CoeffReturnType> struct syclGenericBufferReducer{
 template<typename BufferTOut, typename BufferTIn>
-static void run(OP op, BufferTOut& bufOut, BufferTIn& bufI, const Eigen::SyclDevice& dev, size_t length, size_t local){
+static void run(OP op, BufferTOut& bufOut, ptrdiff_t out_offset, BufferTIn& bufI, const Eigen::SyclDevice& dev, size_t length, size_t local){
   do {
-          auto f = [length, local, op, &bufOut, &bufI](cl::sycl::handler& h) mutable {
+          auto f = [length, local, op, out_offset, &bufOut, &bufI](cl::sycl::handler& h) mutable {
             cl::sycl::nd_range<1> r{cl::sycl::range<1>{std::max(length, local)},
                                     cl::sycl::range<1>{std::min(length, local)}};
             /* Two accessors are used: one to the buffer that is being reduced,
              * and a second to local memory, used to store intermediate data. */
             auto aI =bufI.template get_access<cl::sycl::access::mode::read_write>(h);
-            auto aOut =bufOut.template get_access<cl::sycl::access::mode::discard_write>(h);
+            auto aOut =bufOut.template get_access<cl::sycl::access::mode::write>(h);
             typedef decltype(aI) InputAccessor;
             typedef decltype(aOut) OutputAccessor;
             typedef cl::sycl::accessor<CoeffReturnType, 1, cl::sycl::access::mode::read_write,cl::sycl::access::target::local> LocalAccessor;
@@ -43,7 +43,7 @@ static void run(OP op, BufferTOut& bufOut, BufferTIn& bufI, const Eigen::SyclDev
 
             /* The parallel_for invocation chosen is the variant with an nd_item
              * parameter, since the code requires barriers for correctness. */
-            h.parallel_for(r, TensorSycl::internal::GenericKernelReducer<CoeffReturnType, OP, OutputAccessor, InputAccessor, LocalAccessor>(op, aOut, aI, scratch,  length, local));
+            h.parallel_for(r, TensorSycl::internal::GenericKernelReducer<CoeffReturnType, OP, OutputAccessor, InputAccessor, LocalAccessor>(op, aOut, out_offset, aI, scratch,  length, local));
           };
             dev.sycl_queue().submit(f);
             dev.asynchronousExec();
@@ -60,9 +60,9 @@ static void run(OP op, BufferTOut& bufOut, BufferTIn& bufI, const Eigen::SyclDev
 
 template<typename CoeffReturnType> struct syclGenericBufferReducer<Eigen::internal::MeanReducer<CoeffReturnType>, CoeffReturnType>{
 template<typename BufferTOut, typename BufferTIn>
-static void run(Eigen::internal::MeanReducer<CoeffReturnType>, BufferTOut& bufOut, BufferTIn& bufI, const Eigen::SyclDevice& dev, size_t length, size_t local){
+static void run(Eigen::internal::MeanReducer<CoeffReturnType>, BufferTOut& bufOut,ptrdiff_t out_offset, BufferTIn& bufI, const Eigen::SyclDevice& dev, size_t length, size_t local){
    syclGenericBufferReducer<Eigen::internal::SumReducer<CoeffReturnType>, CoeffReturnType>::run(Eigen::internal::SumReducer<CoeffReturnType>(),
-    bufOut, bufI, dev, length, local);
+    bufOut, out_offset, bufI, dev, length, local);
 }
 };
 
@@ -127,8 +127,9 @@ struct FullReducer<Self, Op, const Eigen::SyclDevice, Vectorizable> {
 
     // getting final out buffer at the moment the created buffer is true because there is no need for assign
     auto out_buffer =dev.get_sycl_buffer(output);
+    ptrdiff_t out_offset = dev.get_offset(output);
     /// This is used to recursively reduce the tmp value to an element of 1;
-    syclGenericBufferReducer<Op, CoeffReturnType>::run(reducer, out_buffer, temp_global_buffer,dev, GRange,  outTileSize);
+    syclGenericBufferReducer<Op, CoeffReturnType>::run(reducer, out_buffer, out_offset, temp_global_buffer,dev, GRange,  outTileSize);
   }
 
 };
@@ -157,11 +158,12 @@ struct InnerReducer<Self, Op, const Eigen::SyclDevice> {
       typedef decltype(TensorSycl::internal::createTupleOfAccessors(cgh, self.impl())) Tuple_of_Acc;
       // create a tuple of accessors from Evaluator
       Tuple_of_Acc tuple_of_accessors =  TensorSycl::internal::createTupleOfAccessors(cgh, self.impl());
-      auto output_accessor = dev.template get_sycl_accessor<cl::sycl::access::mode::discard_write>(cgh, output);
+      auto output_accessor = dev.template get_sycl_accessor<cl::sycl::access::mode::write>(cgh, output);
+      ptrdiff_t out_offset = dev.get_offset(output);
       Index red_size = (num_values_to_reduce!=0)? num_values_to_reduce : static_cast<Index>(1);
       cgh.parallel_for( cl::sycl::nd_range<1>(cl::sycl::range<1>(GRange), cl::sycl::range<1>(tileSize)),
       TensorSycl::internal::ReductionFunctor<HostExpr, FunctorExpr, Tuple_of_Acc, Dims, Op, typename Self::Index>
-      (output_accessor, functors, tuple_of_accessors, self.xprDims(), reducer, range, red_size));
+      (output_accessor, out_offset, functors, tuple_of_accessors, self.xprDims(), reducer, range, red_size));
 
     });
     dev.asynchronousExec();
