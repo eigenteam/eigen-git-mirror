@@ -297,6 +297,10 @@ template<typename SparseMatrixType> void sparse_product()
     VERIFY_IS_APPROX(x=mLo.template selfadjointView<Lower>()*b, refX=refS*b);
     VERIFY_IS_APPROX(x=mS.template selfadjointView<Upper|Lower>()*b, refX=refS*b);
 
+    VERIFY_IS_APPROX(x=b * mUp.template selfadjointView<Upper>(),       refX=b*refS);
+    VERIFY_IS_APPROX(x=b * mLo.template selfadjointView<Lower>(),       refX=b*refS);
+    VERIFY_IS_APPROX(x=b * mS.template selfadjointView<Upper|Lower>(),  refX=b*refS);
+
     VERIFY_IS_APPROX(x.noalias()+=mUp.template selfadjointView<Upper>()*b, refX+=refS*b);
     VERIFY_IS_APPROX(x.noalias()-=mLo.template selfadjointView<Lower>()*b, refX-=refS*b);
     VERIFY_IS_APPROX(x.noalias()+=mS.template selfadjointView<Upper|Lower>()*b, refX+=refS*b);
