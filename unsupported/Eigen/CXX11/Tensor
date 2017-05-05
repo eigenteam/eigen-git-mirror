@@ -19,7 +19,7 @@
 #undef isnan
 #undef isinf
 #undef isfinite
-#include <SYCL/sycl.hpp>
+#include <CL/sycl.hpp>
 #include <iostream>
 #include <map>
 #include <memory>

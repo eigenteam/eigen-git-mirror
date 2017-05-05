@@ -151,6 +151,10 @@ if(NOT MSVC)
   ei_add_cxx_compiler_flag("-Wenum-conversion")
   ei_add_cxx_compiler_flag("-Wc++11-extensions")
   ei_add_cxx_compiler_flag("-Wdouble-promotion")
+  ei_add_cxx_compiler_flag("-Wno-unused-parameter")
+  ei_add_cxx_compiler_flag("-Wno-ignored-attributes")
+  ei_add_cxx_compiler_flag("-Wno-ignored-qualifiers")
+  ei_add_cxx_compiler_flag("-Wno-sign-compare")
 #  ei_add_cxx_compiler_flag("-Wconversion")
   
   # -Wshadow is insanely too strict with gcc, hopefully it will become usable with gcc 6
@@ -437,10 +441,17 @@ endif()
 
 # add SYCL
 option(EIGEN_TEST_SYCL "Add Sycl support." OFF)
+option(EIGEN_SYCL_TRISYCL "Use the triSYCL Sycl implementation (ComputeCPP by default)." OFF)
 if(EIGEN_TEST_SYCL)
   set (CMAKE_MODULE_PATH "${CMAKE_ROOT}/Modules" "cmake/Modules/" "${CMAKE_MODULE_PATH}")
-  include(FindComputeCpp)
-endif()
+  if(EIGEN_SYCL_TRISYCL)
+    message(STATUS "Using triSYCL")
+    include(FindTriSYCL)
+  else(EIGEN_SYCL_TRISYCL)
+    message(STATUS "Using ComputeCPP SYCL")
+    include(FindComputeCpp)
+  endif(EIGEN_SYCL_TRISYCL)
+endif(EIGEN_TEST_SYCL)
 
 add_subdirectory(unsupported)
 
