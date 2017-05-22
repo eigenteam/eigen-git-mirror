@@ -201,7 +201,8 @@ function(__build_spir targetName sourceFile binaryDir)
             ${device_compiler_includes}
             -o ${outputSyclFile}
             -c ${CMAKE_CURRENT_SOURCE_DIR}/${sourceFile}
-    DEPENDS ${sourceFile}
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/${sourceFile}
+    IMPLICIT_DEPENDS CXX "${CMAKE_CURRENT_SOURCE_DIR}/${sourceFile}"
     WORKING_DIRECTORY ${binaryDir}
   COMMENT "Building ComputeCpp integration header file ${outputSyclFile}")
 
@@ -233,8 +234,9 @@ endfunction()
 #  sourceFile : Source file to be compiled for SYCL.
 #  binaryDir : Intermediate directory to output the integration header.
 #
-function(add_sycl_to_target targetName sourceFile binaryDir)
+function(add_sycl_to_target targetName binaryDir sourceFile)
 
+  set(sourceFiles ${sourceFiles} ${ARGN})
   # Add custom target to run compute++ and generate the integration header
   __build_spir(${targetName} ${sourceFile} ${binaryDir})
 
