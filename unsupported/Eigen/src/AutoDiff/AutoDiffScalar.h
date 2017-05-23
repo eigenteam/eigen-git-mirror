@@ -683,4 +683,11 @@ template<typename DerType> struct NumTraits<AutoDiffScalar<DerType> >
 
 }
 
+namespace std {
+template <typename T>
+class numeric_limits<Eigen::AutoDiffScalar<T> >
+  : public numeric_limits<typename T::Scalar> {};
+
+}  // namespace std
+
 #endif // EIGEN_AUTODIFF_SCALAR_H

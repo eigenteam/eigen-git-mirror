@@ -72,6 +72,19 @@ template<typename Scalar> void check_hyperbolic_functions()
   VERIFY_IS_APPROX(res3.derivatives().x(), Scalar(0.339540557256150));
 }
 
+template <typename Scalar>
+void check_limits_specialization()
+{
+  typedef Eigen::Matrix<Scalar, 1, 1> Deriv;
+  typedef Eigen::AutoDiffScalar<Deriv> AD;
+
+  typedef std::numeric_limits<AD> A;
+  typedef std::numeric_limits<Scalar> B;
+
+  bool res = std::is_base_of<B, A>::value;
+  VERIFY_IS_EQUAL(res, true);
+}
+
 void test_autodiff_scalar()
 {
   for(int i = 0; i < g_repeat; i++) {
@@ -79,5 +92,6 @@ void test_autodiff_scalar()
     CALL_SUBTEST_2( check_atan2<double>() );
     CALL_SUBTEST_3( check_hyperbolic_functions<float>() );
     CALL_SUBTEST_4( check_hyperbolic_functions<double>() );
+    CALL_SUBTEST_5( check_limits_specialization<double>());
   }
 }
