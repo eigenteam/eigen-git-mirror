@@ -81,7 +81,7 @@ struct memsetCghFunctor{
   }
 };
 
- //get_devices returns all the available opencl devices. Either use device_selector or exclude devices that computecpp does not support (AMD OpenCL for CPU  and intel GPU)
+//get_devices returns all the available opencl devices. Either use device_selector or exclude devices that computecpp does not support (AMD OpenCL for CPU  and intel GPU)
 EIGEN_STRONG_INLINE auto get_sycl_supported_devices()->decltype(cl::sycl::device::get_devices()){
 std::vector<cl::sycl::device> supported_devices;
 auto plafrom_list =cl::sycl::platform::get_platforms();
