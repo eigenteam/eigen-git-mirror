@@ -81,28 +81,26 @@ struct memsetCghFunctor{
   }
 };
 
-  //get_devices returns all the available opencl devices. Either use device_selector or exclude devices that computecpp does not support (AMD OpenCL for CPU  and intel GPU)
+ //get_devices returns all the available opencl devices. Either use device_selector or exclude devices that computecpp does not support (AMD OpenCL for CPU  and intel GPU)
 EIGEN_STRONG_INLINE auto get_sycl_supported_devices()->decltype(cl::sycl::device::get_devices()){
-  auto devices = cl::sycl::device::get_devices();
-  std::vector<cl::sycl::device>::iterator it =devices.begin();
-  while(it!=devices.end()) {
-    ///FIXME: Currently there is a bug in amd cpu OpenCL
-    auto name = (*it).template get_info<cl::sycl::info::device::name>();
-    std::transform(name.begin(), name.end(), name.begin(), ::tolower);
-    auto vendor = (*it).template get_info<cl::sycl::info::device::vendor>();
+std::vector<cl::sycl::device> supported_devices;
+auto plafrom_list =cl::sycl::platform::get_platforms();
+for(const auto& platform : plafrom_list){
+  auto device_list = platform.get_devices();
+  auto platform_name =platform.template get_info<cl::sycl::info::platform::name>();
+  std::transform(platform_name.begin(), platform_name.end(), platform_name.begin(), ::tolower);
+  for(const auto& device : device_list){
+    auto vendor = device.template get_info<cl::sycl::info::device::vendor>();
     std::transform(vendor.begin(), vendor.end(), vendor.begin(), ::tolower);
-
-    if((*it).is_cpu() && vendor.find("amd")!=std::string::npos && vendor.find("apu") == std::string::npos){ // remove amd cpu as it is not supported by computecpp allow APUs
-      it = devices.erase(it);
-      //FIXME: currently there is a bug in intel gpu driver regarding memory allignment issue.
-    }else if((*it).is_gpu() && name.find("intel")!=std::string::npos){
-      it = devices.erase(it);
-    }
-    else{
-      ++it;
+    bool unsuported_condition = (device.is_cpu() && platform_name.find("amd")!=std::string::npos && vendor.find("apu") == std::string::npos) ||
+    (device.is_gpu() && platform_name.find("intel")!=std::string::npos);
+    if(!unsuported_condition){
+      std::cout << "Platform name "<< platform_name << std::endl;
+        supported_devices.push_back(device);
     }
   }
-  return devices;
+}
+return supported_devices;
 }
 
 class QueueInterface {
