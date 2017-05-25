@@ -151,10 +151,6 @@ if(NOT MSVC)
   ei_add_cxx_compiler_flag("-Wenum-conversion")
   ei_add_cxx_compiler_flag("-Wc++11-extensions")
   ei_add_cxx_compiler_flag("-Wdouble-promotion")
-  ei_add_cxx_compiler_flag("-Wno-unused-parameter")
-  ei_add_cxx_compiler_flag("-Wno-ignored-attributes")
-  ei_add_cxx_compiler_flag("-Wno-ignored-qualifiers")
-  ei_add_cxx_compiler_flag("-Wno-sign-compare")
 #  ei_add_cxx_compiler_flag("-Wconversion")
   
   # -Wshadow is insanely too strict with gcc, hopefully it will become usable with gcc 6
