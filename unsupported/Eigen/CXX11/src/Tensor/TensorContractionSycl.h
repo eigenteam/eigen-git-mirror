@@ -195,7 +195,7 @@ typename HostExpr::Index LocalThreadSizeM, typename HostExpr::Index LocalThreadS
     m_j_strides(m_j_strides_),  m_right_nocontract_strides(m_right_nocontract_strides_),
     left_tuple_of_accessors(left_tuple_of_accessors_), right_tuple_of_accessors(right_tuple_of_accessors_), dev(dev_){}
 
-    void operator()(cl::sycl::nd_item<1> itemID) {
+    void operator()(cl::sycl::nd_item<2> itemID) {
       typedef typename Eigen::TensorSycl::internal::ConvertToDeviceExpression<HostExpr>::Type DevExpr;
       typedef typename Eigen::TensorSycl::internal::ConvertToDeviceExpression<LHSHostExpr>::Type LHSDevExpr;
       typedef typename Eigen::TensorSycl::internal::ConvertToDeviceExpression<RHSHostExpr>::Type RHSDevExpr;

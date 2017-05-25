@@ -437,10 +437,17 @@ endif()
 
 # add SYCL
 option(EIGEN_TEST_SYCL "Add Sycl support." OFF)
+option(EIGEN_SYCL_TRISYCL "Use the triSYCL Sycl implementation (ComputeCPP by default)." OFF)
 if(EIGEN_TEST_SYCL)
   set (CMAKE_MODULE_PATH "${CMAKE_ROOT}/Modules" "cmake/Modules/" "${CMAKE_MODULE_PATH}")
-  include(FindComputeCpp)
-endif()
+  if(EIGEN_SYCL_TRISYCL)
+    message(STATUS "Using triSYCL")
+    include(FindTriSYCL)
+  else(EIGEN_SYCL_TRISYCL)
+    message(STATUS "Using ComputeCPP SYCL")
+    include(FindComputeCpp)
+  endif(EIGEN_SYCL_TRISYCL)
+endif(EIGEN_TEST_SYCL)
 
 add_subdirectory(unsupported)
 
