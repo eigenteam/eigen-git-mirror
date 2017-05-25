@@ -40,7 +40,6 @@ struct SyclAllocator {
   SyclAllocator( ){};
   Scalar* allocate(std::size_t elements) {
     return static_cast<Scalar*>(Conditional_Allocate<CheckAlignStatically<Align>::Val, Align>::conditional_allocate(elements));
-  //  return static_cast<Scalar*>(aligned_alloc(Align, elements));
   }
   void deallocate(Scalar * p, std::size_t size) { EIGEN_UNUSED_VARIABLE(size); free(p); }
 };
