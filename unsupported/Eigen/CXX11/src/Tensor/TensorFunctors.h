@@ -166,7 +166,8 @@ template <typename T> struct MeanReducer
     return pset1<Packet>(initialize());
   }
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T finalize(const T accum) const {
-    return accum / scalarCount_;
+    internal::scalar_quotient_op<T> quotient_op;
+    return quotient_op(accum, T(scalarCount_));
   }
   template <typename Packet>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Packet finalizePacket(const Packet& vaccum) const {
@@ -175,7 +176,10 @@ template <typename T> struct MeanReducer
   template <typename Packet>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T finalizeBoth(const T saccum, const Packet& vaccum) const {
     internal::scalar_sum_op<T> sum_op;
-    return sum_op(saccum, predux(vaccum)) / (scalarCount_ + packetCount_ * unpacket_traits<Packet>::size);
+    internal::scalar_quotient_op<T> quotient_op;
+    return quotient_op(
+        sum_op(saccum, predux(vaccum)),
+        T(scalarCount_ + packetCount_ * unpacket_traits<Packet>::size));
   }
 
   protected:

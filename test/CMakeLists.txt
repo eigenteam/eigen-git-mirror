@@ -27,7 +27,7 @@ endif()
 
 if(NOT EIGEN_Fortran_COMPILER_WORKS)
   # search for a default Lapack library to complete Eigen's one
-  find_package(LAPACK)
+  find_package(LAPACK QUIET)
 endif()
 
 # configure blas/lapack (use Eigen's ones)
@@ -80,23 +80,30 @@ else()
 endif()
 
 
-find_package(Pastix)
-find_package(Scotch)
-find_package(Metis 5.0 REQUIRED)
-if(PASTIX_FOUND)
+find_package(PASTIX QUIET COMPONENTS METIS SCOTCH)
+# check that the PASTIX found is a version without MPI
+find_path(PASTIX_pastix_nompi.h_INCLUDE_DIRS
+  NAMES pastix_nompi.h
+  HINTS ${PASTIX_INCLUDE_DIRS}
+)
+if (NOT PASTIX_pastix_nompi.h_INCLUDE_DIRS)
+  message(STATUS "A version of Pastix has been found but pastix_nompi.h does not exist in the include directory."
+                 " Because Eigen tests require a version without MPI, we disable the Pastix backend.")
+endif()
+if(PASTIX_FOUND AND PASTIX_pastix_nompi.h_INCLUDE_DIRS)
   add_definitions("-DEIGEN_PASTIX_SUPPORT")
-  include_directories(${PASTIX_INCLUDES})
+  include_directories(${PASTIX_INCLUDE_DIRS_DEP})
   if(SCOTCH_FOUND)
-    include_directories(${SCOTCH_INCLUDES})
+    include_directories(${SCOTCH_INCLUDE_DIRS})
     set(PASTIX_LIBRARIES ${PASTIX_LIBRARIES} ${SCOTCH_LIBRARIES})
   elseif(METIS_FOUND)
-    include_directories(${METIS_INCLUDES})
+    include_directories(${METIS_INCLUDE_DIRS})
     set(PASTIX_LIBRARIES ${PASTIX_LIBRARIES} ${METIS_LIBRARIES})
   else(SCOTCH_FOUND)
     ei_add_property(EIGEN_MISSING_BACKENDS  "PaStiX, ")
   endif(SCOTCH_FOUND)
-  set(SPARSE_LIBS ${SPARSE_LIBS} ${PASTIX_LIBRARIES} ${ORDERING_LIBRARIES} ${EIGEN_BLAS_LIBRARIES})
-  set(PASTIX_ALL_LIBS ${PASTIX_LIBRARIES} ${EIGEN_BLAS_LIBRARIES})
+  set(SPARSE_LIBS ${SPARSE_LIBS} ${PASTIX_LIBRARIES_DEP} ${ORDERING_LIBRARIES})
+  set(PASTIX_ALL_LIBS ${PASTIX_LIBRARIES_DEP})
   ei_add_property(EIGEN_TESTED_BACKENDS  "PaStiX, ")
 else()
   ei_add_property(EIGEN_MISSING_BACKENDS  "PaStiX, ")
@@ -104,7 +111,7 @@ endif()
 
 if(METIS_FOUND)
   add_definitions("-DEIGEN_METIS_SUPPORT")
-  include_directories(${METIS_INCLUDES})
+  include_directories(${METIS_INCLUDE_DIRS})
   ei_add_property(EIGEN_TESTED_BACKENDS "METIS, ")
 else()
   ei_add_property(EIGEN_MISSING_BACKENDS "METIS, ")
