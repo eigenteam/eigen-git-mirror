@@ -14,7 +14,23 @@
 
 #if defined(EIGEN_USE_SYCL) && !defined(EIGEN_CXX11_TENSOR_TENSOR_DEVICE_SYCL_H)
 #define EIGEN_CXX11_TENSOR_TENSOR_DEVICE_SYCL_H
+template<size_t Align> struct CheckAlignStatically {
+  static const bool Val= (((Align&(Align-1))==0) && (Align >= sizeof(void *)));
+};
+template <bool IsAligned, size_t Align>
+struct Conditional_Allocate {
 
+  EIGEN_ALWAYS_INLINE static void* conditional_allocate(std::size_t elements) {
+    return aligned_alloc(Align, elements);
+  }
+};
+template <size_t Align>
+struct Conditional_Allocate<false, Align> {
+
+  EIGEN_ALWAYS_INLINE static void* conditional_allocate(std::size_t elements){
+    return malloc(elements);
+  }
+};
 template <typename Scalar, size_t Align = EIGEN_MAX_ALIGN_BYTES, class Allocator = std::allocator<Scalar>>
 struct SyclAllocator {
   typedef Scalar value_type;
@@ -22,7 +38,9 @@ struct SyclAllocator {
   typedef typename std::allocator_traits<Allocator>::size_type size_type;
 
   SyclAllocator( ){};
-  Scalar* allocate(std::size_t elements) { return static_cast<Scalar*>(aligned_alloc(Align, elements)); }
+  Scalar* allocate(std::size_t elements) {
+    return static_cast<Scalar*>(Conditional_Allocate<CheckAlignStatically<Align>::Val, Align>::conditional_allocate(elements));
+  }
   void deallocate(Scalar * p, std::size_t size) { EIGEN_UNUSED_VARIABLE(size); free(p); }
 };
 
