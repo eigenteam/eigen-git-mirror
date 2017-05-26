@@ -14,22 +14,22 @@
 
 #if defined(EIGEN_USE_SYCL) && !defined(EIGEN_CXX11_TENSOR_TENSOR_DEVICE_SYCL_H)
 #define EIGEN_CXX11_TENSOR_TENSOR_DEVICE_SYCL_H
-template<size_t Align> struct CheckAlignStatically{
+template<size_t Align> struct CheckAlignStatically {
   static const bool Val= (((Align&(Align-1))==0) && (Align >= sizeof(void *)));
 };
 template <bool IsAligned, size_t Align>
-struct Conditional_Allocate{
+struct Conditional_Allocate {
 
-EIGEN_ALWAYS_INLINE static void* conditional_allocate(std::size_t elements){
-  return aligned_alloc(Align, elements);
-}
+  EIGEN_ALWAYS_INLINE static void* conditional_allocate(std::size_t elements) {
+    return aligned_alloc(Align, elements);
+  }
 };
 template <size_t Align>
-struct Conditional_Allocate<false, Align>{
+struct Conditional_Allocate<false, Align> {
 
-EIGEN_ALWAYS_INLINE static void* conditional_allocate(std::size_t elements){
-  return malloc(elements);
-}
+  EIGEN_ALWAYS_INLINE static void* conditional_allocate(std::size_t elements){
+    return malloc(elements);
+  }
 };
 template <typename Scalar, size_t Align = EIGEN_MAX_ALIGN_BYTES, class Allocator = std::allocator<Scalar>>
 struct SyclAllocator {
