@@ -167,12 +167,12 @@ namespace internal {
 // template specializations for int and long that call the correct cholmod method
 
 #define EIGEN_CHOLMOD_SPECIALIZE0(ret, name) \
-    template<typename _StorageIndex> ret cm_ ## name       (cholmod_common &Common) { return cholmod_ ## name   (&Common); } \
-    template<>                       ret cm_ ## name<long> (cholmod_common &Common) { return cholmod_l_ ## name (&Common); }
+    template<typename _StorageIndex> inline ret cm_ ## name       (cholmod_common &Common) { return cholmod_ ## name   (&Common); } \
+    template<>                       inline ret cm_ ## name<long> (cholmod_common &Common) { return cholmod_l_ ## name (&Common); }
 
 #define EIGEN_CHOLMOD_SPECIALIZE1(ret, name, t1, a1) \
-    template<typename _StorageIndex> ret cm_ ## name       (t1& a1, cholmod_common &Common) { return cholmod_ ## name   (&a1, &Common); } \
-    template<>                       ret cm_ ## name<long> (t1& a1, cholmod_common &Common) { return cholmod_l_ ## name (&a1, &Common); }
+    template<typename _StorageIndex> inline ret cm_ ## name       (t1& a1, cholmod_common &Common) { return cholmod_ ## name   (&a1, &Common); } \
+    template<>                       inline ret cm_ ## name<long> (t1& a1, cholmod_common &Common) { return cholmod_l_ ## name (&a1, &Common); }
 
 EIGEN_CHOLMOD_SPECIALIZE0(int, start)
 EIGEN_CHOLMOD_SPECIALIZE0(int, finish)
@@ -183,16 +183,16 @@ EIGEN_CHOLMOD_SPECIALIZE1(int, free_sparse, cholmod_sparse*, A)
 
 EIGEN_CHOLMOD_SPECIALIZE1(cholmod_factor*, analyze, cholmod_sparse, A)
 
-template<typename _StorageIndex> cholmod_dense*  cm_solve         (int sys, cholmod_factor& L, cholmod_dense&  B, cholmod_common &Common) { return cholmod_solve     (sys, &L, &B, &Common); }
-template<>                       cholmod_dense*  cm_solve<long>   (int sys, cholmod_factor& L, cholmod_dense&  B, cholmod_common &Common) { return cholmod_l_solve   (sys, &L, &B, &Common); }
+template<typename _StorageIndex> inline cholmod_dense*  cm_solve         (int sys, cholmod_factor& L, cholmod_dense&  B, cholmod_common &Common) { return cholmod_solve     (sys, &L, &B, &Common); }
+template<>                       inline cholmod_dense*  cm_solve<long>   (int sys, cholmod_factor& L, cholmod_dense&  B, cholmod_common &Common) { return cholmod_l_solve   (sys, &L, &B, &Common); }
 
-template<typename _StorageIndex> cholmod_sparse* cm_spsolve       (int sys, cholmod_factor& L, cholmod_sparse& B, cholmod_common &Common) { return cholmod_spsolve   (sys, &L, &B, &Common); }
-template<>                       cholmod_sparse* cm_spsolve<long> (int sys, cholmod_factor& L, cholmod_sparse& B, cholmod_common &Common) { return cholmod_l_spsolve (sys, &L, &B, &Common); }
+template<typename _StorageIndex> inline cholmod_sparse* cm_spsolve       (int sys, cholmod_factor& L, cholmod_sparse& B, cholmod_common &Common) { return cholmod_spsolve   (sys, &L, &B, &Common); }
+template<>                       inline cholmod_sparse* cm_spsolve<long> (int sys, cholmod_factor& L, cholmod_sparse& B, cholmod_common &Common) { return cholmod_l_spsolve (sys, &L, &B, &Common); }
 
 template<typename _StorageIndex>
-int  cm_factorize_p       (cholmod_sparse*  A, double beta[2], _StorageIndex* fset, std::size_t fsize, cholmod_factor* L, cholmod_common &Common) { return cholmod_factorize_p   (A, beta, fset, fsize, L, &Common); }
+inline int  cm_factorize_p       (cholmod_sparse*  A, double beta[2], _StorageIndex* fset, std::size_t fsize, cholmod_factor* L, cholmod_common &Common) { return cholmod_factorize_p   (A, beta, fset, fsize, L, &Common); }
 template<>
-int  cm_factorize_p<long> (cholmod_sparse*  A, double beta[2], long* fset,          std::size_t fsize, cholmod_factor* L, cholmod_common &Common) { return cholmod_l_factorize_p (A, beta, fset, fsize, L, &Common); }
+inline int  cm_factorize_p<long> (cholmod_sparse*  A, double beta[2], long* fset,          std::size_t fsize, cholmod_factor* L, cholmod_common &Common) { return cholmod_l_factorize_p (A, beta, fset, fsize, L, &Common); }
 
 #undef EIGEN_CHOLMOD_SPECIALIZE0
 #undef EIGEN_CHOLMOD_SPECIALIZE1
