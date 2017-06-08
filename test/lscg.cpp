@@ -14,12 +14,20 @@ template<typename T> void test_lscg_T()
 {
   LeastSquaresConjugateGradient<SparseMatrix<T> > lscg_colmajor_diag;
   LeastSquaresConjugateGradient<SparseMatrix<T>, IdentityPreconditioner> lscg_colmajor_I;
+  LeastSquaresConjugateGradient<SparseMatrix<T,RowMajor> > lscg_rowmajor_diag;
+  LeastSquaresConjugateGradient<SparseMatrix<T,RowMajor>, IdentityPreconditioner> lscg_rowmajor_I;
 
   CALL_SUBTEST( check_sparse_square_solving(lscg_colmajor_diag)  );
   CALL_SUBTEST( check_sparse_square_solving(lscg_colmajor_I)     );
   
   CALL_SUBTEST( check_sparse_leastsquare_solving(lscg_colmajor_diag)  );
   CALL_SUBTEST( check_sparse_leastsquare_solving(lscg_colmajor_I)     );
+
+  CALL_SUBTEST( check_sparse_square_solving(lscg_rowmajor_diag)  );
+  CALL_SUBTEST( check_sparse_square_solving(lscg_rowmajor_I)     );
+
+  CALL_SUBTEST( check_sparse_leastsquare_solving(lscg_rowmajor_diag)  );
+  CALL_SUBTEST( check_sparse_leastsquare_solving(lscg_rowmajor_I)     );
 }
 
 void test_lscg()
