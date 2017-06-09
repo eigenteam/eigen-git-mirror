@@ -112,8 +112,8 @@ void test_numtraits()
   VERIFY_IS_EQUAL( std::numeric_limits<half>::signaling_NaN().x, half(std::numeric_limits<float>::signaling_NaN()).x );
   VERIFY( (std::numeric_limits<half>::min)() > half(0.f) );
   VERIFY( (std::numeric_limits<half>::denorm_min)() > half(0.f) );
-  VERIFY( (std::numeric_limits<half>::min)()/2 > half(0.f) );
-  VERIFY_IS_EQUAL( (std::numeric_limits<half>::denorm_min)()/2, half(0.f) );
+  VERIFY( (std::numeric_limits<half>::min)()/half(2) > half(0.f) );
+  VERIFY_IS_EQUAL( (std::numeric_limits<half>::denorm_min)()/half(2), half(0.f) );
 }
 
 void test_arithmetic()
