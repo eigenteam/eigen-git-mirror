@@ -488,7 +488,7 @@ struct numeric_limits<Eigen::half> {
   static const bool has_signaling_NaN = true;
   static const float_denorm_style has_denorm = denorm_present;
   static const bool has_denorm_loss = false;
-  std::float_round_style round_style = std::round_to_nearest;
+  static const std::float_round_style round_style = std::round_to_nearest;
   static const bool is_iec559 = false;
   static const bool is_bounded = false;
   static const bool is_modulo = false;
@@ -507,7 +507,7 @@ struct numeric_limits<Eigen::half> {
   static Eigen::half lowest() { return Eigen::half_impl::raw_uint16_to_half(0xfbff); }
   static Eigen::half (max)() { return Eigen::half_impl::raw_uint16_to_half(0x7bff); }
   static Eigen::half epsilon() { return Eigen::half_impl::raw_uint16_to_half(0x0800); }
-  static Eigen::half round_error() { return epsilon()/2; }
+  static Eigen::half round_error() { return Eigen::half(0.5); }
   static Eigen::half infinity() { return Eigen::half_impl::raw_uint16_to_half(0x7c00); }
   static Eigen::half quiet_NaN() { return Eigen::half_impl::raw_uint16_to_half(0x7e00); }
   static Eigen::half signaling_NaN() { return Eigen::half_impl::raw_uint16_to_half(0x7e00); }
