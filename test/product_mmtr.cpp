@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2010 Gael Guennebaud <gael.guennebaud@inria.fr>
+// Copyright (C) 2010-2017 Gael Guennebaud <gael.guennebaud@inria.fr>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
@@ -10,12 +10,19 @@
 #include "main.h"
 
 #define CHECK_MMTR(DEST, TRI, OP) {                   \
+    ref3 = DEST;                                      \
     ref2 = ref1 = DEST;                               \
     DEST.template triangularView<TRI>() OP;           \
     ref1 OP;                                          \
     ref2.template triangularView<TRI>()               \
       = ref1.template triangularView<TRI>();          \
     VERIFY_IS_APPROX(DEST,ref2);                      \
+    \
+    DEST = ref3;                                      \
+    ref3 = ref2;                                      \
+    ref3.diagonal() = DEST.diagonal();                \
+    DEST.template triangularView<TRI|ZeroDiag>() OP;  \
+    VERIFY_IS_APPROX(DEST,ref3);                      \
   }
 
 template<typename Scalar> void mmtr(int size)
@@ -27,7 +34,7 @@ template<typename Scalar> void mmtr(int size)
   
   MatrixColMaj matc = MatrixColMaj::Zero(size, size);
   MatrixRowMaj matr = MatrixRowMaj::Zero(size, size);
-  MatrixColMaj ref1(size, size), ref2(size, size);
+  MatrixColMaj ref1(size, size), ref2(size, size), ref3(size,size);
   
   MatrixColMaj soc(size,othersize); soc.setRandom();
   MatrixColMaj osc(othersize,size); osc.setRandom();
