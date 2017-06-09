@@ -116,7 +116,7 @@ template<> EIGEN_STRONG_INLINE Packet4i pset1<Packet4i>(const int32_t&    from) 
 
 template<> EIGEN_STRONG_INLINE Packet4f plset<Packet4f>(const float& a)
 {
-  const float32_t f[] = {0, 1, 2, 3};
+  const float f[] = {0, 1, 2, 3};
   Packet4f countdown = vld1q_f32(f);
   return vaddq_f32(pset1<Packet4f>(a), countdown);
 }
