@@ -96,12 +96,24 @@ void test_conversion()
 
 void test_numtraits()
 {
-  std::cout << "epsilon  = " << NumTraits<half>::epsilon() << std::endl;
-  std::cout << "highest  = " << NumTraits<half>::highest() << std::endl;
-  std::cout << "lowest   = " << NumTraits<half>::lowest() << std::endl;
-  std::cout << "inifinty = " << NumTraits<half>::infinity() << std::endl;
-  std::cout << "nan      = " << NumTraits<half>::quiet_NaN() << std::endl;
+  std::cout << "epsilon       = " << NumTraits<half>::epsilon() << "  (0x" << std::hex << NumTraits<half>::epsilon().x << ")" << std::endl;
+  std::cout << "highest       = " << NumTraits<half>::highest() << "  (0x" << std::hex << NumTraits<half>::highest().x << ")" << std::endl;
+  std::cout << "lowest        = " << NumTraits<half>::lowest() << "  (0x" << std::hex << NumTraits<half>::lowest().x << ")" << std::endl;
+  std::cout << "min           = " << (std::numeric_limits<half>::min)() << "  (0x" << std::hex << half((std::numeric_limits<half>::min)()).x << ")" << std::endl;
+  std::cout << "denorm min    = " << (std::numeric_limits<half>::denorm_min)() << "  (0x" << std::hex << half((std::numeric_limits<half>::denorm_min)()).x << ")" << std::endl;
+  std::cout << "infinity      = " << NumTraits<half>::infinity() << "  (0x" << std::hex << NumTraits<half>::infinity().x << ")" << std::endl;
+  std::cout << "quiet nan     = " << NumTraits<half>::quiet_NaN() << "  (0x" << std::hex << NumTraits<half>::quiet_NaN().x << ")" << std::endl;
+  std::cout << "signaling nan = " << std::numeric_limits<half>::signaling_NaN() << "  (0x" << std::hex << std::numeric_limits<half>::signaling_NaN().x << ")" << std::endl;
 
+  VERIFY(NumTraits<half>::IsSigned);
+
+  VERIFY_IS_EQUAL( std::numeric_limits<half>::infinity().x, half(std::numeric_limits<float>::infinity()).x );
+  VERIFY_IS_EQUAL( std::numeric_limits<half>::quiet_NaN().x, half(std::numeric_limits<float>::quiet_NaN()).x );
+  VERIFY_IS_EQUAL( std::numeric_limits<half>::signaling_NaN().x, half(std::numeric_limits<float>::signaling_NaN()).x );
+  VERIFY( (std::numeric_limits<half>::min)() > half(0.f) );
+  VERIFY( (std::numeric_limits<half>::denorm_min)() > half(0.f) );
+  VERIFY( (std::numeric_limits<half>::min)()/2 > half(0.f) );
+  VERIFY_IS_EQUAL( (std::numeric_limits<half>::denorm_min)()/2, half(0.f) );
 }
 
 void test_arithmetic()
