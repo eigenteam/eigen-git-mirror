@@ -216,6 +216,8 @@ template<typename MatrixType> void product(const MatrixType& m)
     // CwiseBinaryOp
     VERIFY_IS_APPROX(x = y + A*x, A*z);
     x = z;
+    VERIFY_IS_APPROX(x = y - A*x, A*(-z));
+    x = z;
     // CwiseUnaryOp
     VERIFY_IS_APPROX(x = Scalar(1.)*(A*x), A*z);
   }
