@@ -158,18 +158,18 @@ class LeastSquareDiagonalPreconditioner : public DiagonalPreconditioner<_Scalar>
         for(Index j=0; j<mat.outerSize(); ++j)
         {
           for(typename MatType::InnerIterator it(mat,j); it; ++it)
-            m_invdiag(it.index()) += it.value();
+            m_invdiag(it.index()) += numext::abs2(it.value());
         }
         for(Index j=0; j<mat.cols(); ++j)
-          if(m_invdiag(j)>0)
-            m_invdiag(j) = RealScalar(1)/m_invdiag(j);
+          if(numext::real(m_invdiag(j))>RealScalar(0))
+            m_invdiag(j) = RealScalar(1)/numext::real(m_invdiag(j));
       }
       else
       {
         for(Index j=0; j<mat.outerSize(); ++j)
         {
           RealScalar sum = mat.innerVector(j).squaredNorm();
-          if(sum>0)
+          if(sum>RealScalar(0))
             m_invdiag(j) = RealScalar(1)/sum;
           else
             m_invdiag(j) = RealScalar(1);
