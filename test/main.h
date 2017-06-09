@@ -310,6 +310,17 @@ template<> inline float test_precision<std::complex<float> >() { return test_pre
 template<> inline double test_precision<std::complex<double> >() { return test_precision<double>(); }
 template<> inline long double test_precision<std::complex<long double> >() { return test_precision<long double>(); }
 
+inline bool test_isApprox(const short& a, const short& b)
+{ return internal::isApprox(a, b, test_precision<short>()); }
+inline bool test_isApprox(const unsigned short& a, const unsigned short& b)
+{ return internal::isApprox(a, b, test_precision<unsigned long>()); }
+inline bool test_isApprox(const unsigned int& a, const unsigned int& b)
+{ return internal::isApprox(a, b, test_precision<unsigned int>()); }
+inline bool test_isApprox(const long& a, const long& b)
+{ return internal::isApprox(a, b, test_precision<long>()); }
+inline bool test_isApprox(const unsigned long& a, const unsigned long& b)
+{ return internal::isApprox(a, b, test_precision<unsigned long>()); }
+
 inline bool test_isApprox(const int& a, const int& b)
 { return internal::isApprox(a, b, test_precision<int>()); }
 inline bool test_isMuchSmallerThan(const int& a, const int& b)
