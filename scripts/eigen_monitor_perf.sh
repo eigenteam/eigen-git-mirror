@@ -12,9 +12,9 @@ export CXX_FLAGS="-mfma -w"
 ####
 
 BENCH_PATH=$EIGEN_SOURCE_PATH/bench/perf_monitoring/$PREFIX
-PREVPATH=`pwd`
-cd $EIGEN_SOURCE_PATH/bench/perf_monitoring && ./runall.sh "Haswell 2.6GHz, FMA, Apple's clang" $*
-cd $PREVPATH
+PREVPATH=$(pwd)
+cd $EIGEN_SOURCE_PATH/bench/perf_monitoring && ./runall.sh "Haswell 2.6GHz, FMA, Apple's clang" "$@"
+cd $PREVPATH || exit 1
 
 ALLFILES="$BENCH_PATH/*.png $BENCH_PATH/*.html $BENCH_PATH/index.html $BENCH_PATH/s1.js $BENCH_PATH/s2.js"
 
