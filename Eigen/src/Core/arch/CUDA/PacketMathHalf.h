@@ -54,7 +54,7 @@ template<> __device__ EIGEN_STRONG_INLINE half2 ploadu<half2>(const Eigen::half*
   return __halves2half2(from[0], from[1]);
 }
 
-template<> EIGEN_STRONG_INLINE half2 ploaddup<half2>(const Eigen::half*  from) {
+template<> __device__ EIGEN_STRONG_INLINE half2 ploaddup<half2>(const Eigen::half*  from) {
   return __halves2half2(from[0], from[0]);
 }
 
