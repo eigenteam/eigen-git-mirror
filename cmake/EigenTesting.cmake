@@ -111,7 +111,6 @@ endmacro(ei_add_test_internal)
 
 # SYCL
 macro(ei_add_test_internal_sycl testname testname_with_suffix)
-  include_directories( SYSTEM ${COMPUTECPP_PACKAGE_ROOT_DIR}/include)
   set(targetname ${testname_with_suffix})
 
   if(EIGEN_ADD_TEST_FILENAME_EXTENSION)
@@ -120,23 +119,31 @@ macro(ei_add_test_internal_sycl testname testname_with_suffix)
     set(filename ${testname}.cpp)
   endif()
 
-  set( include_file ${CMAKE_CURRENT_BINARY_DIR}/inc_${filename})
-  set( bc_file ${CMAKE_CURRENT_BINARY_DIR}/${filename})
-  set( host_file ${CMAKE_CURRENT_SOURCE_DIR}/${filename})
+  set( include_file "${CMAKE_CURRENT_BINARY_DIR}/inc_${filename}")
+  set( bc_file "${CMAKE_CURRENT_BINARY_DIR}/${filename}.sycl")
+  set( host_file "${CMAKE_CURRENT_SOURCE_DIR}/${filename}")
 
-  ADD_CUSTOM_COMMAND(
-    OUTPUT ${include_file}
-    COMMAND ${CMAKE_COMMAND} -E echo "\\#include \\\"${host_file}\\\"" > ${include_file}
-    COMMAND ${CMAKE_COMMAND} -E echo "\\#include \\\"${bc_file}.sycl\\\"" >> ${include_file}
-    DEPENDS ${filename} ${bc_file}.sycl
-    COMMENT "Building ComputeCpp integration header file ${include_file}"
-  )
-  # Add a custom target for the generated integration header
-  add_custom_target(${testname}_integration_header_sycl DEPENDS ${include_file})
+  if(NOT EIGEN_SYCL_TRISYCL)
+    include_directories( SYSTEM ${COMPUTECPP_PACKAGE_ROOT_DIR}/include)
 
-  add_executable(${targetname} ${include_file})
-  add_dependencies(${targetname} ${testname}_integration_header_sycl)
-  add_sycl_to_target(${targetname} ${filename} ${CMAKE_CURRENT_BINARY_DIR})
+    ADD_CUSTOM_COMMAND(
+      OUTPUT ${include_file}
+      COMMAND ${CMAKE_COMMAND} -E echo "\\#include \\\"${host_file}\\\"" > ${include_file}
+      COMMAND ${CMAKE_COMMAND} -E echo "\\#include \\\"${bc_file}\\\"" >> ${include_file}
+      DEPENDS ${filename} ${bc_file}
+      COMMENT "Building ComputeCpp integration header file ${include_file}"
+      )
+
+    # Add a custom target for the generated integration header
+    add_custom_target("${testname}_integration_header_sycl" DEPENDS ${include_file})
+
+    add_executable(${targetname} ${include_file})
+    add_dependencies(${targetname} "${testname}_integration_header_sycl")
+  else()
+    add_executable(${targetname} ${host_file})
+  endif()
+
+  add_sycl_to_target(${targetname} ${CMAKE_CURRENT_BINARY_DIR} ${filename})
 
   if (targetname MATCHES "^eigen2_")
     add_dependencies(eigen2_buildtests ${targetname})
@@ -467,7 +474,11 @@ macro(ei_testing_print_summary)
     endif()
 
     if(EIGEN_TEST_SYCL)
-      message(STATUS "SYCL:              ON")
+      if(EIGEN_SYCL_TRISYCL)
+        message(STATUS "SYCL:              ON (using triSYCL)")
+      else()
+        message(STATUS "SYCL:              ON (using computeCPP)")
+      endif()
     else()
       message(STATUS "SYCL:              OFF")
     endif()

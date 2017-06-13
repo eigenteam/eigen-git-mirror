@@ -38,11 +38,6 @@ if(CMAKE_COMPILER_IS_GNUCXX)
     if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 4.8)
       message(FATAL_ERROR
         "host compiler - Not found! (gcc version must be at least 4.8)")
-    # Require the GCC dual ABI to be disabled for 5.1 or higher
-    elseif (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 5.1)
-      set(COMPUTECPP_DISABLE_GCC_DUAL_ABI "True")
-      message(STATUS
-        "host compiler - gcc ${CMAKE_CXX_COMPILER_VERSION} (note pre 5.1 gcc ABI enabled)")
     else()
       message(STATUS "host compiler - gcc ${CMAKE_CXX_COMPILER_VERSION}")
     endif()
@@ -64,6 +59,12 @@ option(COMPUTECPP_64_BIT_CODE "Compile device code in 64 bit mode"
         ${COMPUTECPP_64_BIT_DEFAULT})
 mark_as_advanced(COMPUTECPP_64_BIT_CODE)
 
+option(COMPUTECPP_DISABLE_GCC_DUAL_ABI "Compile with pre-5.1 ABI" OFF)
+mark_as_advanced(COMPUTECPP_DISABLE_GCC_DUAL_ABI)
+
+set(COMPUTECPP_USER_FLAGS "" CACHE STRING "User flags for compute++")
+mark_as_advanced(COMPUTECPP_USER_FLAGS)
+
 # Find OpenCL package
 find_package(OpenCL REQUIRED)
 
@@ -74,7 +75,6 @@ if(NOT COMPUTECPP_PACKAGE_ROOT_DIR)
 else()
   message(STATUS "ComputeCpp package - Found")
 endif()
-option(COMPUTECPP_PACKAGE_ROOT_DIR "Path to the ComputeCpp Package")
 
 # Obtain the path to compute++
 find_program(COMPUTECPP_DEVICE_COMPILER compute++ PATHS
@@ -138,8 +138,6 @@ else()
   message(STATUS "compute++ flags - ${COMPUTECPP_DEVICE_COMPILER_FLAGS}")
 endif()
 
-set(COMPUTECPP_DEVICE_COMPILER_FLAGS ${COMPUTECPP_DEVICE_COMPILER_FLAGS} -sycl-compress-name -Wall -no-serial-memop -DEIGEN_NO_ASSERTION_CHECKING=1)
-
 # Check if the platform is supported
 execute_process(COMMAND ${COMPUTECPP_INFO_TOOL} "--dump-is-supported"
   OUTPUT_VARIABLE COMPUTECPP_PLATFORM_IS_SUPPORTED
@@ -155,6 +153,13 @@ else()
   endif()
 endif()
 
+set(COMPUTECPP_USER_FLAGS
+  -sycl-compress-name
+  -Wall
+  -no-serial-memop
+  -DEIGEN_NO_ASSERTION_CHECKING=1
+  )
+
 ####################
 #   __build_sycl
 ####################
@@ -165,8 +170,11 @@ endif()
 #  targetName : Name of the target.
 #  sourceFile : Source file to be compiled.
 #  binaryDir : Intermediate directory to output the integration header.
+#  fileCounter : Counter included in name of custom target. Different counter
+#       values prevent duplicated names of custom target when source files with the same name,
+#       but located in different directories, are used for the same target.
 #
-function(__build_spir targetName sourceFile binaryDir)
+function(__build_spir targetName sourceFile binaryDir fileCounter)
 
   # Retrieve source file name.
   get_filename_component(sourceFileName ${sourceFile} NAME)
@@ -175,10 +183,14 @@ function(__build_spir targetName sourceFile binaryDir)
   set(outputSyclFile ${binaryDir}/${sourceFileName}.sycl)
 
   # Add any user-defined include to the device compiler
+  set(device_compiler_includes "")
   get_property(includeDirectories DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY
     INCLUDE_DIRECTORIES)
-  set(device_compiler_includes "")
   foreach(directory ${includeDirectories})
+    set(device_compiler_includes "-I${directory}" ${device_compiler_includes})
+  endforeach()
+  get_target_property(targetIncludeDirectories ${targetName} INCLUDE_DIRECTORIES)
+  foreach(directory ${targetIncludeDirectories})
     set(device_compiler_includes "-I${directory}" ${device_compiler_includes})
   endforeach()
   if (CMAKE_INCLUDE_PATH)
@@ -188,6 +200,9 @@ function(__build_spir targetName sourceFile binaryDir)
     endforeach()
   endif()
 
+  set(COMPUTECPP_DEVICE_COMPILER_FLAGS
+    ${COMPUTECPP_DEVICE_COMPILER_FLAGS}
+    ${COMPUTECPP_USER_FLAGS})
   # Convert argument list format
   separate_arguments(COMPUTECPP_DEVICE_COMPILER_FLAGS)
 
@@ -201,9 +216,10 @@ function(__build_spir targetName sourceFile binaryDir)
             ${device_compiler_includes}
             -o ${outputSyclFile}
             -c ${CMAKE_CURRENT_SOURCE_DIR}/${sourceFile}
-    DEPENDS ${sourceFile}
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/${sourceFile}
+    IMPLICIT_DEPENDS CXX "${CMAKE_CURRENT_SOURCE_DIR}/${sourceFile}"
     WORKING_DIRECTORY ${binaryDir}
-  COMMENT "Building ComputeCpp integration header file ${outputSyclFile}")
+    COMMENT "Building ComputeCpp integration header file ${outputSyclFile}")
 
   # Add a custom target for the generated integration header
   add_custom_target(${targetName}_integration_header DEPENDS ${outputSyclFile})
@@ -230,13 +246,18 @@ endfunction()
 #  target and sets a dependancy on that new command.
 #
 #  targetName : Name of the target to add a SYCL to.
-#  sourceFile : Source file to be compiled for SYCL.
 #  binaryDir : Intermediate directory to output the integration header.
+#  sourceFiles : Source files to be compiled for SYCL.
 #
-function(add_sycl_to_target targetName sourceFile binaryDir)
+function(add_sycl_to_target targetName binaryDir sourceFiles)
 
+  set(sourceFiles ${sourceFiles} ${ARGN})
+  set(fileCounter 0)
   # Add custom target to run compute++ and generate the integration header
-  __build_spir(${targetName} ${sourceFile} ${binaryDir})
+  foreach(sourceFile ${sourceFiles})
+    __build_spir(${targetName} ${sourceFile} ${binaryDir} ${fileCounter})
+    MATH(EXPR fileCounter "${fileCounter} + 1")
+  endforeach()
 
   # Link with the ComputeCpp runtime library
   target_link_libraries(${targetName} PUBLIC ${COMPUTECPP_RUNTIME_LIBRARY}

@@ -14,7 +14,23 @@
 
 #if defined(EIGEN_USE_SYCL) && !defined(EIGEN_CXX11_TENSOR_TENSOR_DEVICE_SYCL_H)
 #define EIGEN_CXX11_TENSOR_TENSOR_DEVICE_SYCL_H
+template<size_t Align> struct CheckAlignStatically {
+  static const bool Val= (((Align&(Align-1))==0) && (Align >= sizeof(void *)));
+};
+template <bool IsAligned, size_t Align>
+struct Conditional_Allocate {
 
+  EIGEN_ALWAYS_INLINE static void* conditional_allocate(std::size_t elements) {
+    return aligned_alloc(Align, elements);
+  }
+};
+template <size_t Align>
+struct Conditional_Allocate<false, Align> {
+
+  EIGEN_ALWAYS_INLINE static void* conditional_allocate(std::size_t elements){
+    return malloc(elements);
+  }
+};
 template <typename Scalar, size_t Align = EIGEN_MAX_ALIGN_BYTES, class Allocator = std::allocator<Scalar>>
 struct SyclAllocator {
   typedef Scalar value_type;
@@ -22,7 +38,9 @@ struct SyclAllocator {
   typedef typename std::allocator_traits<Allocator>::size_type size_type;
 
   SyclAllocator( ){};
-  Scalar* allocate(std::size_t elements) { return static_cast<Scalar*>(aligned_alloc(Align, elements)); }
+  Scalar* allocate(std::size_t elements) {
+    return static_cast<Scalar*>(Conditional_Allocate<CheckAlignStatically<Align>::Val, Align>::conditional_allocate(elements));
+  }
   void deallocate(Scalar * p, std::size_t size) { EIGEN_UNUSED_VARIABLE(size); free(p); }
 };
 
@@ -81,28 +99,26 @@ struct memsetCghFunctor{
   }
 };
 
-  //get_devices returns all the available opencl devices. Either use device_selector or exclude devices that computecpp does not support (AMD OpenCL for CPU  and intel GPU)
+//get_devices returns all the available opencl devices. Either use device_selector or exclude devices that computecpp does not support (AMD OpenCL for CPU  and intel GPU)
 EIGEN_STRONG_INLINE auto get_sycl_supported_devices()->decltype(cl::sycl::device::get_devices()){
-  auto devices = cl::sycl::device::get_devices();
-  std::vector<cl::sycl::device>::iterator it =devices.begin();
-  while(it!=devices.end()) {
-    ///FIXME: Currently there is a bug in amd cpu OpenCL
-    auto name = (*it).template get_info<cl::sycl::info::device::name>();
-    std::transform(name.begin(), name.end(), name.begin(), ::tolower);
-    auto vendor = (*it).template get_info<cl::sycl::info::device::vendor>();
+std::vector<cl::sycl::device> supported_devices;
+auto plafrom_list =cl::sycl::platform::get_platforms();
+for(const auto& platform : plafrom_list){
+  auto device_list = platform.get_devices();
+  auto platform_name =platform.template get_info<cl::sycl::info::platform::name>();
+  std::transform(platform_name.begin(), platform_name.end(), platform_name.begin(), ::tolower);
+  for(const auto& device : device_list){
+    auto vendor = device.template get_info<cl::sycl::info::device::vendor>();
     std::transform(vendor.begin(), vendor.end(), vendor.begin(), ::tolower);
-
-    if((*it).is_cpu() && vendor.find("amd")!=std::string::npos && vendor.find("apu") == std::string::npos){ // remove amd cpu as it is not supported by computecpp allow APUs
-      it = devices.erase(it);
-      //FIXME: currently there is a bug in intel gpu driver regarding memory allignment issue.
-    }else if((*it).is_gpu() && name.find("intel")!=std::string::npos){
-      it = devices.erase(it);
-    }
-    else{
-      ++it;
+    bool unsuported_condition = (device.is_cpu() && platform_name.find("amd")!=std::string::npos && vendor.find("apu") == std::string::npos) ||
+    (device.is_gpu() && platform_name.find("intel")!=std::string::npos);
+    if(!unsuported_condition){
+      std::cout << "Platform name "<< platform_name << std::endl;
+        supported_devices.push_back(device);
     }
   }
-  return devices;
+}
+return supported_devices;
 }
 
 class QueueInterface {
