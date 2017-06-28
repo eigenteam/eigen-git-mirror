@@ -300,7 +300,7 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
   /// used by sycl in order to build the sycl buffer
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Device& device() const{return m_device;}
   /// used by sycl in order to build the sycl buffer
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE CoeffReturnType* data() const { return m_buf; }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE typename Eigen::internal::traits<XprType>::PointerType data() const { return m_buf; }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void preloadKernel() {
     // Don't make a local copy of the kernel unless we have to (i.e. it's an

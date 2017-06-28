@@ -31,6 +31,7 @@ struct traits<TensorShufflingOp<Shuffle, XprType> > : public traits<XprType>
   typedef typename remove_reference<Nested>::type _Nested;
   static const int NumDimensions = XprTraits::NumDimensions;
   static const int Layout = XprTraits::Layout;
+  typedef typename XprTraits::PointerType PointerType;
 };
 
 template<typename Shuffle, typename XprType>
@@ -185,7 +186,7 @@ struct TensorEvaluator<const TensorShufflingOp<Shuffle, ArgType>, Device>
            TensorOpCost(0, 0, compute_cost, false /* vectorized */, PacketSize);
   }
 
-  EIGEN_DEVICE_FUNC Scalar* data() const { return NULL; }
+  EIGEN_DEVICE_FUNC typename Eigen::internal::traits<XprType>::PointerType data() const { return NULL; }
 
   // required by sycl
   EIGEN_STRONG_INLINE const Shuffle& shufflePermutation() const {return m_shuffle;}

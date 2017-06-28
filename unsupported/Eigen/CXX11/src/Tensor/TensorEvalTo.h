@@ -32,6 +32,7 @@ struct traits<TensorEvalToOp<XprType, MakePointer_> >
   typedef typename remove_reference<Nested>::type _Nested;
   static const int NumDimensions = XprTraits::NumDimensions;
   static const int Layout = XprTraits::Layout;
+  typedef typename MakePointer_<Scalar>::Type PointerType;
 
   enum {
     Flags = 0

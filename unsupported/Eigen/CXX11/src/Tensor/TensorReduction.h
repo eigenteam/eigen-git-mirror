@@ -44,6 +44,7 @@ namespace internal {
   typedef typename XprType::Nested Nested;
   static const int NumDimensions = XprTraits::NumDimensions - array_size<Dims>::value;
   static const int Layout = XprTraits::Layout;
+  typedef typename XprTraits::PointerType PointerType;
 
   template <class T> struct MakePointer {
     // Intermediate typedef to workaround MSVC issue.
@@ -677,7 +678,7 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType, MakePointer_>,
     }
   }
 
-  EIGEN_DEVICE_FUNC typename MakePointer_<Scalar>::Type data() const { return m_result; }
+  EIGEN_DEVICE_FUNC typename MakePointer_<CoeffReturnType>::Type data() const { return m_result; }
 
 #if defined(EIGEN_USE_SYCL)
   const TensorEvaluator<ArgType, Device>& impl() const { return m_impl; }

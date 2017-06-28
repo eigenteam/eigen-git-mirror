@@ -34,6 +34,7 @@ struct traits<TensorAssignOp<LhsXprType, RhsXprType> >
   typedef typename remove_reference<RhsNested>::type _RhsNested;
   static const std::size_t NumDimensions = internal::traits<LhsXprType>::NumDimensions;
   static const int Layout = internal::traits<LhsXprType>::Layout;
+  typedef typename traits<LhsXprType>::PointerType PointerType;
 
   enum {
     Flags = 0
@@ -168,7 +169,7 @@ struct TensorEvaluator<const TensorAssignOp<LeftArgType, RightArgType>, Device>
   /// required by sycl in order to extract the accessor
   const TensorEvaluator<RightArgType, Device>& right_impl() const { return m_rightImpl; }
 
-  EIGEN_DEVICE_FUNC CoeffReturnType* data() const { return m_leftImpl.data(); }
+  EIGEN_DEVICE_FUNC typename Eigen::internal::traits<XprType>::PointerType data() const { return m_leftImpl.data(); }
 
  private:
   TensorEvaluator<LeftArgType, Device> m_leftImpl;

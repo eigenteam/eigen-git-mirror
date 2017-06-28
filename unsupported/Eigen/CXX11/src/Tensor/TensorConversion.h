@@ -32,6 +32,7 @@ struct traits<TensorConversionOp<TargetType, XprType> >
   static const int NumDimensions = traits<XprType>::NumDimensions;
   static const int Layout = traits<XprType>::Layout;
   enum { Flags = 0 };
+   typedef typename ::Eigen::internal::TypeConversion<Scalar, typename traits<XprType>::PointerType>::type PointerType;
 };
 
 template<typename TargetType, typename XprType>
@@ -244,7 +245,7 @@ struct TensorEvaluator<const TensorConversionOp<TargetType, ArgType>, Device>
     }
   }
 
-  EIGEN_DEVICE_FUNC Scalar* data() const { return NULL; }
+  EIGEN_DEVICE_FUNC typename Eigen::internal::traits<XprType>::PointerType data() const { return NULL; }
 
   /// required by sycl in order to extract the sycl accessor
   const TensorEvaluator<ArgType, Device>& impl() const { return m_impl; }
