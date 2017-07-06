@@ -13,7 +13,7 @@
 
 #define EIGEN_TEST_NO_LONGDOUBLE
 #define EIGEN_TEST_NO_COMPLEX
-#define EIGEN_TEST_FUNC cxx11_tensor_image_patchOP_sycl
+#define EIGEN_TEST_FUNC cxx11_tensor_image_patch_sycl
 #define EIGEN_DEFAULT_DENSE_INDEX_TYPE int64_t
 #define EIGEN_USE_SYCL
 
@@ -1084,7 +1084,7 @@ test_patch_padding_same_sycl<DataType, int64_t>(sycl_device);
 test_patch_no_extra_dim_sycl<DataType, int64_t>(sycl_device);
 test_imagenet_patches_sycl<DataType, int64_t>(sycl_device);
 }
-void test_cxx11_tensor_image_patchOP_sycl()
+void test_cxx11_tensor_image_patch_sycl()
 {
 for (const auto& device :Eigen::get_sycl_supported_devices()) {
   CALL_SUBTEST(sycl_tensor_image_patch_test_per_device<float>(device));

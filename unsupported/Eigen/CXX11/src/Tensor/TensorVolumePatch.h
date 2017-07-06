@@ -22,6 +22,7 @@ namespace Eigen {
   * dimensions.
   */
 namespace internal {
+
 template<DenseIndex Planes, DenseIndex Rows, DenseIndex Cols, typename XprType>
 struct traits<TensorVolumePatchOp<Planes, Rows, Cols, XprType> > : public traits<XprType>
 {
@@ -34,6 +35,7 @@ struct traits<TensorVolumePatchOp<Planes, Rows, Cols, XprType> > : public traits
   static const int NumDimensions = XprTraits::NumDimensions + 1;
   static const int Layout = XprTraits::Layout;
   typedef typename XprTraits::PointerType PointerType;
+
 };
 
 template<DenseIndex Planes, DenseIndex Rows, DenseIndex Cols, typename XprType>
@@ -66,12 +68,12 @@ class TensorVolumePatchOp : public TensorBase<TensorVolumePatchOp<Planes, Rows, 
                                                             DenseIndex in_plane_strides, DenseIndex in_row_strides, DenseIndex in_col_strides,
                                                             DenseIndex plane_inflate_strides, DenseIndex row_inflate_strides, DenseIndex col_inflate_strides,
                                                             PaddingType padding_type, Scalar padding_value)
-      : m_xpr(expr), m_patch_planes(patch_planes), m_patch_rows(patch_rows), m_patch_cols(patch_cols),
-        m_plane_strides(plane_strides), m_row_strides(row_strides), m_col_strides(col_strides),
-        m_in_plane_strides(in_plane_strides), m_in_row_strides(in_row_strides), m_in_col_strides(in_col_strides),
-        m_plane_inflate_strides(plane_inflate_strides), m_row_inflate_strides(row_inflate_strides), m_col_inflate_strides(col_inflate_strides),
-        m_padding_explicit(false), m_padding_top_z(0), m_padding_bottom_z(0), m_padding_top(0), m_padding_bottom(0), m_padding_left(0), m_padding_right(0),
-        m_padding_type(padding_type), m_padding_value(padding_value) {}
+                                                            : m_xpr(expr), m_patch_planes(patch_planes), m_patch_rows(patch_rows), m_patch_cols(patch_cols),
+                                                            m_plane_strides(plane_strides), m_row_strides(row_strides), m_col_strides(col_strides),
+                                                            m_in_plane_strides(in_plane_strides), m_in_row_strides(in_row_strides), m_in_col_strides(in_col_strides),
+                                                            m_plane_inflate_strides(plane_inflate_strides), m_row_inflate_strides(row_inflate_strides), m_col_inflate_strides(col_inflate_strides),
+                                                            m_padding_explicit(false), m_padding_top_z(0), m_padding_bottom_z(0), m_padding_top(0), m_padding_bottom(0), m_padding_left(0), m_padding_right(0),
+                                                            m_padding_type(padding_type), m_padding_value(padding_value) {}
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorVolumePatchOp(const XprType& expr, DenseIndex patch_planes, DenseIndex patch_rows, DenseIndex patch_cols,
                                                            DenseIndex plane_strides, DenseIndex row_strides, DenseIndex col_strides,
@@ -81,13 +83,31 @@ class TensorVolumePatchOp : public TensorBase<TensorVolumePatchOp<Planes, Rows, 
                                                            DenseIndex padding_top, DenseIndex padding_bottom,
                                                            DenseIndex padding_left, DenseIndex padding_right,
                                                            Scalar padding_value)
-      : m_xpr(expr), m_patch_planes(patch_planes), m_patch_rows(patch_rows), m_patch_cols(patch_cols),
-        m_plane_strides(plane_strides), m_row_strides(row_strides), m_col_strides(col_strides),
-        m_in_plane_strides(in_plane_strides), m_in_row_strides(in_row_strides), m_in_col_strides(in_col_strides),
-        m_plane_inflate_strides(plane_inflate_strides), m_row_inflate_strides(row_inflate_strides), m_col_inflate_strides(col_inflate_strides),
-        m_padding_explicit(true), m_padding_top_z(padding_top_z), m_padding_bottom_z(padding_bottom_z), m_padding_top(padding_top), m_padding_bottom(padding_bottom),
-        m_padding_left(padding_left), m_padding_right(padding_right),
-        m_padding_type(PADDING_VALID), m_padding_value(padding_value) {}
+                                                           : m_xpr(expr), m_patch_planes(patch_planes), m_patch_rows(patch_rows), m_patch_cols(patch_cols),
+                                                           m_plane_strides(plane_strides), m_row_strides(row_strides), m_col_strides(col_strides),
+                                                           m_in_plane_strides(in_plane_strides), m_in_row_strides(in_row_strides), m_in_col_strides(in_col_strides),
+                                                           m_plane_inflate_strides(plane_inflate_strides), m_row_inflate_strides(row_inflate_strides), m_col_inflate_strides(col_inflate_strides),
+                                                           m_padding_explicit(true), m_padding_top_z(padding_top_z), m_padding_bottom_z(padding_bottom_z), m_padding_top(padding_top), m_padding_bottom(padding_bottom),
+                                                           m_padding_left(padding_left), m_padding_right(padding_right),
+                                                           m_padding_type(PADDING_VALID), m_padding_value(padding_value) {}
+
+#ifdef EIGEN_USE_SYCL // this is work around for sycl as Eigen could not use c++11 deligate constructor feature
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorVolumePatchOp(const XprType& expr, DenseIndex patch_planes, DenseIndex patch_rows, DenseIndex patch_cols,
+                                                         DenseIndex plane_strides, DenseIndex row_strides, DenseIndex col_strides,
+                                                         DenseIndex in_plane_strides, DenseIndex in_row_strides, DenseIndex in_col_strides,
+                                                         DenseIndex plane_inflate_strides, DenseIndex row_inflate_strides, DenseIndex col_inflate_strides,
+                                                         bool padding_explicit, DenseIndex padding_top_z, DenseIndex padding_bottom_z,
+                                                         DenseIndex padding_top, DenseIndex padding_bottom, DenseIndex padding_left,
+                                                         DenseIndex padding_right, PaddingType padding_type, Scalar padding_value)
+                                                         : m_xpr(expr), m_patch_planes(patch_planes), m_patch_rows(patch_rows), m_patch_cols(patch_cols),
+                                                         m_plane_strides(plane_strides), m_row_strides(row_strides), m_col_strides(col_strides),
+                                                         m_in_plane_strides(in_plane_strides), m_in_row_strides(in_row_strides), m_in_col_strides(in_col_strides),
+                                                         m_plane_inflate_strides(plane_inflate_strides), m_row_inflate_strides(row_inflate_strides),
+                                                         m_col_inflate_strides(col_inflate_strides), m_padding_explicit(padding_explicit), m_padding_top_z(padding_top_z),
+                                                         m_padding_bottom_z(padding_bottom_z), m_padding_top(padding_top), m_padding_bottom(padding_bottom), m_padding_left(padding_left),
+                                                         m_padding_right(padding_right), m_padding_type(padding_type), m_padding_value(padding_value) {}
+
+#endif
 
     EIGEN_DEVICE_FUNC
     DenseIndex patch_planes() const { return m_patch_planes; }
@@ -515,6 +535,7 @@ struct TensorEvaluator<const TensorVolumePatchOp<Planes, Rows, Cols, ArgType>, D
   const TensorEvaluator<ArgType, Device>& impl() const { return m_impl; }
 
 #ifdef EIGEN_USE_SYCL
+  // Required by SYCL in order to construct the expression on the device
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const XprType& xpr() const { return m_op; }
 #endif
 
@@ -614,8 +635,10 @@ struct TensorEvaluator<const TensorVolumePatchOp<Planes, Rows, Cols, ArgType>, D
   TensorEvaluator<ArgType, Device> m_impl;
 
 #ifdef EIGEN_USE_SYCL
+// Required by SYCL in order to construct the expression on the device
   XprType m_op;
 #endif
+
 };
 
 
