@@ -62,9 +62,9 @@ __device__ EIGEN_ALWAYS_INLINE void atomicReduce(T* output, T accum, R& reducer)
   else {
     assert(0 && "Wordsize not supported");
   }
-#else
+#else // __CUDA_ARCH__ >= 300
   assert(0 && "Shouldn't be called on unsupported device");
-#endif
+#endif // __CUDA_ARCH__ >= 300
 }
 
 // We extend atomicExch to support extra data types
@@ -98,15 +98,15 @@ __device__ inline void atomicReduce(half2* output, half2 accum, R<half>& reducer
     }
   }
 }
-#endif
+#endif // EIGEN_HAS_CUDA_FP16
 
 template <>
 __device__ inline void atomicReduce(float* output, float accum, SumReducer<float>&) {
 #if __CUDA_ARCH__ >= 300
   atomicAdd(output, accum);
-#else
+#else // __CUDA_ARCH__ >= 300
   assert(0 && "Shouldn't be called on unsupported device");
-#endif
+#endif // __CUDA_ARCH__ >= 300
 }
 
 
@@ -179,9 +179,9 @@ __global__ void FullReductionKernel(Reducer reducer, const Self input, Index num
     // Let the last block reset the semaphore
     atomicInc(semaphore, gridDim.x + 1);
   }
-#else
+#else // __CUDA_ARCH__ >= 300
   assert(0 && "Shouldn't be called on unsupported device");
-#endif
+#endif // __CUDA_ARCH__ >= 300
 }
 
 
@@ -268,7 +268,7 @@ __global__ void ReductionCleanupKernelHalfFloat(Op& reducer, half* output, half2
   *output = tmp;
 }
 
-#endif
+#endif // EIGEN_HAS_CUDA_FP16
 
 template <typename Self, typename Op, typename OutputType, bool PacketAccess, typename Enabled = void>
 struct FullReductionLauncher {
@@ -335,7 +335,7 @@ struct FullReductionLauncher<Self, Op, Eigen::half, true> {
     }
   }
 };
-#endif
+#endif // EIGEN_HAS_CUDA_FP16
 
 
 template <typename Self, typename Op, bool Vectorizable>
@@ -348,11 +348,11 @@ struct FullReducer<Self, Op, GpuDevice, Vectorizable> {
       (internal::is_same<typename Self::CoeffReturnType, float>::value ||
        internal::is_same<typename Self::CoeffReturnType, double>::value ||
        (internal::is_same<typename Self::CoeffReturnType, Eigen::half>::value && reducer_traits<Op, GpuDevice>::PacketAccess));
-#else
+#else // EIGEN_HAS_CUDA_FP16
   static const bool HasOptimizedImplementation = !Op::IsStateful &&
                                                 (internal::is_same<typename Self::CoeffReturnType, float>::value ||
                                                  internal::is_same<typename Self::CoeffReturnType, double>::value);
-#endif
+#endif // EIGEN_HAS_CUDA_FP16
 
   template <typename OutputType>
   static void run(const Self& self, Op& reducer, const GpuDevice& device, OutputType* output) {
@@ -433,9 +433,9 @@ __global__ void InnerReductionKernel(Reducer reducer, const Self input, Index nu
       }
     }
   }
-#else
+#else // __CUDA_ARCH__ >= 300
   assert(0 && "Shouldn't be called on unsupported device");
-#endif
+#endif // __CUDA_ARCH__ >= 300
 }
 
 #ifdef EIGEN_HAS_CUDA_FP16
@@ -533,7 +533,7 @@ __global__ void InnerReductionKernelHalfFloat(Reducer reducer, const Self input,
   }
 }
 
-#endif
+#endif // EIGEN_HAS_CUDA_FP16
 
 template <typename Self, typename Op, typename OutputType, bool PacketAccess, typename Enabled = void>
 struct InnerReductionLauncher {
@@ -625,7 +625,7 @@ struct InnerReductionLauncher<Self, Op, Eigen::half, true> {
     return false;
   }
 };
-#endif
+#endif // EIGEN_HAS_CUDA_FP16
 
 
 template <typename Self, typename Op>
@@ -638,11 +638,11 @@ struct InnerReducer<Self, Op, GpuDevice> {
       (internal::is_same<typename Self::CoeffReturnType, float>::value ||
        internal::is_same<typename Self::CoeffReturnType, double>::value ||
        (internal::is_same<typename Self::CoeffReturnType, Eigen::half>::value && reducer_traits<Op, GpuDevice>::PacketAccess));
-#else
+#else // EIGEN_HAS_CUDA_FP16
   static const bool HasOptimizedImplementation = !Op::IsStateful &&
                                                  (internal::is_same<typename Self::CoeffReturnType, float>::value ||
                                                   internal::is_same<typename Self::CoeffReturnType, double>::value);
-#endif
+#endif // EIGEN_HAS_CUDA_FP16
 
   template <typename OutputType>
   static bool run(const Self& self, Op& reducer, const GpuDevice& device, OutputType* output, typename Self::Index num_coeffs_to_reduce, typename Self::Index num_preserved_vals) {
@@ -740,7 +740,7 @@ struct OuterReducer<Self, Op, GpuDevice> {
   }
 };
 
-#endif
+#endif // defined(EIGEN_USE_GPU) && defined(__CUDACC__)
 
 
 } // end namespace internal
