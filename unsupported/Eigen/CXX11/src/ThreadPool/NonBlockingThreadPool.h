@@ -24,9 +24,9 @@ class NonBlockingThreadPoolTempl : public Eigen::ThreadPoolInterface {
 
   NonBlockingThreadPoolTempl(int num_threads, bool allow_spinning,
                              Environment env = Environment())
-      : num_threads_(num_threads),
+      : env_(env),
+        num_threads_(num_threads),
         allow_spinning_(allow_spinning),
-        env_(env),
         threads_(num_threads),
         queues_(num_threads),
         coprimes_(num_threads),
