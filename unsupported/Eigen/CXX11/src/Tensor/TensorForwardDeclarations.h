@@ -70,6 +70,7 @@ template<typename Strides, typename XprType> class TensorInflationOp;
 template<typename Generator, typename XprType> class TensorGeneratorOp;
 template<typename LeftXprType, typename RightXprType> class TensorAssignOp;
 template<typename Op, typename XprType> class TensorScanOp;
+template<typename Dims, typename XprType> class TensorTraceOp;
 
 template<typename CustomUnaryFunc, typename XprType> class TensorCustomUnaryOp;
 template<typename CustomBinaryFunc, typename LhsXprType, typename RhsXprType> class TensorCustomBinaryOp;

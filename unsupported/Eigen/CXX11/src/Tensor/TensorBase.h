@@ -671,6 +671,18 @@ class TensorBase<Derived, ReadOnlyAccessors>
       return TensorReductionOp<Reducer, const Dims, const Derived>(derived(), dims, reducer);
     }
 
+    template <typename Dims> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    const TensorTraceOp<const Dims, const Derived>
+    trace(const Dims& dims) const {
+      return TensorTraceOp<const Dims, const Derived>(derived(), dims);
+    }
+
+    const TensorTraceOp<const DimensionList<Index, NumDimensions>, const Derived>
+    trace() const {
+      DimensionList<Index, NumDimensions> in_dims;
+      return TensorTraceOp<const DimensionList<Index, NumDimensions>, const Derived>(derived(), in_dims);
+    }
+
     template <typename Broadcast> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
     const TensorBroadcastingOp<const Broadcast, const Derived>
     broadcast(const Broadcast& broadcast) const {

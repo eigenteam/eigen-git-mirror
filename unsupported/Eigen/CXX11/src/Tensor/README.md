@@ -1168,6 +1168,58 @@ Reduce a tensor using a user-defined reduction operator.  See ```SumReducer```
 in TensorFunctors.h for information on how to implement a reduction operator.
 
 
+## Trace
+
+A *Trace* operation returns a tensor with fewer dimensions than the original
+tensor. It returns a tensor whose elements are the sum of the elements of the
+original tensor along the main diagonal for a list of specified dimensions, the
+"trace dimensions". Similar to the ```Reduction Dimensions```, the trace dimensions
+are passed as an input parameter to the operation, are of type ```<TensorType>::Dimensions```
+, and have the same requirements when passed as an input parameter. In addition,
+the trace dimensions must have the same size.
+
+Example: Trace along 2 dimensions.
+
+    // Create a tensor of 3 dimensions
+    Eigen::Tensor<int, 3> a(2, 2, 3);
+    a.setValues({{{1, 2, 3}, {4, 5, 6}}, {{7, 8, 9}, {10, 11, 12}}});
+    // Specify the dimensions along which the trace will be computed.
+    // In this example, the trace can only be computed along the dimensions
+    // with indices 0 and 1
+    Eigen::array<int, 2> dims({0, 1});
+    // The output tensor contains all but the trace dimensions.
+    Tensor<int, 1> a_trace = a.trace(dims);
+    cout << "a_trace:" << endl;
+    cout << a_trace << endl;
+    =>
+    a_trace:
+    11
+    13
+    15
+
+
+### <Operation> trace(const Dimensions& new_dims)
+### <Operation> trace()
+
+As a special case, if no parameter is passed to the operation, trace is computed
+along *all* dimensions of the input tensor.
+
+Example: Trace along all dimensions.
+
+    // Create a tensor of 3 dimensions, with all dimensions having the same size.
+    Eigen::Tensor<int, 3> a(3, 3, 3);
+    a.setValues({{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}},
+                {{10, 11, 12}, {13, 14, 15}, {16, 17, 18}},
+                {{19, 20, 21}, {22, 23, 24}, {25, 26, 27}}});
+    // Result is a zero dimension tensor
+    Tensor<int, 0> a_trace = a.trace();
+    cout<<"a_trace:"<<endl;
+    cout<<a_trace<<endl;
+    =>
+    a_trace:
+    42
+
+
 ## Scan Operations
 
 A *Scan* operation returns a tensor with the same dimensions as the original
