@@ -32,6 +32,7 @@ struct traits<TensorChippingOp<DimId, XprType> > : public traits<XprType>
   typedef typename remove_reference<Nested>::type _Nested;
   static const int NumDimensions = XprTraits::NumDimensions - 1;
   static const int Layout = XprTraits::Layout;
+  typedef typename XprTraits::PointerType PointerType;
 };
 
 template<DenseIndex DimId, typename XprType>
@@ -264,7 +265,7 @@ struct TensorEvaluator<const TensorChippingOp<DimId, ArgType>, Device>
            TensorOpCost(0, 0, cost, vectorized, PacketSize);
   }
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE CoeffReturnType* data() const {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE typename Eigen::internal::traits<XprType>::PointerType data() const {
     CoeffReturnType* result = const_cast<CoeffReturnType*>(m_impl.data());
     if (((static_cast<int>(Layout) == static_cast<int>(ColMajor) && m_dim.actualDim() == NumDims) ||
          (static_cast<int>(Layout) == static_cast<int>(RowMajor) && m_dim.actualDim() == 0)) &&

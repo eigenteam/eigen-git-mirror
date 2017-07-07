@@ -38,6 +38,7 @@ struct traits<TensorForcedEvalOp<XprType> >
   typedef typename remove_reference<Nested>::type _Nested;
   static const int NumDimensions = XprTraits::NumDimensions;
   static const int Layout = XprTraits::Layout;
+  typedef typename XprTraits::PointerType PointerType;
 
   enum {
     Flags = 0
@@ -143,7 +144,8 @@ struct TensorEvaluator<const TensorForcedEvalOp<ArgType>, Device>
     return TensorOpCost(sizeof(CoeffReturnType), 0, 0, vectorized, PacketSize);
   }
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE CoeffReturnType* data() const { return m_buffer; }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+  typename Eigen::internal::traits<XprType>::PointerType  data() const { return m_buffer; }
 
   /// required by sycl in order to extract the sycl accessor
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const TensorEvaluator<ArgType, Device>& impl() { return m_impl; }

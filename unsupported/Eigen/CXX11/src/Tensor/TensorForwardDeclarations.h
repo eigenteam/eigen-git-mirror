@@ -22,6 +22,22 @@ template<typename T> struct MakePointer {
   typedef T* Type;
   typedef T& RefType;
 };
+
+namespace internal{
+template<typename A, typename B> struct Pointer_type_promotion {
+  static const bool val=false;
+};
+template<typename A> struct Pointer_type_promotion<A, A> {
+  static const bool val = true;
+};
+template<typename A, typename B> struct TypeConversion;
+#ifndef __SYCL_DEVICE_ONLY__
+template<typename A, typename B> struct TypeConversion{
+  typedef A* type;
+};
+#endif
+}
+
 #if defined(EIGEN_USE_SYCL)
 namespace TensorSycl {
 namespace internal{

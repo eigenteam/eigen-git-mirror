@@ -1378,9 +1378,19 @@ T acos(const T &x) {
   return acos(x);
 }
 
+
+template<typename T>
+EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+T acosh(const T &x) {
+  EIGEN_USING_STD_MATH(acosh);
+  return acosh(x);
+}
+
 #if defined(__SYCL_DEVICE_ONLY__)
 EIGEN_ALWAYS_INLINE float   acos(float x) { return cl::sycl::acos(x); }
 EIGEN_ALWAYS_INLINE double  acos(double x) { return cl::sycl::acos(x); }
+EIGEN_ALWAYS_INLINE float   acosh(float x) { return cl::sycl::acosh(x); }
+EIGEN_ALWAYS_INLINE double  acosh(double x) { return cl::sycl::acosh(x); }
 #endif // defined(__SYCL_DEVICE_ONLY__)
 
 #ifdef __CUDACC__
@@ -1398,9 +1408,18 @@ T asin(const T &x) {
   return asin(x);
 }
 
+template<typename T>
+EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+T asinh(const T &x) {
+  EIGEN_USING_STD_MATH(asinh);
+  return asinh(x);
+}
+
 #if defined(__SYCL_DEVICE_ONLY__)
 EIGEN_ALWAYS_INLINE float   asin(float x) { return cl::sycl::asin(x); }
 EIGEN_ALWAYS_INLINE double  asin(double x) { return cl::sycl::asin(x); }
+EIGEN_ALWAYS_INLINE float   asinh(float x) { return cl::sycl::asinh(x); }
+EIGEN_ALWAYS_INLINE double  asinh(double x) { return cl::sycl::asinh(x); }
 #endif // defined(__SYCL_DEVICE_ONLY__)
 
 #ifdef __CUDACC__
@@ -1418,9 +1437,18 @@ T atan(const T &x) {
   return atan(x);
 }
 
+template<typename T>
+EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+T atanh(const T &x) {
+  EIGEN_USING_STD_MATH(atanh);
+  return atanh(x);
+}
+
 #if defined(__SYCL_DEVICE_ONLY__)
 EIGEN_ALWAYS_INLINE float   atan(float x) { return cl::sycl::atan(x); }
 EIGEN_ALWAYS_INLINE double  atan(double x) { return cl::sycl::atan(x); }
+EIGEN_ALWAYS_INLINE float   atanh(float x) { return cl::sycl::atanh(x); }
+EIGEN_ALWAYS_INLINE double  atanh(double x) { return cl::sycl::atanh(x); }
 #endif // defined(__SYCL_DEVICE_ONLY__)
 
 #ifdef __CUDACC__

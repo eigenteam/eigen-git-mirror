@@ -448,8 +448,8 @@ struct  ExprConstructor<CVQual TensorImagePatchOp<Rows, Cols, OrigXprType>, CVQu
   template <typename FuncDetector>\
   ExprConstructor(FuncDetector &funcD, const utility::tuple::Tuple<Params...> &t)\
   : xprExpr(funcD.xprExpr, t), expr(xprExpr.expr, funcD.m_patch_rows, funcD.m_patch_cols, funcD.m_row_strides, funcD.m_col_strides,\
-    funcD.m_in_row_strides, funcD.m_in_col_strides, funcD.m_row_inflate_strides, funcD.m_col_inflate_strides, \
-    funcD.m_padding_top, funcD.m_padding_bottom, funcD.m_padding_left, funcD.m_padding_right, funcD.m_padding_value, funcD.m_padding_type, funcD.m_padding_explicit){}\
+    funcD.m_in_row_strides, funcD.m_in_col_strides, funcD.m_row_inflate_strides, funcD.m_col_inflate_strides, funcD.m_padding_explicit, \
+    funcD.m_padding_top, funcD.m_padding_bottom, funcD.m_padding_left, funcD.m_padding_right, funcD.m_padding_type, funcD.m_padding_value){}\
 };
 
 SYCLTENSORIMAGEPATCHOPEXPR(const)
@@ -468,8 +468,8 @@ struct  ExprConstructor<CVQual TensorVolumePatchOp<Planes, Rows, Cols, OrigXprTy
   ExprConstructor(FuncDetector &funcD, const utility::tuple::Tuple<Params...> &t)\
   : xprExpr(funcD.xprExpr, t), expr(xprExpr.expr, funcD.m_patch_planes, funcD.m_patch_rows, funcD.m_patch_cols, funcD.m_plane_strides, funcD.m_row_strides, funcD.m_col_strides,\
     funcD.m_in_plane_strides, funcD.m_in_row_strides, funcD.m_in_col_strides,funcD.m_plane_inflate_strides, funcD.m_row_inflate_strides, funcD.m_col_inflate_strides, \
-    funcD.m_padding_top_z, funcD.m_padding_bottom_z, funcD.m_padding_top, funcD.m_padding_bottom, funcD.m_padding_left, funcD.m_padding_right, funcD.m_padding_value,\
-    funcD.m_padding_type, funcD.m_padding_explicit){\
+    funcD.m_padding_explicit, funcD.m_padding_top_z, funcD.m_padding_bottom_z, funcD.m_padding_top, funcD.m_padding_bottom, funcD.m_padding_left, funcD.m_padding_right, \
+    funcD.m_padding_type, funcD.m_padding_value ){\
     }\
 };
 

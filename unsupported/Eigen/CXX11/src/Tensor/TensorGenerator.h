@@ -31,6 +31,7 @@ struct traits<TensorGeneratorOp<Generator, XprType> > : public traits<XprType>
   typedef typename remove_reference<Nested>::type _Nested;
   static const int NumDimensions = XprTraits::NumDimensions;
   static const int Layout = XprTraits::Layout;
+  typedef typename XprTraits::PointerType PointerType;
 };
 
 template<typename Generator, typename XprType>
@@ -156,7 +157,7 @@ struct TensorEvaluator<const TensorGeneratorOp<Generator, ArgType>, Device>
                                   TensorOpCost::MulCost<Scalar>());
   }
 
-  EIGEN_DEVICE_FUNC Scalar* data() const { return NULL; }
+  EIGEN_DEVICE_FUNC typename Eigen::internal::traits<XprType>::PointerType  data() const { return NULL; }
 
 #ifdef EIGEN_USE_SYCL
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const TensorEvaluator<ArgType, Device>& impl() const { return m_argImpl; }

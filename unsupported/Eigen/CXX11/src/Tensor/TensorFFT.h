@@ -71,6 +71,7 @@ struct traits<TensorFFTOp<FFT, XprType, FFTResultType, FFTDir> > : public traits
   typedef typename remove_reference<Nested>::type _Nested;
   static const int NumDimensions = XprTraits::NumDimensions;
   static const int Layout = XprTraits::Layout;
+  typedef typename traits<XprType>::PointerType PointerType;
 };
 
 template <typename FFT, typename XprType, int FFTResultType, int FFTDirection>
@@ -234,7 +235,7 @@ struct TensorEvaluator<const TensorFFTOp<FFT, ArgType, FFTResultType, FFTDir>, D
         if (line_len > 1) {
           const RealScalar pi_over_len(EIGEN_PI / line_len);
           const ComplexScalar pos_j_base = ComplexScalar(
-	       std::cos(pi_over_len), std::sin(pi_over_len));
+              std::cos(pi_over_len), std::sin(pi_over_len));
           pos_j_base_powered[1] = pos_j_base;
           if (line_len > 2) {
             const ComplexScalar pos_j_base_sq = pos_j_base * pos_j_base;

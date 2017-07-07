@@ -283,7 +283,7 @@ struct TensorEvaluator<const TensorCwiseNullaryOp<NullaryOp, ArgType>, Device>
                         internal::unpacket_traits<PacketReturnType>::size);
   }
 
-  EIGEN_DEVICE_FUNC CoeffReturnType* data() const { return NULL; }
+  EIGEN_DEVICE_FUNC  typename Eigen::internal::traits<XprType>::PointerType  data() const { return NULL; }
 
   /// required by sycl in order to extract the accessor
   const TensorEvaluator<ArgType, Device>& impl() const { return m_argImpl; }
@@ -353,7 +353,7 @@ struct TensorEvaluator<const TensorCwiseUnaryOp<UnaryOp, ArgType>, Device>
         TensorOpCost(0, 0, functor_cost, vectorized, PacketSize);
   }
 
-  EIGEN_DEVICE_FUNC CoeffReturnType* data() const { return NULL; }
+  EIGEN_DEVICE_FUNC typename Eigen::internal::traits<XprType>::PointerType data() const { return NULL; }
 
   /// required by sycl in order to extract the accessor
   const TensorEvaluator<ArgType, Device> & impl() const { return m_argImpl; }
@@ -433,7 +433,7 @@ struct TensorEvaluator<const TensorCwiseBinaryOp<BinaryOp, LeftArgType, RightArg
            TensorOpCost(0, 0, functor_cost, vectorized, PacketSize);
   }
 
-  EIGEN_DEVICE_FUNC CoeffReturnType* data() const { return NULL; }
+  EIGEN_DEVICE_FUNC typename Eigen::internal::traits<XprType>::PointerType data() const { return NULL; }
   /// required by sycl in order to extract the accessor
   const TensorEvaluator<LeftArgType, Device>& left_impl() const { return m_leftImpl; }
   /// required by sycl in order to extract the accessor
@@ -533,7 +533,7 @@ struct TensorEvaluator<const TensorCwiseTernaryOp<TernaryOp, Arg1Type, Arg2Type,
            TensorOpCost(0, 0, functor_cost, vectorized, PacketSize);
   }
 
-  EIGEN_DEVICE_FUNC CoeffReturnType* data() const { return NULL; }
+  EIGEN_DEVICE_FUNC typename Eigen::internal::traits<XprType>::PointerType data() const { return NULL; }
 
   /// required by sycl in order to extract the accessor
   const TensorEvaluator<Arg1Type, Device> & arg1Impl() const { return m_arg1Impl; }
@@ -625,7 +625,7 @@ struct TensorEvaluator<const TensorSelectOp<IfArgType, ThenArgType, ElseArgType>
         .cwiseMax(m_elseImpl.costPerCoeff(vectorized));
   }
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE CoeffReturnType* data() const { return NULL; }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE typename Eigen::internal::traits<XprType>::PointerType data() const { return NULL; }
   /// required by sycl in order to extract the accessor
   const TensorEvaluator<IfArgType, Device> & cond_impl() const { return m_condImpl; }
   /// required by sycl in order to extract the accessor
