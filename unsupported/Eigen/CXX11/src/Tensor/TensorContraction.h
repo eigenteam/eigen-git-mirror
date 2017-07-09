@@ -104,7 +104,7 @@ struct traits<TensorContractionOp<Dimensions, LhsXprType, RhsXprType> >
   // From NumDims below.
   static const int NumDimensions = traits<RhsXprType>::NumDimensions + traits<RhsXprType>::NumDimensions - 2 * array_size<Dimensions>::value;
   static const int Layout = traits<LhsXprType>::Layout;
-  typedef typename conditional<::Eigen::internal::Pointer_type_promotion<typename LhsXprType::Scalar, Scalar>::val,
+  typedef typename conditional<Pointer_type_promotion<typename LhsXprType::Scalar, Scalar>::val,
   typename traits<LhsXprType>::PointerType, typename traits<RhsXprType>::PointerType>::type PointerType;
 
   enum {

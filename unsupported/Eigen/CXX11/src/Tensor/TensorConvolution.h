@@ -231,7 +231,7 @@ struct traits<TensorConvolutionOp<Dimensions, InputXprType, KernelXprType> >
   typedef typename remove_reference<RhsNested>::type _RhsNested;
   static const int NumDimensions = traits<InputXprType>::NumDimensions;
   static const int Layout = traits<InputXprType>::Layout;
-  typedef typename conditional<::Eigen::internal::Pointer_type_promotion<typename InputXprType::Scalar, Scalar>::val,
+  typedef typename conditional<Pointer_type_promotion<typename InputXprType::Scalar, Scalar>::val,
   typename traits<InputXprType>::PointerType, typename traits<KernelXprType>::PointerType>::type PointerType;
 
   enum {
