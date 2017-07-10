@@ -32,7 +32,7 @@ struct traits<TensorConversionOp<TargetType, XprType> >
   static const int NumDimensions = traits<XprType>::NumDimensions;
   static const int Layout = traits<XprType>::Layout;
   enum { Flags = 0 };
-   typedef typename ::Eigen::internal::TypeConversion<Scalar, typename traits<XprType>::PointerType>::type PointerType;
+   typedef typename TypeConversion<Scalar, typename traits<XprType>::PointerType>::type PointerType;
 };
 
 template<typename TargetType, typename XprType>
