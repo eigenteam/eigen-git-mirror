@@ -14,7 +14,7 @@ namespace Eigen {
 namespace internal {
 
 
-#if defined(EIGEN_USE_GPU) && defined(__CUDACC__)
+#if defined(EIGEN_USE_GPU) && defined(EIGEN_CUDACC)
 // Full reducers for GPU, don't vectorize for now
 
 // Reducer function that enables multiple cuda thread to safely accumulate at the same
@@ -23,7 +23,7 @@ namespace internal {
 // updated the content of the output address it will try again.
 template <typename T, typename R>
 __device__ EIGEN_ALWAYS_INLINE void atomicReduce(T* output, T accum, R& reducer) {
-#if __CUDA_ARCH__ >= 300
+#if EIGEN_CUDA_ARCH >= 300
   if (sizeof(T) == 4)
   {
     unsigned int oldval = *reinterpret_cast<unsigned int*>(output);
@@ -102,7 +102,7 @@ __device__ inline void atomicReduce(half2* output, half2 accum, R<half>& reducer
 
 template <>
 __device__ inline void atomicReduce(float* output, float accum, SumReducer<float>&) {
-#if __CUDA_ARCH__ >= 300
+#if EIGEN_CUDA_ARCH >= 300
   atomicAdd(output, accum);
 #else // __CUDA_ARCH__ >= 300
   assert(0 && "Shouldn't be called on unsupported device");
@@ -124,7 +124,7 @@ template <int BlockSize, int NumPerThread, typename Self,
           typename Reducer, typename Index>
 __global__ void FullReductionKernel(Reducer reducer, const Self input, Index num_coeffs,
                                     typename Self::CoeffReturnType* output, unsigned int* semaphore) {
-#if __CUDA_ARCH__ >= 300
+#if EIGEN_CUDA_ARCH >= 300
   // Initialize the output value
   const Index first_index = blockIdx.x * BlockSize * NumPerThread + threadIdx.x;
   if (gridDim.x == 1) {
@@ -372,7 +372,7 @@ template <int NumPerThread, typename Self,
           typename Reducer, typename Index>
 __global__ void InnerReductionKernel(Reducer reducer, const Self input, Index num_coeffs_to_reduce, Index num_preserved_coeffs,
                                          typename Self::CoeffReturnType* output) {
-#if __CUDA_ARCH__ >= 300
+#if EIGEN_CUDA_ARCH >= 300
   typedef typename Self::CoeffReturnType Type;
   eigen_assert(blockDim.y == 1);
   eigen_assert(blockDim.z == 1);

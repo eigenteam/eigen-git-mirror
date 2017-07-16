@@ -160,7 +160,7 @@ template<typename Derived> class MatrixBase
     EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
     Derived& operator-=(const MatrixBase<OtherDerived>& other);
 
-#ifdef __CUDACC__
+#ifdef EIGEN_CUDACC
     template<typename OtherDerived>
     EIGEN_DEVICE_FUNC
     const Product<Derived,OtherDerived,LazyProduct>

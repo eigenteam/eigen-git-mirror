@@ -16,7 +16,7 @@ namespace Eigen {
 
 namespace internal {
 
-#if defined(__CUDACC__) && defined(EIGEN_USE_GPU)
+#if defined(EIGEN_CUDACC) && defined(EIGEN_USE_GPU)
 
 // Many std::complex methods such as operator+, operator-, operator* and
 // operator/ are not constexpr. Due to this, clang does not treat them as device

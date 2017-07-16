@@ -12,7 +12,7 @@
 #ifndef EIGEN_CXX11_TENSOR_TENSOR_CONTRACTION_CUDA_H
 #define EIGEN_CXX11_TENSOR_TENSOR_CONTRACTION_CUDA_H
 
-#if defined(EIGEN_USE_GPU) && defined(__CUDACC__)
+#if defined(EIGEN_USE_GPU) && defined(EIGEN_CUDACC)
 
 namespace Eigen {
 
@@ -1382,5 +1382,5 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
 
 } // end namespace Eigen
 
-#endif // EIGEN_USE_GPU and __CUDACC__
+#endif // EIGEN_USE_GPU and EIGEN_CUDACC
 #endif // EIGEN_CXX11_TENSOR_TENSOR_CONTRACTION_CUDA_H

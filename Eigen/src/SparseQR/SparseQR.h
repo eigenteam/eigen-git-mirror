@@ -327,7 +327,7 @@ void SparseQR<MatrixType,OrderingType>::analyzePattern(const MatrixType& mat)
   internal::coletree(matCpy, m_etree, m_firstRowElt, m_outputPerm_c.indices().data());
   m_isEtreeOk = true;
   
-  m_R.resize(m, n);
+  m_R.resize(diagSize, n);
   m_Q.resize(m, diagSize);
   
   // Allocate space for nonzero elements : rough estimation

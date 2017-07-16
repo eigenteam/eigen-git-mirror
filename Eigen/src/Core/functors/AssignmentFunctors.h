@@ -144,7 +144,7 @@ template<typename Scalar> struct swap_assign_op {
   EIGEN_EMPTY_STRUCT_CTOR(swap_assign_op)
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void assignCoeff(Scalar& a, const Scalar& b) const
   {
-#ifdef __CUDACC__
+#ifdef EIGEN_CUDACC
     // FIXME is there some kind of cuda::swap?
     Scalar t=b; const_cast<Scalar&>(b)=a; a=t;
 #else

@@ -19,7 +19,7 @@ struct scalar_cast_op<float, Eigen::half> {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_cast_op)
   typedef Eigen::half result_type;
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Eigen::half operator() (const float& a) const {
-    #if defined(EIGEN_HAS_CUDA_FP16) && defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 300
+    #if defined(EIGEN_HAS_CUDA_FP16) && defined(EIGEN_CUDA_ARCH) && EIGEN_CUDA_ARCH >= 300
       return __float2half(a);
     #else
       return Eigen::half(a);
@@ -37,7 +37,7 @@ struct scalar_cast_op<int, Eigen::half> {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_cast_op)
   typedef Eigen::half result_type;
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Eigen::half operator() (const int& a) const {
-    #if defined(EIGEN_HAS_CUDA_FP16) && defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 300
+    #if defined(EIGEN_HAS_CUDA_FP16) && defined(EIGEN_CUDA_ARCH) && EIGEN_CUDA_ARCH >= 300
       return __float2half(static_cast<float>(a));
     #else
       return Eigen::half(static_cast<float>(a));
@@ -55,7 +55,7 @@ struct scalar_cast_op<Eigen::half, float> {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_cast_op)
   typedef float result_type;
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE float operator() (const Eigen::half& a) const {
-    #if defined(EIGEN_HAS_CUDA_FP16) && defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 300
+    #if defined(EIGEN_HAS_CUDA_FP16) && defined(EIGEN_CUDA_ARCH) && EIGEN_CUDA_ARCH >= 300
       return __half2float(a);
     #else
       return static_cast<float>(a);
@@ -69,7 +69,7 @@ struct functor_traits<scalar_cast_op<Eigen::half, float> >
 
 
 
-#if defined(EIGEN_HAS_CUDA_FP16) && defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 300
+#if defined(EIGEN_HAS_CUDA_FP16) && defined(EIGEN_CUDA_ARCH) && EIGEN_CUDA_ARCH >= 300
 
 template <>
 struct type_casting_traits<Eigen::half, float> {
