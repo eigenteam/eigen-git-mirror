@@ -1378,13 +1378,14 @@ T acos(const T &x) {
   return acos(x);
 }
 
-
+#if EIGEN_HAS_CXX11_MATH
 template<typename T>
 EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
 T acosh(const T &x) {
   EIGEN_USING_STD_MATH(acosh);
   return acosh(x);
 }
+#endif
 
 #if defined(__SYCL_DEVICE_ONLY__)
 EIGEN_ALWAYS_INLINE float   acos(float x) { return cl::sycl::acos(x); }
@@ -1408,12 +1409,14 @@ T asin(const T &x) {
   return asin(x);
 }
 
+#if EIGEN_HAS_CXX11_MATH
 template<typename T>
 EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
 T asinh(const T &x) {
   EIGEN_USING_STD_MATH(asinh);
   return asinh(x);
 }
+#endif
 
 #if defined(__SYCL_DEVICE_ONLY__)
 EIGEN_ALWAYS_INLINE float   asin(float x) { return cl::sycl::asin(x); }
@@ -1437,12 +1440,14 @@ T atan(const T &x) {
   return atan(x);
 }
 
+#if EIGEN_HAS_CXX11_MATH
 template<typename T>
 EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
 T atanh(const T &x) {
   EIGEN_USING_STD_MATH(atanh);
   return atanh(x);
 }
+#endif
 
 #if defined(__SYCL_DEVICE_ONLY__)
 EIGEN_ALWAYS_INLINE float   atan(float x) { return cl::sycl::atan(x); }
