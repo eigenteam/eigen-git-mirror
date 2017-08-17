@@ -49,7 +49,7 @@
   #define EIGEN_USE_LAPACKE
 #endif
 
-#if defined(EIGEN_USE_MKL_VML)
+#if defined(EIGEN_USE_MKL_VML) && !defined(EIGEN_USE_MKL)
   #define EIGEN_USE_MKL
 #endif
 
