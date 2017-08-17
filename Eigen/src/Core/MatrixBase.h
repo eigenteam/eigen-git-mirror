@@ -296,7 +296,7 @@ template<typename Derived> class MatrixBase
     EIGEN_DEVICE_FUNC inline bool operator!=(const MatrixBase<OtherDerived>& other) const
     { return cwiseNotEqual(other).any(); }
 
-    NoAlias<Derived,Eigen::MatrixBase > noalias();
+    NoAlias<Derived,Eigen::MatrixBase > EIGEN_DEVICE_FUNC noalias();
 
     // TODO forceAlignedAccess is temporarily disabled
     // Need to find a nicer workaround.
@@ -428,8 +428,10 @@ template<typename Derived> class MatrixBase
 ///////// Jacobi module /////////
 
     template<typename OtherScalar>
+    EIGEN_DEVICE_FUNC
     void applyOnTheLeft(Index p, Index q, const JacobiRotation<OtherScalar>& j);
     template<typename OtherScalar>
+    EIGEN_DEVICE_FUNC
     void applyOnTheRight(Index p, Index q, const JacobiRotation<OtherScalar>& j);
 
 ///////// SparseCore module /////////
