@@ -177,7 +177,7 @@ template<typename _MatrixType, int _UpLo> class LLT
     /** \brief Reports whether previous computation was successful.
       *
       * \returns \c Success if computation was succesful,
-      *          \c NumericalIssue if the matrix.appears to be negative.
+      *          \c NumericalIssue if the matrix.appears not to be positive definite.
       */
     ComputationInfo info() const
     {
