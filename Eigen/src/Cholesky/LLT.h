@@ -490,6 +490,9 @@ void LLT<_MatrixType,_UpLo>::_solve_impl(const RhsType &rhs, DstType &dst) const
   *
   * This version avoids a copy when the right hand side matrix b is not needed anymore.
   *
+  * \warning The parameter is only marked 'const' to make the C++ compiler accept a temporary expression here.
+  * This function will const_cast it, so constness isn't honored here.
+  *
   * \sa LLT::solve(), MatrixBase::llt()
   */
 template<typename MatrixType, int _UpLo>
