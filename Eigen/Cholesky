@@ -9,6 +9,7 @@
 #define EIGEN_CHOLESKY_MODULE_H
 
 #include "Core"
+#include "Jacobi"
 
 #include "src/Core/util/DisableStupidWarnings.h"
 
