@@ -137,7 +137,13 @@ EIGEN_DONT_INLINE void product_triangular_matrix_matrix<Scalar,Index,Mode,true,
     ei_declare_aligned_stack_constructed_variable(Scalar, blockA, sizeA, blocking.blockA());
     ei_declare_aligned_stack_constructed_variable(Scalar, blockB, sizeB, blocking.blockB());
 
-    Matrix<Scalar,SmallPanelWidth,SmallPanelWidth,LhsStorageOrder> triangularBuffer((internal::constructor_without_unaligned_array_assert()));
+    // To work around an "error: member reference base type 'Matrix<...>
+    // (Eigen::internal::constructor_without_unaligned_array_assert (*)())' is
+    // not a structure or union" compilation error in nvcc (tested V8.0.61),
+    // create a dummy internal::constructor_without_unaligned_array_assert
+    // object to pass to the Matrix constructor.
+    internal::constructor_without_unaligned_array_assert a;
+    Matrix<Scalar,SmallPanelWidth,SmallPanelWidth,LhsStorageOrder> triangularBuffer(a);
     triangularBuffer.setZero();
     if((Mode&ZeroDiag)==ZeroDiag)
       triangularBuffer.diagonal().setZero();
@@ -284,7 +290,8 @@ EIGEN_DONT_INLINE void product_triangular_matrix_matrix<Scalar,Index,Mode,false,
     ei_declare_aligned_stack_constructed_variable(Scalar, blockA, sizeA, blocking.blockA());
     ei_declare_aligned_stack_constructed_variable(Scalar, blockB, sizeB, blocking.blockB());
 
-    Matrix<Scalar,SmallPanelWidth,SmallPanelWidth,RhsStorageOrder> triangularBuffer((internal::constructor_without_unaligned_array_assert()));
+    internal::constructor_without_unaligned_array_assert a;
+    Matrix<Scalar,SmallPanelWidth,SmallPanelWidth,RhsStorageOrder> triangularBuffer(a);
     triangularBuffer.setZero();
     if((Mode&ZeroDiag)==ZeroDiag)
       triangularBuffer.diagonal().setZero();
