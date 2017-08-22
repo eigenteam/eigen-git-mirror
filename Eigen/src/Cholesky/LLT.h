@@ -24,7 +24,7 @@ template<typename MatrixType, int UpLo> struct LLT_Traits;
   *
   * \tparam _MatrixType the type of the matrix of which we are computing the LL^T Cholesky decomposition
   * \tparam _UpLo the triangular part that will be used for the decompositon: Lower (default) or Upper.
-  *             The other triangular part won't be read.
+  *               The other triangular part won't be read.
   *
   * This class performs a LL^T Cholesky decomposition of a symmetric, positive definite
   * matrix A such that A = LL^* = U^*U, where L is lower triangular.
@@ -48,11 +48,10 @@ template<typename MatrixType, int UpLo> struct LLT_Traits;
   *
   * This class supports the \link InplaceDecomposition inplace decomposition \endlink mechanism.
   *
+  * Note that during the decomposition, only the lower (or upper, as defined by _UpLo) triangular part of A is considered.
+  * Therefore, the strict lower part does not have to store correct values.
+  *
   * \sa MatrixBase::llt(), SelfAdjointView::llt(), class LDLT
-  */
- /* HEY THIS DOX IS DISABLED BECAUSE THERE's A BUG EITHER HERE OR IN LDLT ABOUT THAT (OR BOTH)
-  * Note that during the decomposition, only the upper triangular part of A is considered. Therefore,
-  * the strict lower part does not have to store correct values.
   */
 template<typename _MatrixType, int _UpLo> class LLT
 {
