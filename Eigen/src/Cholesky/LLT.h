@@ -41,6 +41,11 @@ template<typename MatrixType, int UpLo> struct LLT_Traits;
   * Example: \include LLT_example.cpp
   * Output: \verbinclude LLT_example.out
   *
+  * \b Performance: for best performance, it is recommended to use a column-major storage format
+  * with the Lower triangular part (the default), or, equivalently, a row-major storage format,
+  * with the Upper triangular part. Otherwise, you might get a 20% slowdown for the full factorization
+  * step, and rank-updates can be up to 3 times slower.
+  *
   * This class supports the \link InplaceDecomposition inplace decomposition \endlink mechanism.
   *
   * Note that during the decomposition, only the lower (or upper, as defined by _UpLo) triangular part of A is considered.
