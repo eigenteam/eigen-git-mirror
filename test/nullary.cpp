@@ -191,6 +191,24 @@ void testVectorType(const VectorType& base)
       }
     }
   }
+
+  // test setUnit()
+  if(m.size()>0)
+  {
+    for(Index k=0; k<10; ++k)
+    {
+      Index i = internal::random<Index>(0,m.size()-1);
+      m.setUnit(i);
+      VERIFY_IS_APPROX( m, VectorType::Unit(m.size(), i) );
+    }
+    if(VectorType::SizeAtCompileTime==Dynamic)
+    {
+      Index i = internal::random<Index>(0,2*m.size()-1);
+      m.setUnit(2*m.size(),i);
+      VERIFY_IS_APPROX( m, VectorType::Unit(m.size(),i) );
+    }
+  }
+
 }
 
 template<typename MatrixType>
