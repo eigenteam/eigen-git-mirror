@@ -13,9 +13,6 @@
 #define EIGEN_DEFAULT_DENSE_INDEX_TYPE int
 #define EIGEN_USE_GPU
 
-#if EIGEN_CUDACC_VER >= 70500
-#include <cuda_fp16.h>
-#endif
 #include "main.h"
 #include <Eigen/CXX11/Tensor>
 
