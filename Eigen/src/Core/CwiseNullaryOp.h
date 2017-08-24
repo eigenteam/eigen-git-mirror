@@ -861,6 +861,42 @@ template<typename Derived>
 EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const typename MatrixBase<Derived>::BasisReturnType MatrixBase<Derived>::UnitW()
 { return Derived::Unit(3); }
 
+/** \brief Set the coefficients of \c *this to the i-th unit (basis) vector
+  *
+  * \param i index of the unique coefficient to be set to 1
+  *
+  * \only_for_vectors
+  *
+  * \sa MatrixBase::setIdentity(), class CwiseNullaryOp, MatrixBase::Unit(Index,Index)
+  */
+template<typename Derived>
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Derived& MatrixBase<Derived>::setUnit(Index i)
+{
+  EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived);
+  eigen_assert(i<size());
+  derived().setZero();
+  derived().coeffRef(i) = Scalar(1);
+  return derived();
+}
+
+/** \brief Resizes to the given \a newSize, and writes the i-th unit (basis) vector into *this.
+  *
+  * \param newSize the new size of the vector
+  * \param i index of the unique coefficient to be set to 1
+  *
+  * \only_for_vectors
+  *
+  * \sa MatrixBase::setIdentity(), class CwiseNullaryOp, MatrixBase::Unit(Index,Index)
+  */
+template<typename Derived>
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Derived& MatrixBase<Derived>::setUnit(Index newSize, Index i)
+{
+  EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived);
+  eigen_assert(i<newSize);
+  derived().resize(newSize);
+  return setUnit(i);
+}
+
 } // end namespace Eigen
 
 #endif // EIGEN_CWISE_NULLARY_OP_H

@@ -131,7 +131,7 @@ T loadConstant(const T* address) {
   return *address;
 }
 // Use the texture cache on CUDA devices whenever possible
-#if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 350
+#if defined(EIGEN_CUDA_ARCH) && EIGEN_CUDA_ARCH >= 350
 template <> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
 float loadConstant(const float* address) {
   return __ldg(address);

@@ -17,7 +17,7 @@ namespace internal {
 // Make sure this is only available when targeting a GPU: we don't want to
 // introduce conflicts between these packet_traits definitions and the ones
 // we'll use on the host side (SSE, AVX, ...)
-#if defined(__CUDACC__) && defined(EIGEN_USE_GPU)
+#if defined(EIGEN_CUDACC) && defined(EIGEN_USE_GPU)
 template<> struct is_arithmetic<float4>  { enum { value = true }; };
 template<> struct is_arithmetic<double2> { enum { value = true }; };
 
@@ -196,7 +196,7 @@ template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void pstoreu<double>(double* to
 
 template<>
 EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE float4 ploadt_ro<float4, Aligned>(const float* from) {
-#if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 350
+#if defined(EIGEN_CUDA_ARCH) && EIGEN_CUDA_ARCH >= 350
   return __ldg((const float4*)from);
 #else
   return make_float4(from[0], from[1], from[2], from[3]);
@@ -204,7 +204,7 @@ EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE float4 ploadt_ro<float4, Aligned>(const fl
 }
 template<>
 EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE double2 ploadt_ro<double2, Aligned>(const double* from) {
-#if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 350
+#if defined(EIGEN_CUDA_ARCH) && EIGEN_CUDA_ARCH >= 350
   return __ldg((const double2*)from);
 #else
   return make_double2(from[0], from[1]);
@@ -213,7 +213,7 @@ EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE double2 ploadt_ro<double2, Aligned>(const 
 
 template<>
 EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE float4 ploadt_ro<float4, Unaligned>(const float* from) {
-#if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 350
+#if defined(EIGEN_CUDA_ARCH) && EIGEN_CUDA_ARCH >= 350
   return make_float4(__ldg(from+0), __ldg(from+1), __ldg(from+2), __ldg(from+3));
 #else
   return make_float4(from[0], from[1], from[2], from[3]);
@@ -221,7 +221,7 @@ EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE float4 ploadt_ro<float4, Unaligned>(const 
 }
 template<>
 EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE double2 ploadt_ro<double2, Unaligned>(const double* from) {
-#if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 350
+#if defined(EIGEN_CUDA_ARCH) && EIGEN_CUDA_ARCH >= 350
   return make_double2(__ldg(from+0), __ldg(from+1));
 #else
   return make_double2(from[0], from[1]);

@@ -553,7 +553,7 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
 
 
 // Use an optimized implementation of the evaluation code for GPUs whenever possible.
-#if defined(EIGEN_USE_GPU) && defined(__CUDACC__)
+#if defined(EIGEN_USE_GPU) && defined(EIGEN_CUDACC)
 
 template <int StaticKernelSize>
 struct GetKernelSize {

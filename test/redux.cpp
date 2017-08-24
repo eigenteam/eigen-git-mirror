@@ -9,6 +9,8 @@
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #define TEST_ENABLE_TEMPORARY_TRACKING
+#define EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD 8
+// ^^ see bug 1449
 
 #include "main.h"
 

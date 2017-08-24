@@ -83,7 +83,7 @@ void assign_sparse_to_sparse(DstXprType &dst, const SrcXprType &src)
     // eval without temporary
     dst.resize(src.rows(), src.cols());
     dst.setZero();
-    dst.reserve((std::max)(src.rows(),src.cols())*2);
+    dst.reserve((std::min)(src.rows()*src.cols(), (std::max)(src.rows(),src.cols())*2));
     for (Index j=0; j<outerEvaluationSize; ++j)
     {
       dst.startVec(j);
@@ -107,7 +107,7 @@ void assign_sparse_to_sparse(DstXprType &dst, const SrcXprType &src)
     
     DstXprType temp(src.rows(), src.cols());
 
-    temp.reserve((std::max)(src.rows(),src.cols())*2);
+    temp.reserve((std::min)(src.rows()*src.cols(), (std::max)(src.rows(),src.cols())*2));
     for (Index j=0; j<outerEvaluationSize; ++j)
     {
       temp.startVec(j);

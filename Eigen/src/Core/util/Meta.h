@@ -11,7 +11,7 @@
 #ifndef EIGEN_META_H
 #define EIGEN_META_H
 
-#if defined(__CUDA_ARCH__)
+#if defined(EIGEN_CUDA_ARCH)
 #include <cfloat>
 #include <math_constants.h>
 #endif
@@ -169,7 +169,7 @@ template<bool Condition, typename T=void> struct enable_if;
 template<typename T> struct enable_if<true,T>
 { typedef T type; };
 
-#if defined(__CUDA_ARCH__)
+#if defined(EIGEN_CUDA_ARCH)
 #if !defined(__FLT_EPSILON__)
 #define __FLT_EPSILON__ FLT_EPSILON
 #define __DBL_EPSILON__ DBL_EPSILON
@@ -523,13 +523,13 @@ template<typename T, typename U> struct scalar_product_traits
 
 namespace numext {
   
-#if defined(__CUDA_ARCH__)
+#if defined(EIGEN_CUDA_ARCH)
 template<typename T> EIGEN_DEVICE_FUNC   void swap(T &a, T &b) { T tmp = b; b = a; a = tmp; }
 #else
 template<typename T> EIGEN_STRONG_INLINE void swap(T &a, T &b) { std::swap(a,b); }
 #endif
 
-#if defined(__CUDA_ARCH__)
+#if defined(EIGEN_CUDA_ARCH)
 using internal::device::numeric_limits;
 #else
 using std::numeric_limits;

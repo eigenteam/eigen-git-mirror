@@ -14,8 +14,24 @@
 // first thing Eigen does: stop the compiler from committing suicide
 #include "src/Core/util/DisableStupidWarnings.h"
 
+#if defined(__CUDACC__) && !defined(EIGEN_NO_CUDA)
+  #define EIGEN_CUDACC __CUDACC__
+#endif
+
+#if defined(__CUDA_ARCH__) && !defined(EIGEN_NO_CUDA)
+  #define EIGEN_CUDA_ARCH __CUDA_ARCH__
+#endif
+
+#if defined(__CUDACC_VER_MAJOR__) && (__CUDACC_VER_MAJOR__ >= 9)
+#define EIGEN_CUDACC_VER  ((__CUDACC_VER_MAJOR__ * 10000) + (__CUDACC_VER_MINOR__ * 100))
+#elif defined(__CUDACC_VER__)
+#define EIGEN_CUDACC_VER __CUDACC_VER__
+#else
+#define EIGEN_CUDACC_VER 0
+#endif
+
 // Handle NVCC/CUDA/SYCL
-#if defined(__CUDACC__) || defined(__SYCL_DEVICE_ONLY__)
+#if defined(EIGEN_CUDACC) || defined(__SYCL_DEVICE_ONLY__)
   // Do not try asserts on CUDA and SYCL!
   #ifndef EIGEN_NO_DEBUG
   #define EIGEN_NO_DEBUG
@@ -30,7 +46,7 @@
   #endif
 
   // All functions callable from CUDA code must be qualified with __device__
-  #ifdef __CUDACC__
+  #ifdef EIGEN_CUDACC
     // Do not try to vectorize on CUDA and SYCL!
     #ifndef EIGEN_DONT_VECTORIZE
     #define EIGEN_DONT_VECTORIZE
@@ -47,16 +63,20 @@
   #define EIGEN_DEVICE_FUNC
 #endif
 
+#ifdef __NVCC__
+#define EIGEN_DONT_VECTORIZE
+#endif
+
 // When compiling CUDA device code with NVCC, pull in math functions from the
 // global namespace.  In host mode, and when device doee with clang, use the
 // std versions.
-#if defined(__CUDA_ARCH__) && defined(__NVCC__)
+#if defined(EIGEN_CUDA_ARCH) && defined(__NVCC__)
   #define EIGEN_USING_STD_MATH(FUNC) using ::FUNC;
 #else
   #define EIGEN_USING_STD_MATH(FUNC) using std::FUNC;
 #endif
 
-#if (defined(_CPPUNWIND) || defined(__EXCEPTIONS)) && !defined(__CUDA_ARCH__) && !defined(EIGEN_EXCEPTIONS) && !defined(EIGEN_USE_SYCL)
+#if (defined(_CPPUNWIND) || defined(__EXCEPTIONS)) && !defined(EIGEN_CUDA_ARCH) && !defined(EIGEN_EXCEPTIONS) && !defined(EIGEN_USE_SYCL)
   #define EIGEN_EXCEPTIONS
 #endif
 
@@ -233,10 +253,10 @@
   #define EIGEN_HAS_FP16_C
 #endif
 
-#if defined __CUDACC__
+#if defined EIGEN_CUDACC
   #define EIGEN_VECTORIZE_CUDA
   #include <vector_types.h>
-  #if defined __CUDACC_VER__ && __CUDACC_VER__ >= 70500
+  #if EIGEN_CUDACC_VER >= 70500
     #define EIGEN_HAS_CUDA_FP16
   #endif
 #endif

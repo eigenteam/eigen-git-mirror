@@ -37,17 +37,20 @@ template<typename Scalar> class JacobiRotation
     typedef typename NumTraits<Scalar>::Real RealScalar;
 
     /** Default constructor without any initialization. */
+    EIGEN_DEVICE_FUNC
     JacobiRotation() {}
 
     /** Construct a planar rotation from a cosine-sine pair (\a c, \c s). */
+    EIGEN_DEVICE_FUNC
     JacobiRotation(const Scalar& c, const Scalar& s) : m_c(c), m_s(s) {}
 
-    Scalar& c() { return m_c; }
-    Scalar c() const { return m_c; }
-    Scalar& s() { return m_s; }
-    Scalar s() const { return m_s; }
+    EIGEN_DEVICE_FUNC Scalar& c() { return m_c; }
+    EIGEN_DEVICE_FUNC Scalar c() const { return m_c; }
+    EIGEN_DEVICE_FUNC Scalar& s() { return m_s; }
+    EIGEN_DEVICE_FUNC Scalar s() const { return m_s; }
 
     /** Concatenates two planar rotation */
+    EIGEN_DEVICE_FUNC
     JacobiRotation operator*(const JacobiRotation& other)
     {
       using numext::conj;
@@ -56,19 +59,26 @@ template<typename Scalar> class JacobiRotation
     }
 
     /** Returns the transposed transformation */
+    EIGEN_DEVICE_FUNC
     JacobiRotation transpose() const { using numext::conj; return JacobiRotation(m_c, -conj(m_s)); }
 
     /** Returns the adjoint transformation */
+    EIGEN_DEVICE_FUNC
     JacobiRotation adjoint() const { using numext::conj; return JacobiRotation(conj(m_c), -m_s); }
 
     template<typename Derived>
+    EIGEN_DEVICE_FUNC
     bool makeJacobi(const MatrixBase<Derived>&, Index p, Index q);
+    EIGEN_DEVICE_FUNC
     bool makeJacobi(const RealScalar& x, const Scalar& y, const RealScalar& z);
 
+    EIGEN_DEVICE_FUNC
     void makeGivens(const Scalar& p, const Scalar& q, Scalar* z=0);
 
   protected:
+    EIGEN_DEVICE_FUNC
     void makeGivens(const Scalar& p, const Scalar& q, Scalar* z, internal::true_type);
+    EIGEN_DEVICE_FUNC
     void makeGivens(const Scalar& p, const Scalar& q, Scalar* z, internal::false_type);
 
     Scalar m_c, m_s;
@@ -264,6 +274,7 @@ namespace internal {
   * \sa MatrixBase::applyOnTheLeft(), MatrixBase::applyOnTheRight()
   */
 template<typename VectorX, typename VectorY, typename OtherScalar>
+EIGEN_DEVICE_FUNC
 void apply_rotation_in_the_plane(DenseBase<VectorX>& xpr_x, DenseBase<VectorY>& xpr_y, const JacobiRotation<OtherScalar>& j);
 }
 

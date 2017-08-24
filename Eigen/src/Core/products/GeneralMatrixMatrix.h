@@ -427,7 +427,13 @@ struct generic_product_impl<Lhs,Rhs,DenseShape,DenseShape,GemmProduct>
   template<typename Dst>
   static void evalTo(Dst& dst, const Lhs& lhs, const Rhs& rhs)
   {
-    if((rhs.rows()+dst.rows()+dst.cols())<20 && rhs.rows()>0)
+    // See http://eigen.tuxfamily.org/bz/show_bug.cgi?id=404 for a discussion and helper program
+    // to determine the following heuristic.
+    // EIGEN_GEMM_TO_COEFFBASED_THRESHOLD is typically defined to 20 in GeneralProduct.h,
+    // unless it has been specialized by the user or for a given architecture.
+    // Note that the condition rhs.rows()>0 was required because lazy produc is (was?) not happy with empty inputs.
+    // I'm not sure it is still required.
+    if((rhs.rows()+dst.rows()+dst.cols())<EIGEN_GEMM_TO_COEFFBASED_THRESHOLD && rhs.rows()>0)
       lazyproduct::evalTo(dst, lhs, rhs);
     else
     {
@@ -439,7 +445,7 @@ struct generic_product_impl<Lhs,Rhs,DenseShape,DenseShape,GemmProduct>
   template<typename Dst>
   static void addTo(Dst& dst, const Lhs& lhs, const Rhs& rhs)
   {
-    if((rhs.rows()+dst.rows()+dst.cols())<20 && rhs.rows()>0)
+    if((rhs.rows()+dst.rows()+dst.cols())<EIGEN_GEMM_TO_COEFFBASED_THRESHOLD && rhs.rows()>0)
       lazyproduct::addTo(dst, lhs, rhs);
     else
       scaleAndAddTo(dst,lhs, rhs, Scalar(1));
@@ -448,7 +454,7 @@ struct generic_product_impl<Lhs,Rhs,DenseShape,DenseShape,GemmProduct>
   template<typename Dst>
   static void subTo(Dst& dst, const Lhs& lhs, const Rhs& rhs)
   {
-    if((rhs.rows()+dst.rows()+dst.cols())<20 && rhs.rows()>0)
+    if((rhs.rows()+dst.rows()+dst.cols())<EIGEN_GEMM_TO_COEFFBASED_THRESHOLD && rhs.rows()>0)
       lazyproduct::subTo(dst, lhs, rhs);
     else
       scaleAndAddTo(dst, lhs, rhs, Scalar(-1));

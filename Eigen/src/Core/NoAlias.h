@@ -33,6 +33,7 @@ class NoAlias
   public:
     typedef typename ExpressionType::Scalar Scalar;
     
+    EIGEN_DEVICE_FUNC
     explicit NoAlias(ExpressionType& expression) : m_expression(expression) {}
     
     template<typename OtherDerived>

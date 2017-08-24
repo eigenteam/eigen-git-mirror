@@ -15,6 +15,10 @@ bool check_is_convertible(const From&, const To&)
   return internal::is_convertible<From,To>::value;
 }
 
+struct FooReturnType {
+  typedef int ReturnType;
+};
+
 void test_meta()
 {
   VERIFY((internal::conditional<(3<4),internal::true_type, internal::false_type>::type::value));
@@ -75,6 +79,11 @@ void test_meta()
     VERIFY((!check_is_convertible(A*B, f) ));
     VERIFY(( check_is_convertible(A*B, A) ));
   }
+
+  VERIFY((  internal::has_ReturnType<FooReturnType>::value ));
+  VERIFY((  internal::has_ReturnType<ScalarBinaryOpTraits<int,int> >::value ));
+  VERIFY(( !internal::has_ReturnType<MatrixXf>::value ));
+  VERIFY(( !internal::has_ReturnType<int>::value ));
   
   VERIFY(internal::meta_sqrt<1>::ret == 1);
   #define VERIFY_META_SQRT(X) VERIFY(internal::meta_sqrt<X>::ret == int(std::sqrt(double(X))))

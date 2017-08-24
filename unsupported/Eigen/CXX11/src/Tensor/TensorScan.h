@@ -242,7 +242,7 @@ struct ScanLauncher {
   }
 };
 
-#if defined(EIGEN_USE_GPU) && defined(__CUDACC__)
+#if defined(EIGEN_USE_GPU) && defined(EIGEN_CUDACC)
 
 // GPU implementation of scan
 // TODO(ibab) This placeholder implementation performs multiple scans in
@@ -281,7 +281,7 @@ struct ScanLauncher<Self, Reducer, GpuDevice> {
      LAUNCH_CUDA_KERNEL((ScanKernel<Self, Reducer>), num_blocks, block_size, 0, self.device(), self, total_size, data);
   }
 };
-#endif  // EIGEN_USE_GPU && __CUDACC__
+#endif  // EIGEN_USE_GPU && EIGEN_CUDACC
 
 }  // end namespace Eigen
 
