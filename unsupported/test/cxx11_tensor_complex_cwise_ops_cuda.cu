@@ -11,7 +11,7 @@
 #define EIGEN_TEST_FUNC cxx11_tensor_complex_cwise_ops
 #define EIGEN_USE_GPU
 
-#if defined __CUDACC_VER__ && __CUDACC_VER__ >= 70500
+#if EIGEN_CUDACC_VER >= 70500
 #include <cuda_fp16.h>
 #endif
 #include "main.h"

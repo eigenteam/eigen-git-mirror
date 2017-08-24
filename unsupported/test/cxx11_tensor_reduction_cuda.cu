@@ -12,7 +12,7 @@
 #define EIGEN_TEST_FUNC cxx11_tensor_reduction_cuda
 #define EIGEN_USE_GPU
 
-#if defined __CUDACC_VER__ && __CUDACC_VER__ >= 70500
+#if dEIGEN_CUDACC_VER >= 70500
 #include <cuda_fp16.h>
 #endif
 #include "main.h"
