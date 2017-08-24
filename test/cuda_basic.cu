@@ -20,9 +20,6 @@
 
 #include <math_constants.h>
 #include <cuda.h>
-#if EIGEN_CUDACC_VER >= 70500
-#include <cuda_fp16.h>
-#endif
 #include "main.h"
 #include "cuda_common.h"
 

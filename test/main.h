@@ -50,6 +50,19 @@
 #endif
 #endif
 
+// Same for cuda_fp16.h
+#if defined(__CUDACC_VER_MAJOR__) && (__CUDACC_VER_MAJOR__ >= 9)
+#define EIGEN_TEST_CUDACC_VER  ((__CUDACC_VER_MAJOR__ * 10000) + (__CUDACC_VER_MINOR__ * 100))
+#elif defined(__CUDACC_VER__)
+#define EIGEN_TEST_CUDACC_VER __CUDACC_VER__
+#else
+#define EIGEN_TEST_CUDACC_VER 0
+#endif
+
+#if EIGEN_TEST_CUDACC_VER >= 70500
+#include <cuda_fp16.h>
+#endif
+
 // To test that all calls from Eigen code to std::min() and std::max() are
 // protected by parenthesis against macro expansion, the min()/max() macros
 // are defined here and any not-parenthesized min/max call will cause a
