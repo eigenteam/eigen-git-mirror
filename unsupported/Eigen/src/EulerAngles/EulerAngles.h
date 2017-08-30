@@ -341,7 +341,7 @@ EIGEN_EULER_ANGLES_TYPEDEFS(double, d)
     
     // set from a vector of Euler angles
     template<class System, class Other>
-    struct eulerangles_assign_impl<System,Other,4,1>
+    struct eulerangles_assign_impl<System,Other,3,1>
     {
       typedef typename Other::Scalar Scalar;
       static void run(EulerAngles<Scalar, System>& e, const Other& vec)
