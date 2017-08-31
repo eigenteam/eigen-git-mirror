@@ -388,7 +388,11 @@ EigenContractionKernelInternal(const LhsMapper lhs, const RhsMapper rhs,
   // the sum across all big k blocks of the product of little k block of index (x, y)
   // with block of index (y, z). To compute the final output, we need to reduce
   // the 8 threads over y by summation.
+#if defined(EIGEN_CUDACC_VER) && EIGEN_CUDACC_VER < 90000
 #define shuffleInc(i, j, mask) res(i, j) += __shfl_xor(res(i, j), mask)
+#else
+#define shuffleInc(i, j, mask) res(i, j) += __shfl_xor_sync(0xFFFFFFFF, res(i, j), mask)
+#endif
 
 #define reduceRow(i, mask)                      \
   shuffleInc(i, 0, mask);                       \
@@ -614,8 +618,13 @@ EigenFloatContractionKernelInternal16x16(const LhsMapper lhs, const RhsMapper rh
       x1 = rhs_pf0.x;
       x2 = rhs_pf0.z;
     }
+    #if defined(EIGEN_CUDACC_VER) && EIGEN_CUDACC_VER < 90000
     x1 = __shfl_xor(x1, 4);
     x2 = __shfl_xor(x2, 4);
+    #else
+    x1 = __shfl_xor_sync(0xFFFFFFFF, x1, 4);
+    x2 = __shfl_xor_sync(0xFFFFFFFF, x2, 4);
+    #endif
     if((threadIdx.x%8) < 4) {
       rhs_pf0.y = x1;
       rhs_pf0.w = x2;
