@@ -55,9 +55,7 @@ ivcSize(const Indices& indices) const {
 
 template<typename RowIndices, typename ColIndices>
 struct valid_indexed_view_overload {
-  // Here we use is_convertible to Index instead of is_integral in order to treat enums as Index.
-  // In c++11 we could use is_integral<T> && is_enum<T> if is_convertible appears to be too permissive.
-  enum { value = !(internal::is_convertible<RowIndices,Index>::value && internal::is_convertible<ColIndices,Index>::value) };
+  enum { value = !(internal::is_valid_index_type<RowIndices>::value && internal::is_valid_index_type<ColIndices>::value) };
 };
 
 public:
@@ -146,7 +144,7 @@ operator()(const RowIndicesT (&rowIndices)[RowIndicesN], const ColIndicesT (&col
 
 template<typename Indices>
 typename internal::enable_if<
-  IsRowMajor && (!(internal::get_compile_time_incr<typename IvcType<Indices>::type>::value==1 || internal::is_integral<Indices>::value)),
+  IsRowMajor && (!(internal::get_compile_time_incr<typename IvcType<Indices>::type>::value==1 || internal::is_valid_index_type<Indices>::value)),
   IndexedView<EIGEN_INDEXED_VIEW_METHOD_CONST Derived,IvcIndex,typename IvcType<Indices>::type> >::type
 operator()(const Indices& indices) EIGEN_INDEXED_VIEW_METHOD_CONST
 {
@@ -157,7 +155,7 @@ operator()(const Indices& indices) EIGEN_INDEXED_VIEW_METHOD_CONST
 
 template<typename Indices>
 typename internal::enable_if<
-  (!IsRowMajor) && (!(internal::get_compile_time_incr<typename IvcType<Indices>::type>::value==1 || internal::is_integral<Indices>::value)),
+  (!IsRowMajor) && (!(internal::get_compile_time_incr<typename IvcType<Indices>::type>::value==1 || internal::is_valid_index_type<Indices>::value)),
   IndexedView<EIGEN_INDEXED_VIEW_METHOD_CONST Derived,typename IvcType<Indices>::type,IvcIndex> >::type
 operator()(const Indices& indices) EIGEN_INDEXED_VIEW_METHOD_CONST
 {
@@ -168,7 +166,7 @@ operator()(const Indices& indices) EIGEN_INDEXED_VIEW_METHOD_CONST
 
 template<typename Indices>
 typename internal::enable_if<
-  (internal::get_compile_time_incr<typename IvcType<Indices>::type>::value==1) && (!internal::is_integral<Indices>::value) && (!Symbolic::is_symbolic<Indices>::value),
+  (internal::get_compile_time_incr<typename IvcType<Indices>::type>::value==1) && (!internal::is_valid_index_type<Indices>::value) && (!Symbolic::is_symbolic<Indices>::value),
   VectorBlock<EIGEN_INDEXED_VIEW_METHOD_CONST Derived,internal::array_size<Indices>::value> >::type
 operator()(const Indices& indices) EIGEN_INDEXED_VIEW_METHOD_CONST
 {

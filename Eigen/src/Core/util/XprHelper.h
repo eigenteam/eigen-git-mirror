@@ -34,6 +34,16 @@ inline IndexDest convert_index(const IndexSrc& idx) {
   return IndexDest(idx);
 }
 
+// true if T can be considered as an integral index (i.e., and integral type or enum)
+template<typename T> struct is_valid_index_type
+  : std::integral_constant<bool,
+#if EIGEN_HAS_TYPE_TRAITS
+   internal::is_integral<T>::value || std::is_enum<T>::value
+#else
+  // without C++11, we use is_convertible to Index instead of is_integral in order to treat enums as Index.
+  internal::is_convertible<T,Index>::value
+#endif
+> {};
 
 // promote_scalar_arg is an helper used in operation between an expression and a scalar, like:
 //    expression * scalar
