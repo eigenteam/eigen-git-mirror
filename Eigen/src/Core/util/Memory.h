@@ -696,7 +696,15 @@ template<typename T> void swap(scoped_array<T> &a,scoped_array<T> &b)
 /** \class aligned_allocator
 * \ingroup Core_Module
 *
-* \brief STL compatible allocator to use with with 16 byte aligned types
+* \brief STL compatible allocator to use with types requiring a non standrad alignment.
+*
+* The memory is aligned as for dynamically aligned matrix/array types such as MatrixXd.
+* By default, it will thus provide at least 16 bytes alignment and more in following cases:
+*  - 32 bytes alignment if AVX is enabled.
+*  - 64 bytes alignment if AVX512 is enabled.
+*
+* This can be controled using the \c EIGEN_MAX_ALIGN_BYTES macro as documented
+* \link TopicPreprocessorDirectivesPerformance there \endlink.
 *
 * Example:
 * \code
