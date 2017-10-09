@@ -96,37 +96,48 @@ template<> EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED
 Packet4f pexp<Packet4f>(const Packet4f& x)
 {
   Packet4f res;
+#if !defined(__ARCH__) || (defined(__ARCH__) && __ARCH__ >= 12)
+  res = pexp<Packet4f>(x);
+#else
   res.v4f[0] = pexp<Packet2d>(x.v4f[0]);
   res.v4f[1] = pexp<Packet2d>(x.v4f[1]);
+#endif
   return res;
 }
 
 template<> EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED
 Packet2d psqrt<Packet2d>(const Packet2d& x)
 {
-  return  __builtin_s390_vfsqdb(x);
+  return vec_sqrt(x);
 }
 
 template<> EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED
 Packet4f psqrt<Packet4f>(const Packet4f& x)
 {
   Packet4f res;
+#if !defined(__ARCH__) || (defined(__ARCH__) && __ARCH__ >= 12)
+  res = vec_sqrt(x);
+#else
   res.v4f[0] = psqrt<Packet2d>(x.v4f[0]);
   res.v4f[1] = psqrt<Packet2d>(x.v4f[1]);
+#endif
   return res;
 }
 
 template<> EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED
 Packet2d prsqrt<Packet2d>(const Packet2d& x) {
-  // Unfortunately we can't use the much faster mm_rqsrt_pd since it only provides an approximation.
   return pset1<Packet2d>(1.0) / psqrt<Packet2d>(x);
 }
 
 template<> EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED
 Packet4f prsqrt<Packet4f>(const Packet4f& x) {
   Packet4f res;
+#if !defined(__ARCH__) || (defined(__ARCH__) && __ARCH__ >= 12)
+  res = pset1<Packet4f>(1.0) / psqrt<Packet4f>(x);
+#else
   res.v4f[0] = prsqrt<Packet2d>(x.v4f[0]);
   res.v4f[1] = prsqrt<Packet2d>(x.v4f[1]);
+#endif
   return res;
 }
 

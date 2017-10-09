@@ -17,7 +17,7 @@ namespace Eigen {
 namespace internal {
 
 #ifndef EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
-#define EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD 4
+#define EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD 16
 #endif
 
 #ifndef EIGEN_HAS_SINGLE_INSTRUCTION_MADD
@@ -29,7 +29,7 @@ namespace internal {
 #endif
 
 #ifndef EIGEN_ARCH_DEFAULT_NUMBER_OF_REGISTERS
-#define EIGEN_ARCH_DEFAULT_NUMBER_OF_REGISTERS  16
+#define EIGEN_ARCH_DEFAULT_NUMBER_OF_REGISTERS  32
 #endif
 
 typedef __vector int                 Packet4i;
@@ -42,12 +42,12 @@ typedef __vector unsigned long long  Packet2ul;
 typedef __vector long long           Packet2l;
 
 // Z14 has builtin support for float vectors
-#if ~defined(__ARCH__) || (defined(__ARCH__) && __ARCH < 14)
+#if !defined(__ARCH__) || (defined(__ARCH__) && __ARCH__ >= 12)
+typedef __vector float               Packet4f;
+#else
 typedef struct {
 	Packet2d  v4f[2];
 } Packet4f;
-#else
-typedef __vector float               Packet4f;
 #endif
 
 typedef union {
@@ -62,7 +62,7 @@ typedef union {
   Packet2l  v2l;
   Packet2ul v2ul;
   Packet2d  v2d;
-#if ~defined(__ARCH__) || (defined(__ARCH__) && __ARCH >= 14)
+#if !defined(__ARCH__) || (defined(__ARCH__) && __ARCH__ >= 12)
   Packet4f  v4f;
 #endif
 } Packet;
@@ -89,7 +89,7 @@ typedef union {
   Packet2l p2l_##NAME = pset1<Packet2l>(X)
 
 // These constants are endian-agnostic
-//static _EIGEN_DECLARE_CONST_FAST_Packet4i(ZERO, 0); //{ 0, 0, 0, 0,}
+static _EIGEN_DECLARE_CONST_FAST_Packet4i(ZERO, 0); //{ 0, 0, 0, 0,}
 static _EIGEN_DECLARE_CONST_FAST_Packet4i(ONE, 1); //{ 1, 1, 1, 1}
 
 static _EIGEN_DECLARE_CONST_FAST_Packet2d(ZERO, 0);
@@ -98,6 +98,15 @@ static _EIGEN_DECLARE_CONST_FAST_Packet2l(ONE, 1);
 
 static Packet2d p2d_ONE = { 1.0, 1.0 }; 
 static Packet2d p2d_ZERO_ = { -0.0, -0.0 };
+
+#if !defined(__ARCH__) || (defined(__ARCH__) && __ARCH__ >= 12)
+#define _EIGEN_DECLARE_CONST_FAST_Packet4f(NAME,X) \
+  Packet4f p4f_##NAME = reinterpret_cast<Packet4f>(vec_splat_s32(X))
+
+static _EIGEN_DECLARE_CONST_FAST_Packet4f(ZERO, 0); //{ 0.0, 0.0, 0.0, 0.0}
+static _EIGEN_DECLARE_CONST_FAST_Packet4i(MINUS1,-1); //{ -1, -1, -1, -1}
+static Packet4f p4f_MZERO = { 0x80000000, 0x80000000, 0x80000000, 0x80000000};
+#endif
 
 static Packet4i p4i_COUNTDOWN = { 0, 1, 2, 3 };
 static Packet4f p4f_COUNTDOWN = { 0.0, 1.0, 2.0, 3.0 };
@@ -129,9 +138,9 @@ static Packet16uc p16uc_TRANSPOSE64_LO = vec_add(p16uc_PSET64_LO, p16uc_HALF64_0
 static Packet16uc p16uc_TRANSPOSE64_HI = { 0,1,2,3, 4,5,6,7, 16,17,18,19, 20,21,22,23};
 static Packet16uc p16uc_TRANSPOSE64_LO = { 8,9,10,11, 12,13,14,15, 24,25,26,27, 28,29,30,31};
 
-//static Packet16uc p16uc_COMPLEX32_REV = vec_sld(p16uc_REVERSE32, p16uc_REVERSE32, 8);                                         //{ 4,5,6,7, 0,1,2,3, 12,13,14,15, 8,9,10,11 };
+static Packet16uc p16uc_COMPLEX32_REV = vec_sld(p16uc_REVERSE32, p16uc_REVERSE32, 8);                                         //{ 4,5,6,7, 0,1,2,3, 12,13,14,15, 8,9,10,11 };
 
-//static Packet16uc p16uc_COMPLEX32_REV2 = vec_sld(p16uc_FORWARD, p16uc_FORWARD, 8);                                            //{ 8,9,10,11, 12,13,14,15, 0,1,2,3, 4,5,6,7 };
+static Packet16uc p16uc_COMPLEX32_REV2 = vec_sld(p16uc_FORWARD, p16uc_FORWARD, 8);                                            //{ 8,9,10,11, 12,13,14,15, 0,1,2,3, 4,5,6,7 };
 
 
 #if EIGEN_HAS_BUILTIN(__builtin_prefetch) || EIGEN_COMP_GNUC
@@ -616,7 +625,7 @@ template<> EIGEN_STRONG_INLINE Packet2d pblend(const Selector<2>& ifPacket, cons
 /* z13 has no vector float support so we emulate that with double
    z14 has proper vector float support.
 */
-#if ~defined(__ARCH__) || (defined(__ARCH__) && __ARCH < 14)
+#if !defined(__ARCH__) || (defined(__ARCH__) && __ARCH__ < 12)
 /* Helper function to simulate a vec_splat_packet4f
  */
 template<int element> EIGEN_STRONG_INLINE Packet4f vec_splat_packet4f(const Packet4f&   from)
@@ -1041,7 +1050,6 @@ template<> EIGEN_STRONG_INLINE Packet4f pdiv<Packet4f>(const Packet4f& a, const 
 template<> EIGEN_STRONG_INLINE Packet4f pnegate<Packet4f>(const Packet4f& a) { return (-a); }
 template<> EIGEN_STRONG_INLINE Packet4f pconj<Packet4f>  (const Packet4f& a) { return a; }
 template<> EIGEN_STRONG_INLINE Packet4f pmadd<Packet4f>  (const Packet4f& a, const Packet4f& b, const Packet4f& c) { return vec_madd(a, b, c); }
-template<> EIGEN_STRONG_INLINE Packet4f plset<Packet4f>  (const float& a)  { return padd<Packet4i>(pset1<Packet4f>(a), p4f_COUNTDOWN); }
 template<> EIGEN_STRONG_INLINE Packet4f pmin<Packet4f>   (const Packet4f& a, const Packet4f& b) { return vec_min(a, b); }
 template<> EIGEN_STRONG_INLINE Packet4f pmax<Packet4f>   (const Packet4f& a, const Packet4f& b) { return vec_max(a, b); }
 template<> EIGEN_STRONG_INLINE Packet4f pand<Packet4f>   (const Packet4f& a, const Packet4f& b) { return vec_and(a, b); }
@@ -1052,9 +1060,6 @@ template<> EIGEN_STRONG_INLINE Packet4f pround<Packet4f> (const Packet4f& a) { r
 template<> EIGEN_STRONG_INLINE Packet4f pceil<Packet4f>  (const Packet4f& a) { return vec_ceil(a); }
 template<> EIGEN_STRONG_INLINE Packet4f pfloor<Packet4f> (const Packet4f& a) { return vec_floor(a); }
 template<> EIGEN_STRONG_INLINE Packet4f pabs<Packet4f>   (const Packet4f& a) { return vec_abs(a); }
-template<> EIGEN_STRONG_INLINE Packet4f ploadu<Packet4f> (const float* from) { return pload<Packet4f>(from); }
-
-template<> EIGEN_STRONG_INLINE void pstoreu<float>(float* to, const Packet4f& from) { pstore<float>(to, from); }
 template<> EIGEN_STRONG_INLINE float pfirst<Packet4f>(const Packet4f& a) { float EIGEN_ALIGN16 x[4]; pstore(x, a); return x[0]; }
 
 template<> EIGEN_STRONG_INLINE Packet4f ploaddup<Packet4f>(const float* from)
@@ -1068,7 +1073,7 @@ template<> EIGEN_STRONG_INLINE Packet4f preverse(const Packet4f& a)
   return reinterpret_cast<Packet4f>(vec_perm(reinterpret_cast<Packet16uc>(a), reinterpret_cast<Packet16uc>(a), p16uc_REVERSE32));
 }
 
-template<> EIGEN_STRONG_INLINE int predux<Packet4i>(const Packet4i& a)
+template<> EIGEN_STRONG_INLINE float predux<Packet4f>(const Packet4f& a)
 {
   Packet4f b, sum;
   b   = vec_sld(a, a, 8);
@@ -1152,10 +1157,9 @@ template<> EIGEN_STRONG_INLINE Packet4f pblend(const Selector<4>& ifPacket, cons
 #endif
 
 template<> EIGEN_STRONG_INLINE void prefetch<float>(const float*   addr) { EIGEN_ZVECTOR_PREFETCH(addr); }
-template<> EIGEN_STRONG_INLINE Packet4f pconj(const Packet4f& a) { return a; }
-template<> EIGEN_STRONG_INLINE Packet4f plset<Packet4f>(const float& a)  { return padd<Packet4f>(pset1<Packet4f>(a), p4f_COUNTDOWN); }
-template<> EIGEN_STRONG_INLINE Packet4f ploadu<Packet4f>(const float*     from) { return pload<Packet4f>(from); }
-template<> EIGEN_STRONG_INLINE void pstoreu<float>(float*    to, const Packet4f& from) { pstore<float>(to, from); }
+template<> EIGEN_STRONG_INLINE Packet4f ploadu<Packet4f> (const float* from) { return pload<Packet4f>(from); }
+template<> EIGEN_STRONG_INLINE void pstoreu<float>(float* to, const Packet4f& from) { pstore<float>(to, from); }
+template<> EIGEN_STRONG_INLINE Packet4f plset<Packet4f>  (const float& a)  { return padd<Packet4f>(pset1<Packet4f>(a), p4f_COUNTDOWN); }
 
 } // end namespace internal
 
