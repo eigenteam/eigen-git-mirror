@@ -1115,7 +1115,9 @@ template<> EIGEN_STRONG_INLINE Packet4f preduxp<Packet4f>(const Packet4f* vecs)
 // mul
 template<> EIGEN_STRONG_INLINE float predux_mul<Packet4f>(const Packet4f& a)
 {
-  return pfirst(pmul(a, reinterpret_cast<Packet4f>(vec_sld(reinterpret_cast<Packet4f>(a), reinterpret_cast<Packet4f>(a), 8))));
+  Packet4f prod;
+  prod = pmul(a, vec_sld(a, a, 8));
+  return pfirst(pmul(prod, vec_sld(prod, prod, 4)));
 }
 
 // min
