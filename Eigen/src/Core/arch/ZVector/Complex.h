@@ -428,18 +428,28 @@ template<> EIGEN_STRONG_INLINE Packet2cf pmul<Packet2cf>(const Packet2cf& a, con
 {
   Packet4f a_re, a_im, prod, prod_im;
 
+  std::cout << "a = " << a.v << std::endl;
+  std::cout << ", b = " << b.v << std::endl;
   // Permute and multiply the real parts of a and b
   a_re = vec_perm(a.v, a.v, p16uc_PSET32_WODD);
+  
+  std::cout << "a_re = " << a_re << std::endl;
   // Get the imaginary parts of a
   a_im = vec_perm(a.v, a.v, p16uc_PSET32_WEVEN);
+  std::cout << "a_im = " << a_im << std::endl;
+
   // multiply a_im * b and get the conjugate result
   prod_im = a_im * b.v;
+  std::cout << "prod_im = " << prod_im << std::endl;
   prod_im = pxor<Packet4f>(prod_im, reinterpret_cast<Packet4f>(p4ui_CONJ_XOR));
+  std::cout << "prod_im = " << prod_im << std::endl;
   // permute back to a proper order
   prod_im = vec_perm(prod_im, prod_im, p16uc_COMPLEX32_REV);
+  std::cout << "prod_im = " << prod_im << std::endl;
 
   // multiply a_re * b, add prod_im
   prod = pmadd<Packet4f>(a_re, b.v, prod_im);
+  std::cout << "prod = " << prod << std::endl;
  
   return Packet2cf(prod);
 }

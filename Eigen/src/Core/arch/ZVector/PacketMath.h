@@ -286,6 +286,17 @@ inline std::ostream & operator <<(std::ostream & s, const Packet2d & v)
   return s;
 }
 
+#if !defined(__ARCH__) || (defined(__ARCH__) && __ARCH__ >= 12)
+inline std::ostream & operator <<(std::ostream & s, const Packet4f & v)
+{
+  Packet vt;
+  vt.v4f = v;
+  s << vt.f[0] << ", " << vt.f[1] << ", " << vt.f[2] << ", " << vt.f[3];
+  return s;
+}
+#endif
+
+
 template<int Offset>
 struct palign_impl<Offset,Packet4i>
 {
