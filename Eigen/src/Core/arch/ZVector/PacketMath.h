@@ -103,6 +103,12 @@ static Packet2d p2d_ZERO_ = { -0.0, -0.0 };
 #define _EIGEN_DECLARE_CONST_FAST_Packet4f(NAME,X) \
   Packet4f p4f_##NAME = reinterpret_cast<Packet4f>(vec_splat_s32(X))
 
+#define _EIGEN_DECLARE_CONST_Packet4f(NAME,X) \
+  Packet4f p4f_##NAME = pset1<Packet4f>(X)
+
+#define _EIGEN_DECLARE_CONST_Packet4f_FROM_INT(NAME,X) \
+  const Packet4f p4f_##NAME = reinterpret_cast<Packet4f>(pset1<Packet4i>(X))
+
 static _EIGEN_DECLARE_CONST_FAST_Packet4f(ZERO, 0); //{ 0.0, 0.0, 0.0, 0.0}
 static _EIGEN_DECLARE_CONST_FAST_Packet4i(MINUS1,-1); //{ -1, -1, -1, -1}
 static Packet4f p4f_MZERO = { 0x80000000, 0x80000000, 0x80000000, 0x80000000};
@@ -187,7 +193,11 @@ template<> struct packet_traits<float> : default_packet_traits
     HasSin  = 0,
     HasCos  = 0,
     HasLog  = 0,
+#if !defined(__ARCH__) || (defined(__ARCH__) && __ARCH__ >= 12)
+    HasExp  = 0,
+#else
     HasExp  = 1,
+#endif
     HasSqrt = 1,
     HasRsqrt = 1,
     HasRound = 1,
