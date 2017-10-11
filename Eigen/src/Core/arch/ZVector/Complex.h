@@ -426,21 +426,22 @@ template<> EIGEN_STRONG_INLINE Packet2cf pblend(const Selector<2>& ifPacket, con
 template<> EIGEN_STRONG_INLINE Packet2cf pconj(const Packet2cf& a) { return Packet2cf(pxor<Packet4f>(a.v, reinterpret_cast<Packet4f>(p4ui_CONJ_XOR))); }
 template<> EIGEN_STRONG_INLINE Packet2cf pmul<Packet2cf>(const Packet2cf& a, const Packet2cf& b)
 {
-  Packet4f v1, v2;
+  Packet4f a_re, a_im, prod, prod_im;
 
   // Permute and multiply the real parts of a and b
-  v1 = vec_perm(a.v, a.v, p16uc_PSET32_WODD);
+  a_re = vec_perm(a.v, a.v, p16uc_PSET32_WODD);
   // Get the imaginary parts of a
-  v2 = vec_perm(a.v, a.v, p16uc_PSET32_WEVEN);
-  // multiply a_re * b 
-  v1 = vec_madd(v1, b.v, p4f_ZERO);
+  a_im = vec_perm(a.v, a.v, p16uc_PSET32_WEVEN);
   // multiply a_im * b and get the conjugate result
-  v2 = vec_madd(v2, b.v, p4f_ZERO);
-  v2 = reinterpret_cast<Packet4f>(pxor(v2, reinterpret_cast<Packet4f>(p4ui_CONJ_XOR)));
+  prod_im = a_im * b.v;
+  prod_im = pxor<Packet4f>(prod_im, reinterpret_cast<Packet4f>(p4ui_CONJ_XOR));
   // permute back to a proper order
-  v2 = vec_perm(v2, v2, p16uc_COMPLEX32_REV);
-  
-  return Packet2cf(padd<Packet4f>(v1, v2));
+  prod_im = vec_perm(prod_im, prod_im, p16uc_COMPLEX32_REV);
+
+  // multiply a_re * b, add prod_im
+  prod = pmadd<Packet4f>(a_re, b.v, prod_im);
+ 
+  return Packet2cf(prod);
 }
 
 template<> EIGEN_STRONG_INLINE Packet2cf preverse(const Packet2cf& a)
