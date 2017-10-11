@@ -16,7 +16,7 @@ namespace Eigen {
 namespace internal {
 
 #if !defined(__ARCH__) || (defined(__ARCH__) && __ARCH__ >= 12)
-static Packet4ui  p4ui_CONJ_XOR = vec_mergeh((Packet4ui)p4i_ZERO, (Packet4ui)p4f_MZERO);//{ 0x00000000, 0x80000000, 0x00000000, 0x80000000 };
+static Packet4ui  p4ui_CONJ_XOR = { 0x00000000, 0x80000000, 0x00000000, 0x80000000 }; //vec_mergeh((Packet4ui)p4i_ZERO, (Packet4ui)p4f_MZERO);
 #endif
 
 static Packet2ul  p2ul_CONJ_XOR1 = (Packet2ul) vec_sld((Packet4ui) p2d_ZERO_, (Packet4ui) p2l_ZERO, 8);//{ 0x8000000000000000, 0x0000000000000000 };
