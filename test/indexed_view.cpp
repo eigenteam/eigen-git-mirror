@@ -366,6 +366,11 @@ void check_indexed_view()
     VERIFY( is_same_eq( cA.middleRows<3>(1), cA.middleRows(1,fix<3>)) );
   }
 
+  // Check compilation of enums as index type:
+  enum { X=0, Y=1 };
+  a(X) = 1;
+  A(X,Y) = 1;
+
 }
 
 void test_indexed_view()

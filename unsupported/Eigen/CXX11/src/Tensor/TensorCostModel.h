@@ -174,8 +174,10 @@ class TensorCostModel {
   static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE int numThreads(
       double output_size, const TensorOpCost& cost_per_coeff, int max_threads) {
     double cost = totalCost(output_size, cost_per_coeff);
-    int threads = (cost - kStartupCycles) / kPerThreadCycles + 0.9;
-    return numext::mini(max_threads, numext::maxi(1, threads));
+    double threads = (cost - kStartupCycles) / kPerThreadCycles + 0.9;
+    // Make sure we don't invoke undefined behavior when we convert to an int.
+    threads = numext::mini<double>(threads, GenericNumTraits<int>::highest());
+    return numext::mini(max_threads, numext::maxi<int>(1, threads));
   }
 
   // taskSize assesses parallel task size.

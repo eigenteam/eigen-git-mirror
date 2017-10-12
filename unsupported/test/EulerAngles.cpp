@@ -278,6 +278,9 @@ void test_EulerAngles()
   EulerAnglesXYZd onesEd(1, 1, 1);
   EulerAnglesXYZf onesEf = onesEd.cast<float>();
   VERIFY_IS_APPROX(onesEd, onesEf.cast<double>());
+
+  // Simple Construction from Vector3 test
+  VERIFY_IS_APPROX(onesEd, EulerAnglesXYZd(Vector3d::Ones()));
   
   CALL_SUBTEST_1( eulerangles_manual<float>() );
   CALL_SUBTEST_2( eulerangles_manual<double>() );

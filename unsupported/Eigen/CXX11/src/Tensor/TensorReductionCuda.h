@@ -62,9 +62,9 @@ __device__ EIGEN_ALWAYS_INLINE void atomicReduce(T* output, T accum, R& reducer)
   else {
     assert(0 && "Wordsize not supported");
   }
-#else // __CUDA_ARCH__ >= 300
+#else // EIGEN_CUDA_ARCH >= 300
   assert(0 && "Shouldn't be called on unsupported device");
-#endif // __CUDA_ARCH__ >= 300
+#endif // EIGEN_CUDA_ARCH >= 300
 }
 
 // We extend atomicExch to support extra data types
@@ -104,9 +104,9 @@ template <>
 __device__ inline void atomicReduce(float* output, float accum, SumReducer<float>&) {
 #if EIGEN_CUDA_ARCH >= 300
   atomicAdd(output, accum);
-#else // __CUDA_ARCH__ >= 300
+#else // EIGEN_CUDA_ARCH >= 300
   assert(0 && "Shouldn't be called on unsupported device");
-#endif // __CUDA_ARCH__ >= 300
+#endif // EIGEN_CUDA_ARCH >= 300
 }
 
 
@@ -168,7 +168,11 @@ __global__ void FullReductionKernel(Reducer reducer, const Self input, Index num
 
 #pragma unroll
   for (int offset = warpSize/2; offset > 0; offset /= 2) {
+  #if defined(EIGEN_CUDACC_VER) && EIGEN_CUDACC_VER < 90000
     reducer.reduce(__shfl_down(accum, offset, warpSize), &accum);
+  #else
+    reducer.reduce(__shfl_down_sync(0xFFFFFFFF, accum, offset, warpSize), &accum);
+  #endif
   }
 
   if ((threadIdx.x & (warpSize - 1)) == 0) {
@@ -179,9 +183,9 @@ __global__ void FullReductionKernel(Reducer reducer, const Self input, Index num
     // Let the last block reset the semaphore
     atomicInc(semaphore, gridDim.x + 1);
   }
-#else // __CUDA_ARCH__ >= 300
+#else // EIGEN_CUDA_ARCH >= 300
   assert(0 && "Shouldn't be called on unsupported device");
-#endif // __CUDA_ARCH__ >= 300
+#endif // EIGEN_CUDA_ARCH >= 300
 }
 
 
@@ -223,12 +227,14 @@ __global__ void FullReductionKernelHalfFloat(Reducer reducer, const Self input, 
   const Index first_index = blockIdx.x * BlockSize * NumPerThread + 2*threadIdx.x;
 
   // Initialize the output value if it wasn't initialized by the ReductionInitKernel
-  if (gridDim.x == 1 && first_index == 0) {
-    if (num_coeffs % 2 != 0) {
-      half last = input.m_impl.coeff(num_coeffs-1);
-      *scratch = __halves2half2(last, reducer.initialize());
-    } else {
-      *scratch = reducer.template initializePacket<half2>();
+  if (gridDim.x == 1) {
+    if (first_index == 0) {
+      if (num_coeffs % 2 != 0) {
+        half last = input.m_impl.coeff(num_coeffs-1);
+        *scratch = __halves2half2(last, reducer.initialize());
+      } else {
+        *scratch = reducer.template initializePacket<half2>();
+      }
     }
     __syncthreads();
   }
@@ -244,19 +250,25 @@ __global__ void FullReductionKernelHalfFloat(Reducer reducer, const Self input, 
 
 #pragma unroll
   for (int offset = warpSize/2; offset > 0; offset /= 2) {
+  #if defined(EIGEN_CUDACC_VER) && EIGEN_CUDACC_VER < 90000
     reducer.reducePacket(__shfl_down(accum, offset, warpSize), &accum);
+  #else
+    int temp = __shfl_down_sync(0xFFFFFFFF, *(int*)(&accum), (unsigned)offset, warpSize);
+    reducer.reducePacket(*(half2*)(&temp), &accum);
+  #endif
   }
 
   if ((threadIdx.x & (warpSize - 1)) == 0) {
     atomicReduce(scratch, accum, reducer);
   }
 
-  __syncthreads();
-
-  if (gridDim.x == 1 && first_index == 0) {
-    half tmp = __low2half(*scratch);
-    reducer.reduce(__high2half(*scratch), &tmp);
-    *output = tmp;
+  if (gridDim.x == 1) {
+    __syncthreads();
+    if (first_index == 0) {
+      half tmp = __low2half(*scratch);
+      reducer.reduce(__high2half(*scratch), &tmp);
+      *output = tmp;
+    }
   }
 }
 
@@ -425,7 +437,11 @@ __global__ void InnerReductionKernel(Reducer reducer, const Self input, Index nu
 
 #pragma unroll
       for (int offset = warpSize/2; offset > 0; offset /= 2) {
+      #if defined(EIGEN_CUDACC_VER) && EIGEN_CUDACC_VER < 90000
         reducer.reduce(__shfl_down(reduced_val, offset), &reduced_val);
+      #else
+        reducer.reduce(__shfl_down_sync(0xFFFFFFFF, reduced_val, offset), &reduced_val);
+      #endif
       }
 
       if ((threadIdx.x & (warpSize - 1)) == 0) {
@@ -433,9 +449,9 @@ __global__ void InnerReductionKernel(Reducer reducer, const Self input, Index nu
       }
     }
   }
-#else // __CUDA_ARCH__ >= 300
+#else // EIGEN_CUDA_ARCH >= 300
   assert(0 && "Shouldn't be called on unsupported device");
-#endif // __CUDA_ARCH__ >= 300
+#endif // EIGEN_CUDA_ARCH >= 300
 }
 
 #ifdef EIGEN_HAS_CUDA_FP16
@@ -515,8 +531,15 @@ __global__ void InnerReductionKernelHalfFloat(Reducer reducer, const Self input,
 
 #pragma unroll
       for (int offset = warpSize/2; offset > 0; offset /= 2) {
+      #if defined(EIGEN_CUDACC_VER) && EIGEN_CUDACC_VER < 90000
         reducer.reducePacket(__shfl_down(reduced_val1, offset, warpSize), &reduced_val1);
         reducer.reducePacket(__shfl_down(reduced_val2, offset, warpSize), &reduced_val2);
+      #else
+        int temp1 = __shfl_down_sync(0xFFFFFFFF, *(int*)(&reduced_val1), (unsigned)offset, warpSize);
+        int temp2 = __shfl_down_sync(0xFFFFFFFF, *(int*)(&reduced_val2), (unsigned)offset, warpSize);
+        reducer.reducePacket(*(half2*)(&temp1), &reduced_val1);
+        reducer.reducePacket(*(half2*)(&temp2), &reduced_val2);
+      #endif
       }
 
       half val1 =  __low2half(reduced_val1);

@@ -410,6 +410,16 @@
 #endif
 #endif
 
+// Does the compiler support type_trais?
+#ifndef EIGEN_HAS_TYPE_TRAITS
+#if EIGEN_MAX_CPP_VER>=11 && (EIGEN_HAS_CXX11 || EIGEN_COMP_MSVC >= 1700)
+#define EIGEN_HAS_TYPE_TRAITS 1
+#define EIGEN_INCLUDE_TYPE_TRAITS
+#else
+#define EIGEN_HAS_TYPE_TRAITS 0
+#endif
+#endif
+
 // Does the compiler support variadic templates?
 #ifndef EIGEN_HAS_VARIADIC_TEMPLATES
 #if EIGEN_MAX_CPP_VER>=11 && (__cplusplus > 199711L || EIGEN_COMP_MSVC >= 1900) \
