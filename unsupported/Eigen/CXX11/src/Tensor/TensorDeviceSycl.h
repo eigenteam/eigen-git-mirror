@@ -46,8 +46,8 @@ struct SyclAllocator {
 
 namespace Eigen {
 
-  #define ConvertToActualTypeSycl(Scalar, buf_acc) reinterpret_cast<typename cl::sycl::global_ptr<Scalar>::pointer_t>((&(*buf_acc.get_pointer())))
-  #define ConvertToActualSyclOffset(Scalar, offset) offset/sizeof(Scalar)
+#define ConvertToActualTypeSycl(Scalar, buf_acc) static_cast<Scalar*>(static_cast<void*>(((buf_acc.get_pointer().get()))))
+#define ConvertToActualSyclOffset(Scalar, offset) offset/sizeof(Scalar)
 
 
   template <typename Scalar, typename read_accessor, typename write_accessor> class MemCopyFunctor {
