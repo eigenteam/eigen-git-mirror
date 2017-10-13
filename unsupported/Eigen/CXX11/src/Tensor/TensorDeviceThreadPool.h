@@ -154,7 +154,11 @@ struct ThreadPoolDevice {
 
   template <class Function, class... Args>
   EIGEN_STRONG_INLINE void enqueueNoNotification(Function&& f, Args&&... args) const {
-    pool_->Schedule(std::bind(f, args...));
+    if (sizeof...(args) > 0) {
+      pool_->Schedule(std::bind(f, args...));
+    } else {
+      pool_->Schedule(f);
+    }
   }
 
   // Returns a logical thread index between 0 and pool_->NumThreads() - 1 if
