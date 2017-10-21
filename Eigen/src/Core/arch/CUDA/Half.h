@@ -147,55 +147,55 @@ namespace half_impl {
 // versions to get the ALU speed increased), but you do save the
 // conversion steps back and forth.
 
-__device__ half operator + (const half& a, const half& b) {
+EIGEN_STRONG_INLINE __device__ half operator + (const half& a, const half& b) {
   return __hadd(a, b);
 }
-__device__ half operator * (const half& a, const half& b) {
+EIGEN_STRONG_INLINE __device__ half operator * (const half& a, const half& b) {
   return __hmul(a, b);
 }
-__device__ half operator - (const half& a, const half& b) {
+EIGEN_STRONG_INLINE __device__ half operator - (const half& a, const half& b) {
   return __hsub(a, b);
 }
-__device__ half operator / (const half& a, const half& b) {
+EIGEN_STRONG_INLINE __device__ half operator / (const half& a, const half& b) {
   float num = __half2float(a);
   float denom = __half2float(b);
   return __float2half(num / denom);
 }
-__device__ half operator - (const half& a) {
+EIGEN_STRONG_INLINE __device__ half operator - (const half& a) {
   return __hneg(a);
 }
-__device__ half& operator += (half& a, const half& b) {
+EIGEN_STRONG_INLINE __device__ half& operator += (half& a, const half& b) {
   a = a + b;
   return a;
 }
-__device__ half& operator *= (half& a, const half& b) {
+EIGEN_STRONG_INLINE __device__ half& operator *= (half& a, const half& b) {
   a = a * b;
   return a;
 }
-__device__ half& operator -= (half& a, const half& b) {
+EIGEN_STRONG_INLINE __device__ half& operator -= (half& a, const half& b) {
   a = a - b;
   return a;
 }
-__device__ half& operator /= (half& a, const half& b) {
+EIGEN_STRONG_INLINE __device__ half& operator /= (half& a, const half& b) {
   a = a / b;
   return a;
 }
-__device__ bool operator == (const half& a, const half& b) {
+EIGEN_STRONG_INLINE __device__ bool operator == (const half& a, const half& b) {
   return __heq(a, b);
 }
-__device__ bool operator != (const half& a, const half& b) {
+EIGEN_STRONG_INLINE __device__ bool operator != (const half& a, const half& b) {
   return __hne(a, b);
 }
-__device__ bool operator < (const half& a, const half& b) {
+EIGEN_STRONG_INLINE __device__ bool operator < (const half& a, const half& b) {
   return __hlt(a, b);
 }
-__device__ bool operator <= (const half& a, const half& b) {
+EIGEN_STRONG_INLINE __device__ bool operator <= (const half& a, const half& b) {
   return __hle(a, b);
 }
-__device__ bool operator > (const half& a, const half& b) {
+EIGEN_STRONG_INLINE __device__ bool operator > (const half& a, const half& b) {
   return __hgt(a, b);
 }
-__device__ bool operator >= (const half& a, const half& b) {
+EIGEN_STRONG_INLINE __device__ bool operator >= (const half& a, const half& b) {
   return __hge(a, b);
 }
 
