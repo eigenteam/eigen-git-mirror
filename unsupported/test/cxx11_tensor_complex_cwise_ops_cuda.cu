@@ -14,12 +14,6 @@
 #include "main.h"
 #include <unsupported/Eigen/CXX11/Tensor>
 
-// The EIGEN_CUDACC_VER macro is provided by
-// unsupported/Eigen/CXX11/Tensor included above
-#if defined EIGEN_CUDACC_VER && EIGEN_CUDACC_VER >= 70500
-#include <cuda_fp16.h>
-#endif
-
 using Eigen::Tensor;
 
 template<typename T>
