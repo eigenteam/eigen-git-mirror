@@ -55,7 +55,7 @@
 
 
 #if defined EIGEN_USE_MKL
-#   ifndef MKL_DIRECT_CALL
+#   if (!defined MKL_DIRECT_CALL) && (!defined EIGEN_MKL_NO_DIRECT_CALL)
 #       define MKL_DIRECT_CALL
 #       define MKL_DIRECT_CALL_JUST_SET
 #   endif
