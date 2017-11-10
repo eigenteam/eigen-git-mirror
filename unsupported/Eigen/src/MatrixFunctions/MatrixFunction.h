@@ -428,7 +428,8 @@ struct matrix_function_compute<MatrixType, 1>
     typedef internal::traits<MatrixType> Traits;
     
     // compute Schur decomposition of A
-    const ComplexSchur<MatrixType> schurOfA(A);  
+    const ComplexSchur<MatrixType> schurOfA(A);
+    eigen_assert(schurOfA.info()==Success);
     MatrixType T = schurOfA.matrixT();
     MatrixType U = schurOfA.matrixU();
 
