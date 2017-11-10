@@ -326,6 +326,7 @@ struct matrix_exp_computeUV<MatrixType, long double>
     } else if (l1norm < 1.125358383453143065081397882891878e+000L) {
       matrix_exp_pade13(arg, U, V);
     } else {
+      const long double maxnorm = 2.884233277829519311757165057717815L;
       frexp(l1norm / maxnorm, &squarings);
       if (squarings < 0) squarings = 0;
       MatrixType A = arg.unaryExpr(MatrixExponentialScalingOp<long double>(squarings));
@@ -342,6 +343,27 @@ struct matrix_exp_computeUV<MatrixType, long double>
   }
 };
 
+template<typename T> struct is_exp_known_type : false_type {};
+template<> struct is_exp_known_type<float> : true_type {};
+template<> struct is_exp_known_type<double> : true_type {};
+#if LDBL_MANT_DIG <= 112
+template<> struct is_exp_known_type<long double> : true_type {};
+#endif
+
+template <typename ArgType, typename ResultType>
+void matrix_exp_compute(const ArgType& arg, ResultType &result, true_type) // natively supported scalar type
+{
+  typedef typename ArgType::PlainObject MatrixType;
+  MatrixType U, V;
+  int squarings;
+  matrix_exp_computeUV<MatrixType>::run(arg, U, V, squarings); // Pade approximant is (U+V) / (-U+V)
+  MatrixType numer = U + V;
+  MatrixType denom = -U + V;
+  result = denom.partialPivLu().solve(numer);
+  for (int i=0; i<squarings; i++)
+    result *= result;   // undo scaling by repeated squaring
+}
+
 
 /* Computes the matrix exponential
  *
@@ -349,26 +371,13 @@ struct matrix_exp_computeUV<MatrixType, long double>
  * \param result variable in which result will be stored
  */
 template <typename ArgType, typename ResultType>
-void matrix_exp_compute(const ArgType& arg, ResultType &result)
+void matrix_exp_compute(const ArgType& arg, ResultType &result, false_type) // default
 {
   typedef typename ArgType::PlainObject MatrixType;
-#if LDBL_MANT_DIG > 112 // rarely happens
   typedef typename traits<MatrixType>::Scalar Scalar;
   typedef typename NumTraits<Scalar>::Real RealScalar;
   typedef typename std::complex<RealScalar> ComplexScalar;
-  if (sizeof(RealScalar) > 14) {
-    result = arg.matrixFunction(internal::stem_function_exp<ComplexScalar>);
-    return;
-  }
-#endif
-  MatrixType U, V;
-  int squarings; 
-  matrix_exp_computeUV<MatrixType>::run(arg, U, V, squarings); // Pade approximant is (U+V) / (-U+V)
-  MatrixType numer = U + V;
-  MatrixType denom = -U + V;
-  result = denom.partialPivLu().solve(numer);
-  for (int i=0; i<squarings; i++)
-    result *= result;   // undo scaling by repeated squaring
+  result = arg.matrixFunction(internal::stem_function_exp<ComplexScalar>);
 }
 
 } // end namespace Eigen::internal
@@ -402,7 +411,7 @@ template<typename Derived> struct MatrixExponentialReturnValue
     inline void evalTo(ResultType& result) const
     {
       const typename internal::nested_eval<Derived, 10>::type tmp(m_src);
-      internal::matrix_exp_compute(tmp, result);
+      internal::matrix_exp_compute(tmp, result, internal::is_exp_known_type<typename Derived::Scalar>());
     }
 
     Index rows() const { return m_src.rows(); }
