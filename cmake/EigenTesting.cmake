@@ -549,6 +549,8 @@ macro(ei_get_compilerver VAR)
       else()
         set(${VAR} "na")
       endif()
+    elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "PGI")
+      set(${VAR} "${CMAKE_CXX_COMPILER_ID}-${CMAKE_CXX_COMPILER_VERSION}")
     else()
     # on all other system we rely on ${CMAKE_CXX_COMPILER}
     # supporting a "--version" or "/version" flag
