@@ -977,7 +977,7 @@ struct evaluator<Block<ArgType, BlockRows, BlockCols, InnerPanel> >
     OuterStrideAtCompileTime = HasSameStorageOrderAsArgType
                              ? int(outer_stride_at_compile_time<ArgType>::ret)
                              : int(inner_stride_at_compile_time<ArgType>::ret),
-    MaskPacketAccessBit = (InnerStrideAtCompileTime == 1) ? PacketAccessBit : 0,
+    MaskPacketAccessBit = (InnerStrideAtCompileTime == 1 || HasSameStorageOrderAsArgType) ? PacketAccessBit : 0,
     
     FlagsLinearAccessBit = (RowsAtCompileTime == 1 || ColsAtCompileTime == 1 || (InnerPanel && (evaluator<ArgType>::Flags&LinearAccessBit))) ? LinearAccessBit : 0,    
     FlagsRowMajorBit = XprType::Flags&RowMajorBit,
@@ -987,7 +987,9 @@ struct evaluator<Block<ArgType, BlockRows, BlockCols, InnerPanel> >
     Flags = Flags0 | FlagsLinearAccessBit | FlagsRowMajorBit,
     
     PacketAlignment = unpacket_traits<PacketScalar>::alignment,
-    Alignment0 = (InnerPanel && (OuterStrideAtCompileTime!=Dynamic) && (((OuterStrideAtCompileTime * int(sizeof(Scalar))) % int(PacketAlignment)) == 0)) ? int(PacketAlignment) : 0,
+    Alignment0 = (InnerPanel && (OuterStrideAtCompileTime!=Dynamic)
+                             && (OuterStrideAtCompileTime!=0)
+                             && (((OuterStrideAtCompileTime * int(sizeof(Scalar))) % int(PacketAlignment)) == 0)) ? int(PacketAlignment) : 0,
     Alignment = EIGEN_PLAIN_ENUM_MIN(evaluator<ArgType>::Alignment, Alignment0)
   };
   typedef block_evaluator<ArgType, BlockRows, BlockCols, InnerPanel> block_evaluator_type;
