@@ -10,7 +10,7 @@
 #define EIGEN_NO_DEBUG_SMALL_PRODUCT_BLOCKS
 #include "sparse_solver.h"
 
-#include <unsupported/Eigen/KLUSupport>
+#include <Eigen/KLUSupport>
 
 template<typename T> void test_klu_support_T()
 {
