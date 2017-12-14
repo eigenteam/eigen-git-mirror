@@ -228,8 +228,8 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
       VERIFY_RAISES_ASSERT( m1 -= m1.innerVector(0) );
       VERIFY_RAISES_ASSERT( refM1 -= m1.innerVector(0) );
       VERIFY_RAISES_ASSERT( refM1 += m1.innerVector(0) );
-      m1 = m4; refM1 = refM4;
     }
+    m1 = m4; refM1 = refM4;
 
     // test aliasing
     VERIFY_IS_APPROX((m1 = -m1), (refM1 = -refM1));
