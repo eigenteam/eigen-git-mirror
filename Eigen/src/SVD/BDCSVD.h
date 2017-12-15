@@ -830,7 +830,7 @@ void BDCSVD<MatrixType>::computeSingVals(const ArrayRef& col0, const ArrayRef& d
         leftShifted = numext::maxi( (std::numeric_limits<RealScalar>::min)(), Literal(2) * abs(col0(k)) / sqrt((std::numeric_limits<RealScalar>::max)()) );
 
         // check that we did it right:
-        eigen_internal_assert( (std::isfinite)( (col0(k)/leftShifted)*(col0(k)/(diag(k)+shift+leftShifted)) ) );
+        eigen_internal_assert( (numext::isfinite)( (col0(k)/leftShifted)*(col0(k)/(diag(k)+shift+leftShifted)) ) );
         // I don't understand why the case k==0 would be special there:
         // if (k == 0) rightShifted = right - left; else
         rightShifted = (k==actual_n-1) ? right : ((right - left) * RealScalar(0.51)); // theoretically we can take 0.5, but let's be safe
