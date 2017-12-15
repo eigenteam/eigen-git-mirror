@@ -113,10 +113,10 @@ template<typename PlainObjectType, int MapOptions, typename StrideType> class Ma
     EIGEN_DEVICE_FUNC
     inline Index outerStride() const
     {
-      return StrideType::OuterStrideAtCompileTime != 0 ? m_stride.outer()
-           : internal::traits<Map>::OuterStrideAtCompileTime != Dynamic ? internal::traits<Map>::OuterStrideAtCompileTime
+      return int(StrideType::OuterStrideAtCompileTime) != 0 ? m_stride.outer()
+           : int(internal::traits<Map>::OuterStrideAtCompileTime) != Dynamic ? Index(internal::traits<Map>::OuterStrideAtCompileTime)
            : IsVectorAtCompileTime ? (this->size() * innerStride())
-           : int(Flags)&RowMajorBit ? (this->cols() * innerStride())
+           : (int(Flags)&RowMajorBit) ? (this->cols() * innerStride())
            : (this->rows() * innerStride());
     }
 
