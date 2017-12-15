@@ -65,6 +65,8 @@ template<typename MatrixType> void stable_norm(const MatrixType& m)
     factor = internal::random<Scalar>();
   Scalar small = factor * ((std::numeric_limits<RealScalar>::min)() * RealScalar(1e4));
 
+  Scalar one(1);
+
   MatrixType  vzero = MatrixType::Zero(rows, cols),
               vrand = MatrixType::Random(rows, cols),
               vbig(rows, cols),
@@ -77,6 +79,14 @@ template<typename MatrixType> void stable_norm(const MatrixType& m)
   VERIFY_IS_APPROX(vrand.stableNorm(),      vrand.norm());
   VERIFY_IS_APPROX(vrand.blueNorm(),        vrand.norm());
   VERIFY_IS_APPROX(vrand.hypotNorm(),       vrand.norm());
+
+  // test with expressions as input
+  VERIFY_IS_APPROX((one*vrand).stableNorm(),      vrand.norm());
+  VERIFY_IS_APPROX((one*vrand).blueNorm(),        vrand.norm());
+  VERIFY_IS_APPROX((one*vrand).hypotNorm(),       vrand.norm());
+  VERIFY_IS_APPROX((one*vrand+one*vrand-one*vrand).stableNorm(),      vrand.norm());
+  VERIFY_IS_APPROX((one*vrand+one*vrand-one*vrand).blueNorm(),        vrand.norm());
+  VERIFY_IS_APPROX((one*vrand+one*vrand-one*vrand).hypotNorm(),       vrand.norm());
 
   RealScalar size = static_cast<RealScalar>(m.size());
 
