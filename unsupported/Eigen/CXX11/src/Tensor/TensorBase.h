@@ -836,7 +836,8 @@ class TensorBase<Derived, ReadOnlyAccessors>
   protected:
     template <typename Scalar, int NumIndices, int Options, typename IndexType> friend class Tensor;
     template <typename Scalar, typename Dimensions, int Option, typename IndexTypes> friend class TensorFixedSize;
-    template <typename OtherDerived, int AccessLevel> friend class TensorBase;
+    // the Eigen:: prefix is required to workaround a compilation issue with nvcc 9.0
+    template <typename OtherDerived, int AccessLevel> friend class Eigen::TensorBase;
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE const Derived& derived() const { return *static_cast<const Derived*>(this); }
 };
@@ -852,7 +853,8 @@ class TensorBase : public TensorBase<Derived, ReadOnlyAccessors> {
 
     template <typename Scalar, int NumIndices, int Options, typename IndexType> friend class Tensor;
     template <typename Scalar, typename Dimensions, int Option, typename IndexTypes> friend class TensorFixedSize;
-    template <typename OtherDerived, int OtherAccessLevel> friend class TensorBase;
+    // the Eigen:: prefix is required to workaround a compilation issue with nvcc 9.0
+    template <typename OtherDerived, int OtherAccessLevel> friend class Eigen::TensorBase;
 
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE Derived& setZero() {
