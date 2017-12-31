@@ -224,6 +224,32 @@ static void test_fft_real_input_energy() {
   }
 }
 
+template <typename RealScalar>
+static void test_fft_non_power_of_2_round_trip(int exponent) {
+  int n = (1 << exponent) + 1;
+
+  Eigen::DSizes<long, 1> dimensions;
+  dimensions[0] = n;
+  const DSizes<long, 1> arr = dimensions;
+  Tensor<RealScalar, 1, ColMajor, long> input;
+
+  input.resize(arr);
+  input.setRandom();
+
+  array<int, 1> fft;
+  fft[0] = 0;
+
+  Tensor<std::complex<RealScalar>, 1, ColMajor> forward =
+      input.template fft<BothParts, FFT_FORWARD>(fft);
+
+  Tensor<RealScalar, 1, ColMajor, long> output =
+      forward.template fft<RealPart, FFT_REVERSE>(fft);
+
+  for (int i = 0; i < n; ++i) {
+    VERIFY_IS_APPROX(input[i], output[i]);
+  }
+}
+
 void test_cxx11_tensor_fft() {
     test_fft_complex_input_golden();
     test_fft_real_input_golden();
@@ -270,4 +296,6 @@ void test_cxx11_tensor_fft() {
     test_fft_real_input_energy<RowMajor, double, true,  Eigen::BothParts, FFT_FORWARD, 4>();
     test_fft_real_input_energy<RowMajor, float,  false,  Eigen::BothParts, FFT_FORWARD, 4>();
     test_fft_real_input_energy<RowMajor, double, false,  Eigen::BothParts, FFT_FORWARD, 4>();
+
+    test_fft_non_power_of_2_round_trip<float>(7);
 }
