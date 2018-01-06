@@ -1013,23 +1013,23 @@ multidimensional case.
     Eigen::Tensor<int, 2> a(2, 3);
     a.setValues({{1, 2, 3}, {6, 5, 4}});
     Eigen::Tensor<int, 2> b(3, 2);
-    a.setValues({{1, 2}, {4, 5}, {5, 6}});
+    b.setValues({{1, 2}, {4, 5}, {5, 6}});
 
     // Compute the traditional matrix product
-    Eigen::array<Eigen::IndexPair<int>, 1> product_dims = { Eigen::IndexPair(1, 0) };
+    Eigen::array<Eigen::IndexPair<int>, 1> product_dims = { Eigen::IndexPair<int>(1, 0) };
     Eigen::Tensor<int, 2> AB = a.contract(b, product_dims);
 
     // Compute the product of the transpose of the matrices
-    Eigen::array<Eigen::IndexPair<int>, 1> transpose_product_dims = { Eigen::IndexPair(0, 1) };
+    Eigen::array<Eigen::IndexPair<int>, 1> transposed_product_dims = { Eigen::IndexPair<int>(0, 1) };
     Eigen::Tensor<int, 2> AtBt = a.contract(b, transposed_product_dims);
-    
-    // Contraction to scalar value using a ouble contraction 
-    // First coordinate of both tensors are contracted as well as both second coordinates
+
+    // Contraction to scalar value using a double contraction.
+    // First coordinate of both tensors are contracted as well as both second coordinates, i.e., this computes the sum of the squares of the elements.
     Eigen::array<Eigen::IndexPair<int>, 2> double_contraction_product_dims = { Eigen::IndexPair<int>(0, 0), Eigen::IndexPair<int>(1, 1) };
-    Eigen::Tensor<int, 0> AdoubleontractedA = a.contract(a, double_contraction_product_dims);
-    
+    Eigen::Tensor<int, 0> AdoubleContractedA = a.contract(a, double_contraction_product_dims);
+
     // Extracting the scalar value of the tensor contraction for further usage
-    int value = AdoublecontractedA(0);
+    int value = AdoubleContractedA(0);
 
 ## Reduction Operations
 
