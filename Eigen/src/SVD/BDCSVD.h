@@ -217,7 +217,7 @@ public:
 
 // Method to allocate and initialize matrix and attributes
 template<typename MatrixType>
-void BDCSVD<MatrixType>::allocate(Index rows, Index cols, unsigned int computationOptions)
+void BDCSVD<MatrixType>::allocate(Eigen::Index rows, Eigen::Index cols, unsigned int computationOptions)
 {
   m_isTranspose = (cols > rows);
 
@@ -393,7 +393,7 @@ void BDCSVD<MatrixType>::structured_update(Block<MatrixXr,Dynamic,Dynamic> A, co
 //@param shift : Each time one takes the left submatrix, one must add 1 to the shift. Why? Because! We actually want the last column of the U submatrix 
 // to become the first column (*coeff) and to shift all the other columns to the right. There are more details on the reference paper.
 template<typename MatrixType>
-void BDCSVD<MatrixType>::divide (Index firstCol, Index lastCol, Index firstRowW, Index firstColW, Index shift)
+void BDCSVD<MatrixType>::divide (Eigen::Index firstCol, Eigen::Index lastCol, Eigen::Index firstRowW, Eigen::Index firstColW, Eigen::Index shift)
 {
   // requires rows = cols + 1;
   using std::pow;
@@ -573,7 +573,7 @@ void BDCSVD<MatrixType>::divide (Index firstCol, Index lastCol, Index firstRowW,
 // handling of round-off errors, be consistent in ordering
 // For instance, to solve the secular equation using FMM, see http://www.stat.uchicago.edu/~lekheng/courses/302/classics/greengard-rokhlin.pdf
 template <typename MatrixType>
-void BDCSVD<MatrixType>::computeSVDofM(Index firstCol, Index n, MatrixXr& U, VectorType& singVals, MatrixXr& V)
+void BDCSVD<MatrixType>::computeSVDofM(Eigen::Index firstCol, Eigen::Index n, MatrixXr& U, VectorType& singVals, MatrixXr& V)
 {
   const RealScalar considerZero = (std::numeric_limits<RealScalar>::min)();
   using std::abs;
@@ -1059,7 +1059,7 @@ void BDCSVD<MatrixType>::computeSingVecs
 // i >= 1, di almost null and zi non null.
 // We use a rotation to zero out zi applied to the left of M
 template <typename MatrixType>
-void BDCSVD<MatrixType>::deflation43(Index firstCol, Index shift, Index i, Index size)
+void BDCSVD<MatrixType>::deflation43(Eigen::Index firstCol, Eigen::Index shift, Eigen::Index i, Eigen::Index size)
 {
   using std::abs;
   using std::sqrt;
@@ -1088,7 +1088,7 @@ void BDCSVD<MatrixType>::deflation43(Index firstCol, Index shift, Index i, Index
 // We apply two rotations to have zj = 0;
 // TODO deflation44 is still broken and not properly tested
 template <typename MatrixType>
-void BDCSVD<MatrixType>::deflation44(Index firstColu , Index firstColm, Index firstRowW, Index firstColW, Index i, Index j, Index size)
+void BDCSVD<MatrixType>::deflation44(Eigen::Index firstColu , Eigen::Index firstColm, Eigen::Index firstRowW, Eigen::Index firstColW, Eigen::Index i, Eigen::Index j, Eigen::Index size)
 {
   using std::abs;
   using std::sqrt;
@@ -1128,7 +1128,7 @@ void BDCSVD<MatrixType>::deflation44(Index firstColu , Index firstColm, Index fi
 
 // acts on block from (firstCol+shift, firstCol+shift) to (lastCol+shift, lastCol+shift) [inclusive]
 template <typename MatrixType>
-void BDCSVD<MatrixType>::deflation(Index firstCol, Index lastCol, Index k, Index firstRowW, Index firstColW, Index shift)
+void BDCSVD<MatrixType>::deflation(Eigen::Index firstCol, Eigen::Index lastCol, Eigen::Index k, Eigen::Index firstRowW, Eigen::Index firstColW, Eigen::Index shift)
 {
   using std::sqrt;
   using std::abs;

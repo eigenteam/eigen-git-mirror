@@ -610,7 +610,7 @@ template<typename _MatrixType, int QRPreconditioner> class JacobiSVD
 };
 
 template<typename MatrixType, int QRPreconditioner>
-void JacobiSVD<MatrixType, QRPreconditioner>::allocate(Index rows, Index cols, unsigned int computationOptions)
+void JacobiSVD<MatrixType, QRPreconditioner>::allocate(Eigen::Index rows, Eigen::Index cols, unsigned int computationOptions)
 {
   eigen_assert(rows >= 0 && cols >= 0);
 
