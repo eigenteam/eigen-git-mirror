@@ -198,8 +198,8 @@ class PastixBase : public SparseSolverBase<Derived>
       return m_dparm(idxparam);
     }
 
-    inline Index cols() const { return m_size; }
-    inline Index rows() const { return m_size; }
+    Index cols() const { return m_size; }
+    Index rows() const { return m_size; }
 
      /** \brief Reports whether previous computation was successful.
       *
