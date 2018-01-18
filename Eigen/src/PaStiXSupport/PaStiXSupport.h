@@ -273,7 +273,6 @@ void PastixBase<Derived>::init()
   m_iparm[IPARM_INCOMPLETE]          = API_NO;
   m_iparm[IPARM_OOC_LIMIT]           = 2000;
   m_iparm[IPARM_RHS_MAKING]          = API_RHS_B;
-  m_iparm(IPARM_MATRIX_VERIFICATION) = API_NO;
 
   m_iparm(IPARM_START_TASK) = API_TASK_INIT;
   m_iparm(IPARM_END_TASK) = API_TASK_INIT;
