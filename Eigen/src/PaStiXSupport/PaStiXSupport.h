@@ -483,10 +483,7 @@ class PastixLU : public PastixBase< PastixLU<_MatrixType> >
           // update the transposed structure
           m_transposedStructure = matrix.transpose();
 
-          // Set the elements of the matrix to zero
-          for (Index j=0; j<m_transposedStructure.outerSize(); ++j)
-            for(typename ColSpMatrix::InnerIterator it(m_transposedStructure, j); it; ++it)
-              it.valueRef() = 0.0;
+          m_transposedStructure.coeffs() = 0.0;
 
           m_structureIsUptodate = true;
         }
