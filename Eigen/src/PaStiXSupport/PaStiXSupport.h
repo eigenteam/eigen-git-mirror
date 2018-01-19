@@ -34,7 +34,6 @@ template<typename _MatrixType, int Options> class PastixLDLT;
 
 namespace internal
 {
-
   template<class Pastix> struct pastix_traits;
 
   template<typename _MatrixType>
@@ -96,12 +95,11 @@ namespace internal
   template <typename MatrixType>
   void c_to_fortran_numbering (MatrixType& mat)
   {
-    if ( !(mat.outerIndexPtr()[0]) )
+    if (!mat.outerIndexPtr()[0])
     {
-      int i;
-      for(i = 0; i <= mat.rows(); ++i)
+      for(Index i = 0; i <= mat.rows(); ++i)
         ++mat.outerIndexPtr()[i];
-      for(i = 0; i < mat.nonZeros(); ++i)
+      for(Index i = 0; i < mat.nonZeros(); ++i)
         ++mat.innerIndexPtr()[i];
     }
   }
@@ -111,12 +109,11 @@ namespace internal
   void fortran_to_c_numbering (MatrixType& mat)
   {
     // Check the Numbering
-    if ( mat.outerIndexPtr()[0] == 1 )
-    { // Convert to C-style numbering
-      int i;
-      for(i = 0; i <= mat.rows(); ++i)
+    if (mat.outerIndexPtr()[0] == 1)
+    {
+      for(Index i = 0; i <= mat.rows(); ++i)
         --mat.outerIndexPtr()[i];
-      for(i = 0; i < mat.nonZeros(); ++i)
+      for(Index i = 0; i < mat.nonZeros(); ++i)
         --mat.innerIndexPtr()[i];
     }
   }
@@ -267,12 +264,12 @@ void PastixBase<Derived>::init()
          0, 0, 0, 0,
          0, 0, 0, 1, m_iparm.data(), m_dparm.data());
 
-  m_iparm[IPARM_MATRIX_VERIFICATION] = API_NO;
-  m_iparm[IPARM_VERBOSE]             = API_VERBOSE_NOT;
-  m_iparm[IPARM_ORDERING]            = API_ORDER_SCOTCH;
-  m_iparm[IPARM_INCOMPLETE]          = API_NO;
-  m_iparm[IPARM_OOC_LIMIT]           = 2000;
-  m_iparm[IPARM_RHS_MAKING]          = API_RHS_B;
+  m_iparm(IPARM_MATRIX_VERIFICATION) = API_NO;
+  m_iparm(IPARM_VERBOSE)             = API_VERBOSE_NOT;
+  m_iparm(IPARM_ORDERING)            = API_ORDER_SCOTCH;
+  m_iparm(IPARM_INCOMPLETE)          = API_NO;
+  m_iparm(IPARM_OOC_LIMIT)           = 2000;
+  m_iparm(IPARM_RHS_MAKING)          = API_RHS_B;
 
   m_iparm(IPARM_START_TASK) = API_TASK_INIT;
   m_iparm(IPARM_END_TASK) = API_TASK_INIT;
@@ -349,14 +346,12 @@ void PastixBase<Derived>::factorize(ColSpMatrix& mat)
   if(m_iparm(IPARM_ERROR_NUMBER))
   {
     m_info = NumericalIssue;
-    m_factorizationIsOk = false;
-    m_isInitialized = false;
+    m_factorizationIsOk = m_isInitialized = false;
   }
   else
   {
     m_info = Success;
-    m_factorizationIsOk = true;
-    m_isInitialized = true;
+    m_factorizationIsOk = m_isInitialized = true;
   }
 }
 
@@ -373,8 +368,8 @@ bool PastixBase<Base>::_solve_impl(const MatrixBase<Rhs> &b, MatrixBase<Dest> &x
   x = b; /* on return, x is overwritten by the computed solution */
 
   for (int i = 0; i < b.cols(); i++){
-    m_iparm[IPARM_START_TASK]          = API_TASK_SOLVE;
-    m_iparm[IPARM_END_TASK]            = API_TASK_REFINE;
+    m_iparm(IPARM_START_TASK) = API_TASK_SOLVE;
+    m_iparm(IPARM_END_TASK) = API_TASK_REFINE;
 
     internal::eigen_pastix(&m_pastixdata, MPI_COMM_WORLD, internal::convert_index<int>(x.rows()), 0, 0, 0,
                            m_perm.data(), m_invp.data(), &x(0, i), rhs, m_iparm.data(), m_dparm.data());
@@ -475,7 +470,9 @@ class PastixLU : public PastixBase< PastixLU<_MatrixType> >
     void grabMatrix(const MatrixType& matrix, ColSpMatrix& out)
     {
       if(IsStrSym)
+      {
         out = matrix;
+      }
       else
       {
         if(!m_structureIsUptodate)
