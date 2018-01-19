@@ -103,20 +103,6 @@ namespace internal
         ++mat.innerIndexPtr()[i];
     }
   }
-
-  // Convert to C-style Numbering
-  template <typename MatrixType>
-  void fortran_to_c_numbering (MatrixType& mat)
-  {
-    // Check the Numbering
-    if (mat.outerIndexPtr()[0] == 1)
-    {
-      for(Index i = 0; i <= mat.rows(); ++i)
-        --mat.outerIndexPtr()[i];
-      for(Index i = 0; i < mat.nonZeros(); ++i)
-        --mat.innerIndexPtr()[i];
-    }
-  }
 }
 
 // This is the base class to interface with PaStiX functions.
