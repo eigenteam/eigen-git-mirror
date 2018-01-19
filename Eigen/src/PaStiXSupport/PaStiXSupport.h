@@ -141,7 +141,7 @@ class PastixBase : public SparseSolverBase<Derived>
       clean();
     }
 
-    template<typename Rhs,typename Dest>
+    template<typename Rhs, typename Dest>
     bool _solve_impl(const MatrixBase<Rhs> &b, MatrixBase<Dest> &x) const;
 
     /** Returns a reference to the integer vector IPARM of PaStiX parameters
@@ -157,7 +157,6 @@ class PastixBase : public SparseSolverBase<Derived>
     /** Return a reference to a particular index parameter of the IPARM vector
      * \sa iparm()
      */
-
     int& iparm(int idxparam)
     {
       return m_iparm(idxparam);
@@ -276,7 +275,7 @@ void PastixBase<Derived>::init()
 template <class Derived>
 void PastixBase<Derived>::compute(ColSpMatrix& mat)
 {
-  eigen_assert(mat.rows() == mat.cols() && "The input matrix should be squared");
+  eigen_assert(mat.rows() == mat.cols() && "The input matrix should be square");
 
   analyzePattern(mat);
   factorize(mat);
@@ -288,7 +287,7 @@ void PastixBase<Derived>::compute(ColSpMatrix& mat)
 template <class Derived>
 void PastixBase<Derived>::analyzePattern(ColSpMatrix& mat)
 {
-  eigen_assert(m_initisOk && "The initialization of PaSTiX failed");
+  eigen_assert(m_initisOk && "The initialization of PaStiX failed");
 
   // clean previous calls
   if(m_size>0)
@@ -320,7 +319,7 @@ template <class Derived>
 void PastixBase<Derived>::factorize(ColSpMatrix& mat)
 {
 //   if(&m_cpyMat != &mat) m_cpyMat = mat;
-  eigen_assert(m_analysisIsOk && "The analysis phase should be called before the factorization phase");
+  eigen_assert(m_analysisIsOk && "analyzePattern() should be called before factorize()");
   m_iparm(IPARM_START_TASK) = API_TASK_NUMFACT;
   m_iparm(IPARM_END_TASK) = API_TASK_NUMFACT;
   m_size = internal::convert_index<int>(mat.rows());
@@ -341,7 +340,6 @@ void PastixBase<Derived>::factorize(ColSpMatrix& mat)
   }
 }
 
-/* Solve the system */
 template<typename Base>
 template<typename Rhs,typename Dest>
 bool PastixBase<Base>::_solve_impl(const MatrixBase<Rhs> &b, MatrixBase<Dest> &x) const
@@ -403,11 +401,12 @@ class PastixLU : public PastixBase< PastixLU<_MatrixType> >
       init();
     }
 
-    explicit PastixLU(const MatrixType& matrix):Base()
+    explicit PastixLU(const MatrixType& matrix) : Base()
     {
       init();
       compute(matrix);
     }
+
     /** Compute the LU supernodal factorization of \p matrix.
       * iparm and dparm can be used to tune the PaStiX parameters.
       * see the PaStiX user's manual
@@ -420,6 +419,7 @@ class PastixLU : public PastixBase< PastixLU<_MatrixType> >
       grabMatrix(matrix, temp);
       Base::compute(temp);
     }
+
     /** Compute the LU symbolic factorization of \p matrix using its sparsity pattern.
       * Several ordering methods can be used at this step. See the PaStiX user's manual.
       * The result of this operation can be used with successive matrices having the same pattern as \p matrix
@@ -465,12 +465,10 @@ class PastixLU : public PastixBase< PastixLU<_MatrixType> >
         {
           // update the transposed structure
           m_transposedStructure = matrix.transpose();
-
           m_transposedStructure.coeffs() = 0.0;
 
           m_structureIsUptodate = true;
         }
-
         out = m_transposedStructure + matrix;
       }
       internal::c_to_fortran_numbering(out);
@@ -520,7 +518,8 @@ class PastixLLT : public PastixBase< PastixLLT<_MatrixType, _UpLo> >
       compute(matrix);
     }
 
-    /** Compute the L factor of the LL^T supernodal factorization of \p matrix
+    /**
+      * Compute the L factor of the LL^T supernodal factorization of \p matrix
       * \sa analyzePattern() factorize()
       */
     void compute (const MatrixType& matrix)
@@ -530,9 +529,9 @@ class PastixLLT : public PastixBase< PastixLLT<_MatrixType, _UpLo> >
       Base::compute(temp);
     }
 
-     /** Compute the LL^T symbolic factorization of \p matrix using its sparsity pattern
-      * The result of this operation can be used with successive matrices having the same pattern as \p matrix
-      * \sa factorize()
+    /** Compute the LL^T symbolic factorization of \p matrix using its sparsity
+      * pattern.  The result of this operation can be used with successive matrices
+      * which have the same pattern as \p matrix \sa factorize()
       */
     void analyzePattern(const MatrixType& matrix)
     {
@@ -540,15 +539,18 @@ class PastixLLT : public PastixBase< PastixLLT<_MatrixType, _UpLo> >
       grabMatrix(matrix, temp);
       Base::analyzePattern(temp);
     }
-      /** Compute the LL^T supernodal numerical factorization of \p matrix
-        * \sa analyzePattern()
-        */
+
+    /**
+      * Compute the LL^T supernodal numerical factorization of \p matrix
+      * \sa analyzePattern()
+      */
     void factorize(const MatrixType& matrix)
     {
       ColSpMatrix temp;
       grabMatrix(matrix, temp);
       Base::factorize(temp);
     }
+
   protected:
     using Base::m_iparm;
 
