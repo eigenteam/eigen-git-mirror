@@ -265,6 +265,10 @@ struct TensorEvaluator<const TensorImagePatchOp<Rows, Cols, ArgType>, Device>
           // Calculate the padding
           m_rowPaddingTop = ((m_outputRows - 1) * m_row_strides + m_patch_rows_eff - m_input_rows_eff) / 2;
           m_colPaddingLeft = ((m_outputCols - 1) * m_col_strides + m_patch_cols_eff - m_input_cols_eff) / 2;
+          // The padding size calculation for PADDING_SAME has been updated to
+          // be consistent with how TensorFlow extracts its paddings.
+          m_rowPaddingTop = numext::maxi<Index>(0, m_rowPaddingTop);
+          m_colPaddingLeft = numext::maxi<Index>(0, m_colPaddingLeft);
           break;
         default:
           eigen_assert(false && "unexpected padding");
