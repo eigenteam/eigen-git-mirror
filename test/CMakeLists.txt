@@ -1,6 +1,6 @@
 # generate split test header file only if it does not yet exist
 # in order to prevent a rebuild everytime cmake is configured
-if(NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/split_test_helper.h)  
+if(NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/split_test_helper.h)
   file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/split_test_helper.h "")
   foreach(i RANGE 1 999)
     file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/split_test_helper.h
@@ -91,7 +91,7 @@ else()
 endif()
 
 
-find_package(PASTIX QUIET COMPONENTS METIS SCOTCH)
+find_package(Pastix QUIET COMPONENTS METIS SCOTCH)
 # check that the PASTIX found is a version without MPI
 find_path(PASTIX_pastix_nompi.h_INCLUDE_DIRS
   NAMES pastix_nompi.h
@@ -379,9 +379,9 @@ if(EIGEN_TEST_CUDA)
 
 find_package(CUDA 5.0)
 if(CUDA_FOUND)
-  
+
   set(CUDA_PROPAGATE_HOST_FLAGS OFF)
-  if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang") 
+  if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     set(CUDA_NVCC_FLAGS "-ccbin ${CMAKE_C_COMPILER}" CACHE STRING "nvcc flags" FORCE)
   endif()
   if(EIGEN_TEST_CUDA_CLANG)
@@ -389,9 +389,9 @@ if(CUDA_FOUND)
   endif()
   cuda_include_directories(${CMAKE_CURRENT_BINARY_DIR})
   set(EIGEN_ADD_TEST_FILENAME_EXTENSION  "cu")
-  
+
   ei_add_test(cuda_basic)
-  
+
   unset(EIGEN_ADD_TEST_FILENAME_EXTENSION)
 
 endif(CUDA_FOUND)
@@ -399,7 +399,7 @@ endif(CUDA_FOUND)
 endif(EIGEN_TEST_CUDA)
 
 
-file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/failtests)    
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/failtests)
 add_test(NAME failtests WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/failtests COMMAND ${CMAKE_COMMAND} ${Eigen_SOURCE_DIR} -G "${CMAKE_GENERATOR}" -DEIGEN_FAILTEST=ON)
 
 option(EIGEN_TEST_BUILD_DOCUMENTATION "Test building the doxygen documentation" OFF)
