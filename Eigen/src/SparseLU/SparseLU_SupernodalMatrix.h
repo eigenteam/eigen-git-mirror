@@ -75,12 +75,12 @@ class MappedSuperNodalMatrix
     /**
      * Number of rows
      */
-    Index rows() { return m_row; }
+    Index rows() const { return m_row; }
     
     /**
      * Number of columns
      */
-    Index cols() { return m_col; }
+    Index cols() const { return m_col; }
     
     /**
      * Return the array of nonzero values packed by column
