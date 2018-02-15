@@ -110,6 +110,7 @@ inline bool getMarketHeader(const std::string& filename, int& sym, bool& iscompl
 {
   sym = 0; 
   isvector = false;
+  iscomplex= false;
   std::ifstream in(filename.c_str(),std::ios::in);
   if(!in)
     return false;
