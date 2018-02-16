@@ -31,7 +31,7 @@ void ordering_helper_at_plus_a(const MatrixType& A, MatrixType& symmat)
   for (int i = 0; i < C.rows(); i++) 
   {
       for (typename MatrixType::InnerIterator it(C, i); it; ++it)
-        it.valueRef() = 0.0;
+        it.valueRef() = typename MatrixType::Scalar(0);
   }
   symmat = C + A;
 }

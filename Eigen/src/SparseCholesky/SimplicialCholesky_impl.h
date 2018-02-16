@@ -122,7 +122,7 @@ void SimplicialCholeskyBase<Derived>::factorize_preordered(const CholMatrixType&
   for(StorageIndex k = 0; k < size; ++k)
   {
     // compute nonzero pattern of kth row of L, in topological order
-    y[k] = 0.0;                     // Y(0:k) is now all zero
+    y[k] = Scalar(0);                     // Y(0:k) is now all zero
     StorageIndex top = size;               // stack for pattern is empty
     tags[k] = k;                    // mark node k as visited
     m_nonZerosPerCol[k] = 0;        // count of nonzeros in column k of L
@@ -146,12 +146,12 @@ void SimplicialCholeskyBase<Derived>::factorize_preordered(const CholMatrixType&
     /* compute numerical values kth row of L (a sparse triangular solve) */
 
     RealScalar d = numext::real(y[k]) * m_shiftScale + m_shiftOffset;    // get D(k,k), apply the shift function, and clear Y(k)
-    y[k] = 0.0;
+    y[k] = Scalar(0);
     for(; top < size; ++top)
     {
       Index i = pattern[top];       /* pattern[top:n-1] is pattern of L(:,k) */
       Scalar yi = y[i];             /* get and clear Y(i) */
-      y[i] = 0.0;
+      y[i] = Scalar(0);
 
       /* the nonzero entry L(k,i) */
       Scalar l_ki;
