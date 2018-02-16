@@ -55,6 +55,10 @@
 #include "bdcsvd.cpp"
 #endif
 
+#ifdef EIGEN_TEST_PART_11
+#include "simplicial_cholesky.cpp"
+#endif
+
 #include <Eigen/Dense>
 
 #undef min
@@ -197,5 +201,7 @@ void test_boostmultiprec()
 
   CALL_SUBTEST_9(( jacobisvd(Mat(internal::random<int>(EIGEN_TEST_MAX_SIZE/4, EIGEN_TEST_MAX_SIZE), internal::random<int>(EIGEN_TEST_MAX_SIZE/4, EIGEN_TEST_MAX_SIZE/2))) ));
   CALL_SUBTEST_10(( bdcsvd(Mat(internal::random<int>(EIGEN_TEST_MAX_SIZE/4, EIGEN_TEST_MAX_SIZE), internal::random<int>(EIGEN_TEST_MAX_SIZE/4, EIGEN_TEST_MAX_SIZE/2))) ));
+
+  CALL_SUBTEST_11(( test_simplicial_cholesky_T<Real,int>() ));
 }
 
