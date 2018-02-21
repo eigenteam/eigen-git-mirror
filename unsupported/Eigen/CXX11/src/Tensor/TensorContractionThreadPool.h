@@ -377,7 +377,7 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
           divup<size_t>(bm_ * bk_ * sizeof(LhsScalar), align) * align;
       size_t rhs_size =
           divup<size_t>(bn_ * bk_ * sizeof(RhsScalar), align) * align;
-      packed_mem_ = static_cast<char*>(internal::aligned_malloc(
+      packed_mem_ = static_cast<char*>(device_.allocate(
           (nm0_ * lhs_size + nn0_ * rhs_size) * std::min<size_t>(nk_, P - 1)));
       char* mem = static_cast<char*>(packed_mem_);
       for (Index x = 0; x < numext::mini<Index>(nk_, P - 1); x++) {
@@ -399,7 +399,7 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
         for (Index m = 0; m < nm_; m++) delete[] state_kernel_[x][m];
         delete[] state_kernel_[x];
       }
-      internal::aligned_free(packed_mem_);
+      device_.deallocate(packed_mem_);
     }
 
     void run() {
