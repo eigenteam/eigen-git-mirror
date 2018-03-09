@@ -175,6 +175,12 @@ namespace Eigen
       eigen_assert_exception(void) {}
       ~eigen_assert_exception() { Eigen::no_more_assert = false; }
     };
+
+    struct eigen_static_assert_exception
+    {
+      eigen_static_assert_exception(void) {}
+      ~eigen_static_assert_exception() { Eigen::no_more_assert = false; }
+    };
   }
   // If EIGEN_DEBUG_ASSERTS is defined and if no assertion is triggered while
   // one should have been, then the list of excecuted assertions is printed out.
@@ -238,6 +244,7 @@ namespace Eigen
         else                                  \
           EIGEN_THROW_X(Eigen::eigen_assert_exception()); \
       }
+
     #ifdef EIGEN_EXCEPTIONS
       #define VERIFY_RAISES_ASSERT(a) {                           \
         Eigen::no_more_assert = false;                            \
@@ -249,12 +256,38 @@ namespace Eigen
         catch (Eigen::eigen_assert_exception&) { VERIFY(true); }  \
         Eigen::report_on_cerr_on_assert_failure = true;           \
       }
-    #endif //EIGEN_EXCEPTIONS
+    #endif // EIGEN_EXCEPTIONS
   #endif // EIGEN_DEBUG_ASSERTS
+
+  #if defined(TEST_CHECK_STATIC_ASSERTIONS) && defined(EIGEN_EXCEPTIONS)
+    #define EIGEN_STATIC_ASSERT(a,MSG) \
+      if( (!Eigen::internal::copy_bool(a)) && (!no_more_assert) )\
+      {                                       \
+        Eigen::no_more_assert = true;         \
+        if(report_on_cerr_on_assert_failure)  \
+          eigen_plain_assert(a && #MSG);      \
+        else                                  \
+          EIGEN_THROW_X(Eigen::eigen_static_assert_exception()); \
+      }
+    #define VERIFY_RAISES_STATIC_ASSERT(a) {                    \
+      Eigen::no_more_assert = false;                            \
+      Eigen::report_on_cerr_on_assert_failure = false;          \
+      try {                                                     \
+        a;                                                      \
+        VERIFY(Eigen::should_raise_an_assert && # a);           \
+      }                                                         \
+      catch (Eigen::eigen_static_assert_exception&) { VERIFY(true); }  \
+      Eigen::report_on_cerr_on_assert_failure = true;           \
+    }
+  #endif // TEST_CHECK_STATIC_ASSERTIONS
 
 #ifndef VERIFY_RAISES_ASSERT
   #define VERIFY_RAISES_ASSERT(a) \
     std::cout << "Can't VERIFY_RAISES_ASSERT( " #a " ) with exceptions disabled\n";
+#endif
+#ifndef VERIFY_RAISES_STATIC_ASSERT
+  #define VERIFY_RAISES_STATIC_ASSERT(a) \
+    std::cout << "Can't VERIFY_RAISES_STATIC_ASSERT( " #a " ) with exceptions disabled\n";
 #endif
     
   #if !defined(__CUDACC__)
@@ -264,9 +297,9 @@ namespace Eigen
 #else // EIGEN_NO_ASSERTION_CHECKING
 
   #define VERIFY_RAISES_ASSERT(a) {}
+  #define VERIFY_RAISES_STATIC_ASSERT(a) {}
 
 #endif // EIGEN_NO_ASSERTION_CHECKING
-
 
 #define EIGEN_INTERNAL_DEBUGGING
 #include <Eigen/QR> // required for createRandomPIMatrixOfRank

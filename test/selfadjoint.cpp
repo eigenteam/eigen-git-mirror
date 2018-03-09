@@ -7,7 +7,7 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#define EIGEN_NO_STATIC_ASSERT
+#define TEST_CHECK_STATIC_ASSERTIONS
 #include "main.h"
 
 // This file tests the basic selfadjointView API,
@@ -47,8 +47,8 @@ template<typename MatrixType> void selfadjoint(const MatrixType& m)
   m4 -= m1.template selfadjointView<Lower>();
   VERIFY_IS_APPROX(m4, m2-m3);
 
-  VERIFY_RAISES_ASSERT(m2.template selfadjointView<StrictlyUpper>());
-  VERIFY_RAISES_ASSERT(m2.template selfadjointView<UnitLower>());
+  VERIFY_RAISES_STATIC_ASSERT(m2.template selfadjointView<StrictlyUpper>());
+  VERIFY_RAISES_STATIC_ASSERT(m2.template selfadjointView<UnitLower>());
 }
 
 void bug_159()
