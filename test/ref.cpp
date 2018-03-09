@@ -13,7 +13,7 @@
 #endif
 
 #define TEST_ENABLE_TEMPORARY_TRACKING
-
+#define TEST_CHECK_STATIC_ASSERTIONS
 #include "main.h"
 
 // test Ref.h
@@ -255,6 +255,17 @@ void test_ref_overloads()
   test_ref_ambiguous(A, B);
 }
 
+void test_ref_fixed_size_assert()
+{
+  Vector4f v4;
+  VectorXf vx(10);
+  VERIFY_RAISES_STATIC_ASSERT( Ref<Vector3f> y = v4; (void)y; );
+  VERIFY_RAISES_STATIC_ASSERT( Ref<Vector3f> y = vx.head<4>(); (void)y; );
+  VERIFY_RAISES_STATIC_ASSERT( Ref<const Vector3f> y = v4; (void)y; );
+  VERIFY_RAISES_STATIC_ASSERT( Ref<const Vector3f> y = vx.head<4>(); (void)y; );
+  VERIFY_RAISES_STATIC_ASSERT( Ref<const Vector3f> y = 2*v4; (void)y; );
+}
+
 void test_ref()
 {
   for(int i = 0; i < g_repeat; i++) {
@@ -277,4 +288,5 @@ void test_ref()
   }
   
   CALL_SUBTEST_7( test_ref_overloads() );
+  CALL_SUBTEST_7( test_ref_fixed_size_assert() );
 }
