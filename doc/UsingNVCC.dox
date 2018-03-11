@@ -5,7 +5,7 @@ namespace Eigen {
 
 Staring from CUDA 5.5 and Eigen 3.3, it is possible to use Eigen's matrices, vectors, and arrays for fixed size within CUDA kernels. This is especially useful when working on numerous but small problems. By default, when Eigen's headers are included within a .cu file compiled by nvcc most Eigen's functions and methods are prefixed by the \c __device__ \c __host__ keywords making them callable from both host and device code.
 This support can be disabled by defining \c EIGEN_NO_CUDA before including any Eigen's header.
-This might be usefull to disable some warnings when a .cu file makes use of Eigen on the host side only.
+This might be useful to disable some warnings when a .cu file makes use of Eigen on the host side only.
 However, in both cases, host's SIMD vectorization has to be disabled in .cu files.
 It is thus \b strongly \b recommended to properly move all costly host computation from your .cu files to regular .cpp files.
 

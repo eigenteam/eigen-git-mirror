@@ -20,7 +20,7 @@ include(CTest)
 set(EIGEN_TEST_BUILD_FLAGS "" CACHE STRING "Options passed to the build command of unit tests")
 
 # Overwrite default DartConfiguration.tcl such that ctest can build our unit tests.
-# Recall that our unit tests are not in the "all" target, so we have to explicitely ask ctest to build our custom 'buildtests' target.
+# Recall that our unit tests are not in the "all" target, so we have to explicitly ask ctest to build our custom 'buildtests' target.
 # At this stage, we can also add custom flags to the build tool through the user defined EIGEN_TEST_BUILD_FLAGS variable.
 file(READ  "${CMAKE_CURRENT_BINARY_DIR}/DartConfiguration.tcl" EIGEN_DART_CONFIG_FILE)
 # try to grab the default flags
@@ -39,7 +39,7 @@ ei_init_testing()
 
 # configure Eigen related testing options
 option(EIGEN_NO_ASSERTION_CHECKING "Disable checking of assertions using exceptions" OFF)
-option(EIGEN_DEBUG_ASSERTS "Enable advanced debuging of assertions" OFF)
+option(EIGEN_DEBUG_ASSERTS "Enable advanced debugging of assertions" OFF)
 
 if(CMAKE_COMPILER_IS_GNUCXX)
   option(EIGEN_COVERAGE_TESTING "Enable/disable gcov" OFF)

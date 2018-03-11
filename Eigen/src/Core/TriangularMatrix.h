@@ -470,7 +470,7 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularViewImpl<_Mat
       * \a Side==OnTheLeft (the default), or the right-inverse-multiply  \a other * inverse(\c *this) if
       * \a Side==OnTheRight.
       *
-      * Note that the template parameter \c Side can be ommitted, in which case \c Side==OnTheLeft
+      * Note that the template parameter \c Side can be omitted, in which case \c Side==OnTheLeft
       *
       * The matrix \c *this must be triangular and invertible (i.e., all the coefficients of the
       * diagonal must be non zero). It works as a forward (resp. backward) substitution if \c *this
@@ -496,7 +496,7 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularViewImpl<_Mat
       * \warning The parameter is only marked 'const' to make the C++ compiler accept a temporary expression here.
       * This function will const_cast it, so constness isn't honored here.
       *
-      * Note that the template parameter \c Side can be ommitted, in which case \c Side==OnTheLeft
+      * Note that the template parameter \c Side can be omitted, in which case \c Side==OnTheLeft
       *
       * See TriangularView:solve() for the details.
       */

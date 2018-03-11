@@ -272,7 +272,7 @@ template<> struct numeric_limits<unsigned long long>
 #endif
 
 /** \internal
-  * A base class do disable default copy ctor and copy assignement operator.
+  * A base class do disable default copy ctor and copy assignment operator.
   */
 class noncopyable
 {

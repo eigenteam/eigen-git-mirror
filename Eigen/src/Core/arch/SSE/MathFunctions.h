@@ -242,7 +242,7 @@ Packet2d pexp<Packet2d>(const Packet2d& _x)
   return pmax(pmul(x, Packet2d(_mm_castsi128_pd(emm0))), _x);
 }
 
-/* evaluation of 4 sines at onces, using SSE2 intrinsics.
+/* evaluation of 4 sines at once, using SSE2 intrinsics.
 
    The code is the exact rewriting of the cephes sinf function.
    Precision is excellent as long as x < 8192 (I did not bother to

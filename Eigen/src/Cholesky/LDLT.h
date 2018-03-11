@@ -247,7 +247,7 @@ template<typename _MatrixType, int _UpLo> class LDLT
 
     /** \brief Reports whether previous computation was successful.
       *
-      * \returns \c Success if computation was succesful,
+      * \returns \c Success if computation was successful,
       *          \c NumericalIssue if the factorization failed because of a zero pivot.
       */
     ComputationInfo info() const

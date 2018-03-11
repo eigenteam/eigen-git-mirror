@@ -62,7 +62,7 @@ struct traits<BDCSVD<_MatrixType> >
  * recommended and can several order of magnitude faster.
  *
  * \warning this algorithm is unlikely to provide accurate result when compiled with unsafe math optimizations.
- * For instance, this concerns Intel's compiler (ICC), which perfroms such optimization by default unless
+ * For instance, this concerns Intel's compiler (ICC), which performs such optimization by default unless
  * you compile with the \c -fp-model \c precise option. Likewise, the \c -ffast-math option of GCC or clang will
  * significantly degrade the accuracy.
  *

@@ -133,7 +133,7 @@ In this special case, the example is fine and will be working because both param
 
 \section TopicPlainFunctionsFailing In which cases do functions taking a plain Matrix or Array argument fail?
 
-Here, we consider a slightly modified version of the function given above. This time, we do not want to return the result but pass an additional non-const paramter which allows us to store the result. A first naive implementation might look as follows.
+Here, we consider a slightly modified version of the function given above. This time, we do not want to return the result but pass an additional non-const parameter which allows us to store the result. A first naive implementation might look as follows.
 \code
 // Note: This code is flawed!
 void cov(const MatrixXf& x, const MatrixXf& y, MatrixXf& C)
@@ -176,7 +176,7 @@ The implementation above does now not only work with temporary expressions but i
 
 \section TopicResizingInGenericImplementations How to resize matrices in generic implementations?
 
-One might think we are done now, right? This is not completely true because in order for our covariance function to be generically applicable, we want the follwing code to work
+One might think we are done now, right? This is not completely true because in order for our covariance function to be generically applicable, we want the following code to work
 \code
 MatrixXf x = MatrixXf::Random(100,3);
 MatrixXf y = MatrixXf::Random(100,3);
