@@ -193,7 +193,7 @@ class SparseLU : public SparseSolverBase<SparseLU<_MatrixType,_OrderingType> >, 
     
     /** \brief Reports whether previous computation was successful.
       *
-      * \returns \c Success if computation was succesful,
+      * \returns \c Success if computation was successful,
       *          \c NumericalIssue if the LU factorization reports a problem, zero diagonal for instance
       *          \c InvalidInput if the input matrix is invalid
       *

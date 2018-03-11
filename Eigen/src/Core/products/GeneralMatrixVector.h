@@ -201,7 +201,7 @@ EIGEN_DONT_INLINE void general_matrix_vector_product<Index,LhsScalar,LhsMapper,C
 }
 
 /* Optimized row-major matrix * vector product:
- * This algorithm processes 4 rows at onces that allows to both reduce
+ * This algorithm processes 4 rows at once that allows to both reduce
  * the number of load/stores of the result by a factor 4 and to reduce
  * the instruction dependency. Moreover, we know that all bands have the
  * same alignment pattern.

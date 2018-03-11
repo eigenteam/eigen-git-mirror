@@ -247,7 +247,7 @@ endmacro(ei_add_test_internal_sycl)
 #
 # If EIGEN_SPLIT_LARGE_TESTS is ON, the test is split into multiple executables
 #   test_<testname>_<N>
-# where N runs from 1 to the greatest occurence found in the source file. Each of these
+# where N runs from 1 to the greatest occurrence found in the source file. Each of these
 # executables is built passing -DEIGEN_TEST_PART_N. This allows to split large tests
 # into smaller executables.
 #
@@ -269,8 +269,8 @@ macro(ei_add_test testname)
   file(READ "${filename}" test_source)
   set(parts 0)
   string(REGEX MATCHALL "CALL_SUBTEST_[0-9]+|EIGEN_TEST_PART_[0-9]+|EIGEN_SUFFIXES(;[0-9]+)+"
-         occurences "${test_source}")
-  string(REGEX REPLACE "CALL_SUBTEST_|EIGEN_TEST_PART_|EIGEN_SUFFIXES" "" suffixes "${occurences}")
+         occurrences "${test_source}")
+  string(REGEX REPLACE "CALL_SUBTEST_|EIGEN_TEST_PART_|EIGEN_SUFFIXES" "" suffixes "${occurrences}")
   list(REMOVE_DUPLICATES suffixes)
   if(EIGEN_SPLIT_LARGE_TESTS AND suffixes)
     add_custom_target(${testname})
@@ -303,8 +303,8 @@ macro(ei_add_test_sycl testname)
   file(READ "${filename}" test_source)
   set(parts 0)
   string(REGEX MATCHALL "CALL_SUBTEST_[0-9]+|EIGEN_TEST_PART_[0-9]+|EIGEN_SUFFIXES(;[0-9]+)+"
-         occurences "${test_source}")
-  string(REGEX REPLACE "CALL_SUBTEST_|EIGEN_TEST_PART_|EIGEN_SUFFIXES" "" suffixes "${occurences}")
+         occurrences "${test_source}")
+  string(REGEX REPLACE "CALL_SUBTEST_|EIGEN_TEST_PART_|EIGEN_SUFFIXES" "" suffixes "${occurrences}")
   list(REMOVE_DUPLICATES suffixes)
   if(EIGEN_SPLIT_LARGE_TESTS AND suffixes)
     add_custom_target(${testname})

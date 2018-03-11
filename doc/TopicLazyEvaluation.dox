@@ -58,7 +58,7 @@ the product <tt>matrix3 * matrix4</tt> gets evaluated immediately into a tempora
 
 \code matrix1 = matrix2 * (matrix3 + matrix4); \endcode
 
-Here, provided the matrices have at least 2 rows and 2 columns, each coefficienct of the expression <tt>matrix3 + matrix4</tt> is going to be used several times in the matrix product. Instead of computing the sum everytime, it is much better to compute it once and store it in a temporary variable. Eigen understands this and evaluates <tt>matrix3 + matrix4</tt> into a temporary variable before evaluating the product.
+Here, provided the matrices have at least 2 rows and 2 columns, each coefficienct of the expression <tt>matrix3 + matrix4</tt> is going to be used several times in the matrix product. Instead of computing the sum every time, it is much better to compute it once and store it in a temporary variable. Eigen understands this and evaluates <tt>matrix3 + matrix4</tt> into a temporary variable before evaluating the product.
 
 */
 

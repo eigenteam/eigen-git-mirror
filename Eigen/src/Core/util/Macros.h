@@ -719,7 +719,7 @@ namespace Eigen {
 #error EIGEN_MAX_STATIC_ALIGN_BYTES and EIGEN_DONT_ALIGN[_STATICALLY] are both defined with EIGEN_MAX_STATIC_ALIGN_BYTES!=0. Use EIGEN_MAX_STATIC_ALIGN_BYTES=0 as a synonym of EIGEN_DONT_ALIGN_STATICALLY.
 #endif
 
-// EIGEN_DONT_ALIGN_STATICALLY and EIGEN_DONT_ALIGN are deprectated
+// EIGEN_DONT_ALIGN_STATICALLY and EIGEN_DONT_ALIGN are deprecated
 // They imply EIGEN_MAX_STATIC_ALIGN_BYTES=0
 #if defined(EIGEN_DONT_ALIGN_STATICALLY) || defined(EIGEN_DONT_ALIGN)
   #ifdef EIGEN_MAX_STATIC_ALIGN_BYTES
@@ -778,7 +778,7 @@ namespace Eigen {
 #endif
 
 // At this stage, EIGEN_MAX_STATIC_ALIGN_BYTES>0 is the true test whether we want to align arrays on the stack or not.
-// It takes into account both the user choice to explicitly enable/disable alignment (by settting EIGEN_MAX_STATIC_ALIGN_BYTES)
+// It takes into account both the user choice to explicitly enable/disable alignment (by setting EIGEN_MAX_STATIC_ALIGN_BYTES)
 // and the architecture config (EIGEN_ARCH_WANTS_STACK_ALIGNMENT).
 // Henceforth, only EIGEN_MAX_STATIC_ALIGN_BYTES should be used.
 

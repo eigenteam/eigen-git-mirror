@@ -112,7 +112,7 @@ operator()(const RowIndices& rowIndices, const ColIndices& colIndices) EIGEN_IND
 
 #if EIGEN_HAS_STATIC_ARRAY_TEMPLATE
 
-// The folowing three overloads are needed to handle raw Index[N] arrays.
+// The following three overloads are needed to handle raw Index[N] arrays.
 
 template<typename RowIndicesT, std::size_t RowIndicesN, typename ColIndices>
 IndexedView<EIGEN_INDEXED_VIEW_METHOD_CONST Derived,const RowIndicesT (&)[RowIndicesN],typename IvcColType<ColIndices>::type>

@@ -101,7 +101,7 @@ class SimplicialCholeskyBase : public SparseSolverBase<Derived>
     
     /** \brief Reports whether previous computation was successful.
       *
-      * \returns \c Success if computation was succesful,
+      * \returns \c Success if computation was successful,
       *          \c NumericalIssue if the matrix.appears to be negative.
       */
     ComputationInfo info() const

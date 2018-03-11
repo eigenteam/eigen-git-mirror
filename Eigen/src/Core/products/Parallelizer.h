@@ -117,7 +117,7 @@ void parallelize_gemm(const Functor& func, Index rows, Index cols, Index depth, 
   // compute the number of threads we are going to use
   Index threads = std::min<Index>(nbThreads(), pb_max_threads);
 
-  // if multi-threading is explicitely disabled, not useful, or if we already are in a parallel session,
+  // if multi-threading is explicitly disabled, not useful, or if we already are in a parallel session,
   // then abort multi-threading
   // FIXME omp_get_num_threads()>1 only works for openmp, what if the user does not use openmp?
   if((!Condition) || (threads==1) || (omp_get_num_threads()>1))
