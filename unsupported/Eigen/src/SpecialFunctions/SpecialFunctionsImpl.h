@@ -535,6 +535,10 @@ struct igammac_impl {
       return nan;
     }
 
+    if (numext::isnan(a) || numext::isnan(x)) { // propagate nans
+      return nan;
+    }
+
     if ((x < one) || (x < a)) {
       /* The checks above ensure that we meet the preconditions for
        * igamma_impl::Impl(), so call it, rather than igamma_impl::Run().
@@ -592,7 +596,7 @@ struct igammac_impl {
     qkm1 = z * x;
     ans = pkm1 / qkm1;
 
-    while (true) {
+    for (int i = 0; i < 2000; i++) {
       c += one;
       y += one;
       z += two;
@@ -724,6 +728,10 @@ struct igamma_impl {
       return nan;
     }
 
+    if (numext::isnan(a) || numext::isnan(x)) { // propagate nans
+      return nan;
+    }
+
     if ((x > one) && (x > a)) {
       /* The checks above ensure that we meet the preconditions for
        * igammac_impl::Impl(), so call it, rather than igammac_impl::Run().
@@ -770,7 +778,7 @@ struct igamma_impl {
     c = one;
     ans = one;
 
-    while (true) {
+    for (int i = 0; i < 2000; i++) {
       r += one;
       c *= x/r;
       ans += c;
