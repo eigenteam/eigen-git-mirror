@@ -68,7 +68,7 @@ Array<float,4,1>                <=>   Array4f
 
 Conversion between the matrix and array worlds:
 \code
-Array44f a1, a1;
+Array44f a1, a2;
 Matrix4f m1, m2;
 m1 = a1 * a2;                     // coeffwise product, implicit conversion from array to matrix.
 a1 = m1 * m2;                     // matrix product, implicit conversion from matrix to array.
