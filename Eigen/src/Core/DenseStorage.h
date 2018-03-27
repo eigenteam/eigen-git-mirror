@@ -61,7 +61,7 @@ struct plain_array
 #if defined(EIGEN_DISABLE_UNALIGNED_ARRAY_ASSERT)
   #define EIGEN_MAKE_UNALIGNED_ARRAY_ASSERT(sizemask)
 #elif EIGEN_GNUC_AT_LEAST(4,7) 
-  // GCC 4.7 is too aggressive in its optimizations and remove the alignement test based on the fact the array is declared to be aligned.
+  // GCC 4.7 is too aggressive in its optimizations and remove the alignment test based on the fact the array is declared to be aligned.
   // See this bug report: http://gcc.gnu.org/bugzilla/show_bug.cgi?id=53900
   // Hiding the origin of the array pointer behind a function argument seems to do the trick even if the function is inlined:
   template<typename PtrType>

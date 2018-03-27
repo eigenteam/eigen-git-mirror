@@ -136,7 +136,7 @@ class IncompleteLUT : public SparseSolverBase<IncompleteLUT<_Scalar, _StorageInd
 
     /** \brief Reports whether previous computation was successful.
       *
-      * \returns \c Success if computation was succesful,
+      * \returns \c Success if computation was successful,
       *          \c NumericalIssue if the matrix.appears to be negative.
       */
     ComputationInfo info() const
@@ -230,7 +230,7 @@ void IncompleteLUT<Scalar,StorageIndex>::analyzePattern(const _MatrixType& amat)
   SparseMatrix<Scalar,ColMajor, StorageIndex> mat1 = amat;
   SparseMatrix<Scalar,ColMajor, StorageIndex> mat2 = amat.transpose();
   // FIXME for a matrix with nearly symmetric pattern, mat2+mat1 is the appropriate choice.
-  //       on the other hand for a really non-symmetric pattern, mat2*mat1 should be prefered...
+  //       on the other hand for a really non-symmetric pattern, mat2*mat1 should be preferred...
   SparseMatrix<Scalar,ColMajor, StorageIndex> AtA = mat2 + mat1;
   AMDOrdering<StorageIndex> ordering;
   ordering(AtA,m_P);

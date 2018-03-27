@@ -21,7 +21,7 @@ namespace Eigen {
   * This class implements a more versatile variants of the common \em compressed row/column storage format.
   * Each colmun's (resp. row) non zeros are stored as a pair of value with associated row (resp. colmiun) index.
   * All the non zeros are stored in a single large buffer. Unlike the \em compressed format, there might be extra
-  * space inbetween the nonzeros of two successive colmuns (resp. rows) such that insertion of new non-zero
+  * space in between the nonzeros of two successive colmuns (resp. rows) such that insertion of new non-zero
   * can be done with limited memory reallocation and copies.
   *
   * A call to the function makeCompressed() turns the matrix into the standard \em compressed format
@@ -503,7 +503,7 @@ class SparseMatrix
       }
     }
     
-    /** Suppresses all nonzeros which are \b much \b smaller \b than \a reference under the tolerence \a epsilon */
+    /** Suppresses all nonzeros which are \b much \b smaller \b than \a reference under the tolerance \a epsilon */
     void prune(const Scalar& reference, const RealScalar& epsilon = NumTraits<RealScalar>::dummy_precision())
     {
       prune(default_prunning_func(reference,epsilon));
@@ -986,7 +986,7 @@ void set_from_triplets(const InputIterator& begin, const InputIterator& end, Spa
   *
   * \warning The list of triplets is read multiple times (at least twice). Therefore, it is not recommended to define
   * an abstract iterator over a complex data-structure that would be expensive to evaluate. The triplets should rather
-  * be explicitely stored into a std::vector for instance.
+  * be explicitly stored into a std::vector for instance.
   */
 template<typename Scalar, int _Options, typename _StorageIndex>
 template<typename InputIterators>

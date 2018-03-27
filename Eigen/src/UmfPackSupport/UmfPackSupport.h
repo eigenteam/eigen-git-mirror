@@ -201,7 +201,7 @@ class UmfPackLU : public SparseSolverBase<UmfPackLU<_MatrixType> >
 
     /** \brief Reports whether previous computation was successful.
       *
-      * \returns \c Success if computation was succesful,
+      * \returns \c Success if computation was successful,
       *          \c NumericalIssue if the matrix.appears to be negative.
       */
     ComputationInfo info() const

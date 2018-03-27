@@ -51,7 +51,7 @@ are doing.
 
 \section TopicPreprocessorDirectivesCppVersion C++ standard features
 
-By default, %Eigen strive to automatically detect and enable langage features at compile-time based on
+By default, %Eigen strive to automatically detect and enable language features at compile-time based on
 the information provided by the compiler.
 
  - \b EIGEN_MAX_CPP_VER - disables usage of C++ features requiring a version greater than EIGEN_MAX_CPP_VER.

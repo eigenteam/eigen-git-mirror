@@ -48,7 +48,7 @@ template<typename _MatrixType> struct traits<FullPivLU<_MatrixType> >
   * The data of the LU decomposition can be directly accessed through the methods matrixLU(),
   * permutationP(), permutationQ().
   *
-  * As an exemple, here is how the original matrix can be retrieved:
+  * As an example, here is how the original matrix can be retrieved:
   * \include class_FullPivLU.cpp
   * Output: \verbinclude class_FullPivLU.out
   *

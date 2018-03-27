@@ -117,8 +117,8 @@ It doesn't disable 16-byte alignment, because that would mean that vectorized an
 
 \section checkmycode How can I check my code is safe regarding alignment issues?
 
-Unfortunately, there is no possibility in C++ to detect any of the aformentioned shortcoming at compile time (though static analysers are becoming more and more powerful and could detect some of them).
-Even at runtime, all we can do is to catch invalid unaligned allocation and trigger the explicit assertion mentioned at the begining of this page.
+Unfortunately, there is no possibility in C++ to detect any of the aforementioned shortcoming at compile time (though static analysers are becoming more and more powerful and could detect some of them).
+Even at runtime, all we can do is to catch invalid unaligned allocation and trigger the explicit assertion mentioned at the beginning of this page.
 Therefore, if your program runs fine on a given system with some given compilation flags, then this does not guarantee that your code is safe. For instance, on most 64 bits systems buffer are aligned on 16 bytes boundary and so, if you do not enable AVX instruction set, then your code will run fine. On the other hand, the same code may assert if moving to a more exotic platform, or enabling AVX instructions that required 32 bytes alignment by default.
 
 The situation is not hopeless though. Assuming your code is well covered by unit test, then you can check its alignment safety by linking it to a custom malloc library returning 8 bytes aligned buffers only. This way all alignment shortcomings should pop-up. To this end, you must also compile your program with \link TopicPreprocessorDirectivesPerformance EIGEN_MALLOC_ALREADY_ALIGNED=0 \endlink.

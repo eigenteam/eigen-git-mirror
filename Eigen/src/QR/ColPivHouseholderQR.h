@@ -402,7 +402,7 @@ template<typename _MatrixType> class ColPivHouseholderQR
       */
     RealScalar maxPivot() const { return m_maxpivot; }
 
-    /** \brief Reports whether the QR factorization was succesful.
+    /** \brief Reports whether the QR factorization was successful.
       *
       * \note This function always returns \c Success. It is provided for compatibility
       * with other factorization routines.

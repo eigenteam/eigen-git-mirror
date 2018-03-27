@@ -15,7 +15,7 @@ namespace Eigen {
 namespace internal {
 
 /* Optimized selfadjoint matrix * vector product:
- * This algorithm processes 2 columns at onces that allows to both reduce
+ * This algorithm processes 2 columns at once that allows to both reduce
  * the number of load/stores of the result by a factor 2 and to reduce
  * the instruction dependency.
  */

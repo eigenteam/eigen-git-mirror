@@ -12,7 +12,7 @@ int main(int argc, char** argv)
   assert(argc==2);
   
   int n = 300;  // size of the image
-  int m = n*n;  // number of unknows (=number of pixels)
+  int m = n*n;  // number of unknowns (=number of pixels)
 
   // Assembly:
   std::vector<T> coefficients;            // list of non-zeros coefficients

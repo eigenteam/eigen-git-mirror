@@ -128,7 +128,7 @@ public:
 /** Concatenates a linear transformation matrix and a uniform scaling
   * \relates UniformScaling
   */
-// NOTE this operator is defiend in MatrixBase and not as a friend function
+// NOTE this operator is defined in MatrixBase and not as a friend function
 // of UniformScaling to fix an internal crash of Intel's ICC
 template<typename Derived,typename Scalar>
 EIGEN_EXPR_BINARYOP_SCALAR_RETURN_TYPE(Derived,Scalar,product)

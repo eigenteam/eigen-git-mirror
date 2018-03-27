@@ -116,7 +116,7 @@ class dense_product_base
  : public internal::dense_xpr_base<Product<Lhs,Rhs,Option> >::type
 {};
 
-/** Convertion to scalar for inner-products */
+/** Conversion to scalar for inner-products */
 template<typename Lhs, typename Rhs, int Option>
 class dense_product_base<Lhs, Rhs, Option, InnerProduct>
  : public internal::dense_xpr_base<Product<Lhs,Rhs,Option> >::type

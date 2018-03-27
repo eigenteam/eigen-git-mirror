@@ -353,7 +353,7 @@ class CompleteOrthogonalDecomposition {
   inline RealScalar maxPivot() const { return m_cpqr.maxPivot(); }
 
   /** \brief Reports whether the complete orthogonal decomposition was
-   * succesful.
+   * successful.
    *
    * \note This function always returns \c Success. It is provided for
    * compatibility

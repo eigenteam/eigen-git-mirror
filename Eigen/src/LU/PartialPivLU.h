@@ -420,8 +420,8 @@ struct partial_lu_impl
     * \returns The index of the first pivot which is exactly zero if any, or a negative number otherwise.
     *
     * \note This very low level interface using pointers, etc. is to:
-    *   1 - reduce the number of instanciations to the strict minimum
-    *   2 - avoid infinite recursion of the instanciations with Block<Block<Block<...> > >
+    *   1 - reduce the number of instantiations to the strict minimum
+    *   2 - avoid infinite recursion of the instantiations with Block<Block<Block<...> > >
     */
   static Index blocked_lu(Index rows, Index cols, Scalar* lu_data, Index luStride, PivIndex* row_transpositions, PivIndex& nb_transpositions, Index maxBlockSize=256)
   {

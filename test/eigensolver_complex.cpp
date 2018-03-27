@@ -47,7 +47,7 @@ template<typename MatrixType> bool find_pivot(typename MatrixType::Scalar tol, M
   return false;
 }
 
-/* Check that two column vectors are approximately equal upto permutations.
+/* Check that two column vectors are approximately equal up to permutations.
  * Initially, this method checked that the k-th power sums are equal for all k = 1, ..., vec1.rows(),
  * however this strategy is numerically inacurate because of numerical cancellation issues.
  */

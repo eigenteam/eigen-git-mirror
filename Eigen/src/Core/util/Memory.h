@@ -703,7 +703,7 @@ template<typename T> void swap(scoped_array<T> &a,scoped_array<T> &b)
 *  - 32 bytes alignment if AVX is enabled.
 *  - 64 bytes alignment if AVX512 is enabled.
 *
-* This can be controled using the \c EIGEN_MAX_ALIGN_BYTES macro as documented
+* This can be controlled using the \c EIGEN_MAX_ALIGN_BYTES macro as documented
 * \link TopicPreprocessorDirectivesPerformance there \endlink.
 *
 * Example:

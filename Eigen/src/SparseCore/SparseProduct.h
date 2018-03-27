@@ -17,7 +17,7 @@ namespace Eigen {
   * The automatic pruning of the small values can be achieved by calling the pruned() function
   * in which case a totally different product algorithm is employed:
   * \code
-  * C = (A*B).pruned();             // supress numerical zeros (exact)
+  * C = (A*B).pruned();             // suppress numerical zeros (exact)
   * C = (A*B).pruned(ref);
   * C = (A*B).pruned(ref,epsilon);
   * \endcode

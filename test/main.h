@@ -183,7 +183,7 @@ namespace Eigen
     };
   }
   // If EIGEN_DEBUG_ASSERTS is defined and if no assertion is triggered while
-  // one should have been, then the list of excecuted assertions is printed out.
+  // one should have been, then the list of executed assertions is printed out.
   //
   // EIGEN_DEBUG_ASSERTS is not enabled by default as it
   // significantly increases the compilation time

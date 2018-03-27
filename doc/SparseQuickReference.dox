@@ -80,7 +80,7 @@ sm1.setZero();
 
 
 \section SparseBasicInfos Matrix properties
-Beyond the basic functions rows() and cols(), there are some useful functions that are available to easily get some informations from the matrix. 
+Beyond the basic functions rows() and cols(), there are some useful functions that are available to easily get some information from the matrix. 
 <table class="manual">
 <tr>
   <td> \code

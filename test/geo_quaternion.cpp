@@ -241,7 +241,7 @@ template<typename Scalar> void mapQuaternion(void){
   const MQuaternionUA& cmq3(mq3);
   VERIFY( &cmq3.x() == &mq3.x() );
   // FIXME the following should be ok. The problem is that currently the LValueBit flag
-  // is used to determine wether we can return a coeff by reference or not, which is not enough for Map<const ...>.
+  // is used to determine whether we can return a coeff by reference or not, which is not enough for Map<const ...>.
   //const MCQuaternionUA& cmcq3(mcq3);
   //VERIFY( &cmcq3.x() == &mcq3.x() );
 }

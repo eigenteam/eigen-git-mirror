@@ -28,7 +28,7 @@ template<typename T> T negate(const T& x) { return -x; }
 }
 }
 
-// NOTE: we disbale inlining for this function to workaround a GCC issue when using -O3 and the i387 FPU.
+// NOTE: we disable inlining for this function to workaround a GCC issue when using -O3 and the i387 FPU.
 template<typename Scalar> EIGEN_DONT_INLINE
 bool isApproxAbs(const Scalar& a, const Scalar& b, const typename NumTraits<Scalar>::Real& refvalue)
 {

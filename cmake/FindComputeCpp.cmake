@@ -243,7 +243,7 @@ endfunction()
 #######################
 #
 #  Adds a SYCL compilation custom command associated with an existing
-#  target and sets a dependancy on that new command.
+#  target and sets a dependency on that new command.
 #
 #  targetName : Name of the target to add a SYCL to.
 #  binaryDir : Intermediate directory to output the integration header.
