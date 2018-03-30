@@ -12,8 +12,6 @@
 
 namespace Eigen {
 
-#define UF_long __int64
-
 /* TODO extract L, extract U, compute det, etc... */
 
 // generic double/complex<double> wrapper functions:
