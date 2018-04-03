@@ -171,6 +171,9 @@
       #ifdef __AVX512DQ__
         #define EIGEN_VECTORIZE_AVX512DQ
       #endif
+      #ifdef __AVX512ER__
+        #define EIGEN_VECTORIZE_AVX512ER
+      #endif
     #endif
 
     // include files
