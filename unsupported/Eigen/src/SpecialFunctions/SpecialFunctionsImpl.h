@@ -535,7 +535,7 @@ struct igammac_impl {
       return nan;
     }
 
-    if (numext::isnan(a) || numext::isnan(x)) { // propagate nans
+    if ((numext::isnan)(a) || (numext::isnan)(x)) { // propagate nans
       return nan;
     }
 
@@ -728,7 +728,7 @@ struct igamma_impl {
       return nan;
     }
 
-    if (numext::isnan(a) || numext::isnan(x)) { // propagate nans
+    if ((numext::isnan)(a) || (numext::isnan)(x)) { // propagate nans
       return nan;
     }
 
