@@ -324,13 +324,13 @@ preduxp(const Packet* vecs) { return vecs[0]; }
 template<typename Packet> EIGEN_DEVICE_FUNC inline typename unpacket_traits<Packet>::type predux(const Packet& a)
 { return a; }
 
-/** \internal \returns the sum of the elements of \a a by block of 4 elements.
+/** \internal \returns the sum of the elements of upper and lower half of \a a if \a a is larger than 4.
   * For a packet {a0, a1, a2, a3, a4, a5, a6, a7}, it returns a half packet {a0+a4, a1+a5, a2+a6, a3+a7}
   * For packet-size smaller or equal to 4, this boils down to a noop.
   */
 template<typename Packet> EIGEN_DEVICE_FUNC inline
 typename conditional<(unpacket_traits<Packet>::size%8)==0,typename unpacket_traits<Packet>::half,Packet>::type
-predux_downto4(const Packet& a)
+predux_half_dowto4(const Packet& a)
 { return a; }
 
 /** \internal \returns the product of the elements of \a a*/
