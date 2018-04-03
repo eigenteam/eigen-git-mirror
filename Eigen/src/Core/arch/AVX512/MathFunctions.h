@@ -375,7 +375,7 @@ prsqrt<Packet8d>(const Packet8d& _x) {
   // Insert NaNs and Infs in all the right places.
   return _mm512_mask_blend_pd(le_zero_mask, x, infs_and_nans);
 }
-#else
+#elif defined(EIGEN_VECTORIZE_AVX512ER)
 template <>
 EIGEN_STRONG_INLINE Packet16f prsqrt<Packet16f>(const Packet16f& x) {
   return _mm512_rsqrt28_ps(x);
