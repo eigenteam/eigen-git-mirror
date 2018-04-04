@@ -350,18 +350,6 @@ template<typename Derived> class SparseMatrixBase
     const ConstTransposeReturnType transpose() const { return ConstTransposeReturnType(derived()); }
     const AdjointReturnType adjoint() const { return AdjointReturnType(transpose()); }
 
-    // inner-vector
-    typedef Block<Derived,IsRowMajor?1:Dynamic,IsRowMajor?Dynamic:1,true>       InnerVectorReturnType;
-    typedef Block<const Derived,IsRowMajor?1:Dynamic,IsRowMajor?Dynamic:1,true> ConstInnerVectorReturnType;
-    InnerVectorReturnType innerVector(Index outer);
-    const ConstInnerVectorReturnType innerVector(Index outer) const;
-
-    // set of inner-vectors
-    typedef Block<Derived,Dynamic,Dynamic,true> InnerVectorsReturnType;
-    typedef Block<const Derived,Dynamic,Dynamic,true> ConstInnerVectorsReturnType;
-    InnerVectorsReturnType innerVectors(Index outerStart, Index outerSize);
-    const ConstInnerVectorsReturnType innerVectors(Index outerStart, Index outerSize) const;
-
     DenseMatrixType toDense() const
     {
       return DenseMatrixType(derived());
