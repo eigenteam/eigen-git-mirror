@@ -73,12 +73,17 @@
 
 // For the record, here is a table summarizing the possible values for EIGEN_COMP_MSVC:
 //  name  ver   MSC_VER
-//  2008    9      1500
-//  2010   10      1600
-//  2012   11      1700
-//  2013   12      1800
-//  2015   14      1900
-//  "15"   15      1900
+//  2008         9      1500
+//  2010        10      1600
+//  2012        11      1700
+//  2013        12      1800
+//  2015        14      1900
+//  "15"        15      1900
+//  2017-14.1   15.0    1910
+//  2017-14.11  15.3    1911
+//  2017-14.12  15.5    1912
+//  2017-14.13  15.6    1913
+//  2017-14.14  15.7    1914
 
 /// \internal EIGEN_COMP_MSVC_STRICT set to 1 if the compiler is really Microsoft Visual C++ and not ,e.g., ICC or clang-cl
 #if EIGEN_COMP_MSVC && !(EIGEN_COMP_ICC || EIGEN_COMP_LLVM || EIGEN_COMP_CLANG)
