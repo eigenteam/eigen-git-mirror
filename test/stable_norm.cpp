@@ -204,8 +204,6 @@ void test_hypot()
     factor = internal::random<Scalar>();
   Scalar small = factor * ((std::numeric_limits<RealScalar>::min)() * RealScalar(1e4));
 
-  std::cout << big << " " << small << "\n";
-
   Scalar  one   (1),
           zero  (0),
           sqrt2 (std::sqrt(2)),
@@ -234,6 +232,7 @@ void test_stable_norm()
     CALL_SUBTEST_1( stable_norm(Matrix<float, 1, 1>()) );
     CALL_SUBTEST_2( stable_norm(Vector4d()) );
     CALL_SUBTEST_3( stable_norm(VectorXd(internal::random<int>(10,2000))) );
+    CALL_SUBTEST_3( stable_norm(MatrixXd(internal::random<int>(10,200), internal::random<int>(10,200))) );
     CALL_SUBTEST_4( stable_norm(VectorXf(internal::random<int>(10,2000))) );
     CALL_SUBTEST_5( stable_norm(VectorXcd(internal::random<int>(10,2000))) );
     CALL_SUBTEST_6( stable_norm(VectorXcf(internal::random<int>(10,2000))) );
