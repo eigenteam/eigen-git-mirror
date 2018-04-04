@@ -391,6 +391,7 @@ template<> EIGEN_STRONG_INLINE Packet4i pmadd(const Packet4i& a, const Packet4i&
 template<> EIGEN_STRONG_INLINE Packet4f pmin<Packet4f>(const Packet4f& a, const Packet4f& b)
 {
   #ifdef __VSX__
+  // NOTE: about 10% slower than vec_min, but consistent with std::min and SSE regarding NaN
   Packet4f ret;
   __asm__ ("xvcmpgesp %x0,%x1,%x2\n\txxsel %x0,%x1,%x2,%x0" : "=&wa" (ret) : "wa" (a), "wa" (b));
   return ret;
@@ -403,6 +404,7 @@ template<> EIGEN_STRONG_INLINE Packet4i pmin<Packet4i>(const Packet4i& a, const 
 template<> EIGEN_STRONG_INLINE Packet4f pmax<Packet4f>(const Packet4f& a, const Packet4f& b)
 {
   #ifdef __VSX__
+  // NOTE: about 10% slower than vec_max, but consistent with std::max and SSE regarding NaN
   Packet4f ret;
   __asm__ ("xvcmpgtsp %x0,%x2,%x1\n\txxsel %x0,%x1,%x2,%x0" : "=&wa" (ret) : "wa" (a), "wa" (b));
   return ret;
@@ -930,6 +932,7 @@ template<> EIGEN_STRONG_INLINE Packet2d pmadd(const Packet2d& a, const Packet2d&
 
 template<> EIGEN_STRONG_INLINE Packet2d pmin<Packet2d>(const Packet2d& a, const Packet2d& b)
 {
+  // NOTE: about 10% slower than vec_min, but consistent with std::min and SSE regarding NaN
   Packet2d ret;
   __asm__ ("xvcmpgedp %x0,%x1,%x2\n\txxsel %x0,%x1,%x2,%x0" : "=&wa" (ret) : "wa" (a), "wa" (b));
   return ret;
@@ -937,6 +940,7 @@ template<> EIGEN_STRONG_INLINE Packet2d pmin<Packet2d>(const Packet2d& a, const 
 
 template<> EIGEN_STRONG_INLINE Packet2d pmax<Packet2d>(const Packet2d& a, const Packet2d& b)
 {
+  // NOTE: about 10% slower than vec_max, but consistent with std::max and SSE regarding NaN
   Packet2d ret;
   __asm__ ("xvcmpgtdp %x0,%x2,%x1\n\txxsel %x0,%x1,%x2,%x0" : "=&wa" (ret) : "wa" (a), "wa" (b));
   return ret;
