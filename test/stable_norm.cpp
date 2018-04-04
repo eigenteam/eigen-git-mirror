@@ -190,13 +190,52 @@ template<typename MatrixType> void stable_norm(const MatrixType& m)
   }
 }
 
+template<typename Scalar>
+void test_hypot()
+{
+  typedef typename NumTraits<Scalar>::Real RealScalar;
+  Scalar factor = internal::random<Scalar>();
+  while(numext::abs2(factor)<RealScalar(1e-4))
+    factor = internal::random<Scalar>();
+  Scalar big = factor * ((std::numeric_limits<RealScalar>::max)() * RealScalar(1e-4));
+  
+  factor = internal::random<Scalar>();
+  while(numext::abs2(factor)<RealScalar(1e-4))
+    factor = internal::random<Scalar>();
+  Scalar small = factor * ((std::numeric_limits<RealScalar>::min)() * RealScalar(1e4));
+
+  std::cout << big << " " << small << "\n";
+
+  Scalar  one   (1),
+          zero  (0),
+          sqrt2 (std::sqrt(2)),
+          nan   (std::numeric_limits<RealScalar>::quiet_NaN());
+
+  Scalar a = internal::random<Scalar>(-1,1);
+  Scalar b = internal::random<Scalar>(-1,1);
+  VERIFY_IS_APPROX(numext::hypot(a,b),std::sqrt(numext::abs2(a)+numext::abs2(b)));
+  VERIFY_IS_EQUAL(numext::hypot(zero,zero), zero);
+  VERIFY_IS_APPROX(numext::hypot(one, one), sqrt2);
+  VERIFY_IS_APPROX(numext::hypot(big,big), sqrt2*numext::abs(big));
+  VERIFY_IS_APPROX(numext::hypot(small,small), sqrt2*numext::abs(small));
+  VERIFY_IS_APPROX(numext::hypot(small,big), numext::abs(big));
+  VERIFY((numext::isnan)(numext::hypot(nan,a)));
+  VERIFY((numext::isnan)(numext::hypot(a,nan)));
+}
+
 void test_stable_norm()
 {
   for(int i = 0; i < g_repeat; i++) {
+    CALL_SUBTEST_3( test_hypot<double>() );
+    CALL_SUBTEST_4( test_hypot<float>() );
+    CALL_SUBTEST_5( test_hypot<std::complex<double> >() );
+    CALL_SUBTEST_6( test_hypot<std::complex<float> >() );
+
     CALL_SUBTEST_1( stable_norm(Matrix<float, 1, 1>()) );
     CALL_SUBTEST_2( stable_norm(Vector4d()) );
     CALL_SUBTEST_3( stable_norm(VectorXd(internal::random<int>(10,2000))) );
     CALL_SUBTEST_4( stable_norm(VectorXf(internal::random<int>(10,2000))) );
     CALL_SUBTEST_5( stable_norm(VectorXcd(internal::random<int>(10,2000))) );
+    CALL_SUBTEST_6( stable_norm(VectorXcf(internal::random<int>(10,2000))) );
   }
 }
