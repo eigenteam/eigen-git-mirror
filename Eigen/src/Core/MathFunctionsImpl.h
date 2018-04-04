@@ -71,6 +71,25 @@ T generic_fast_tanh_float(const T& a_x)
   return pdiv(p, q);
 }
 
+
+template<typename Scalar>
+struct hypot_impl
+{
+  typedef typename NumTraits<Scalar>::Real RealScalar;
+  static inline RealScalar run(const Scalar& x, const Scalar& y)
+  {
+    EIGEN_USING_STD_MATH(abs);
+    EIGEN_USING_STD_MATH(sqrt);
+    RealScalar _x = abs(x);
+    RealScalar _y = abs(y);
+    RealScalar p, qp;
+    p = numext::maxi(_x,_y);
+    if(p==RealScalar(0)) return RealScalar(0);
+    qp = numext::mini(_y,_x) / p;    
+    return p * sqrt(RealScalar(1) + qp*qp);
+  }
+};
+
 } // end namespace internal
 
 } // end namespace Eigen

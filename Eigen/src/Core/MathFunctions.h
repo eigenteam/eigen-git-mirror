@@ -348,31 +348,7 @@ struct norm1_retval
 * Implementation of hypot                                                *
 ****************************************************************************/
 
-template<typename Scalar>
-struct hypot_impl
-{
-  typedef typename NumTraits<Scalar>::Real RealScalar;
-  static inline RealScalar run(const Scalar& x, const Scalar& y)
-  {
-    EIGEN_USING_STD_MATH(abs);
-    EIGEN_USING_STD_MATH(sqrt);
-    RealScalar _x = abs(x);
-    RealScalar _y = abs(y);
-    Scalar p, qp;
-    if(_x>_y)
-    {
-      p = _x;
-      qp = _y / p;
-    }
-    else
-    {
-      p = _y;
-      qp = _x / p;
-    }
-    if(p==RealScalar(0)) return RealScalar(0);
-    return p * sqrt(RealScalar(1) + qp*qp);
-  }
-};
+template<typename Scalar> struct hypot_impl;
 
 template<typename Scalar>
 struct hypot_retval
