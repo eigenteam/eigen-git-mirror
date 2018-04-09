@@ -1044,7 +1044,7 @@ inline const typename ConstFixedBlockXpr<NRows,NCols>::Type block(Index startRow
 /// \a NRows is \a Dynamic, and the same for the number of columns.
 ///
 /// Example: \include MatrixBase_template_int_int_block_int_int_int_int.cpp
-/// Output: \verbinclude MatrixBase_template_int_int_block_int_int_int_int.cpp
+/// Output: \verbinclude MatrixBase_template_int_int_block_int_int_int_int.out
 ///
 /// \note The usage of of this overload is discouraged from %Eigen 3.4, better used the generic
 /// block(Index,Index,NRowsType,NColsType), here is the one-to-one complete equivalence:
