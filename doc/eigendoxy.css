@@ -214,3 +214,8 @@ h3.version {
 td.width20em p.endtd {
   width:  20em;
 }
+
+/* needed for huge screens */
+.ui-resizable-e {
+  background-repeat: repeat-y;
+}
