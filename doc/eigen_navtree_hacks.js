@@ -65,6 +65,10 @@ function getNode(o, po)
 function resizeHeight() 
 {
   var toc = $("#nav-toc");
+  var header = $("#header");
+  var content = $("#doc-content");
+  var navtree = $("#nav-path");
+  var sidenav = $("#side-nav");
   var tocHeight = toc.height();  // <- we added this line
   var headerHeight = header.height();
   var footerHeight = footer.height();
