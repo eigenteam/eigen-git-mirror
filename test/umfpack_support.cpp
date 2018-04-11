@@ -27,8 +27,8 @@ template<typename T1, typename T2> void test_umfpack_support_T()
 void test_umfpack_support()
 {
   CALL_SUBTEST_1((test_umfpack_support_T<double, int>()));
-  CALL_SUBTEST_2((test_umfpack_support_T<std::complex<double>, int >()));
-  CALL_SUBTEST_3((test_umfpack_support_T<double, UF_long >()));
-  CALL_SUBTEST_4((test_umfpack_support_T<std::complex<double>,  UF_long >()));
+  CALL_SUBTEST_2((test_umfpack_support_T<std::complex<double>, int>()));
+  CALL_SUBTEST_3((test_umfpack_support_T<double, long >()));
+  CALL_SUBTEST_4((test_umfpack_support_T<std::complex<double>, long>()));
 }
 
