@@ -266,7 +266,7 @@ std::string solver_stats(const SparseSolverBase<Derived> &/*solver*/)
 }
 #endif
 
-template<typename Solver> void check_sparse_spd_solving(Solver& solver, int maxSize = 300, int maxRealWorldSize = 100000)
+template<typename Solver> void check_sparse_spd_solving(Solver& solver, int maxSize = (std::min)(300,EIGEN_TEST_MAX_SIZE), int maxRealWorldSize = 100000)
 {
   typedef typename Solver::MatrixType Mat;
   typedef typename Mat::Scalar Scalar;
