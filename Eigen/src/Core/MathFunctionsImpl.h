@@ -90,7 +90,7 @@ struct hypot_impl
   static inline RealScalar run(const Scalar& x, const Scalar& y)
   {
     EIGEN_USING_STD_MATH(abs);
-    return positive_real_hypot(abs(x), abs(y));
+    return positive_real_hypot<RealScalar>(abs(x), abs(y));
   }
 };
 
