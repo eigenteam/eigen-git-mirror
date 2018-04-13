@@ -827,7 +827,7 @@ void BDCSVD<MatrixType>::computeSingVals(const ArrayRef& col0, const ArrayRef& d
       {
         // to avoid overflow, we must have mu > max(real_min, |z(k)|/sqrt(real_max)),
         // the factor 2 is to be more conservative
-        leftShifted = numext::maxi( (std::numeric_limits<RealScalar>::min)(), Literal(2) * abs(col0(k)) / sqrt((std::numeric_limits<RealScalar>::max)()) );
+        leftShifted = numext::maxi<RealScalar>( (std::numeric_limits<RealScalar>::min)(), Literal(2) * abs(col0(k)) / sqrt((std::numeric_limits<RealScalar>::max)()) );
 
         // check that we did it right:
         eigen_internal_assert( (numext::isfinite)( (col0(k)/leftShifted)*(col0(k)/(diag(k)+shift+leftShifted)) ) );
@@ -839,7 +839,7 @@ void BDCSVD<MatrixType>::computeSingVals(const ArrayRef& col0, const ArrayRef& d
       {
         leftShifted = -(right - left) * RealScalar(0.51);
         if(k+1<n)
-          rightShifted = -numext::maxi( (std::numeric_limits<RealScalar>::min)(), abs(col0(k+1)) / sqrt((std::numeric_limits<RealScalar>::max)()) );
+          rightShifted = -numext::maxi<RealScalar>( (std::numeric_limits<RealScalar>::min)(), abs(col0(k+1)) / sqrt((std::numeric_limits<RealScalar>::max)()) );
         else
           rightShifted = -(std::numeric_limits<RealScalar>::min)();
       }
