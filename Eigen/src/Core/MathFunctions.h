@@ -238,7 +238,7 @@ struct imag_ref_retval
 ****************************************************************************/
 
 template<typename Scalar, bool IsComplex = NumTraits<Scalar>::IsComplex>
-struct conj_impl
+struct conj_default_impl
 {
   EIGEN_DEVICE_FUNC
   static inline Scalar run(const Scalar& x)
@@ -248,7 +248,7 @@ struct conj_impl
 };
 
 template<typename Scalar>
-struct conj_impl<Scalar,true>
+struct conj_default_impl<Scalar,true>
 {
   EIGEN_DEVICE_FUNC
   static inline Scalar run(const Scalar& x)
@@ -257,6 +257,20 @@ struct conj_impl<Scalar,true>
     return conj(x);
   }
 };
+
+template<typename Scalar> struct conj_impl : conj_default_impl<Scalar> {};
+
+#ifdef EIGEN_CUDA_ARCH
+template<typename T>
+struct conj_impl<std::complex<T> >
+{
+  EIGEN_DEVICE_FUNC
+  static inline std::complex<T> run(const std::complex<T>& x)
+  {
+    return std::complex<T>(x.real(), -x.imag());
+  }
+};
+#endif
 
 template<typename Scalar>
 struct conj_retval
