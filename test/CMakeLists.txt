@@ -309,7 +309,6 @@ if(UMFPACK_FOUND)
 endif()
 
 if(KLU_FOUND OR SuiteSparse_FOUND)
-  message("ADDING KLU TEST")
   ei_add_test(klu_support "" "${KLU_ALL_LIBS}")
 endif()
 
