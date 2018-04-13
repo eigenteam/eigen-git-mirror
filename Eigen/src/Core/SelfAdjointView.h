@@ -191,7 +191,7 @@ template<typename _MatrixType, unsigned int UpLo> class SelfAdjointView
                                    TriangularView<typename MatrixType::AdjointReturnType,TriMode> >::type(tmp2);
     }
 
-    typedef SelfAdjointView<const MatrixConjugateReturnType,Mode> ConjugateReturnType;
+    typedef SelfAdjointView<const MatrixConjugateReturnType,UpLo> ConjugateReturnType;
     /** \sa MatrixBase::conjugate() const */
     EIGEN_DEVICE_FUNC
     inline const ConjugateReturnType conjugate() const
