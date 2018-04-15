@@ -265,7 +265,7 @@ namespace Eigen
       {                                       \
         Eigen::no_more_assert = true;         \
         if(report_on_cerr_on_assert_failure)  \
-          eigen_plain_assert(a && #MSG);      \
+          eigen_plain_assert((a) && #MSG);      \
         else                                  \
           EIGEN_THROW_X(Eigen::eigen_static_assert_exception()); \
       }
