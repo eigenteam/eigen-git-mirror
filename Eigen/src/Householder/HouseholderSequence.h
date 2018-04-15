@@ -140,6 +140,22 @@ template<typename VectorsType, typename CoeffsType, int Side> class HouseholderS
       Side
     > ConjugateReturnType;
 
+    typedef HouseholderSequence<
+      VectorsType,
+      typename internal::conditional<NumTraits<Scalar>::IsComplex,
+        typename internal::remove_all<typename CoeffsType::ConjugateReturnType>::type,
+        CoeffsType>::type,
+      Side
+    > AdjointReturnType;
+
+    typedef HouseholderSequence<
+      typename internal::conditional<NumTraits<Scalar>::IsComplex,
+        typename internal::remove_all<typename VectorsType::ConjugateReturnType>::type,
+        VectorsType>::type,
+      CoeffsType,
+      Side
+    > TransposeReturnType;
+
     /** \brief Constructor.
       * \param[in]  v      %Matrix containing the essential parts of the Householder vectors
       * \param[in]  h      Vector containing the Householder coefficients
@@ -206,9 +222,12 @@ template<typename VectorsType, typename CoeffsType, int Side> class HouseholderS
     }
 
     /** \brief %Transpose of the Householder sequence. */
-    HouseholderSequence transpose() const
+    TransposeReturnType transpose() const
     {
-      return HouseholderSequence(*this).setTrans(!m_trans);
+      return TransposeReturnType(m_vectors.conjugate(), m_coeffs)
+              .setTrans(!m_trans)
+              .setLength(m_length)
+              .setShift(m_shift);
     }
 
     /** \brief Complex conjugate of the Householder sequence. */
@@ -221,13 +240,16 @@ template<typename VectorsType, typename CoeffsType, int Side> class HouseholderS
     }
 
     /** \brief Adjoint (conjugate transpose) of the Householder sequence. */
-    ConjugateReturnType adjoint() const
+    AdjointReturnType adjoint() const
     {
-      return conjugate().setTrans(!m_trans);
+      return AdjointReturnType(m_vectors, m_coeffs.conjugate())
+              .setTrans(!m_trans)
+              .setLength(m_length)
+              .setShift(m_shift);
     }
 
     /** \brief Inverse of the Householder sequence (equals the adjoint). */
-    ConjugateReturnType inverse() const { return adjoint(); }
+    AdjointReturnType inverse() const { return adjoint(); }
 
     /** \internal */
     template<typename DestType> inline void evalTo(DestType& dst) const
@@ -273,10 +295,10 @@ template<typename VectorsType, typename CoeffsType, int Side> class HouseholderS
           Index cornerSize = rows() - k - m_shift;
           if(m_trans)
             dst.bottomRightCorner(cornerSize, cornerSize)
-               .applyHouseholderOnTheRight(essentialVector(k), m_coeffs.coeff(k), &workspace.coeffRef(0));
+               .applyHouseholderOnTheRight(essentialVector(k), m_coeffs.coeff(k), workspace.data());
           else
             dst.bottomRightCorner(cornerSize, cornerSize)
-               .applyHouseholderOnTheLeft(essentialVector(k), m_coeffs.coeff(k), &workspace.coeffRef(0));
+               .applyHouseholderOnTheLeft(essentialVector(k), m_coeffs.coeff(k), workspace.data());
         }
       }
     }

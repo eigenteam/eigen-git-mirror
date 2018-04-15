@@ -85,7 +85,7 @@ template<typename MatrixType> void qr_invertible()
   qr.compute(m1);
   VERIFY_IS_APPROX(log(absdet), qr.logAbsDeterminant());
   // This test is tricky if the determinant becomes too small.
-  // Since we generate random numbers with magnitude rrange [0,1], the average determinant is 0.5^size
+  // Since we generate random numbers with magnitude range [0,1], the average determinant is 0.5^size
   VERIFY_IS_MUCH_SMALLER_THAN( abs(absdet-qr.absDeterminant()), numext::maxi(RealScalar(pow(0.5,size)),numext::maxi<RealScalar>(abs(absdet),abs(qr.absDeterminant()))) );
   
 }

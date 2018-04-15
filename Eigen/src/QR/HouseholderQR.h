@@ -353,11 +353,7 @@ void HouseholderQR<_MatrixType>::_solve_impl(const RhsType &rhs, DstType &dst) c
 
   typename RhsType::PlainObject c(rhs);
 
-  // Note that the matrix Q = H_0^* H_1^*... so its inverse is Q^* = (H_0 H_1 ...)^T
-  c.applyOnTheLeft(householderSequence(
-    m_qr.leftCols(rank),
-    m_hCoeffs.head(rank)).transpose()
-  );
+  c.applyOnTheLeft(householderQ().setLength(rank).adjoint() );
 
   m_qr.topLeftCorner(rank, rank)
       .template triangularView<Upper>()

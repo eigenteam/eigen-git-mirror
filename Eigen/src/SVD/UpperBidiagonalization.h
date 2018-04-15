@@ -127,7 +127,7 @@ void upperbidiagonalization_inplace_unblocked(MatrixType& mat,
        .makeHouseholderInPlace(mat.coeffRef(k,k+1), upper_diagonal[k]);
     // apply householder transform to remaining part of mat on the left
     mat.bottomRightCorner(remainingRows-1, remainingCols)
-       .applyHouseholderOnTheRight(mat.row(k).tail(remainingCols-1).transpose(), mat.coeff(k,k+1), tempData);
+       .applyHouseholderOnTheRight(mat.row(k).tail(remainingCols-1).adjoint(), mat.coeff(k,k+1), tempData);
   }
 }
 
