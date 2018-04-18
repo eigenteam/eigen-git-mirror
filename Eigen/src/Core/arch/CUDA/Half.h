@@ -209,7 +209,7 @@ namespace half_impl {
 // conversion steps back and forth.
 
 EIGEN_STRONG_INLINE __device__ half operator + (const half& a, const half& b) {
-  return __hadd(a, b);
+  return __hadd(__half(a), __half(b));
 }
 EIGEN_STRONG_INLINE __device__ half operator * (const half& a, const half& b) {
   return __hmul(a, b);
