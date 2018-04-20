@@ -162,8 +162,8 @@ void test_integer_types()
   VERIFY_IS_EQUAL(internal::scalar_div_cost<int>::value, 8);
   VERIFY_IS_EQUAL(internal::scalar_div_cost<unsigned int>::value, 8);
   if(sizeof(long)>sizeof(int)) {
-    VERIFY(internal::scalar_div_cost<long>::value > internal::scalar_div_cost<int>::value);
-    VERIFY(internal::scalar_div_cost<unsigned long>::value > internal::scalar_div_cost<int>::value);
+    VERIFY(int(internal::scalar_div_cost<long>::value) > int(internal::scalar_div_cost<int>::value));
+    VERIFY(int(internal::scalar_div_cost<unsigned long>::value) > int(internal::scalar_div_cost<int>::value));
   }
 #endif
 }
