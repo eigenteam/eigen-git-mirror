@@ -88,9 +88,9 @@ plog<Packet16f>(const Packet16f& _x) {
   //     x = x + x - 1.0;
   //   } else { x = x - 1.0; }
   __mmask16 mask = _mm512_cmp_ps_mask(x, p16f_cephes_SQRTHF, _CMP_LT_OQ);
-  Packet16f tmp = _mm512_mask_blend_ps(mask, x, _mm512_setzero_ps());
+  Packet16f tmp = _mm512_mask_blend_ps(mask, _mm512_setzero_ps(), x);
   x = psub(x, p16f_1);
-  e = psub(e, _mm512_mask_blend_ps(mask, p16f_1, _mm512_setzero_ps()));
+  e = psub(e, _mm512_mask_blend_ps(mask, _mm512_setzero_ps(), p16f_1));
   x = padd(x, tmp);
 
   Packet16f x2 = pmul(x, x);
@@ -119,8 +119,9 @@ plog<Packet16f>(const Packet16f& _x) {
   x = padd(x, y2);
 
   // Filter out invalid inputs, i.e. negative arg will be NAN, 0 will be -INF.
-  return _mm512_mask_blend_ps(iszero_mask, p16f_minus_inf,
-                              _mm512_mask_blend_ps(invalid_mask, p16f_nan, x));
+  return _mm512_mask_blend_ps(iszero_mask,
+                              _mm512_mask_blend_ps(invalid_mask, x, p16f_nan),
+                              p16f_minus_inf);
 }
 #endif
 
