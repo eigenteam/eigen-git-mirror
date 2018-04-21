@@ -45,12 +45,16 @@
     #pragma clang diagnostic ignored "-Wabsolute-value"
   #endif
 
-#elif defined __GNUC__ && __GNUC__>=6
+#elif defined __GNUC__
 
   #ifndef EIGEN_PERMANENTLY_DISABLE_STUPID_WARNINGS
     #pragma GCC diagnostic push
   #endif
-  #pragma GCC diagnostic ignored "-Wignored-attributes"
+  // g++ warns about local variables shadowing member functions, which is too strict
+  #pragma GCC diagnostic ignored "-Wshadow"
+  #if __GNUC__>=6
+    #pragma GCC diagnostic ignored "-Wignored-attributes"
+  #endif
 
 #endif
 

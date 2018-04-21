@@ -153,11 +153,7 @@ if(NOT MSVC)
   ei_add_cxx_compiler_flag("-Wdouble-promotion")
 #  ei_add_cxx_compiler_flag("-Wconversion")
   
-  # -Wshadow is insanely too strict with gcc, hopefully it will become usable with gcc 6
-  # if(NOT CMAKE_COMPILER_IS_GNUCXX OR (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "5.0.0"))
-  if(NOT CMAKE_COMPILER_IS_GNUCXX)
-    ei_add_cxx_compiler_flag("-Wshadow")
-  endif()
+  ei_add_cxx_compiler_flag("-Wshadow")
   
   ei_add_cxx_compiler_flag("-Wno-psabi")
   ei_add_cxx_compiler_flag("-Wno-variadic-macros")
