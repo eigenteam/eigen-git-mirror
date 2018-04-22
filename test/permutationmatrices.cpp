@@ -124,7 +124,7 @@ template<typename MatrixType> void permutationmatrices(const MatrixType& m)
   lp = lt;
   rp = rt;
   VERIFY_EVALUATION_COUNT(m_permuted = lt * m_permuted * rt, 1);
-  VERIFY_IS_APPROX(m_permuted, lp*m_original*rp);
+  VERIFY_IS_APPROX(m_permuted, lp*m_original*rp.transpose());
   
   VERIFY_IS_APPROX(lt.inverse()*m_permuted*rt.inverse(), m_original);
 }
