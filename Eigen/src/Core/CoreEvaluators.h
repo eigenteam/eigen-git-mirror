@@ -1028,7 +1028,8 @@ struct unary_evaluator<Block<ArgType, BlockRows, BlockCols, InnerPanel>, IndexBa
   typedef typename XprType::CoeffReturnType CoeffReturnType;
 
   enum {
-    RowsAtCompileTime = XprType::RowsAtCompileTime
+    RowsAtCompileTime = XprType::RowsAtCompileTime,
+    ForwardLinearAccess = InnerPanel && bool(evaluator<ArgType>::Flags&LinearAccessBit)
   };
  
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
@@ -1040,7 +1041,7 @@ struct unary_evaluator<Block<ArgType, BlockRows, BlockCols, InnerPanel>, IndexBa
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
   CoeffReturnType coeff(Index index) const
   { 
-    if (InnerPanel)
+    if (ForwardLinearAccess)
       return m_argImpl.coeff(m_linear_offset.value() + index); 
     else
       return coeff(RowsAtCompileTime == 1 ? 0 : index, RowsAtCompileTime == 1 ? index : 0);
@@ -1055,7 +1056,7 @@ struct unary_evaluator<Block<ArgType, BlockRows, BlockCols, InnerPanel>, IndexBa
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
   Scalar& coeffRef(Index index)
   { 
-    if (InnerPanel)
+    if (ForwardLinearAccess)
       return m_argImpl.coeffRef(m_linear_offset.value() + index); 
     else
       return coeffRef(RowsAtCompileTime == 1 ? 0 : index, RowsAtCompileTime == 1 ? index : 0);
@@ -1072,7 +1073,7 @@ struct unary_evaluator<Block<ArgType, BlockRows, BlockCols, InnerPanel>, IndexBa
   EIGEN_STRONG_INLINE
   PacketType packet(Index index) const 
   { 
-    if (InnerPanel)
+    if (ForwardLinearAccess)
       return m_argImpl.template packet<LoadMode,PacketType>(m_linear_offset.value() + index);
     else
       return packet<LoadMode,PacketType>(RowsAtCompileTime == 1 ? 0 : index,
@@ -1090,7 +1091,7 @@ struct unary_evaluator<Block<ArgType, BlockRows, BlockCols, InnerPanel>, IndexBa
   EIGEN_STRONG_INLINE
   void writePacket(Index index, const PacketType& x) 
   {
-    if (InnerPanel)
+    if (ForwardLinearAccess)
       return m_argImpl.template writePacket<StoreMode,PacketType>(m_linear_offset.value() + index, x);
     else
       return writePacket<StoreMode,PacketType>(RowsAtCompileTime == 1 ? 0 : index,
