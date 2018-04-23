@@ -98,6 +98,8 @@ template<> struct is_arithmetic<signed long>   { enum { value = true }; };
 template<> struct is_arithmetic<unsigned long> { enum { value = true }; };
 
 #if EIGEN_HAS_CXX11
+template<> struct is_arithmetic<signed long long>   { enum { value = true }; };
+template<> struct is_arithmetic<unsigned long long> { enum { value = true }; };
 using std::is_integral;
 #else
 template<typename T> struct is_integral               { enum { value = false }; };
