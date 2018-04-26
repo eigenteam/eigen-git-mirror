@@ -277,7 +277,7 @@ template<> EIGEN_STRONG_INLINE Packet2cf pdiv<Packet2cf>(const Packet2cf& a, con
   s = vmulq_f32(b.v, b.v);
   rev_s = vrev64q_f32(s);
 
-  return Packet2cf(pdiv(res.v, vaddq_f32(s,rev_s)));
+  return Packet2cf(pdiv<Packet4f>(res.v, vaddq_f32(s,rev_s)));
 }
 
 EIGEN_DEVICE_FUNC inline void
