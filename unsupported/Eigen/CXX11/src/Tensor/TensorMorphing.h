@@ -398,7 +398,7 @@ struct TensorEvaluator<const TensorSlicingOp<StartIndices, Sizes, ArgType>, Devi
       const MemcpyTriggerForSlicing<Index, Device> trigger(m_device);
       if (trigger(contiguous_values)) {
         Scalar* src = (Scalar*)m_impl.data();
-        for (int i = 0; i < internal::array_prod(dimensions()); i += contiguous_values) {
+        for (Index i = 0; i < internal::array_prod(dimensions()); i += contiguous_values) {
           Index offset = srcCoeff(i);
           m_device.memcpy((void*)(data+i), src+offset, contiguous_values * sizeof(Scalar));
         }
@@ -559,7 +559,7 @@ struct TensorEvaluator<TensorSlicingOp<StartIndices, Sizes, ArgType>, Device>
     PacketAccess = TensorEvaluator<ArgType, Device>::PacketAccess,
     Layout = TensorEvaluator<ArgType, Device>::Layout,
     CoordAccess = false,
-    RawAccess = false
+    RawAccess = (NumDims == 1) & TensorEvaluator<ArgType, Device>::RawAccess
   };
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
