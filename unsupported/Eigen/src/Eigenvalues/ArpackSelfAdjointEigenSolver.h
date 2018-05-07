@@ -300,7 +300,7 @@ public:
 
   /** \brief Reports whether previous computation was successful.
    *
-   * \returns \c Success if computation was succesful, \c NoConvergence otherwise.
+   * \returns \c Success if computation was successful, \c NoConvergence otherwise.
    */
   ComputationInfo info() const
   {

@@ -48,7 +48,7 @@ namespace Eigen {
   *
   * <dl>
   * <dt><b>Relation to other parts of Eigen:</b></dt>
-  * <dd>The midterm developement goal for this class is to have a similar hierarchy as Eigen uses for matrices, so that
+  * <dd>The midterm development goal for this class is to have a similar hierarchy as Eigen uses for matrices, so that
   * taking blocks or using tensors in expressions is easily possible, including an interface with the vector/matrix code
   * by providing .asMatrix() and .asVector() (or similar) methods for rank 2 and 1 tensors. However, currently, the %Tensor
   * class does not provide any of these features and is only available as a stand-alone class that just allows for

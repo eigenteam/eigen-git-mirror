@@ -247,7 +247,7 @@ void test_cuda_trancendental() {
   }
   for (int i = 0; i < num_elem; ++i) {
     std::cout << "Checking elemwise log " << i << " input = " << input2(i) << " full = " << full_prec2(i) << " half = " << half_prec2(i) << std::endl;
-    if(std::abs(input2(i)-1.f)<0.05f) // log lacks accurary nearby 1
+    if(std::abs(input2(i)-1.f)<0.05f) // log lacks accuracy nearby 1
       VERIFY_IS_APPROX(full_prec2(i)+Eigen::half(0.1f), half_prec2(i)+Eigen::half(0.1f));
     else
       VERIFY_IS_APPROX(full_prec2(i), half_prec2(i));

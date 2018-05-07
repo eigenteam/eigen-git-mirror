@@ -143,7 +143,7 @@ struct IndexList {};
 /// \brief Collects internal details for generating index ranges [MIN, MAX)
 /// Declare primary template for index range builder
 /// \tparam MIN is the starting index in the tuple
-/// \tparam N represents sizeof..(elemens)- sizeof...(Is)
+/// \tparam N represents sizeof..(elements)- sizeof...(Is)
 /// \tparam Is... are the list of generated index so far
 template <size_t MIN, size_t N, size_t... Is>
 struct RangeBuilder;
@@ -161,7 +161,7 @@ struct RangeBuilder<MIN, MIN, Is...> {
 /// in this case we are recursively subtracting N by one and adding one
 /// index to Is... list until MIN==N
 /// \tparam MIN is the starting index in the tuple
-/// \tparam N represents sizeof..(elemens)- sizeof...(Is)
+/// \tparam N represents sizeof..(elements)- sizeof...(Is)
 /// \tparam Is... are the list of generated index so far
 template <size_t MIN, size_t N, size_t... Is>
 struct RangeBuilder : public RangeBuilder<MIN, N - 1, N - 1, Is...> {};

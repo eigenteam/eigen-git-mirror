@@ -167,7 +167,7 @@ struct TensorIntDivisor {
     shift2 = log_div > 1 ? log_div-1 : 0;
   }
 
-  // Must have 0 <= numerator. On platforms that dont support the __uint128_t
+  // Must have 0 <= numerator. On platforms that don't support the __uint128_t
   // type numerator should also be less than 2^32-1.
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T divide(const T numerator) const {
     eigen_assert(static_cast<typename UnsignedTraits<T>::type>(numerator) < NumTraits<UnsignedType>::highest()/2);

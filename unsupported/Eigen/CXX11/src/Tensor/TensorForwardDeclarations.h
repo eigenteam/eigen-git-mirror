@@ -12,7 +12,7 @@
 
 namespace Eigen {
 
-// MakePointer class is used as a container of the adress space of the pointer
+// MakePointer class is used as a container of the address space of the pointer
 // on the host and on the device. From the host side it generates the T* pointer
 // and when EIGEN_USE_SYCL is used it construct a buffer with a map_allocator to
 // T* m_data on the host. It is always called on the device.

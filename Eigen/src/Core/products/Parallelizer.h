@@ -91,7 +91,7 @@ void parallelize_gemm(const Functor& func, Index rows, Index cols, Index depth, 
   // FIXME the transpose variable is only needed to properly split
   // the matrix product when multithreading is enabled. This is a temporary
   // fix to support row-major destination matrices. This whole
-  // parallelizer mechanism has to be redisigned anyway.
+  // parallelizer mechanism has to be redesigned anyway.
   EIGEN_UNUSED_VARIABLE(depth);
   EIGEN_UNUSED_VARIABLE(transpose);
   func(0,rows, 0,cols);

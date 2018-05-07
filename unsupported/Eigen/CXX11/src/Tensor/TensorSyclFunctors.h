@@ -80,7 +80,7 @@ template < typename HostExpr, typename FunctorExpr, typename Tuple_of_Acc, typen
     typedef typename ConvertToDeviceExpression<const HostExpr>::Type DevExpr;
     auto device_expr = createDeviceExpression<DevExpr, PlaceHolderExpr>(functors, tuple_of_accessors);
     /// reduction cannot be captured automatically through our device conversion recursion. The reason is that reduction has two behaviour
-    /// the first behaviour is when it is used as a root to lauch the sub-kernel. The second one is when it is treated as a leafnode to pass the
+    /// the first behaviour is when it is used as a root to launch the sub-kernel. The second one is when it is treated as a leafnode to pass the
     /// calculated result to its parent kernel. While the latter is automatically detected through our device expression generator. The former is created here.
     const auto device_self_expr= Eigen::TensorReductionOp<Op, Dims, decltype(device_expr.expr) ,MakeGlobalPointer>(device_expr.expr, dims, functor);
     /// This is the evaluator for device_self_expr. This is exactly similar to the self which has been passed to run function. The difference is
@@ -121,7 +121,7 @@ class ReductionFunctor<HostExpr, FunctorExpr, Tuple_of_Acc, Dims, Eigen::interna
     typedef typename ConvertToDeviceExpression<const HostExpr>::Type DevExpr;
     auto device_expr = createDeviceExpression<DevExpr, PlaceHolderExpr>(functors, tuple_of_accessors);
     /// reduction cannot be captured automatically through our device conversion recursion. The reason is that reduction has two behaviour
-    /// the first behaviour is when it is used as a root to lauch the sub-kernel. The second one is when it is treated as a leafnode to pass the
+    /// the first behaviour is when it is used as a root to launch the sub-kernel. The second one is when it is treated as a leafnode to pass the
     /// calculated result to its parent kernel. While the latter is automatically detected through our device expression generator. The former is created here.
     const auto device_self_expr= Eigen::TensorReductionOp<Op, Dims, decltype(device_expr.expr) ,MakeGlobalPointer>(device_expr.expr, dims, functor);
     /// This is the evaluator for device_self_expr. This is exactly similar to the self which has been passed to run function. The difference is
@@ -168,7 +168,7 @@ public:
     typedef typename TensorSycl::internal::ConvertToDeviceExpression<const HostExpr>::Type DevExpr;
     auto device_expr = TensorSycl::internal::createDeviceExpression<DevExpr, PlaceHolderExpr>(functors, tuple_of_accessors);
     /// reduction cannot be captured automatically through our device conversion recursion. The reason is that reduction has two behaviour
-    /// the first behaviour is when it is used as a root to lauch the sub-kernel. The second one is when it is treated as a leafnode to pass the
+    /// the first behaviour is when it is used as a root to launch the sub-kernel. The second one is when it is treated as a leafnode to pass the
     /// calculated result to its parent kernel. While the latter is automatically detected through our device expression generator. The former is created here.
     const auto device_self_expr= Eigen::TensorReductionOp<Op, Dims, decltype(device_expr.expr) ,MakeGlobalPointer>(device_expr.expr, dims, op);
     /// This is the evaluator for device_self_expr. This is exactly similar to the self which has been passed to run function. The difference is
@@ -215,7 +215,7 @@ public:
     typedef typename TensorSycl::internal::ConvertToDeviceExpression<const HostExpr>::Type DevExpr;
     auto device_expr = TensorSycl::internal::createDeviceExpression<DevExpr, PlaceHolderExpr>(functors, tuple_of_accessors);
     /// reduction cannot be captured automatically through our device conversion recursion. The reason is that reduction has two behaviour
-    /// the first behaviour is when it is used as a root to lauch the sub-kernel. The second one is when it is treated as a leafnode to pass the
+    /// the first behaviour is when it is used as a root to launch the sub-kernel. The second one is when it is treated as a leafnode to pass the
     /// calculated result to its parent kernel. While the latter is automatically detected through our device expression generator. The former is created here.
     const auto device_self_expr= Eigen::TensorReductionOp<Op, Dims, decltype(device_expr.expr) ,MakeGlobalPointer>(device_expr.expr, dims, op);
     /// This is the evaluator for device_self_expr. This is exactly similar to the self which has been passed to run function. The difference is

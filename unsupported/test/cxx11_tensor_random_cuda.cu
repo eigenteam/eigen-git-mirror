@@ -37,7 +37,7 @@ void test_cuda_random_uniform()
   assert(cudaMemcpyAsync(out.data(), d_out, out_bytes, cudaMemcpyDeviceToHost, gpu_device.stream()) == cudaSuccess);
   assert(cudaStreamSynchronize(gpu_device.stream()) == cudaSuccess);
 
-  // For now we just check thes code doesn't crash.
+  // For now we just check this code doesn't crash.
   // TODO: come up with a valid test of randomness
 }
 

@@ -195,7 +195,7 @@ class TensorCostModel {
     // 11 is L2 cache latency on Haswell.
     // We don't know whether data is in L1, L2 or L3. But we are most interested
     // in single-threaded computational time around 100us-10ms (smaller time
-    // is too small for parallelization, larger time is not intersting
+    // is too small for parallelization, larger time is not interesting
     // either because we are probably using all available threads already).
     // And for the target time range, L2 seems to be what matters. Data set
     // fitting into L1 is too small to take noticeable time. Data set fitting

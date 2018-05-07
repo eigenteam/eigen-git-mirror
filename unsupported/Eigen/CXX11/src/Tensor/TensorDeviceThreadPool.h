@@ -169,7 +169,7 @@ struct ThreadPoolDevice {
 
   // parallelFor executes f with [0, n) arguments in parallel and waits for
   // completion. F accepts a half-open interval [first, last).
-  // Block size is choosen based on the iteration cost and resulting parallel
+  // Block size is chosen based on the iteration cost and resulting parallel
   // efficiency. If block_align is not nullptr, it is called to round up the
   // block size.
   void parallelFor(Index n, const TensorOpCost& cost,

@@ -20,7 +20,7 @@ namespace Eigen {
   * \brief The tensor base class.
   *
   * This class is the common parent of the Tensor and TensorMap class, thus
-  * making it possible to use either class interchangably in expressions.
+  * making it possible to use either class interchangeably in expressions.
   */
 
 template<typename Derived>

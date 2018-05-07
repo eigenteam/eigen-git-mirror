@@ -12,7 +12,7 @@
 
 namespace Eigen
 {
-  // Forward declerations
+  // Forward declarations
   template <typename _Scalar, class _System>
   class EulerAngles;
   

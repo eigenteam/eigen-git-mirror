@@ -1,5 +1,5 @@
 # generate split test header file only if it does not yet exist
-# in order to prevent a rebuild everytime cmake is configured
+# in order to prevent a rebuild every time cmake is configured
 if(NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/split_test_helper.h)
   file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/split_test_helper.h "")
   foreach(i RANGE 1 999)
