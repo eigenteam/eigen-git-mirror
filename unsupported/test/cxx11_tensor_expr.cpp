@@ -356,7 +356,7 @@ static void test_clip()
   Tensor<float, 1> vec_clipped(6);
   vec_clipped = vec.clip(kMin, kMax);
   for (int i = 0; i < 6; ++i) {
-    VERIFY_IS_EQUAL(vec_clipped(i), std::min(std::max(vec(i), kMin), kMax));
+    VERIFY_IS_EQUAL(vec_clipped(i), numext::mini(numext::maxi(vec(i), kMin), kMax));
   }
 }
 
