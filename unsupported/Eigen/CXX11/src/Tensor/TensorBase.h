@@ -210,6 +210,12 @@ class TensorBase<Derived, ReadOnlyAccessors>
     }
 
     EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE const TensorCwiseUnaryOp<internal::scalar_clip_op<Scalar>, const Derived>
+    clip(Scalar min, Scalar max) const {
+      return unaryExpr(internal::scalar_clip_op<Scalar>(min, max));
+    }
+
+    EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE const TensorCwiseUnaryOp<internal::scalar_conjugate_op<Scalar>, const Derived>
     conjugate() const {
       return unaryExpr(internal::scalar_conjugate_op<Scalar>());
