@@ -340,6 +340,26 @@ void test_minmax_nan_propagation_templ() {
   }
 }
 
+static void test_clip()
+{
+  Tensor<float, 1> vec(6);
+  vec(0) = 4.0;
+  vec(1) = 8.0;
+  vec(2) = 15.0;
+  vec(3) = 16.0;
+  vec(4) = 23.0;
+  vec(5) = 42.0;
+
+  float kMin = 20;
+  float kMax = 30;
+
+  Tensor<float, 1> vec_clipped(6);
+  vec_clipped = vec.clip(kMin, kMax);
+  for (int i = 0; i < 6; ++i) {
+    VERIFY_IS_EQUAL(vec_clipped(i), numext::mini(numext::maxi(vec(i), kMin), kMax));
+  }
+}
+
 static void test_minmax_nan_propagation()
 {
   test_minmax_nan_propagation_templ<float>();
@@ -356,5 +376,6 @@ void test_cxx11_tensor_expr()
   CALL_SUBTEST(test_functors());
   CALL_SUBTEST(test_type_casting());
   CALL_SUBTEST(test_select());
+  CALL_SUBTEST(test_clip());
   CALL_SUBTEST(test_minmax_nan_propagation());
 }
