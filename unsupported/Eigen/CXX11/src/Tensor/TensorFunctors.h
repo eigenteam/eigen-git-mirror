@@ -488,8 +488,8 @@ struct functor_traits<GaussianGenerator<T, Index, NumDims> > {
 };
 
 template <typename Scalar>
-struct scalar_clip_op {
-  EIGEN_DEVICE_FUNC inline scalar_clip_op(const Scalar& _min, const Scalar& _max) : m_min(_min), m_max(_max) {}
+struct scalar_clamp_op {
+  EIGEN_DEVICE_FUNC inline scalar_clamp_op(const Scalar& _min, const Scalar& _max) : m_min(_min), m_max(_max) {}
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar
   operator()(const Scalar& x) const {
     return numext::mini(numext::maxi(x, m_min), m_max);
@@ -503,7 +503,7 @@ struct scalar_clip_op {
   const Scalar m_max;
 };
 template<typename Scalar>
-struct functor_traits<scalar_clip_op<Scalar> >
+struct functor_traits<scalar_clamp_op<Scalar> >
 { enum { Cost = 2 * NumTraits<Scalar>::AddCost, PacketAccess = (packet_traits<Scalar>::HasMin && packet_traits<Scalar>::HasMax)}; };
 
 } // end namespace internal
