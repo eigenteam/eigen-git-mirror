@@ -702,7 +702,7 @@ namespace Eigen {
 // If the user explicitly disable vectorization, then we also disable alignment
 #if defined(EIGEN_DONT_VECTORIZE)
   #define EIGEN_IDEAL_MAX_ALIGN_BYTES 0
-#elif defined(EIGEN_VECTORIZE_AVX512)
+#elif defined(__AVX512F__)
   // 64 bytes static alignment is preferred only if really required
   #define EIGEN_IDEAL_MAX_ALIGN_BYTES 64
 #elif defined(__AVX__)
