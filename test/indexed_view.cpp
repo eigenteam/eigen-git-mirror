@@ -395,4 +395,19 @@ void test_indexed_view()
     CALL_SUBTEST_2( check_indexed_view() );
     CALL_SUBTEST_3( check_indexed_view() );
 //   }
+
+  // static checks of some internals:
+
+  #define STATIC_CHECK( COND ) \
+    EIGEN_STATIC_ASSERT( (COND) , EIGEN_INTERNAL_ERROR_PLEASE_FILE_A_BUG_REPORT )
+
+  STATIC_CHECK(( internal::is_valid_index_type<int>::value ));
+  STATIC_CHECK(( internal::is_valid_index_type<unsigned int>::value ));
+  STATIC_CHECK(( internal::is_valid_index_type<short>::value ));
+  STATIC_CHECK(( internal::is_valid_index_type<std::ptrdiff_t>::value ));
+  STATIC_CHECK(( internal::is_valid_index_type<std::size_t>::value ));
+  STATIC_CHECK(( !internal::valid_indexed_view_overload<int,int>::value ));
+  STATIC_CHECK(( !internal::valid_indexed_view_overload<int,std::ptrdiff_t>::value ));
+  STATIC_CHECK(( !internal::valid_indexed_view_overload<std::ptrdiff_t,int>::value ));
+  STATIC_CHECK(( !internal::valid_indexed_view_overload<std::size_t,int>::value ));
 }

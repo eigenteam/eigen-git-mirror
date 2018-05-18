@@ -53,11 +53,6 @@ ivcSize(const Indices& indices) const {
   return internal::makeIndexedViewCompatible(indices, internal::variable_if_dynamic<Index,SizeAtCompileTime>(derived().size()),Specialized);
 }
 
-template<typename RowIndices, typename ColIndices>
-struct valid_indexed_view_overload {
-  enum { value = !(internal::is_valid_index_type<RowIndices>::value && internal::is_valid_index_type<ColIndices>::value) };
-};
-
 public:
 
 #endif
@@ -72,7 +67,7 @@ struct EIGEN_INDEXED_VIEW_METHOD_TYPE {
 // This is the generic version
 
 template<typename RowIndices, typename ColIndices>
-typename internal::enable_if<valid_indexed_view_overload<RowIndices,ColIndices>::value
+typename internal::enable_if<internal::valid_indexed_view_overload<RowIndices,ColIndices>::value
   && internal::traits<typename EIGEN_INDEXED_VIEW_METHOD_TYPE<RowIndices,ColIndices>::type>::ReturnAsIndexedView,
   typename EIGEN_INDEXED_VIEW_METHOD_TYPE<RowIndices,ColIndices>::type >::type
 operator()(const RowIndices& rowIndices, const ColIndices& colIndices) EIGEN_INDEXED_VIEW_METHOD_CONST
@@ -84,7 +79,7 @@ operator()(const RowIndices& rowIndices, const ColIndices& colIndices) EIGEN_IND
 // The following overload returns a Block<> object
 
 template<typename RowIndices, typename ColIndices>
-typename internal::enable_if<valid_indexed_view_overload<RowIndices,ColIndices>::value
+typename internal::enable_if<internal::valid_indexed_view_overload<RowIndices,ColIndices>::value
   && internal::traits<typename EIGEN_INDEXED_VIEW_METHOD_TYPE<RowIndices,ColIndices>::type>::ReturnAsBlock,
   typename internal::traits<typename EIGEN_INDEXED_VIEW_METHOD_TYPE<RowIndices,ColIndices>::type>::BlockType>::type
 operator()(const RowIndices& rowIndices, const ColIndices& colIndices) EIGEN_INDEXED_VIEW_METHOD_CONST
@@ -102,7 +97,7 @@ operator()(const RowIndices& rowIndices, const ColIndices& colIndices) EIGEN_IND
 // The following overload returns a Scalar
 
 template<typename RowIndices, typename ColIndices>
-typename internal::enable_if<valid_indexed_view_overload<RowIndices,ColIndices>::value
+typename internal::enable_if<internal::valid_indexed_view_overload<RowIndices,ColIndices>::value
   && internal::traits<typename EIGEN_INDEXED_VIEW_METHOD_TYPE<RowIndices,ColIndices>::type>::ReturnAsScalar,
   CoeffReturnType >::type
 operator()(const RowIndices& rowIndices, const ColIndices& colIndices) EIGEN_INDEXED_VIEW_METHOD_CONST

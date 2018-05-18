@@ -47,6 +47,12 @@ template<typename T> struct is_valid_index_type
   };
 };
 
+// true if both types are not valid index types
+template<typename RowIndices, typename ColIndices>
+struct valid_indexed_view_overload {
+  enum { value = !(internal::is_valid_index_type<RowIndices>::value && internal::is_valid_index_type<ColIndices>::value) };
+};
+
 // promote_scalar_arg is an helper used in operation between an expression and a scalar, like:
 //    expression * scalar
 // Its role is to determine how the type T of the scalar operand should be promoted given the scalar type ExprScalar of the given expression.
