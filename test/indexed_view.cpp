@@ -371,6 +371,21 @@ void check_indexed_view()
   a(X) = 1;
   A(X,Y) = 1;
 
+  // Check compilation of varying integer types as index types:
+  Index i = n/2;
+  short i_short(i);
+  std::size_t i_sizet(i);
+  VERIFY_IS_EQUAL( a(i), a.coeff(i_short) );
+  VERIFY_IS_EQUAL( a(i), a.coeff(i_sizet) );
+
+  VERIFY_IS_EQUAL( A(i,i), A.coeff(i_short, i_short) );
+  VERIFY_IS_EQUAL( A(i,i), A.coeff(i_short, i) );
+  VERIFY_IS_EQUAL( A(i,i), A.coeff(i, i_short) );
+  VERIFY_IS_EQUAL( A(i,i), A.coeff(i, i_sizet) );
+  VERIFY_IS_EQUAL( A(i,i), A.coeff(i_sizet, i) );
+  VERIFY_IS_EQUAL( A(i,i), A.coeff(i_sizet, i_short) );
+  VERIFY_IS_EQUAL( A(i,i), A.coeff(5, i_sizet) );
+
 }
 
 void test_indexed_view()
