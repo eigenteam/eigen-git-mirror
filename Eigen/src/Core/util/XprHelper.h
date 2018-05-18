@@ -40,7 +40,7 @@ template<typename T> struct is_valid_index_type
   enum { value =
 #if EIGEN_HAS_TYPE_TRAITS
     internal::is_integral<T>::value || std::is_enum<T>::value
-#else if EIGEN_COMP_MSVC >= 1500
+#elif EIGEN_COMP_MSVC
     internal::is_integral<T>::value || __is_enum(T)
 #else
     // without C++11, we use is_convertible to Index instead of is_integral in order to treat enums as Index.
