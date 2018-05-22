@@ -113,6 +113,10 @@ template<> struct is_integral<signed int>             { enum { value = true }; }
 template<> struct is_integral<unsigned int>           { enum { value = true }; };
 template<> struct is_integral<signed long>            { enum { value = true }; };
 template<> struct is_integral<unsigned long>          { enum { value = true }; };
+#if EIGEN_COMP_MSVC
+template<> struct is_integral<signed __int64>         { enum { value = true }; };
+template<> struct is_integral<unsigned __int64>       { enum { value = true }; };
+#endif
 #endif
 
 
