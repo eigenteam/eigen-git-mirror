@@ -679,6 +679,10 @@ macro(ei_set_build_string)
     set(TMP_BUILD_STRING ${TMP_BUILD_STRING}-${LOCAL_COMPILER_FLAGS})
   endif()
 
+  if(EIGEN_TEST_EXTERNAL_BLAS)
+    set(TMP_BUILD_STRING ${TMP_BUILD_STRING}-external_blas)
+  endif()
+
   ei_is_64bit_env(IS_64BIT_ENV)
   if(NOT IS_64BIT_ENV)
     set(TMP_BUILD_STRING ${TMP_BUILD_STRING}-32bit)
