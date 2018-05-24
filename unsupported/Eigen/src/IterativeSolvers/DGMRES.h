@@ -89,7 +89,7 @@ void sortWithPermutation (VectorType& vec, IndexType& perm, typename IndexType::
  * [1] D. NUENTSA WAKAM and F. PACULL, Memory Efficient Hybrid
  *  Algebraic Solvers for Linear Systems Arising from Compressible
  *  Flows, Computers and Fluids, In Press,
- *  http://dx.doi.org/10.1016/j.compfluid.2012.03.023   
+ *  https://doi.org/10.1016/j.compfluid.2012.03.023   
  * [2] K. Burrage and J. Erhel, On the performance of various 
  * adaptive preconditioned GMRES strategies, 5(1998), 101-121.
  * [3] J. Erhel, K. Burrage and B. Pohl, Restarted GMRES 
