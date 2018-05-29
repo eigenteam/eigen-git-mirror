@@ -384,6 +384,7 @@ using std::ptrdiff_t;
   #include "src/Core/arch/AVX/MathFunctions.h"
   #include "src/Core/arch/AVX/Complex.h"
   #include "src/Core/arch/AVX/TypeCasting.h"
+  #include "src/Core/arch/SSE/TypeCasting.h"
 #elif defined EIGEN_VECTORIZE_SSE
   #include "src/Core/arch/SSE/PacketMath.h"
   #include "src/Core/arch/SSE/MathFunctions.h"
