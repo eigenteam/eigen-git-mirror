@@ -100,7 +100,7 @@ else()
 endif()
 
 
-find_package(PASTIX QUIET COMPONENTS METIS SCOTCH)
+find_package(PASTIX QUIET COMPONENTS METIS SEQ)
 # check that the PASTIX found is a version without MPI
 find_path(PASTIX_pastix_nompi.h_INCLUDE_DIRS
   NAMES pastix_nompi.h
