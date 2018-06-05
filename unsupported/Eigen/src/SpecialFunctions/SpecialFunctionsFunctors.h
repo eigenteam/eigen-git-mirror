@@ -229,6 +229,60 @@ struct functor_traits<scalar_erfc_op<Scalar> >
   };
 };
 
+/** \internal
+ * \brief Template functor to compute the exponentially scaled modified Bessel
+ * function of order zero
+ * \sa class CwiseUnaryOp, Cwise::i0e()
+ */
+template <typename Scalar>
+struct scalar_i0e_op {
+  EIGEN_EMPTY_STRUCT_CTOR(scalar_i0e_op)
+  EIGEN_DEVICE_FUNC inline const Scalar operator()(const Scalar& x) const {
+    using numext::i0e;
+    return i0e(x);
+  }
+  typedef typename packet_traits<Scalar>::type Packet;
+  EIGEN_DEVICE_FUNC inline Packet packetOp(const Packet& x) const {
+    return internal::pi0e(x);
+  }
+};
+template <typename Scalar>
+struct functor_traits<scalar_i0e_op<Scalar> > {
+  enum {
+    // On average, a Chebyshev polynomial of order N=20 is computed.
+    // The cost is N multiplications and 2N additions.
+    Cost = 20 * NumTraits<Scalar>::MulCost + 40 * NumTraits<Scalar>::AddCost,
+    PacketAccess = packet_traits<Scalar>::HasI0e
+  };
+};
+
+/** \internal
+ * \brief Template functor to compute the exponentially scaled modified Bessel
+ * function of order zero
+ * \sa class CwiseUnaryOp, Cwise::i1e()
+ */
+template <typename Scalar>
+struct scalar_i1e_op {
+  EIGEN_EMPTY_STRUCT_CTOR(scalar_i1e_op)
+  EIGEN_DEVICE_FUNC inline const Scalar operator()(const Scalar& x) const {
+    using numext::i1e;
+    return i1e(x);
+  }
+  typedef typename packet_traits<Scalar>::type Packet;
+  EIGEN_DEVICE_FUNC inline Packet packetOp(const Packet& x) const {
+    return internal::pi1e(x);
+  }
+};
+template <typename Scalar>
+struct functor_traits<scalar_i1e_op<Scalar> > {
+  enum {
+    // On average, a Chebyshev polynomial of order N=20 is computed.
+    // The cost is N multiplications and 2N additions.
+    Cost = 20 * NumTraits<Scalar>::MulCost + 40 * NumTraits<Scalar>::AddCost,
+    PacketAccess = packet_traits<Scalar>::HasI1e
+  };
+};
+
 } // end namespace internal
 
 } // end namespace Eigen

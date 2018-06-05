@@ -1208,6 +1208,116 @@ void test_cuda_betainc()
   cudaFree(d_out);
 }
 
+template <typename Scalar>
+void test_cuda_i0e()
+{
+  Tensor<Scalar, 1> in_x(21);
+  Tensor<Scalar, 1> out(21);
+  Tensor<Scalar, 1> expected_out(21);
+  out.setZero();
+
+  Array<Scalar, 1, Dynamic> in_x_array(21);
+  Array<Scalar, 1, Dynamic> expected_out_array(21);
+
+  in_x_array << -20.0, -18.0, -16.0, -14.0, -12.0, -10.0, -8.0, -6.0, -4.0,
+      -2.0, 0.0, 2.0, 4.0, 6.0, 8.0, 10.0, 12.0, 14.0, 16.0, 18.0, 20.0;
+
+  expected_out_array << 0.0897803118848, 0.0947062952128, 0.100544127361,
+      0.107615251671, 0.116426221213, 0.127833337163, 0.143431781857,
+      0.16665743264, 0.207001921224, 0.308508322554, 1.0, 0.308508322554,
+      0.207001921224, 0.16665743264, 0.143431781857, 0.127833337163,
+      0.116426221213, 0.107615251671, 0.100544127361, 0.0947062952128,
+      0.0897803118848;
+
+  for (int i = 0; i < 21; ++i) {
+    in_x(i) = in_x_array(i);
+    expected_out(i) = expected_out_array(i);
+  }
+
+  std::size_t bytes = in_x.size() * sizeof(Scalar);
+
+  Scalar* d_in;
+  Scalar* d_out;
+  cudaMalloc((void**)(&d_in), bytes);
+  cudaMalloc((void**)(&d_out), bytes);
+
+  cudaMemcpy(d_in, in_x.data(), bytes, cudaMemcpyHostToDevice);
+
+  Eigen::CudaStreamDevice stream;
+  Eigen::GpuDevice gpu_device(&stream);
+
+  Eigen::TensorMap<Eigen::Tensor<Scalar, 1> > gpu_in(d_in, 21);
+  Eigen::TensorMap<Eigen::Tensor<Scalar, 1> > gpu_out(d_out, 21);
+
+  gpu_out.device(gpu_device) = gpu_in.i0e();
+
+  assert(cudaMemcpyAsync(out.data(), d_out, bytes, cudaMemcpyDeviceToHost,
+                         gpu_device.stream()) == cudaSuccess);
+  assert(cudaStreamSynchronize(gpu_device.stream()) == cudaSuccess);
+
+  for (int i = 0; i < 21; ++i) {
+    VERIFY_IS_APPROX(out(i), expected_out(i));
+  }
+
+  cudaFree(d_in);
+  cudaFree(d_out);
+}
+
+template <typename Scalar>
+void test_cuda_i1e()
+{
+  Tensor<Scalar, 1> in_x(21);
+  Tensor<Scalar, 1> out(21);
+  Tensor<Scalar, 1> expected_out(21);
+  out.setZero();
+
+  Array<Scalar, 1, Dynamic> in_x_array(21);
+  Array<Scalar, 1, Dynamic> expected_out_array(21);
+
+  in_x_array << -20.0, -18.0, -16.0, -14.0, -12.0, -10.0, -8.0, -6.0, -4.0,
+      -2.0, 0.0, 2.0, 4.0, 6.0, 8.0, 10.0, 12.0, 14.0, 16.0, 18.0, 20.0;
+
+  expected_out_array << -0.0875062221833, -0.092036796872, -0.0973496147565,
+      -0.103697667463, -0.11146429929, -0.121262681384, -0.134142493293,
+      -0.152051459309, -0.178750839502, -0.215269289249, 0.0, 0.215269289249,
+      0.178750839502, 0.152051459309, 0.134142493293, 0.121262681384,
+      0.11146429929, 0.103697667463, 0.0973496147565, 0.092036796872,
+      0.0875062221833;
+
+  for (int i = 0; i < 21; ++i) {
+    in_x(i) = in_x_array(i);
+    expected_out(i) = expected_out_array(i);
+  }
+
+  std::size_t bytes = in_x.size() * sizeof(Scalar);
+
+  Scalar* d_in;
+  Scalar* d_out;
+  cudaMalloc((void**)(&d_in), bytes);
+  cudaMalloc((void**)(&d_out), bytes);
+
+  cudaMemcpy(d_in, in_x.data(), bytes, cudaMemcpyHostToDevice);
+
+  Eigen::CudaStreamDevice stream;
+  Eigen::GpuDevice gpu_device(&stream);
+
+  Eigen::TensorMap<Eigen::Tensor<Scalar, 1> > gpu_in(d_in, 21);
+  Eigen::TensorMap<Eigen::Tensor<Scalar, 1> > gpu_out(d_out, 21);
+
+  gpu_out.device(gpu_device) = gpu_in.i1e();
+
+  assert(cudaMemcpyAsync(out.data(), d_out, bytes, cudaMemcpyDeviceToHost,
+                         gpu_device.stream()) == cudaSuccess);
+  assert(cudaStreamSynchronize(gpu_device.stream()) == cudaSuccess);
+
+  for (int i = 0; i < 21; ++i) {
+    VERIFY_IS_APPROX(out(i), expected_out(i));
+  }
+
+  cudaFree(d_in);
+  cudaFree(d_out);
+}
+
 
 void test_cxx11_tensor_cuda()
 {
@@ -1280,5 +1390,11 @@ void test_cxx11_tensor_cuda()
 
   CALL_SUBTEST_6(test_cuda_betainc<float>());
   CALL_SUBTEST_6(test_cuda_betainc<double>());
+
+  CALL_SUBTEST_6(test_cuda_i0e<float>());
+  CALL_SUBTEST_6(test_cuda_i0e<double>());
+
+  CALL_SUBTEST_6(test_cuda_i1e<float>());
+  CALL_SUBTEST_6(test_cuda_i1e<double>());
 #endif
 }

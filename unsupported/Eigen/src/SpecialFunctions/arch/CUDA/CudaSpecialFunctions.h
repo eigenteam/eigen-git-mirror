@@ -156,6 +156,32 @@ double2 pbetainc<double2>(const double2& a, const double2& b, const double2& x)
   return make_double2(betainc(a.x, b.x, x.x), betainc(a.y, b.y, x.y));
 }
 
+template <>
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE float4 pi0e<float4>(const float4& x) {
+  using numext::i0e;
+  return make_float4(i0e(x.x), i0e(x.y), i0e(x.z), i0e(x.w));
+}
+
+template <>
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE double2
+pi0e<double2>(const double2& x) {
+  using numext::i0e;
+  return make_double2(i0e(x.x), i0e(x.y));
+}
+
+template <>
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE float4 pi1e<float4>(const float4& x) {
+  using numext::i1e;
+  return make_float4(i1e(x.x), i1e(x.y), i1e(x.z), i1e(x.w));
+}
+
+template <>
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE double2
+pi1e<double2>(const double2& x) {
+  using numext::i1e;
+  return make_double2(i1e(x.x), i1e(x.y));
+}
+
 #endif
 
 } // end namespace internal
