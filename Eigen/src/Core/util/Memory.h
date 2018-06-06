@@ -70,7 +70,20 @@ inline void throw_std_bad_alloc()
     throw std::bad_alloc();
   #else
     std::size_t huge = static_cast<std::size_t>(-1);
+    #if defined(EIGEN_HIPCC)
+    //
+    // calls to "::operator new" are to be treated as opaque function calls (i.e no inlining),
+    // and as a consequence the code in the #else block triggers the hipcc warning :
+    // "no overloaded function has restriction specifiers that are compatible with the ambient context"
+    //
+    // "throw_std_bad_alloc" has the EIGEN_DEVICE_FUNC attribute, so it seems that hipcc expects
+    // the same on "operator new" 
+    // Reverting code back to the old version in this #if block for the hipcc compiler
+    //
+    new int[huge];
+    #else
     ::operator new(huge);
+    #endif
   #endif
 }
 
@@ -156,7 +169,13 @@ EIGEN_DEVICE_FUNC inline void* aligned_malloc(std::size_t size)
 
   void *result;
   #if (EIGEN_DEFAULT_ALIGN_BYTES==0) || EIGEN_MALLOC_ALREADY_ALIGNED
+  
+    #if defined(EIGEN_HIP_DEVICE_COMPILE)
+    result = aligned_malloc(size);
+    #else
     result = std::malloc(size);
+    #endif
+    
     #if EIGEN_DEFAULT_ALIGN_BYTES==16
     eigen_assert((size<16 || (std::size_t(result)%16)==0) && "System's malloc returned an unaligned pointer. Compile with EIGEN_MALLOC_ALREADY_ALIGNED=0 to fallback to handmade alignd memory allocator.");
     #endif
@@ -174,7 +193,13 @@ EIGEN_DEVICE_FUNC inline void* aligned_malloc(std::size_t size)
 EIGEN_DEVICE_FUNC inline void aligned_free(void *ptr)
 {
   #if (EIGEN_DEFAULT_ALIGN_BYTES==0) || EIGEN_MALLOC_ALREADY_ALIGNED
+
+    #if defined(EIGEN_HIP_DEVICE_COMPILE)
+    aligned_free(ptr);
+    #else
     std::free(ptr);
+    #endif
+    
   #else
     handmade_aligned_free(ptr);
   #endif
@@ -218,7 +243,12 @@ template<> EIGEN_DEVICE_FUNC inline void* conditional_aligned_malloc<false>(std:
 {
   check_that_malloc_is_allowed();
 
+  #if defined(EIGEN_HIP_DEVICE_COMPILE)
+  void *result = aligned_malloc(size);
+  #else
   void *result = std::malloc(size);
+  #endif
+  
   if(!result && size)
     throw_std_bad_alloc();
   return result;
@@ -232,7 +262,11 @@ template<bool Align> EIGEN_DEVICE_FUNC inline void conditional_aligned_free(void
 
 template<> EIGEN_DEVICE_FUNC inline void conditional_aligned_free<false>(void *ptr)
 {
+  #if defined(EIGEN_HIP_DEVICE_COMPILE)
+  aligned_free(ptr);
+  #else
   std::free(ptr);
+  #endif
 }
 
 template<bool Align> inline void* conditional_aligned_realloc(void* ptr, std::size_t new_size, std::size_t old_size)
@@ -493,7 +527,11 @@ template<typename T> struct smart_copy_helper<T,true> {
     IntPtr size = IntPtr(end)-IntPtr(start);
     if(size==0) return;
     eigen_internal_assert(start!=0 && end!=0 && target!=0);
+    #if defined(EIGEN_HIP_DEVICE_COMPILE)
+    ::memcpy(target, start, size);
+    #else
     std::memcpy(target, start, size);
+    #endif
   }
 };
 

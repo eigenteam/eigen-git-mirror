@@ -334,12 +334,12 @@ struct OuterReducer {
 };
 
 
-#if defined(EIGEN_USE_GPU) && defined(EIGEN_CUDACC)
+#if defined(EIGEN_USE_GPU) && (defined(EIGEN_CUDACC) || defined(EIGEN_HIPCC))
 template <int B, int N, typename S, typename R, typename I>
 __global__ void FullReductionKernel(R, const S, I, typename S::CoeffReturnType*, unsigned int*);
 
 
-#ifdef EIGEN_HAS_CUDA_FP16
+#if defined(EIGEN_HAS_CUDA_FP16) || defined(EIGEN_HAS_HIP_FP16)
 template <typename S, typename R, typename I>
 __global__ void ReductionInitFullReduxKernelHalfFloat(R, const S, I, half2*);
 template <int B, int N, typename S, typename R, typename I>
@@ -495,7 +495,11 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType, MakePointer_>,
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Dimensions& dimensions() const { return m_dimensions; }
 
-  EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC bool evalSubExprsIfNeeded(typename MakePointer_<CoeffReturnType>::Type data) {
+  EIGEN_STRONG_INLINE
+    #if !defined(EIGEN_HIPCC)
+    EIGEN_DEVICE_FUNC
+    #endif
+    bool evalSubExprsIfNeeded(typename MakePointer_<CoeffReturnType>::Type data) {
     m_impl.evalSubExprsIfNeeded(NULL);
 
     // Use the FullReducer if possible.
@@ -694,9 +698,9 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType, MakePointer_>,
 #ifdef EIGEN_USE_THREADS
   template <typename S, typename O, bool V> friend struct internal::FullReducerShard;
 #endif
-#if defined(EIGEN_USE_GPU) && defined(EIGEN_CUDACC)
+#if defined(EIGEN_USE_GPU) && (defined(EIGEN_CUDACC) || defined(EIGEN_HIPCC))
   template <int B, int N, typename S, typename R, typename I> KERNEL_FRIEND void internal::FullReductionKernel(R, const S, I, typename S::CoeffReturnType*, unsigned int*);
-#ifdef EIGEN_HAS_CUDA_FP16
+#if defined(EIGEN_HAS_CUDA_FP16) || defined(EIGEN_HAS_HIP_FP16)
   template <typename S, typename R, typename I> KERNEL_FRIEND void internal::ReductionInitFullReduxKernelHalfFloat(R, const S, I, half2*);
   template <int B, int N, typename S, typename R, typename I> KERNEL_FRIEND void internal::FullReductionKernelHalfFloat(R, const S, I, half*, half2*);
   template <int NPT, typename S, typename R, typename I> KERNEL_FRIEND void internal::InnerReductionKernelHalfFloat(R, const S, I, I, half*);
@@ -774,14 +778,22 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType, MakePointer_>,
   // Indexed by reduced dimensions.
   array<Index, NumReducedDims> m_reducedDims;
 
+#if defined(EIGEN_HIPCC)
+ public:
+#endif
+  
   // Evaluator for the input expression.
   TensorEvaluator<ArgType, Device> m_impl;
 
+#if defined(EIGEN_HIPCC)
+ private:
+#endif
+  
   // Operation to apply for computing the reduction.
   Op m_reducer;
 
   // For full reductions
-#if defined(EIGEN_USE_GPU) && defined(EIGEN_CUDACC)
+#if defined(EIGEN_USE_GPU) && (defined(EIGEN_CUDACC) || defined(EIGEN_HIPCC))
   static const bool RunningOnGPU = internal::is_same<Device, Eigen::GpuDevice>::value;
   static const bool RunningOnSycl = false;
 #elif defined(EIGEN_USE_SYCL)

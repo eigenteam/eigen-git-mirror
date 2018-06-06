@@ -35,9 +35,12 @@ struct DefaultDevice {
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE size_t numThreads() const {
-#ifndef EIGEN_CUDA_ARCH
+#if !defined(EIGEN_CUDA_ARCH) && !defined(EIGEN_HIP_DEVICE_COMPILE)
     // Running on the host CPU
     return 1;
+#elif defined(EIGEN_HIP_DEVICE_COMPILE)
+    // Running on a HIP device
+    return 64;
 #else
     // Running on a CUDA device
     return 32;
@@ -45,7 +48,7 @@ struct DefaultDevice {
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE size_t firstLevelCacheSize() const {
-#if !defined(EIGEN_CUDA_ARCH) && !defined(__SYCL_DEVICE_ONLY__)
+#if !defined(EIGEN_CUDA_ARCH) && !defined(__SYCL_DEVICE_ONLY__) && !defined(EIGEN_HIP_DEVICE_COMPILE)
     // Running on the host CPU
     return l1CacheSize();
 #else
@@ -55,7 +58,7 @@ struct DefaultDevice {
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE size_t lastLevelCacheSize() const {
-#if !defined(EIGEN_CUDA_ARCH) && !defined(__SYCL_DEVICE_ONLY__)
+#if !defined(EIGEN_CUDA_ARCH) && !defined(__SYCL_DEVICE_ONLY__) && !defined(EIGEN_HIP_DEVICE_COMPILE)
     // Running single threaded on the host CPU
     return l3CacheSize();
 #else
@@ -65,9 +68,13 @@ struct DefaultDevice {
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE int majorDeviceVersion() const {
-#ifndef EIGEN_CUDA_ARCH
+#if !defined(EIGEN_CUDA_ARCH) && !defined(EIGEN_HIP_DEVICE_COMPILE)
     // Running single threaded on the host CPU
     // Should return an enum that encodes the ISA supported by the CPU
+    return 1;
+#elif defined(EIGEN_HIP_DEVICE_COMPILE)
+    // Running on a HIP device
+    // return 1 as major for HIP
     return 1;
 #else
     // Running on a CUDA device

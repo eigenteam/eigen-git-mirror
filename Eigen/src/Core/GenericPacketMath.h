@@ -299,7 +299,11 @@ template<typename Scalar, typename Packet> EIGEN_DEVICE_FUNC inline void pstoreu
  { pstore(to, from); }
 
 /** \internal tries to do cache prefetching of \a addr */
-template<typename Scalar> EIGEN_DEVICE_FUNC inline void prefetch(const Scalar* addr)
+template<typename Scalar>
+  #if !defined(EIGEN_HIPCC)
+  EIGEN_DEVICE_FUNC
+  #endif
+  inline void prefetch(const Scalar* addr)
 {
 #ifdef EIGEN_CUDA_ARCH
 #if defined(__LP64__)
@@ -528,7 +532,7 @@ inline void palign(PacketType& first, const PacketType& second)
 ***************************************************************************/
 
 // Eigen+CUDA does not support complexes.
-#ifndef EIGEN_CUDACC
+#if !defined(EIGEN_CUDACC) && !defined(EIGEN_HIPCC)
 
 template<> inline std::complex<float> pmul(const std::complex<float>& a, const std::complex<float>& b)
 { return std::complex<float>(real(a)*real(b) - imag(a)*imag(b), imag(a)*real(b) + real(a)*imag(b)); }

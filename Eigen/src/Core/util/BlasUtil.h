@@ -163,7 +163,10 @@ class BlasLinearMapper {
 
   EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE BlasLinearMapper(Scalar *data) : m_data(data) {}
 
-  EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE void prefetch(int i) const {
+  #if !defined(EIGEN_HIPCC)
+  EIGEN_DEVICE_FUNC
+  #endif
+  EIGEN_ALWAYS_INLINE void prefetch(int i) const {
     internal::prefetch(&operator()(i));
   }
 

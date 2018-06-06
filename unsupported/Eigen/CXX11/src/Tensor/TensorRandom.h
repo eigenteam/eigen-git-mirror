@@ -16,7 +16,7 @@ namespace internal {
 namespace {
 
 EIGEN_DEVICE_FUNC uint64_t get_random_seed() {
-#ifdef EIGEN_CUDA_ARCH
+#if defined(EIGEN_CUDA_ARCH) || defined(EIGEN_HIP_DEVICE_COMPILE)
   // We don't support 3d kernels since we currently only use 1 and
   // 2d kernels.
   assert(threadIdx.z == 0);

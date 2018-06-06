@@ -436,6 +436,9 @@ template<typename BinaryOp> struct bind1st_op : BinaryOp {
   typedef typename BinaryOp::second_argument_type second_argument_type;
   typedef typename BinaryOp::result_type          result_type;
 
+  #if defined(EIGEN_HIPCC)
+  EIGEN_DEVICE_FUNC explicit
+  #endif
   bind1st_op(const first_argument_type &val) : m_value(val) {}
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const result_type operator() (const second_argument_type& b) const { return BinaryOp::operator()(m_value,b); }
@@ -455,6 +458,9 @@ template<typename BinaryOp> struct bind2nd_op : BinaryOp {
   typedef typename BinaryOp::second_argument_type second_argument_type;
   typedef typename BinaryOp::result_type          result_type;
 
+  #if defined(EIGEN_HIPCC)
+  EIGEN_DEVICE_FUNC explicit
+  #endif
   bind2nd_op(const second_argument_type &val) : m_value(val) {}
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const result_type operator() (const first_argument_type& a) const { return BinaryOp::operator()(a,m_value); }

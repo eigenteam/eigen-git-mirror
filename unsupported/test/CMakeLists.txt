@@ -297,3 +297,55 @@ if(CUDA_FOUND AND EIGEN_TEST_CUDA)
 
   unset(EIGEN_ADD_TEST_FILENAME_EXTENSION)
 endif()
+
+# Add HIP specific tests 
+if (EIGEN_TEST_HIP)
+
+  set(HIP_PATH "/opt/rocm/hip" CACHE STRING "Path to the HIP installation.")
+
+  if (EXISTS ${HIP_PATH})
+    
+    list(APPEND CMAKE_MODULE_PATH ${HIP_PATH}/cmake) 
+
+    find_package(HIP REQUIRED)
+    if (HIP_FOUND)
+
+      execute_process(COMMAND ${HIP_PATH}/bin/hipconfig --platform OUTPUT_VARIABLE HIP_PLATFORM)
+
+      if (${HIP_PLATFORM} STREQUAL "hcc")
+
+	include_directories(${CMAKE_CURRENT_BINARY_DIR})
+	include_directories(${HIP_PATH}/include)
+
+	set(EIGEN_ADD_TEST_FILENAME_EXTENSION  "cu")
+
+	# ei_add_test(cxx11_tensor_complex_hip)
+	# ei_add_test(cxx11_tensor_complex_cwise_ops_hip)
+	ei_add_test(cxx11_tensor_reduction_hip)
+	ei_add_test(cxx11_tensor_argmax_hip)
+	ei_add_test(cxx11_tensor_cast_float16_hip)
+	ei_add_test(cxx11_tensor_scan_hip)
+	ei_add_test(cxx11_tensor_device_hip)
+	ei_add_test(cxx11_tensor_hip)
+	ei_add_test(cxx11_tensor_contract_hip)
+	ei_add_test(cxx11_tensor_of_float16_hip)
+	ei_add_test(cxx11_tensor_random_hip)
+	
+	unset(EIGEN_ADD_TEST_FILENAME_EXTENSION)
+	
+      elseif (${HIP_PLATFORM} STREQUAL "nvcc")
+	message(FATAL_ERROR "HIP_PLATFORM = nvcc is not supported within Eigen")
+      else ()
+	message(FATAL_ERROR "Unknown HIP_PLATFORM = ${HIP_PLATFORM}")
+      endif()
+      
+    endif(HIP_FOUND)
+
+  else ()
+
+    message(FATAL_ERROR "EIGEN_TEST_HIP is ON, but the specified HIP_PATH (${HIP_PATH}) does not exist")
+    
+  endif()
+    
+endif(EIGEN_TEST_HIP)
+

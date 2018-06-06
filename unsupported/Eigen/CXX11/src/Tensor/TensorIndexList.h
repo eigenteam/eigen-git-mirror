@@ -350,7 +350,11 @@ struct IndexPairList : internal::IndexTuple<FirstType, OtherTypes...> {
 
 namespace internal {
 
-template<typename FirstType, typename... OtherTypes> size_t array_prod(const IndexList<FirstType, OtherTypes...>& sizes) {
+template<typename FirstType, typename... OtherTypes>
+  #if defined(EIGEN_HIPCC)
+  EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC
+  #endif
+  size_t array_prod(const IndexList<FirstType, OtherTypes...>& sizes) {
   size_t result = 1;
   for (int i = 0; i < array_size<IndexList<FirstType, OtherTypes...> >::value; ++i) {
     result *= sizes[i];
