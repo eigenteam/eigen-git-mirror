@@ -47,6 +47,8 @@ template<> struct packet_traits<float> : default_packet_traits
     HasI0e = 1,
     HasI1e = 1,
     HasIGamma = 1,
+    HasIGammaDerA = 1,
+    HasGammaSampleDerAlpha = 1,
     HasIGammac = 1,
     HasBetaInc = 1,
 
@@ -78,6 +80,8 @@ template<> struct packet_traits<double> : default_packet_traits
     HasI0e = 1,
     HasI1e = 1,
     HasIGamma = 1,
+    HasIGammaDerA = 1,
+    HasGammaSampleDerAlpha = 1,
     HasIGammac = 1,
     HasBetaInc = 1,
 

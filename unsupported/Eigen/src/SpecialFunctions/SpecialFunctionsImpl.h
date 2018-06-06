@@ -521,6 +521,198 @@ struct cephes_helper<double> {
   }
 };
 
+enum IgammaComputationMode { VALUE, DERIVATIVE, SAMPLE_DERIVATIVE };
+
+template <typename Scalar, IgammaComputationMode mode>
+EIGEN_DEVICE_FUNC
+int igamma_num_iterations() {
+  /* Returns the maximum number of internal iterations for igamma computation.
+   */
+  if (mode == VALUE) {
+    return 2000;
+  }
+
+  if (internal::is_same<Scalar, float>::value) {
+    return 200;
+  } else if (internal::is_same<Scalar, double>::value) {
+    return 500;
+  } else {
+    return 2000;
+  }
+}
+
+template <typename Scalar, IgammaComputationMode mode>
+struct igammac_cf_impl {
+  /* Computes igamc(a, x) or derivative (depending on the mode)
+   * using the continued fraction expansion of the complementary
+   * incomplete Gamma function.
+   *
+   * Preconditions:
+   *   a > 0
+   *   x >= 1
+   *   x >= a
+   */
+  EIGEN_DEVICE_FUNC
+  static Scalar run(Scalar a, Scalar x) {
+    const Scalar zero = 0;
+    const Scalar one = 1;
+    const Scalar two = 2;
+    const Scalar machep = cephes_helper<Scalar>::machep();
+    const Scalar big = cephes_helper<Scalar>::big();
+    const Scalar biginv = cephes_helper<Scalar>::biginv();
+
+    if ((numext::isinf)(x)) {
+      return zero;
+    }
+
+    // continued fraction
+    Scalar y = one - a;
+    Scalar z = x + y + one;
+    Scalar c = zero;
+    Scalar pkm2 = one;
+    Scalar qkm2 = x;
+    Scalar pkm1 = x + one;
+    Scalar qkm1 = z * x;
+    Scalar ans = pkm1 / qkm1;
+
+    Scalar dpkm2_da = zero;
+    Scalar dqkm2_da = zero;
+    Scalar dpkm1_da = zero;
+    Scalar dqkm1_da = -x;
+    Scalar dans_da = (dpkm1_da - ans * dqkm1_da) / qkm1;
+
+    for (int i = 0; i < igamma_num_iterations<Scalar, mode>(); i++) {
+      c += one;
+      y += one;
+      z += two;
+
+      Scalar yc = y * c;
+      Scalar pk = pkm1 * z - pkm2 * yc;
+      Scalar qk = qkm1 * z - qkm2 * yc;
+
+      Scalar dpk_da = dpkm1_da * z - pkm1 - dpkm2_da * yc + pkm2 * c;
+      Scalar dqk_da = dqkm1_da * z - qkm1 - dqkm2_da * yc + qkm2 * c;
+
+      if (qk != zero) {
+        Scalar ans_prev = ans;
+        ans = pk / qk;
+
+        Scalar dans_da_prev = dans_da;
+        dans_da = (dpk_da - ans * dqk_da) / qk;
+
+        if (mode == VALUE) {
+          if (numext::abs(ans_prev - ans) <= machep * numext::abs(ans)) {
+            break;
+          }
+        } else {
+          if (numext::abs(dans_da - dans_da_prev) <=
+              machep * numext::abs(dans_da)) {
+            break;
+          }
+        }
+      }
+
+      pkm2 = pkm1;
+      pkm1 = pk;
+      qkm2 = qkm1;
+      qkm1 = qk;
+
+      dpkm2_da = dpkm1_da;
+      dpkm1_da = dpk_da;
+      dqkm2_da = dqkm1_da;
+      dqkm1_da = dqk_da;
+
+      if (numext::abs(pk) > big) {
+        pkm2 *= biginv;
+        pkm1 *= biginv;
+        qkm2 *= biginv;
+        qkm1 *= biginv;
+
+        dpkm2_da *= biginv;
+        dpkm1_da *= biginv;
+        dqkm2_da *= biginv;
+        dqkm1_da *= biginv;
+      }
+    }
+
+    /* Compute  x**a * exp(-x) / gamma(a)  */
+    Scalar logax = a * numext::log(x) - x - lgamma_impl<Scalar>::run(a);
+    Scalar dlogax_da = numext::log(x) - digamma_impl<Scalar>::run(a);
+    Scalar ax = numext::exp(logax);
+    Scalar dax_da = ax * dlogax_da;
+
+    switch (mode) {
+      case VALUE:
+        return ans * ax;
+      case DERIVATIVE:
+        return ans * dax_da + dans_da * ax;
+      case SAMPLE_DERIVATIVE:
+        return -(dans_da + ans * dlogax_da) * x;
+    }
+  }
+};
+
+template <typename Scalar, IgammaComputationMode mode>
+struct igamma_series_impl {
+  /* Computes igam(a, x) or its derivative (depending on the mode)
+   * using the series expansion of the incomplete Gamma function.
+   *
+   * Preconditions:
+   *   x > 0
+   *   a > 0
+   *   !(x > 1 && x > a)
+   */
+  EIGEN_DEVICE_FUNC
+  static Scalar run(Scalar a, Scalar x) {
+    const Scalar zero = 0;
+    const Scalar one = 1;
+    const Scalar machep = cephes_helper<Scalar>::machep();
+
+    /* power series */
+    Scalar r = a;
+    Scalar c = one;
+    Scalar ans = one;
+
+    Scalar dc_da = zero;
+    Scalar dans_da = zero;
+
+    for (int i = 0; i < igamma_num_iterations<Scalar, mode>(); i++) {
+      r += one;
+      Scalar term = x / r;
+      Scalar dterm_da = -x / (r * r);
+      dc_da = term * dc_da + dterm_da * c;
+      dans_da += dc_da;
+      c *= term;
+      ans += c;
+
+      if (mode == VALUE) {
+        if (c <= machep * ans) {
+          break;
+        }
+      } else {
+        if (numext::abs(dc_da) <= machep * numext::abs(dans_da)) {
+          break;
+        }
+      }
+    }
+
+    /* Compute  x**a * exp(-x) / gamma(a + 1)  */
+    Scalar logax = a * numext::log(x) - x - lgamma_impl<Scalar>::run(a + one);
+    Scalar dlogax_da = numext::log(x) - digamma_impl<Scalar>::run(a + one);
+    Scalar ax = numext::exp(logax);
+    Scalar dax_da = ax * dlogax_da;
+
+    switch (mode) {
+      case VALUE:
+        return ans * ax;
+      case DERIVATIVE:
+        return ans * dax_da + dans_da * ax;
+      case SAMPLE_DERIVATIVE:
+        return -(dans_da + ans * dlogax_da) * x / a;
+    }
+  }
+};
+
 #if !EIGEN_HAS_C99_MATH
 
 template <typename Scalar>
@@ -534,8 +726,6 @@ struct igammac_impl {
 };
 
 #else
-
-template <typename Scalar> struct igamma_impl;  // predeclare igamma_impl
 
 template <typename Scalar>
 struct igammac_impl {
@@ -604,97 +794,15 @@ struct igammac_impl {
       return nan;
     }
 
-    if ((numext::isnan)(a) || (numext::isnan)(x)) { // propagate nans
+    if ((numext::isnan)(a) || (numext::isnan)(x)) {  // propagate nans
       return nan;
     }
 
     if ((x < one) || (x < a)) {
-      /* The checks above ensure that we meet the preconditions for
-       * igamma_impl::Impl(), so call it, rather than igamma_impl::Run().
-       * Calling Run() would also work, but in that case the compiler may not be
-       * able to prove that igammac_impl::Run and igamma_impl::Run are not
-       * mutually recursive.  This leads to worse code, particularly on
-       * platforms like nvptx, where recursion is allowed only begrudgingly.
-       */
-      return (one - igamma_impl<Scalar>::Impl(a, x));
+      return (one - igamma_series_impl<Scalar, VALUE>::run(a, x));
     }
 
-    return Impl(a, x);
-  }
-
- private:
-  /* igamma_impl calls igammac_impl::Impl. */
-  friend struct igamma_impl<Scalar>;
-
-  /* Actually computes igamc(a, x).
-   *
-   * Preconditions:
-   *   a > 0
-   *   x >= 1
-   *   x >= a
-   */
-  EIGEN_DEVICE_FUNC static Scalar Impl(Scalar a, Scalar x) {
-    const Scalar zero = 0;
-    const Scalar one = 1;
-    const Scalar two = 2;
-    const Scalar machep = cephes_helper<Scalar>::machep();
-    const Scalar maxlog = numext::log(NumTraits<Scalar>::highest());
-    const Scalar big = cephes_helper<Scalar>::big();
-    const Scalar biginv = cephes_helper<Scalar>::biginv();
-    const Scalar inf = NumTraits<Scalar>::infinity();
-
-    Scalar ans, ax, c, yc, r, t, y, z;
-    Scalar pk, pkm1, pkm2, qk, qkm1, qkm2;
-
-    if (x == inf) return zero;  // std::isinf crashes on CUDA
-
-    /* Compute  x**a * exp(-x) / gamma(a)  */
-    ax = a * numext::log(x) - x - lgamma_impl<Scalar>::run(a);
-    if (ax < -maxlog) {  // underflow
-      return zero;
-    }
-    ax = numext::exp(ax);
-
-    // continued fraction
-    y = one - a;
-    z = x + y + one;
-    c = zero;
-    pkm2 = one;
-    qkm2 = x;
-    pkm1 = x + one;
-    qkm1 = z * x;
-    ans = pkm1 / qkm1;
-
-    for (int i = 0; i < 2000; i++) {
-      c += one;
-      y += one;
-      z += two;
-      yc = y * c;
-      pk = pkm1 * z - pkm2 * yc;
-      qk = qkm1 * z - qkm2 * yc;
-      if (qk != zero) {
-        r = pk / qk;
-        t = numext::abs((ans - r) / r);
-        ans = r;
-      } else {
-        t = one;
-      }
-      pkm2 = pkm1;
-      pkm1 = pk;
-      qkm2 = qkm1;
-      qkm1 = qk;
-      if (numext::abs(pk) > big) {
-        pkm2 *= biginv;
-        pkm1 *= biginv;
-        qkm2 *= biginv;
-        qkm1 *= biginv;
-      }
-      if (t <= machep) {
-        break;
-      }
-    }
-
-    return (ans * ax);
+    return igammac_cf_impl<Scalar, VALUE>::run(a, x);
   }
 };
 
@@ -704,15 +812,10 @@ struct igammac_impl {
  * Implementation of igamma (incomplete gamma integral), based on Cephes but requires C++11/C99 *
  ************************************************************************************************/
 
-template <typename Scalar>
-struct igamma_retval {
-  typedef Scalar type;
-};
-
 #if !EIGEN_HAS_C99_MATH
 
-template <typename Scalar>
-struct igamma_impl {
+template <typename Scalar, IgammaComputationMode mode>
+struct igamma_generic_impl {
   EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE Scalar run(Scalar a, Scalar x) {
     EIGEN_STATIC_ASSERT((internal::is_same<Scalar, Scalar>::value == false),
@@ -723,69 +826,17 @@ struct igamma_impl {
 
 #else
 
-template <typename Scalar>
-struct igamma_impl {
+template <typename Scalar, IgammaComputationMode mode>
+struct igamma_generic_impl {
   EIGEN_DEVICE_FUNC
   static Scalar run(Scalar a, Scalar x) {
-    /*	igam()
-     *	Incomplete gamma integral
+    /* Depending on the mode, returns
+     * - VALUE: incomplete Gamma function igamma(a, x)
+     * - DERIVATIVE: derivative of incomplete Gamma function d/da igamma(a, x)
+     * - SAMPLE_DERIVATIVE: implicit derivative of a Gamma random variable
+     * x ~ Gamma(x | a, 1), dx/da = -1 / Gamma(x | a, 1) * d igamma(a, x) / dx
      *
-     *
-     *
-     * SYNOPSIS:
-     *
-     * double a, x, y, igam();
-     *
-     * y = igam( a, x );
-     *
-     * DESCRIPTION:
-     *
-     * The function is defined by
-     *
-     *                           x
-     *                            -
-     *                   1       | |  -t  a-1
-     *  igam(a,x)  =   -----     |   e   t   dt.
-     *                  -      | |
-     *                 | (a)    -
-     *                           0
-     *
-     *
-     * In this implementation both arguments must be positive.
-     * The integral is evaluated by either a power series or
-     * continued fraction expansion, depending on the relative
-     * values of a and x.
-     *
-     * ACCURACY (double):
-     *
-     *                      Relative error:
-     * arithmetic   domain     # trials      peak         rms
-     *    IEEE      0,30       200000       3.6e-14     2.9e-15
-     *    IEEE      0,100      300000       9.9e-14     1.5e-14
-     *
-     *
-     * ACCURACY (float):
-     *
-     *                      Relative error:
-     * arithmetic   domain     # trials      peak         rms
-     *    IEEE      0,30        20000       7.8e-6      5.9e-7
-     *
-     */
-    /*
-      Cephes Math Library Release 2.2: June, 1992
-      Copyright 1985, 1987, 1992 by Stephen L. Moshier
-      Direct inquiries to 30 Frost Street, Cambridge, MA 02140
-    */
-
-
-    /* left tail of incomplete gamma function:
-     *
-     *          inf.      k
-     *   a  -x   -       x
-     *  x  e     >   ----------
-     *           -     -
-     *          k=0   | (a+k+1)
-     *
+     * Derivatives are implemented by forward-mode differentiation.
      */
     const Scalar zero = 0;
     const Scalar one = 1;
@@ -797,70 +848,166 @@ struct igamma_impl {
       return nan;
     }
 
-    if ((numext::isnan)(a) || (numext::isnan)(x)) { // propagate nans
+    if ((numext::isnan)(a) || (numext::isnan)(x)) {  // propagate nans
       return nan;
     }
 
     if ((x > one) && (x > a)) {
-      /* The checks above ensure that we meet the preconditions for
-       * igammac_impl::Impl(), so call it, rather than igammac_impl::Run().
-       * Calling Run() would also work, but in that case the compiler may not be
-       * able to prove that igammac_impl::Run and igamma_impl::Run are not
-       * mutually recursive.  This leads to worse code, particularly on
-       * platforms like nvptx, where recursion is allowed only begrudgingly.
-       */
-      return (one - igammac_impl<Scalar>::Impl(a, x));
-    }
-
-    return Impl(a, x);
-  }
-
- private:
-  /* igammac_impl calls igamma_impl::Impl. */
-  friend struct igammac_impl<Scalar>;
-
-  /* Actually computes igam(a, x).
-   *
-   * Preconditions:
-   *   x > 0
-   *   a > 0
-   *   !(x > 1 && x > a)
-   */
-  EIGEN_DEVICE_FUNC static Scalar Impl(Scalar a, Scalar x) {
-    const Scalar zero = 0;
-    const Scalar one = 1;
-    const Scalar machep = cephes_helper<Scalar>::machep();
-    const Scalar maxlog = numext::log(NumTraits<Scalar>::highest());
-
-    Scalar ans, ax, c, r;
-
-    /* Compute  x**a * exp(-x) / gamma(a)  */
-    ax = a * numext::log(x) - x - lgamma_impl<Scalar>::run(a);
-    if (ax < -maxlog) {
-      // underflow
-      return zero;
-    }
-    ax = numext::exp(ax);
-
-    /* power series */
-    r = a;
-    c = one;
-    ans = one;
-
-    for (int i = 0; i < 2000; i++) {
-      r += one;
-      c *= x/r;
-      ans += c;
-      if (c/ans <= machep) {
-        break;
+      Scalar ret = igammac_cf_impl<Scalar, mode>::run(a, x);
+      if (mode == VALUE) {
+        return one - ret;
+      } else {
+        return -ret;
       }
     }
 
-    return (ans * ax / a);
+    return igamma_series_impl<Scalar, mode>::run(a, x);
   }
 };
 
 #endif  // EIGEN_HAS_C99_MATH
+
+template <typename Scalar>
+struct igamma_retval {
+  typedef Scalar type;
+};
+
+template <typename Scalar>
+struct igamma_impl : igamma_generic_impl<Scalar, VALUE> {
+  /* igam()
+   * Incomplete gamma integral.
+   *
+   * The CDF of Gamma(a, 1) random variable at the point x.
+   *
+   * Accuracy estimation. For each a in [10^-2, 10^-1...10^3] we sample
+   * 50 Gamma random variables x ~ Gamma(x | a, 1), a total of 300 points.
+   * The ground truth is computed by mpmath. Mean absolute error:
+   * float: 1.26713e-05
+   * double: 2.33606e-12
+   *
+   * Cephes documentation below.
+   *
+   * SYNOPSIS:
+   *
+   * double a, x, y, igam();
+   *
+   * y = igam( a, x );
+   *
+   * DESCRIPTION:
+   *
+   * The function is defined by
+   *
+   *                           x
+   *                            -
+   *                   1       | |  -t  a-1
+   *  igam(a,x)  =   -----     |   e   t   dt.
+   *                  -      | |
+   *                 | (a)    -
+   *                           0
+   *
+   *
+   * In this implementation both arguments must be positive.
+   * The integral is evaluated by either a power series or
+   * continued fraction expansion, depending on the relative
+   * values of a and x.
+   *
+   * ACCURACY (double):
+   *
+   *                      Relative error:
+   * arithmetic   domain     # trials      peak         rms
+   *    IEEE      0,30       200000       3.6e-14     2.9e-15
+   *    IEEE      0,100      300000       9.9e-14     1.5e-14
+   *
+   *
+   * ACCURACY (float):
+   *
+   *                      Relative error:
+   * arithmetic   domain     # trials      peak         rms
+   *    IEEE      0,30        20000       7.8e-6      5.9e-7
+   *
+   */
+  /*
+    Cephes Math Library Release 2.2: June, 1992
+    Copyright 1985, 1987, 1992 by Stephen L. Moshier
+    Direct inquiries to 30 Frost Street, Cambridge, MA 02140
+  */
+
+  /* left tail of incomplete gamma function:
+   *
+   *          inf.      k
+   *   a  -x   -       x
+   *  x  e     >   ----------
+   *           -     -
+   *          k=0   | (a+k+1)
+   *
+   */
+};
+
+template <typename Scalar>
+struct igamma_der_a_retval : igamma_retval<Scalar> {};
+
+template <typename Scalar>
+struct igamma_der_a_impl : igamma_generic_impl<Scalar, DERIVATIVE> {
+  /* Derivative of the incomplete Gamma function with respect to a.
+   *
+   * Computes d/da igamma(a, x) by forward differentiation of the igamma code.
+   *
+   * Accuracy estimation. For each a in [10^-2, 10^-1...10^3] we sample
+   * 50 Gamma random variables x ~ Gamma(x | a, 1), a total of 300 points.
+   * The ground truth is computed by mpmath. Mean absolute error:
+   * float: 6.27648e-07
+   * double: 4.60455e-12
+   *
+   * Reference:
+   * R. Moore. "Algorithm AS 187: Derivatives of the incomplete gamma
+   * integral". Journal of the Royal Statistical Society. 1982
+   */
+};
+
+template <typename Scalar>
+struct gamma_sample_der_alpha_retval : igamma_retval<Scalar> {};
+
+template <typename Scalar>
+struct gamma_sample_der_alpha_impl
+    : igamma_generic_impl<Scalar, SAMPLE_DERIVATIVE> {
+  /* Derivative of a Gamma random variable sample with respect to alpha.
+   *
+   * Consider a sample of a Gamma random variable with the concentration
+   * parameter alpha: sample ~ Gamma(alpha, 1). The reparameterization
+   * derivative that we want to compute is dsample / dalpha =
+   * d igammainv(alpha, u) / dalpha, where u = igamma(alpha, sample).
+   * However, this formula is numerically unstable and expensive, so instead
+   * we use implicit differentiation:
+   *
+   * igamma(alpha, sample) = u, where u ~ Uniform(0, 1).
+   * Apply d / dalpha to both sides:
+   * d igamma(alpha, sample) / dalpha
+   *     + d igamma(alpha, sample) / dsample * dsample/dalpha  = 0
+   * d igamma(alpha, sample) / dalpha
+   *     + Gamma(sample | alpha, 1) dsample / dalpha = 0
+   * dsample/dalpha = - (d igamma(alpha, sample) / dalpha)
+   *                   / Gamma(sample | alpha, 1)
+   *
+   * Here Gamma(sample | alpha, 1) is the PDF of the Gamma distribution
+   * (note that the derivative of the CDF w.r.t. sample is the PDF).
+   * See the reference below for more details.
+   *
+   * The derivative of igamma(alpha, sample) is computed by forward
+   * differentiation of the igamma code. Division by the Gamma PDF is performed
+   * in the same code, increasing the accuracy and speed due to cancellation
+   * of some terms.
+   *
+   * Accuracy estimation. For each alpha in [10^-2, 10^-1...10^3] we sample
+   * 50 Gamma random variables sample ~ Gamma(sample | alpha, 1), a total of 300
+   * points. The ground truth is computed by mpmath. Mean absolute error:
+   * float: 1.0993e-06
+   * double: 1.47631e-12
+   *
+   * Reference:
+   * M. Figurnov, S. Mohamed, A. Mnih "Implicit Reparameterization Gradients".
+   * 2018
+   */
+};
 
 /*****************************************************************************
  * Implementation of Riemann zeta function of two arguments, based on Cephes *
@@ -1948,6 +2095,18 @@ template <typename Scalar>
 EIGEN_DEVICE_FUNC inline EIGEN_MATHFUNC_RETVAL(igamma, Scalar)
     igamma(const Scalar& a, const Scalar& x) {
   return EIGEN_MATHFUNC_IMPL(igamma, Scalar)::run(a, x);
+}
+
+template <typename Scalar>
+EIGEN_DEVICE_FUNC inline EIGEN_MATHFUNC_RETVAL(igamma_der_a, Scalar)
+    igamma_der_a(const Scalar& a, const Scalar& x) {
+  return EIGEN_MATHFUNC_IMPL(igamma_der_a, Scalar)::run(a, x);
+}
+
+template <typename Scalar>
+EIGEN_DEVICE_FUNC inline EIGEN_MATHFUNC_RETVAL(gamma_sample_der_alpha, Scalar)
+    gamma_sample_der_alpha(const Scalar& a, const Scalar& x) {
+  return EIGEN_MATHFUNC_IMPL(gamma_sample_der_alpha, Scalar)::run(a, x);
 }
 
 template <typename Scalar>
