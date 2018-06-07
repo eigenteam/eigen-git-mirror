@@ -359,7 +359,7 @@ template<> inline long double test_precision<std::complex<long double> >() { ret
 inline bool test_isApprox(const short& a, const short& b)
 { return internal::isApprox(a, b, test_precision<short>()); }
 inline bool test_isApprox(const unsigned short& a, const unsigned short& b)
-{ return internal::isApprox(a, b, test_precision<unsigned long>()); }
+{ return internal::isApprox(a, b, test_precision<unsigned short>()); }
 inline bool test_isApprox(const unsigned int& a, const unsigned int& b)
 { return internal::isApprox(a, b, test_precision<unsigned int>()); }
 inline bool test_isApprox(const long& a, const long& b)
