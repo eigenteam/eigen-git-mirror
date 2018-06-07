@@ -214,7 +214,7 @@ class DGMRES : public IterativeSolverBase<DGMRES<_MatrixType,_Preconditioner> >
     void dgmresInitDeflation(Index& rows) const; 
     mutable DenseMatrix m_V; // Krylov basis vectors
     mutable DenseMatrix m_H; // Hessenberg matrix 
-    mutable DenseMatrix m_Hes; // Initial hessenberg matrix wihout Givens rotations applied
+    mutable DenseMatrix m_Hes; // Initial hessenberg matrix without Givens rotations applied
     mutable Index m_restart; // Maximum size of the Krylov subspace
     mutable DenseMatrix m_U; // Vectors that form the basis of the invariant subspace 
     mutable DenseMatrix m_MU; // matrix operator applied to m_U (for next cycles)
@@ -250,7 +250,7 @@ void DGMRES<_MatrixType, _Preconditioner>::dgmres(const MatrixType& mat,const Rh
   m_H.resize(m_restart+1, m_restart);
   m_Hes.resize(m_restart, m_restart);
   m_V.resize(n,m_restart+1);
-  //Initial residual vector and intial norm
+  //Initial residual vector and initial norm
   x = precond.solve(x);
   r0 = rhs - mat * x; 
   RealScalar beta = r0.norm(); 
