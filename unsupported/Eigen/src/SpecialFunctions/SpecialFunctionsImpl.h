@@ -1720,6 +1720,8 @@ struct betainc_impl<double> {
   }
 };
 
+#endif  // EIGEN_HAS_C99_MATH
+
 /****************************************************************************
  * Implementation of Bessel function, based on Cephes                       *
  ****************************************************************************/
@@ -2047,8 +2049,6 @@ struct i1e_impl<double> {
     return z;
   }
 };
-
-#endif  // EIGEN_HAS_C99_MATH
 
 }  // end namespace internal
 

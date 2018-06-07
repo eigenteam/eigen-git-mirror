@@ -313,7 +313,7 @@ struct matrix_exp_computeUV<MatrixType, long double>
       matrix_exp_pade17(A, U, V);
     }
   
-#elif LDBL_MANT_DIG <= 112  // quadruple precison
+#elif LDBL_MANT_DIG <= 112  // quadruple precision
   
     if (l1norm < 1.639394610288918690547467954466970e-005L) {
       matrix_exp_pade3(arg, U, V);

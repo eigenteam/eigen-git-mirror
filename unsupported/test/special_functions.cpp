@@ -335,6 +335,7 @@ template<typename ArrayType> void array_special_functions()
         ArrayType test = betainc(a, b + one, x) + eps;
         verify_component_wise(test, expected););
   }
+#endif  // EIGEN_HAS_C99_MATH
 
   // Test Bessel function i0e. Reference results obtained with SciPy.
   {
@@ -403,6 +404,7 @@ template<typename ArrayType> void array_special_functions()
     v_gamma_sample_der_alpha = np.vectorize(gamma_sample_der_alpha)(a, x)
   */
 
+#if EIGEN_HAS_C99_MATH
   // Test igamma_der_a
   {
     ArrayType a(30);
@@ -467,7 +469,7 @@ template<typename ArrayType> void array_special_functions()
     CALL_SUBTEST(res = gamma_sample_der_alpha(alpha, sample);
                  verify_component_wise(res, v););
   }
-#endif
+#endif  // EIGEN_HAS_C99_MATH
 }
 
 void test_special_functions()

@@ -106,7 +106,7 @@ struct FullReducer<Self, Op, const Eigen::SyclDevice, Vectorizable> {
     /// if the shared memory is less than the GRange, we set shared_mem size to the TotalSize and in this case one kernel would be created for recursion to reduce all to one.
     if (GRange < outTileSize) outTileSize=GRange;
     /// creating the shared memory for calculating reduction.
-    /// This one is used to collect all the reduced value of shared memory as we dont have global barrier on GPU. Once it is saved we can
+    /// This one is used to collect all the reduced value of shared memory as we don't have global barrier on GPU. Once it is saved we can
     /// recursively apply reduction on it in order to reduce the whole.
     auto temp_global_buffer =cl::sycl::buffer<CoeffReturnType, 1>(cl::sycl::range<1>(GRange));
     typedef typename Eigen::internal::remove_all<decltype(self.xprDims())>::type Dims;
@@ -150,7 +150,7 @@ struct InnerReducer<Self, Op, const Eigen::SyclDevice> {
 
     // getting final out buffer at the moment the created buffer is true because there is no need for assign
     /// creating the shared memory for calculating reduction.
-    /// This one is used to collect all the reduced value of shared memory as we dont have global barrier on GPU. Once it is saved we can
+    /// This one is used to collect all the reduced value of shared memory as we don't have global barrier on GPU. Once it is saved we can
     /// recursively apply reduction on it in order to reduce the whole.
       dev.parallel_for_setup(num_coeffs_to_preserve, tileSize, range, GRange);
       dev.sycl_queue().submit([&](cl::sycl::handler &cgh) {
