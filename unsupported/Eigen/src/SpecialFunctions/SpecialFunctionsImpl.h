@@ -605,8 +605,7 @@ struct igammac_cf_impl {
             break;
           }
         } else {
-          if (numext::abs(dans_da - dans_da_prev) <=
-              machep * numext::abs(dans_da)) {
+          if (numext::abs(dans_da - dans_da_prev) <= machep) {
             break;
           }
         }
@@ -955,8 +954,8 @@ struct igamma_der_a_impl : igamma_generic_impl<Scalar, DERIVATIVE> {
    * Accuracy estimation. For each a in [10^-2, 10^-1...10^3] we sample
    * 50 Gamma random variables x ~ Gamma(x | a, 1), a total of 300 points.
    * The ground truth is computed by mpmath. Mean absolute error:
-   * float: 6.27648e-07
-   * double: 4.60455e-12
+   * float: 6.17992e-07
+   * double: 4.60453e-12
    *
    * Reference:
    * R. Moore. "Algorithm AS 187: Derivatives of the incomplete gamma
@@ -1000,8 +999,8 @@ struct gamma_sample_der_alpha_impl
    * Accuracy estimation. For each alpha in [10^-2, 10^-1...10^3] we sample
    * 50 Gamma random variables sample ~ Gamma(sample | alpha, 1), a total of 300
    * points. The ground truth is computed by mpmath. Mean absolute error:
-   * float: 1.0993e-06
-   * double: 1.47631e-12
+   * float: 2.1686e-06
+   * double: 1.4774e-12
    *
    * Reference:
    * M. Figurnov, S. Mohamed, A. Mnih "Implicit Reparameterization Gradients".
