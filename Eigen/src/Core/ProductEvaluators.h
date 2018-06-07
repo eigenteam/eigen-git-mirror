@@ -357,7 +357,7 @@ struct generic_product_impl_base
   { scaleAndAddTo(dst, lhs, rhs, Scalar(-1)); }
   
   template<typename Dst>
-  static EIGEN_STRONG_INLINE void scaleAndAddTo(Dst& dst, const Lhs& lhs, const Rhs& rhs, const Scalar& alpha)
+  static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void scaleAndAddTo(Dst& dst, const Lhs& lhs, const Rhs& rhs, const Scalar& alpha)
   { Derived::scaleAndAddTo(dst,lhs,rhs,alpha); }
 
 };
