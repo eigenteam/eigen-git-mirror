@@ -581,7 +581,7 @@ is not initialized.
 
 Creates a tensor mapping an existing array of data. The data must not be freed
 until the TensorMap is discarded, and the size of the data must be large enough
-to accomodate of the coefficients of the tensor.
+to accommodate the coefficients of the tensor.
 
     float data[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
     Eigen::TensorMap<Tensor<float, 2>> a(data, 3, 4);

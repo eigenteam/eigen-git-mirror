@@ -1282,17 +1282,17 @@ double exp(const double &x) { return ::exp(x); }
 
 template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
 std::complex<float> exp(const std::complex<float>& x) {
-  auto com = ::expf(x.real());
-  auto res_real = com * ::cosf(x.imag());
-  auto res_imag = com * ::sinf(x.imag());
+  float com = ::expf(x.real());
+  float res_real = com * ::cosf(x.imag());
+  float res_imag = com * ::sinf(x.imag());
   return std::complex<float>(res_real, res_imag);
 }
 
 template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
 std::complex<double> exp(const std::complex<double>& x) {
-  auto com = ::exp(x.real());
-  auto res_real = com * ::cos(x.imag());
-  auto res_imag = com * ::sin(x.imag());
+  double com = ::exp(x.real());
+  double res_real = com * ::cos(x.imag());
+  double res_imag = com * ::sin(x.imag());
   return std::complex<double>(res_real, res_imag);
 }
 #endif

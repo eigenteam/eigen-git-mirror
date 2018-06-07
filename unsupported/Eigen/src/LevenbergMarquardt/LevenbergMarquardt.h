@@ -233,9 +233,9 @@ class LevenbergMarquardt : internal::no_assignment_operator
     
     /** 
      * \brief Reports whether the minimization was successful
-     * \returns \c Success if the minimization was succesful,
+     * \returns \c Success if the minimization was successful,
      *         \c NumericalIssue if a numerical problem arises during the 
-     *          minimization process, for exemple during the QR factorization
+     *          minimization process, for example during the QR factorization
      *         \c NoConvergence if the minimization did not converge after 
      *          the maximum number of function evaluation allowed
      *          \c InvalidInput if the input matrix is invalid

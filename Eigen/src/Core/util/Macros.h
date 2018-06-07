@@ -702,7 +702,7 @@ namespace Eigen {
 // If the user explicitly disable vectorization, then we also disable alignment
 #if defined(EIGEN_DONT_VECTORIZE)
   #define EIGEN_IDEAL_MAX_ALIGN_BYTES 0
-#elif defined(EIGEN_VECTORIZE_AVX512)
+#elif defined(__AVX512F__)
   // 64 bytes static alignment is preferred only if really required
   #define EIGEN_IDEAL_MAX_ALIGN_BYTES 64
 #elif defined(__AVX__)
@@ -1030,7 +1030,13 @@ namespace Eigen {
 #   define EIGEN_NOEXCEPT
 #   define EIGEN_NOEXCEPT_IF(x)
 #   define EIGEN_NO_THROW throw()
-#   define EIGEN_EXCEPTION_SPEC(X) throw(X)
+#   if EIGEN_COMP_MSVC
+      // MSVC does not support exception specifications (warning C4290),
+      // and they are deprecated in c++11 anyway.
+#     define EIGEN_EXCEPTION_SPEC(X) throw()
+#   else
+#     define EIGEN_EXCEPTION_SPEC(X) throw(X)
+#   endif
 #endif
 
 #endif // EIGEN_MACROS_H

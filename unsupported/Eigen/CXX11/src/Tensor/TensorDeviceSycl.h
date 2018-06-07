@@ -286,7 +286,7 @@ m_queue(cl::sycl::queue(s, [&](cl::sycl::exception_list l) {
     tileSize =static_cast<Index>(m_queue.get_device(). template get_info<cl::sycl::info::device::max_work_group_size>());
     auto s=  m_queue.get_device().template get_info<cl::sycl::info::device::vendor>();
     std::transform(s.begin(), s.end(), s.begin(), ::tolower);
-    if(m_queue.get_device().is_cpu()){ // intel doesnot allow to use max workgroup size
+    if(m_queue.get_device().is_cpu()){ // intel doesn't allow to use max workgroup size
       tileSize=std::min(static_cast<Index>(256), static_cast<Index>(tileSize));
     }
     rng = n;
@@ -303,7 +303,7 @@ m_queue(cl::sycl::queue(s, [&](cl::sycl::exception_list l) {
   template<typename Index>
   EIGEN_STRONG_INLINE void parallel_for_setup(Index dim0, Index dim1, Index &tileSize0, Index &tileSize1, Index &rng0, Index &rng1, Index &GRange0, Index &GRange1)  const {
     Index max_workgroup_Size = static_cast<Index>(maxSyclThreadsPerBlock());
-    if(m_queue.get_device().is_cpu()){ // intel doesnot allow to use max workgroup size
+    if(m_queue.get_device().is_cpu()){ // intel doesn't allow to use max workgroup size
       max_workgroup_Size=std::min(static_cast<Index>(256), static_cast<Index>(max_workgroup_Size));
     }
     Index pow_of_2 = static_cast<Index>(std::log2(max_workgroup_Size));
@@ -331,7 +331,7 @@ m_queue(cl::sycl::queue(s, [&](cl::sycl::exception_list l) {
   template<typename Index>
   EIGEN_STRONG_INLINE void parallel_for_setup(Index dim0, Index dim1,Index dim2, Index &tileSize0, Index &tileSize1, Index &tileSize2, Index &rng0, Index &rng1, Index &rng2, Index &GRange0, Index &GRange1, Index &GRange2)  const {
     Index max_workgroup_Size = static_cast<Index>(maxSyclThreadsPerBlock());
-    if(m_queue.get_device().is_cpu()){ // intel doesnot allow to use max workgroup size
+    if(m_queue.get_device().is_cpu()){ // intel doesn't allow to use max workgroup size
       max_workgroup_Size=std::min(static_cast<Index>(256), static_cast<Index>(max_workgroup_Size));
     }
     Index pow_of_2 = static_cast<Index>(std::log2(max_workgroup_Size));
@@ -377,7 +377,7 @@ m_queue(cl::sycl::queue(s, [&](cl::sycl::exception_list l) {
   EIGEN_STRONG_INLINE int majorDeviceVersion() const { return 1; }
 
   EIGEN_STRONG_INLINE unsigned long maxSyclThreadsPerMultiProcessor() const {
-    // OpenCL doesnot have such concept
+    // OpenCL doesn't have such concept
     return 2;
   }
 
@@ -519,7 +519,7 @@ struct SyclDevice {
     return m_queue_stream->maxSyclThreadsPerBlock();
   }
   EIGEN_STRONG_INLINE unsigned long maxSyclThreadsPerMultiProcessor() const {
-    // OpenCL doesnot have such concept
+    // OpenCL doesn't have such concept
     return m_queue_stream->maxSyclThreadsPerMultiProcessor();
   //  return stream_->deviceProperties().maxThreadsPerMultiProcessor;
   }
@@ -544,7 +544,7 @@ struct SyclDevice {
 };
 // This is used as a distingushable device inside the kernel as the sycl device class is not Standard layout.
 // This is internal and must not be used by user. This dummy device allow us to specialise the tensor evaluator
-// inside the kenrel. So we can have two types of eval for host and device. This is required for TensorArgMax operation
+// inside the kernel. So we can have two types of eval for host and device. This is required for TensorArgMax operation
 struct SyclKernelDevice:DefaultDevice{};
 
 }  // end namespace Eigen

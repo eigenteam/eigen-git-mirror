@@ -350,7 +350,7 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
         // Normal number of notifications for k slice switch is
         // nm_ + nn_ + nm_ * nn_. However, first P - 1 slices will receive only
         // nm_ + nn_ notifications, because they will not receive notifications
-        // from preceeding kernels.
+        // from preceding kernels.
         state_switch_[x] =
             x == 0
                 ? 1
@@ -530,7 +530,7 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
 
     void kernel(Index m, Index n, Index k) {
       // Note: order of iteration matters here. Iteration over m is innermost
-      // because we want to reuse the same packed rhs in consequetive tasks
+      // because we want to reuse the same packed rhs in consecutive tasks
       // (rhs fits into L2$ while lhs only into L3$).
       const Index nend = n * gn_ + gn(n);
       const Index mend = m * gm_ + gm(m);

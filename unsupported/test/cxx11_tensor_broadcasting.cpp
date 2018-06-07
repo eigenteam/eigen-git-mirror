@@ -180,6 +180,64 @@ static void test_fixed_size_broadcasting()
 #endif
 }
 
+template <int DataLayout>
+static void test_simple_broadcasting_one_by_n()
+{
+  Tensor<float, 4, DataLayout> tensor(1,13,5,7);
+  tensor.setRandom();
+  array<ptrdiff_t, 4> broadcasts;
+  broadcasts[0] = 9;
+  broadcasts[1] = 1;
+  broadcasts[2] = 1;
+  broadcasts[3] = 1;
+  Tensor<float, 4, DataLayout> broadcast;
+  broadcast = tensor.broadcast(broadcasts);
+
+  VERIFY_IS_EQUAL(broadcast.dimension(0), 9);
+  VERIFY_IS_EQUAL(broadcast.dimension(1), 13);
+  VERIFY_IS_EQUAL(broadcast.dimension(2), 5);
+  VERIFY_IS_EQUAL(broadcast.dimension(3), 7);
+
+  for (int i = 0; i < 9; ++i) {
+    for (int j = 0; j < 13; ++j) {
+      for (int k = 0; k < 5; ++k) {
+        for (int l = 0; l < 7; ++l) {
+          VERIFY_IS_EQUAL(tensor(i%1,j%13,k%5,l%7), broadcast(i,j,k,l));
+        }
+      }
+    }
+  }
+}
+
+template <int DataLayout>
+static void test_simple_broadcasting_n_by_one()
+{
+  Tensor<float, 4, DataLayout> tensor(7,3,5,1);
+  tensor.setRandom();
+  array<ptrdiff_t, 4> broadcasts;
+  broadcasts[0] = 1;
+  broadcasts[1] = 1;
+  broadcasts[2] = 1;
+  broadcasts[3] = 19;
+  Tensor<float, 4, DataLayout> broadcast;
+  broadcast = tensor.broadcast(broadcasts);
+
+  VERIFY_IS_EQUAL(broadcast.dimension(0), 7);
+  VERIFY_IS_EQUAL(broadcast.dimension(1), 3);
+  VERIFY_IS_EQUAL(broadcast.dimension(2), 5);
+  VERIFY_IS_EQUAL(broadcast.dimension(3), 19);
+
+  for (int i = 0; i < 7; ++i) {
+    for (int j = 0; j < 3; ++j) {
+      for (int k = 0; k < 5; ++k) {
+        for (int l = 0; l < 19; ++l) {
+          VERIFY_IS_EQUAL(tensor(i%7,j%3,k%5,l%1), broadcast(i,j,k,l));
+        }
+      }
+    }
+  }
+}
+
 
 void test_cxx11_tensor_broadcasting()
 {
@@ -191,4 +249,8 @@ void test_cxx11_tensor_broadcasting()
   CALL_SUBTEST(test_static_broadcasting<RowMajor>());
   CALL_SUBTEST(test_fixed_size_broadcasting<ColMajor>());
   CALL_SUBTEST(test_fixed_size_broadcasting<RowMajor>());
+  CALL_SUBTEST(test_simple_broadcasting_one_by_n<RowMajor>());
+  CALL_SUBTEST(test_simple_broadcasting_n_by_one<RowMajor>());
+  CALL_SUBTEST(test_simple_broadcasting_one_by_n<ColMajor>());
+  CALL_SUBTEST(test_simple_broadcasting_n_by_one<ColMajor>());
 }

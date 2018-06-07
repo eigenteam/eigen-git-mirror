@@ -22,10 +22,10 @@
 
 using Eigen::Tensor;
 
-// Inflation Defenition for each dimention the inflated val would be
+// Inflation Definition for each dimension the inflated val would be
 //((dim-1)*strid[dim] +1)
 
-// for 1 dimnention vector of size 3 with value (4,4,4) with the inflated stride value of 3 would be changed to
+// for 1 dimension vector of size 3 with value (4,4,4) with the inflated stride value of 3 would be changed to
 // tensor of size (2*3) +1 = 7 with the value of
 // (4, 0, 0, 4, 0, 0, 4).
 
