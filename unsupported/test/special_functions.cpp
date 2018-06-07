@@ -335,6 +335,7 @@ template<typename ArrayType> void array_special_functions()
         ArrayType test = betainc(a, b + one, x) + eps;
         verify_component_wise(test, expected););
   }
+#endif  // EIGEN_HAS_C99_MATH
 
   // Test Bessel function i0e. Reference results obtained with SciPy.
   {
@@ -375,7 +376,6 @@ template<typename ArrayType> void array_special_functions()
     CALL_SUBTEST(res = i1e(x);
                  verify_component_wise(res, expected););
   }
-#endif
 }
 
 void test_special_functions()
