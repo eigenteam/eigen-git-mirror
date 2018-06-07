@@ -989,7 +989,13 @@ namespace Eigen {
 #   define EIGEN_NOEXCEPT
 #   define EIGEN_NOEXCEPT_IF(x)
 #   define EIGEN_NO_THROW throw()
-#   define EIGEN_EXCEPTION_SPEC(X) throw(X)
+#   if EIGEN_COMP_MSVC
+      // MSVC does not support exception specifications (warning C4290),
+      // and they are deprecated in c++11 anyway.
+#     define EIGEN_EXCEPTION_SPEC(X) throw()
+#   else
+#     define EIGEN_EXCEPTION_SPEC(X) throw(X)
+#   endif
 #endif
 
 #endif // EIGEN_MACROS_H
