@@ -173,7 +173,7 @@ class DGMRES : public IterativeSolverBase<DGMRES<_MatrixType,_Preconditioner> >
   /** 
    * Set the restart value (default is 30)  
    */
-  Index set_restart(const Index restart) { m_restart=restart; }
+  void set_restart(const Index restart) { m_restart=restart; }
   
   /** 
    * Set the number of eigenvalues to deflate at each restart 
