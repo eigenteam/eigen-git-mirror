@@ -47,7 +47,7 @@ set(EIGEN_TEST_MATRIX_DIR "" CACHE STRING "Enable testing of realword sparse mat
 if(EIGEN_TEST_MATRIX_DIR)
   if(NOT WIN32)
     message(STATUS "Test realworld sparse matrices: ${EIGEN_TEST_MATRIX_DIR}")
-    add_definitions( -DTEST_REAL_CASES=${EIGEN_TEST_MATRIX_DIR} )
+    add_definitions( -DTEST_REAL_CASES="${EIGEN_TEST_MATRIX_DIR}" )
   else(NOT WIN32)
     message(STATUS "REAL CASES CAN NOT BE CURRENTLY TESTED ON WIN32")
   endif(NOT WIN32)
