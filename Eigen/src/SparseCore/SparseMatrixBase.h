@@ -87,6 +87,11 @@ template<typename Derived> class SparseMatrixBase
           * we are dealing with a column-vector (if there is only one column) or with
           * a row-vector (if there is only one row). */
 
+      NumDimensions = int(MaxSizeAtCompileTime) == 1 ? 0 : bool(IsVectorAtCompileTime) ? 1 : 2,
+        /**< This value is equal to Tensor::NumDimensions, i.e. 0 for scalars, 1 for vectors,
+         * and 2 for matrices.
+         */
+
       Flags = internal::traits<Derived>::Flags,
         /**< This stores expression \ref flags flags which may or may not be inherited by new expressions
           * constructed from this one. See the \ref flags "list of flags".
