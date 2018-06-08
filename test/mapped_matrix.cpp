@@ -181,49 +181,6 @@ void map_not_aligned_on_scalar()
   internal::aligned_delete(array1, (size+1)*(size+1)+1);
 }
 
-#if EIGEN_HAS_CXX11
-template<template <typename,int,int> class Object>
-void map_num_dimensions()
-{
-  typedef Object<double, 1, 1> ArrayScalarType;
-  typedef Object<double, 2, 1> ArrayVectorType;
-  typedef Object<double, 1, 2> TransposeArrayVectorType;
-  typedef Object<double, 2, 2> ArrayType;
-  typedef Object<double, Eigen::Dynamic, 1> DynamicArrayVectorType;
-  typedef Object<double, 1, Eigen::Dynamic> DynamicTransposeArrayVectorType;
-  typedef Object<double, Eigen::Dynamic, Eigen::Dynamic> DynamicArrayType;
-
-  STATIC_CHECK(ArrayScalarType::NumDimensions == 0);
-  STATIC_CHECK(ArrayVectorType::NumDimensions == 1);
-  STATIC_CHECK(TransposeArrayVectorType::NumDimensions == 1);
-  STATIC_CHECK(ArrayType::NumDimensions == 2);
-  STATIC_CHECK(DynamicArrayVectorType::NumDimensions == 1);
-  STATIC_CHECK(DynamicTransposeArrayVectorType::NumDimensions == 1);
-  STATIC_CHECK(DynamicArrayType::NumDimensions == 2);
-
-  typedef Eigen::Map<ArrayScalarType> ArrayScalarMap;
-  typedef Eigen::Map<ArrayVectorType> ArrayVectorMap;
-  typedef Eigen::Map<TransposeArrayVectorType> TransposeArrayVectorMap;
-  typedef Eigen::Map<ArrayType> ArrayMap;
-  typedef Eigen::Map<DynamicArrayVectorType> DynamicArrayVectorMap;
-  typedef Eigen::Map<DynamicTransposeArrayVectorType> DynamicTransposeArrayVectorMap;
-  typedef Eigen::Map<DynamicArrayType> DynamicArrayMap;
-
-  STATIC_CHECK(ArrayScalarMap::NumDimensions == 0);
-  STATIC_CHECK(ArrayVectorMap::NumDimensions == 1);
-  STATIC_CHECK(TransposeArrayVectorMap::NumDimensions == 1);
-  STATIC_CHECK(ArrayMap::NumDimensions == 2);
-  STATIC_CHECK(DynamicArrayVectorMap::NumDimensions == 1);
-  STATIC_CHECK(DynamicTransposeArrayVectorMap::NumDimensions == 1);
-  STATIC_CHECK(DynamicArrayMap::NumDimensions == 2);
-}
-
-template<typename Scalar, int Rows, int Cols>
-using TArray = Array<Scalar,Rows,Cols>;
-template<typename Scalar, int Rows, int Cols>
-using TMatrix = Matrix<Scalar,Rows,Cols>;
-#endif
-
 void test_mapped_matrix()
 {
   for(int i = 0; i < g_repeat; i++) {
@@ -250,9 +207,4 @@ void test_mapped_matrix()
     CALL_SUBTEST_10( map_static_methods(VectorXf(12)) );
     CALL_SUBTEST_11( map_not_aligned_on_scalar<double>() );
   }
-
-  #if EIGEN_HAS_CXX11
-    CALL_SUBTEST_12( map_num_dimensions<TArray>() );
-    CALL_SUBTEST_12( map_num_dimensions<TMatrix>() );
-  #endif
 }
