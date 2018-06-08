@@ -397,10 +397,6 @@ void test_indexed_view()
 //   }
 
   // static checks of some internals:
-
-  #define STATIC_CHECK( COND ) \
-    EIGEN_STATIC_ASSERT( (COND) , EIGEN_INTERNAL_ERROR_PLEASE_FILE_A_BUG_REPORT )
-
   STATIC_CHECK(( internal::is_valid_index_type<int>::value ));
   STATIC_CHECK(( internal::is_valid_index_type<unsigned int>::value ));
   STATIC_CHECK(( internal::is_valid_index_type<short>::value ));

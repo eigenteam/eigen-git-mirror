@@ -339,6 +339,8 @@ inline void verify_impl(bool condition, const char *testname, const char *file, 
 
 #define VERIFY_IS_UNITARY(a) VERIFY(test_isUnitary(a))
 
+#define STATIC_CHECK(COND) EIGEN_STATIC_ASSERT( (COND) , EIGEN_INTERNAL_ERROR_PLEASE_FILE_A_BUG_REPORT )
+
 #define CALL_SUBTEST(FUNC) do { \
     g_test_stack.push_back(EI_PP_MAKE_STRING(FUNC)); \
     FUNC; \
