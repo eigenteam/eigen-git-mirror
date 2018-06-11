@@ -20,7 +20,9 @@ class GeneralizedSelfAdjointEigenSolver;
 
 namespace internal {
 template<typename SolverType,int Size,bool IsComplex> struct direct_selfadjoint_eigenvalues;
+
 template<typename MatrixType, typename DiagType, typename SubDiagType>
+EIGEN_DEVICE_FUNC
 ComputationInfo computeFromTridiagonal_impl(DiagType& diag, SubDiagType& subdiag, const Index maxIterations, bool computeEigenvectors, MatrixType& eivec);
 }
 
@@ -354,7 +356,8 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
     static const int m_maxIterations = 30;
 
   protected:
-    static void check_template_parameters()
+    static EIGEN_DEVICE_FUNC
+    void check_template_parameters()
     {
       EIGEN_STATIC_ASSERT_NON_INTEGER(Scalar);
     }
@@ -403,7 +406,7 @@ SelfAdjointEigenSolver<MatrixType>& SelfAdjointEigenSolver<MatrixType>
   
   const InputType &matrix(a_matrix.derived());
   
-  using std::abs;
+  EIGEN_USING_STD_MATH(abs);
   eigen_assert(matrix.cols() == matrix.rows());
   eigen_assert((options&~(EigVecMask|GenEigMask))==0
           && (options&EigVecMask)!=EigVecMask
@@ -479,9 +482,10 @@ namespace internal {
   * \returns \c Success or \c NoConvergence
   */
 template<typename MatrixType, typename DiagType, typename SubDiagType>
+EIGEN_DEVICE_FUNC
 ComputationInfo computeFromTridiagonal_impl(DiagType& diag, SubDiagType& subdiag, const Index maxIterations, bool computeEigenvectors, MatrixType& eivec)
 {
-  using std::abs;
+  EIGEN_USING_STD_MATH(abs);
 
   ComputationInfo info;
   typedef typename MatrixType::Scalar Scalar;
@@ -535,7 +539,7 @@ ComputationInfo computeFromTridiagonal_impl(DiagType& diag, SubDiagType& subdiag
       diag.segment(i,n-i).minCoeff(&k);
       if (k > 0)
       {
-        std::swap(diag[i], diag[k+i]);
+        numext::swap(diag[i], diag[k+i]);
         if(computeEigenvectors)
           eivec.col(i).swap(eivec.col(k+i));
       }
@@ -605,7 +609,7 @@ template<typename SolverType> struct direct_selfadjoint_eigenvalues<SolverType,3
   EIGEN_DEVICE_FUNC
   static inline bool extract_kernel(MatrixType& mat, Ref<VectorType> res, Ref<VectorType> representative)
   {
-    using std::abs;
+    EIGEN_USING_STD_MATH(abs);
     Index i0;
     // Find non-zero column i0 (by construction, there must exist a non zero coefficient on the diagonal):
     mat.diagonal().cwiseAbs().maxCoeff(&i0);
@@ -807,7 +811,7 @@ template<int StorageOrder,typename RealScalar, typename Scalar, typename Index>
 EIGEN_DEVICE_FUNC
 static void tridiagonal_qr_step(RealScalar* diag, RealScalar* subdiag, Index start, Index end, Scalar* matrixQ, Index n)
 {
-  using std::abs;
+  EIGEN_USING_STD_MATH(abs);
   RealScalar td = (diag[end-1] - diag[end])*RealScalar(0.5);
   RealScalar e = subdiag[end-1];
   // Note that thanks to scaling, e^2 or td^2 cannot overflow, however they can still

@@ -163,13 +163,13 @@ template<typename Scalar,int Size,int MaxSize,bool Cond> struct gemv_static_vect
 template<typename Scalar,int Size,int MaxSize>
 struct gemv_static_vector_if<Scalar,Size,MaxSize,false>
 {
-  EIGEN_STRONG_INLINE  Scalar* data() { eigen_internal_assert(false && "should never be called"); return 0; }
+  EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Scalar* data() { eigen_internal_assert(false && "should never be called"); return 0; }
 };
 
 template<typename Scalar,int Size>
 struct gemv_static_vector_if<Scalar,Size,Dynamic,true>
 {
-  EIGEN_STRONG_INLINE Scalar* data() { return 0; }
+  EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Scalar* data() { return 0; }
 };
 
 template<typename Scalar,int Size,int MaxSize>

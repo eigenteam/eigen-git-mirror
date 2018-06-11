@@ -1061,6 +1061,7 @@ EIGEN_DOC_BLOCK_ADDONS_NOT_INNER_PANEL
 /// \sa block(Index,Index,NRowsType,NColsType), class Block
 ///
 template<int NRows, int NCols>
+EIGEN_DEVICE_FUNC
 inline typename FixedBlockXpr<NRows,NCols>::Type block(Index startRow, Index startCol,
                                                   Index blockRows, Index blockCols)
 {

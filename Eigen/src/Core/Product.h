@@ -127,7 +127,7 @@ public:
   using Base::derived;
   typedef typename Base::Scalar Scalar;
   
-  EIGEN_STRONG_INLINE operator const Scalar() const
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE operator const Scalar() const
   {
     return internal::evaluator<ProductXpr>(derived()).coeff(0,0);
   }

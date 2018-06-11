@@ -67,7 +67,7 @@ T generic_fast_tanh_float(const T& a_x)
 }
 
 template<typename RealScalar>
-EIGEN_STRONG_INLINE
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
 RealScalar positive_real_hypot(const RealScalar& x, const RealScalar& y)
 {
   EIGEN_USING_STD_MATH(sqrt);
@@ -82,7 +82,8 @@ template<typename Scalar>
 struct hypot_impl
 {
   typedef typename NumTraits<Scalar>::Real RealScalar;
-  static inline RealScalar run(const Scalar& x, const Scalar& y)
+  static EIGEN_DEVICE_FUNC
+  inline RealScalar run(const Scalar& x, const Scalar& y)
   {
     EIGEN_USING_STD_MATH(abs);
     return positive_real_hypot<RealScalar>(abs(x), abs(y));

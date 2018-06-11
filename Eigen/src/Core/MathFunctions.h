@@ -864,7 +864,7 @@ template<typename T> T generic_fast_tanh_float(const T& a_x);
 
 namespace numext {
 
-#if !defined(EIGEN_CUDA_ARCH) && !defined(__SYCL_DEVICE_ONLY__)
+#if (!defined(EIGEN_CUDACC) || defined(EIGEN_CONSTEXPR_ARE_DEVICE_FUNC)) && !defined(__SYCL_DEVICE_ONLY__)
 template<typename T>
 EIGEN_DEVICE_FUNC
 EIGEN_ALWAYS_INLINE T mini(const T& x, const T& y)
@@ -881,19 +881,16 @@ EIGEN_ALWAYS_INLINE T maxi(const T& x, const T& y)
   return max EIGEN_NOT_A_MACRO (x,y);
 }
 
-
 #elif defined(__SYCL_DEVICE_ONLY__)
 template<typename T>
 EIGEN_ALWAYS_INLINE T mini(const T& x, const T& y)
 {
-
   return y < x ? y : x;
 }
 
 template<typename T>
 EIGEN_ALWAYS_INLINE T maxi(const T& x, const T& y)
 {
-
   return x < y ? y : x;
 }
 
@@ -937,7 +934,6 @@ EIGEN_ALWAYS_INLINE unsigned long maxi(const unsigned long& x, const unsigned lo
   return cl::sycl::max(x,y);
 }
 
-
 EIGEN_ALWAYS_INLINE float mini(const float& x, const float& y)
 {
   return cl::sycl::fmin(x,y);
@@ -971,6 +967,19 @@ EIGEN_ALWAYS_INLINE float mini(const float& x, const float& y)
 {
   return fminf(x, y);
 }
+template<>
+EIGEN_DEVICE_FUNC
+EIGEN_ALWAYS_INLINE double mini(const double& x, const double& y)
+{
+  return fmin(x, y);
+}
+template<>
+EIGEN_DEVICE_FUNC
+EIGEN_ALWAYS_INLINE long double mini(const long double& x, const long double& y)
+{
+  return fminl(x, y);
+}
+
 template<typename T>
 EIGEN_DEVICE_FUNC
 EIGEN_ALWAYS_INLINE T maxi(const T& x, const T& y)
@@ -982,6 +991,18 @@ EIGEN_DEVICE_FUNC
 EIGEN_ALWAYS_INLINE float maxi(const float& x, const float& y)
 {
   return fmaxf(x, y);
+}
+template<>
+EIGEN_DEVICE_FUNC
+EIGEN_ALWAYS_INLINE double maxi(const double& x, const double& y)
+{
+  return fmax(x, y);
+}
+template<>
+EIGEN_DEVICE_FUNC
+EIGEN_ALWAYS_INLINE long double maxi(const long double& x, const long double& y)
+{
+  return fmaxl(x, y);
 }
 #endif
 

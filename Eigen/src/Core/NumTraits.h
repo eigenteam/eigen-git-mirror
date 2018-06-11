@@ -21,12 +21,14 @@ template< typename T,
           bool is_integer = NumTraits<T>::IsInteger>
 struct default_digits10_impl
 {
+  EIGEN_DEVICE_FUNC
   static int run() { return std::numeric_limits<T>::digits10; }
 };
 
 template<typename T>
 struct default_digits10_impl<T,false,false> // Floating point
 {
+  EIGEN_DEVICE_FUNC
   static int run() {
     using std::log10;
     using std::ceil;
@@ -38,6 +40,7 @@ struct default_digits10_impl<T,false,false> // Floating point
 template<typename T>
 struct default_digits10_impl<T,false,true> // Integer
 {
+  EIGEN_DEVICE_FUNC
   static int run() { return 0; }
 };
 
@@ -49,12 +52,14 @@ template< typename T,
           bool is_integer = NumTraits<T>::IsInteger>
 struct default_digits_impl
 {
+  EIGEN_DEVICE_FUNC
   static int run() { return std::numeric_limits<T>::digits; }
 };
 
 template<typename T>
 struct default_digits_impl<T,false,false> // Floating point
 {
+  EIGEN_DEVICE_FUNC
   static int run() {
     using std::log;
     using std::ceil;
@@ -66,6 +71,7 @@ struct default_digits_impl<T,false,false> // Floating point
 template<typename T>
 struct default_digits_impl<T,false,true> // Integer
 {
+  EIGEN_DEVICE_FUNC
   static int run() { return 0; }
 };
 

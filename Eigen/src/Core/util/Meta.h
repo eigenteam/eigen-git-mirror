@@ -544,6 +544,7 @@ using std::numeric_limits;
 // Integer division with rounding up.
 // T is assumed to be an integer type with a>=0, and b>0
 template<typename T>
+EIGEN_DEVICE_FUNC
 T div_ceil(const T &a, const T &b)
 {
   return (a+b-1) / b;
@@ -554,7 +555,7 @@ T div_ceil(const T &a, const T &b)
 template<typename X, typename Y> EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC
 bool equal_strict(const X& x,const Y& y) { return x == y; }
 
-#if !defined(EIGEN_CUDA_ARCH)
+#if !defined(EIGEN_CUDA_ARCH) || defined(EIGEN_CONSTEXPR_ARE_DEVICE_FUNC)
 template<> EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC
 bool equal_strict(const float& x,const float& y) { return std::equal_to<float>()(x,y); }
 
@@ -565,7 +566,7 @@ bool equal_strict(const double& x,const double& y) { return std::equal_to<double
 template<typename X, typename Y> EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC
 bool not_equal_strict(const X& x,const Y& y) { return x != y; }
 
-#if !defined(EIGEN_CUDA_ARCH)
+#if !defined(EIGEN_CUDA_ARCH) || defined(EIGEN_CONSTEXPR_ARE_DEVICE_FUNC)
 template<> EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC
 bool not_equal_strict(const float& x,const float& y) { return std::not_equal_to<float>()(x,y); }
 

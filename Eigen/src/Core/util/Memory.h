@@ -542,7 +542,7 @@ template<typename T> struct smart_memmove_helper<T,false> {
 
 // you can overwrite Eigen's default behavior regarding alloca by defining EIGEN_ALLOCA
 // to the appropriate stack allocation function
-#ifndef EIGEN_ALLOCA
+#if ! defined EIGEN_ALLOCA && ! defined EIGEN_CUDA_ARCH
   #if EIGEN_OS_LINUX || EIGEN_OS_MAC || (defined alloca)
     #define EIGEN_ALLOCA alloca
   #elif EIGEN_COMP_MSVC
@@ -561,12 +561,14 @@ template<typename T> class aligned_stack_memory_handler : noncopyable
      * In this case, the buffer elements will also be destructed when this handler will be destructed.
      * Finally, if \a dealloc is true, then the pointer \a ptr is freed.
      **/
+    EIGEN_DEVICE_FUNC
     aligned_stack_memory_handler(T* ptr, std::size_t size, bool dealloc)
       : m_ptr(ptr), m_size(size), m_deallocate(dealloc)
     {
       if(NumTraits<T>::RequireInitialization && m_ptr)
         Eigen::internal::construct_elements_of_array(m_ptr, size);
     }
+    EIGEN_DEVICE_FUNC
     ~aligned_stack_memory_handler()
     {
       if(NumTraits<T>::RequireInitialization && m_ptr)
