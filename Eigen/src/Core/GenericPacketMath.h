@@ -85,6 +85,8 @@ struct default_packet_traits
     HasI0e = 0,
     HasI1e = 0,
     HasIGamma = 0,
+    HasIGammaDerA = 0,
+    HasGammaSampleDerAlpha = 0,
     HasIGammac = 0,
     HasBetaInc = 0,
 

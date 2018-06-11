@@ -120,6 +120,41 @@ double2 pigamma<double2>(const double2& a, const double2& x)
   return make_double2(igamma(a.x, x.x), igamma(a.y, x.y));
 }
 
+template <>
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE float4 pigamma_der_a<float4>(
+    const float4& a, const float4& x) {
+  using numext::igamma_der_a;
+  return make_float4(igamma_der_a(a.x, x.x), igamma_der_a(a.y, x.y),
+                     igamma_der_a(a.z, x.z), igamma_der_a(a.w, x.w));
+}
+
+template <>
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE double2
+pigamma_der_a<double2>(const double2& a, const double2& x) {
+  using numext::igamma_der_a;
+  return make_double2(igamma_der_a(a.x, x.x), igamma_der_a(a.y, x.y));
+}
+
+template <>
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE float4 pgamma_sample_der_alpha<float4>(
+    const float4& alpha, const float4& sample) {
+  using numext::gamma_sample_der_alpha;
+  return make_float4(
+      gamma_sample_der_alpha(alpha.x, sample.x),
+      gamma_sample_der_alpha(alpha.y, sample.y),
+      gamma_sample_der_alpha(alpha.z, sample.z),
+      gamma_sample_der_alpha(alpha.w, sample.w));
+}
+
+template <>
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE double2
+pgamma_sample_der_alpha<double2>(const double2& alpha, const double2& sample) {
+  using numext::gamma_sample_der_alpha;
+  return make_double2(
+      gamma_sample_der_alpha(alpha.x, sample.x),
+      gamma_sample_der_alpha(alpha.y, sample.y));
+}
+
 template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
 float4 pigammac<float4>(const float4& a, const float4& x)
 {
