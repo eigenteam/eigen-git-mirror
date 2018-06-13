@@ -78,7 +78,7 @@ class TensorXsmmContractionBlocking {
       outer_n_ = outer_n_ != 0 ? outer_n_ : n;
     }
 #else
-    // Defaults, possibly overriden per-platform.
+    // Defaults, possibly overridden per-platform.
     copyA_ = true;
     copyB_ = false;
 

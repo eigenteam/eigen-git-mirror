@@ -20,7 +20,7 @@ namespace Eigen {
   * \brief The tensor base class.
   *
   * This class is the common parent of the Tensor and TensorMap class, thus
-  * making it possible to use either class interchangably in expressions.
+  * making it possible to use either class interchangeably in expressions.
   */
 
 template<typename Derived>
@@ -150,6 +150,20 @@ class TensorBase<Derived, ReadOnlyAccessors>
     const TensorCwiseBinaryOp<internal::scalar_igamma_op<Scalar>, const Derived, const OtherDerived>
     igamma(const OtherDerived& other) const {
       return binaryExpr(other.derived(), internal::scalar_igamma_op<Scalar>());
+    }
+
+    // igamma_der_a(a = this, x = other)
+    template<typename OtherDerived> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    const TensorCwiseBinaryOp<internal::scalar_igamma_der_a_op<Scalar>, const Derived, const OtherDerived>
+    igamma_der_a(const OtherDerived& other) const {
+      return binaryExpr(other.derived(), internal::scalar_igamma_der_a_op<Scalar>());
+    }
+
+    // gamma_sample_der_alpha(alpha = this, sample = other)
+    template<typename OtherDerived> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    const TensorCwiseBinaryOp<internal::scalar_gamma_sample_der_alpha_op<Scalar>, const Derived, const OtherDerived>
+    gamma_sample_der_alpha(const OtherDerived& other) const {
+      return binaryExpr(other.derived(), internal::scalar_gamma_sample_der_alpha_op<Scalar>());
     }
 
     // igammac(a = this, x = other)

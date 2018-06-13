@@ -104,7 +104,7 @@ class companion
     /** Helper function for the balancing algorithm.
      * \returns true if the row and the column, having colNorm and rowNorm
      * as norms, are balanced, false otherwise.
-     * colB and rowB are repectively the multipliers for
+     * colB and rowB are respectively the multipliers for
      * the column and the row in order to balance them.
      * */
     bool balanced( RealScalar colNorm, RealScalar rowNorm,
@@ -113,7 +113,7 @@ class companion
     /** Helper function for the balancing algorithm.
      * \returns true if the row and the column, having colNorm and rowNorm
      * as norms, are balanced, false otherwise.
-     * colB and rowB are repectively the multipliers for
+     * colB and rowB are respectively the multipliers for
      * the column and the row in order to balance them.
      * */
     bool balancedR( RealScalar colNorm, RealScalar rowNorm,

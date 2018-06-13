@@ -198,7 +198,7 @@ class RunQueue {
   };
   std::mutex mutex_;
   // Low log(kSize) + 1 bits in front_ and back_ contain rolling index of
-  // front/back, repsectively. The remaining bits contain modification counters
+  // front/back, respectively. The remaining bits contain modification counters
   // that are incremented on Push operations. This allows us to (1) distinguish
   // between empty and full conditions (if we would use log(kSize) bits for
   // position, these conditions would be indistinguishable); (2) obtain

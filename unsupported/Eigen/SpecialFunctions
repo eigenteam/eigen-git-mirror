@@ -29,6 +29,8 @@ namespace Eigen {
   * - erfc
   * - lgamma
   * - igamma
+  * - igamma_der_a
+  * - gamma_sample_der_alpha
   * - igammac
   * - digamma
   * - polygamma

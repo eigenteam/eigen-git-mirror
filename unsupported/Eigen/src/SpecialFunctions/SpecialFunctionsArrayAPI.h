@@ -33,6 +33,48 @@ igamma(const Eigen::ArrayBase<Derived>& a, const Eigen::ArrayBase<ExponentDerive
   );
 }
 
+/** \cpp11 \returns an expression of the coefficient-wise igamma_der_a(\a a, \a x) to the given arrays.
+  *
+  * This function computes the coefficient-wise derivative of the incomplete
+  * gamma function with respect to the parameter a.
+  *
+  * \note This function supports only float and double scalar types in c++11
+  * mode. To support other scalar types,
+  * or float/double in non c++11 mode, the user has to provide implementations
+  * of igamma_der_a(T,T) for any scalar
+  * type T to be supported.
+  *
+  * \sa Eigen::igamma(), Eigen::lgamma()
+  */
+template <typename Derived, typename ExponentDerived>
+inline const Eigen::CwiseBinaryOp<Eigen::internal::scalar_igamma_der_a_op<typename Derived::Scalar>, const Derived, const ExponentDerived>
+igamma_der_a(const Eigen::ArrayBase<Derived>& a, const Eigen::ArrayBase<ExponentDerived>& x) {
+  return Eigen::CwiseBinaryOp<Eigen::internal::scalar_igamma_der_a_op<typename Derived::Scalar>, const Derived, const ExponentDerived>(
+    a.derived(),
+    x.derived());
+}
+
+/** \cpp11 \returns an expression of the coefficient-wise gamma_sample_der_alpha(\a alpha, \a sample) to the given arrays.
+  *
+  * This function computes the coefficient-wise derivative of the sample
+  * of a Gamma(alpha, 1) random variable with respect to the parameter alpha.
+  *
+  * \note This function supports only float and double scalar types in c++11
+  * mode. To support other scalar types,
+  * or float/double in non c++11 mode, the user has to provide implementations
+  * of gamma_sample_der_alpha(T,T) for any scalar
+  * type T to be supported.
+  *
+  * \sa Eigen::igamma(), Eigen::lgamma()
+  */
+template <typename AlphaDerived, typename SampleDerived>
+inline const Eigen::CwiseBinaryOp<Eigen::internal::scalar_gamma_sample_der_alpha_op<typename AlphaDerived::Scalar>, const AlphaDerived, const SampleDerived>
+gamma_sample_der_alpha(const Eigen::ArrayBase<AlphaDerived>& alpha, const Eigen::ArrayBase<SampleDerived>& sample) {
+  return Eigen::CwiseBinaryOp<Eigen::internal::scalar_gamma_sample_der_alpha_op<typename AlphaDerived::Scalar>, const AlphaDerived, const SampleDerived>(
+      alpha.derived(),
+      sample.derived());
+}
+
 /** \cpp11 \returns an expression of the coefficient-wise igammac(\a a, \a x) to the given arrays.
   *
   * This function computes the coefficient-wise complementary incomplete gamma function.

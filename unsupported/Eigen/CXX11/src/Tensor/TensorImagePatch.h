@@ -272,8 +272,8 @@ struct TensorEvaluator<const TensorImagePatchOp<Rows, Cols, ArgType>, Device>
           break;
         default:
           eigen_assert(false && "unexpected padding");
-          m_outputCols=0; // silence the uninitialised warnig;
-          m_outputRows=0; //// silence the uninitialised warnig;
+          m_outputCols=0; // silence the uninitialised warning;
+          m_outputRows=0; //// silence the uninitialised warning;
       }
     }
     eigen_assert(m_outputRows > 0);

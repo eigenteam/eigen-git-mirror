@@ -284,13 +284,13 @@ RealSchur<MatrixType>& RealSchur<MatrixType>::computeFromHessenberg(const HessMa
   using std::abs;
 
   m_matT = matrixH;
+  m_workspaceVector.resize(m_matT.cols());
   if(computeU)
-    m_matU = matrixQ;
+    matrixQ.evalTo(m_matU, m_workspaceVector);
   
   Index maxIters = m_maxIters;
   if (maxIters == -1)
     maxIters = m_maxIterationsPerRow * matrixH.rows();
-  m_workspaceVector.resize(m_matT.cols());
   Scalar* workspace = &m_workspaceVector.coeffRef(0);
 
   // The matrix m_matT is divided in three parts. 

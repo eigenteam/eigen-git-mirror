@@ -132,7 +132,7 @@ void test_forward_adolc()
   }
 
   {
-    // simple instanciation tests
+    // simple instantiation tests
     Matrix<adtl::adouble,2,1> x;
     foo(x);
     Matrix<adtl::adouble,Dynamic,Dynamic> A(4,4);;

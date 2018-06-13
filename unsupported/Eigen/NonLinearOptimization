@@ -35,7 +35,7 @@
   * a zero for the system (Powell hybrid "dogleg" method).
   *
   * This code is a port of minpack (http://en.wikipedia.org/wiki/MINPACK).
-  * Minpack is a very famous, old, robust and well-reknown package, written in 
+  * Minpack is a very famous, old, robust and well renowned package, written in
   * fortran. Those implementations have been carefully tuned, tested, and used
   * for several decades.
   *
@@ -63,7 +63,7 @@
   * Other tests were added by myself at the very beginning of the 
   * process and check the results for levenberg-marquardt using the reference data 
   * on http://www.itl.nist.gov/div898/strd/nls/nls_main.shtml. Since then i've 
-  * carefully checked that the same results were obtained when modifiying the 
+  * carefully checked that the same results were obtained when modifying the
   * code. Please note that we do not always get the exact same decimals as they do,
   * but this is ok : they use 128bits float, and we do the tests using the C type 'double',
   * which is 64 bits on most platforms (x86 and amd64, at least).

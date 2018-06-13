@@ -47,7 +47,7 @@ set(EIGEN_TEST_MATRIX_DIR "" CACHE STRING "Enable testing of realword sparse mat
 if(EIGEN_TEST_MATRIX_DIR)
   if(NOT WIN32)
     message(STATUS "Test realworld sparse matrices: ${EIGEN_TEST_MATRIX_DIR}")
-    add_definitions( -DTEST_REAL_CASES=${EIGEN_TEST_MATRIX_DIR} )
+    add_definitions( -DTEST_REAL_CASES="${EIGEN_TEST_MATRIX_DIR}" )
   else(NOT WIN32)
     message(STATUS "REAL CASES CAN NOT BE CURRENTLY TESTED ON WIN32")
   endif(NOT WIN32)
@@ -292,6 +292,7 @@ ei_add_test(mpl2only)
 ei_add_test(inplace_decomposition)
 ei_add_test(half_float)
 ei_add_test(array_of_string)
+ei_add_test(num_dimensions)
 
 add_executable(bug1213 bug1213.cpp bug1213_main.cpp)
 

@@ -335,6 +335,7 @@ template<typename ArrayType> void array_special_functions()
         ArrayType test = betainc(a, b + one, x) + eps;
         verify_component_wise(test, expected););
   }
+#endif  // EIGEN_HAS_C99_MATH
 
   // Test Bessel function i0e. Reference results obtained with SciPy.
   {
@@ -375,7 +376,100 @@ template<typename ArrayType> void array_special_functions()
     CALL_SUBTEST(res = i1e(x);
                  verify_component_wise(res, expected););
   }
-#endif
+
+  /* Code to generate the data for the following two test cases.
+    N = 5
+    np.random.seed(3)
+
+    a = np.logspace(-2, 3, 6)
+    a = np.ravel(np.tile(np.reshape(a, [-1, 1]), [1, N]))
+    x = np.random.gamma(a, 1.0)
+    x = np.maximum(x, np.finfo(np.float32).tiny)
+
+    def igamma(a, x):
+      return mpmath.gammainc(a, 0, x, regularized=True)
+
+    def igamma_der_a(a, x):
+      res = mpmath.diff(lambda a_prime: igamma(a_prime, x), a)
+      return np.float64(res)
+
+    def gamma_sample_der_alpha(a, x):
+      igamma_x = igamma(a, x)
+      def igammainv_of_igamma(a_prime):
+        return mpmath.findroot(lambda x_prime: igamma(a_prime, x_prime) -
+            igamma_x, x, solver='newton')
+      return np.float64(mpmath.diff(igammainv_of_igamma, a))
+
+    v_igamma_der_a = np.vectorize(igamma_der_a)(a, x)
+    v_gamma_sample_der_alpha = np.vectorize(gamma_sample_der_alpha)(a, x)
+  */
+
+#if EIGEN_HAS_C99_MATH
+  // Test igamma_der_a
+  {
+    ArrayType a(30);
+    ArrayType x(30);
+    ArrayType res(30);
+    ArrayType v(30);
+
+    a << 0.01, 0.01, 0.01, 0.01, 0.01, 0.1, 0.1, 0.1, 0.1, 0.1, 1.0, 1.0, 1.0,
+        1.0, 1.0, 10.0, 10.0, 10.0, 10.0, 10.0, 100.0, 100.0, 100.0, 100.0,
+        100.0, 1000.0, 1000.0, 1000.0, 1000.0, 1000.0;
+
+    x << 1.25668890405e-26, 1.17549435082e-38, 1.20938905072e-05,
+        1.17549435082e-38, 1.17549435082e-38, 5.66572070696e-16,
+        0.0132865061065, 0.0200034203853, 6.29263709118e-17, 1.37160367764e-06,
+        0.333412038288, 1.18135687766, 0.580629033777, 0.170631439426,
+        0.786686768458, 7.63873279537, 13.1944344379, 11.896042354,
+        10.5830172417, 10.5020942233, 92.8918587747, 95.003720371,
+        86.3715926467, 96.0330217672, 82.6389930677, 968.702906754,
+        969.463546828, 1001.79726022, 955.047416547, 1044.27458568;
+
+    v << -32.7256441441, -36.4394150514, -9.66467612263, -36.4394150514,
+        -36.4394150514, -1.0891900302, -2.66351229645, -2.48666868596,
+        -0.929700494428, -3.56327722764, -0.455320135314, -0.391437214323,
+        -0.491352055991, -0.350454834292, -0.471773162921, -0.104084440522,
+        -0.0723646747909, -0.0992828975532, -0.121638215446, -0.122619605294,
+        -0.0317670267286, -0.0359974812869, -0.0154359225363, -0.0375775365921,
+        -0.00794899153653, -0.00777303219211, -0.00796085782042,
+        -0.0125850719397, -0.00455500206958, -0.00476436993148;
+
+    CALL_SUBTEST(res = igamma_der_a(a, x); verify_component_wise(res, v););
+  }
+
+  // Test gamma_sample_der_alpha
+  {
+    ArrayType alpha(30);
+    ArrayType sample(30);
+    ArrayType res(30);
+    ArrayType v(30);
+
+    alpha << 0.01, 0.01, 0.01, 0.01, 0.01, 0.1, 0.1, 0.1, 0.1, 0.1, 1.0, 1.0,
+        1.0, 1.0, 1.0, 10.0, 10.0, 10.0, 10.0, 10.0, 100.0, 100.0, 100.0, 100.0,
+        100.0, 1000.0, 1000.0, 1000.0, 1000.0, 1000.0;
+
+    sample << 1.25668890405e-26, 1.17549435082e-38, 1.20938905072e-05,
+        1.17549435082e-38, 1.17549435082e-38, 5.66572070696e-16,
+        0.0132865061065, 0.0200034203853, 6.29263709118e-17, 1.37160367764e-06,
+        0.333412038288, 1.18135687766, 0.580629033777, 0.170631439426,
+        0.786686768458, 7.63873279537, 13.1944344379, 11.896042354,
+        10.5830172417, 10.5020942233, 92.8918587747, 95.003720371,
+        86.3715926467, 96.0330217672, 82.6389930677, 968.702906754,
+        969.463546828, 1001.79726022, 955.047416547, 1044.27458568;
+
+    v << 7.42424742367e-23, 1.02004297287e-34, 0.0130155240738,
+        1.02004297287e-34, 1.02004297287e-34, 1.96505168277e-13, 0.525575786243,
+        0.713903991771, 2.32077561808e-14, 0.000179348049886, 0.635500453302,
+        1.27561284917, 0.878125852156, 0.41565819538, 1.03606488534,
+        0.885964824887, 1.16424049334, 1.10764479598, 1.04590810812,
+        1.04193666963, 0.965193152414, 0.976217589464, 0.93008035061,
+        0.98153216096, 0.909196397698, 0.98434963993, 0.984738050206,
+        1.00106492525, 0.97734200649, 1.02198794179;
+
+    CALL_SUBTEST(res = gamma_sample_der_alpha(alpha, sample);
+                 verify_component_wise(res, v););
+  }
+#endif  // EIGEN_HAS_C99_MATH
 }
 
 void test_special_functions()

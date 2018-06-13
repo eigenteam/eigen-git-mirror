@@ -5,7 +5,7 @@
 
 /*
 
-NOTE: thes functions vave been adapted from the LDL library:
+NOTE: these functions have been adapted from the LDL library:
 
 LDL Copyright (c) 2005 by Timothy A. Davis.  All Rights Reserved.
 

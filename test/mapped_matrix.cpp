@@ -205,7 +205,6 @@ void test_mapped_matrix()
     CALL_SUBTEST_8( map_static_methods(RowVector3d()) );
     CALL_SUBTEST_9( map_static_methods(VectorXcd(8)) );
     CALL_SUBTEST_10( map_static_methods(VectorXf(12)) );
-    
     CALL_SUBTEST_11( map_not_aligned_on_scalar<double>() );
   }
 }

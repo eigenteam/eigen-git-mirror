@@ -181,7 +181,7 @@ namespace Eigen
    * \ingroup Splines_Module
    *
    * \param[in] pts The data points to which a spline should be fit.
-   * \param[out] chord_lengths The resulting chord lenggth vector.
+   * \param[out] chord_lengths The resulting chord length vector.
    *
    * \sa Les Piegl and Wayne Tiller, The NURBS book (2nd ed.), 1997, 9.2.1 Global Curve Interpolation to Point Data
    **/   
