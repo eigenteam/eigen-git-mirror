@@ -68,9 +68,19 @@
 // are defined here and any not-parenthesized min/max call will cause a
 // compiler error.
 #if !defined(__HIPCC__)
-  // HIP headers include the <thread> header which contains not-parenthesized
-  // calls to "max", triggering the following check and causing the compile to fail
-  // so disabling the following checks for HIP
+  //
+  // HIP header files include the following files
+  //  <thread>
+  //  <regex>
+  //  <unordered_map>
+  // which seem to contain not-parenthesized calls to "max"/"min", triggering the following check and causing the compile to fail
+  //
+  // Including those header files before the following macro definition for "min" / "max", only partially resolves the issue
+  // This is because other HIP header files also define "isnan" / "isinf" / "isfinite" functions, which are needed in other
+  // headers.
+  //
+  // So instead choosing to simply disable this check for HIP
+  //
   #define min(A,B) please_protect_your_min_with_parentheses
   #define max(A,B) please_protect_your_max_with_parentheses
   #define isnan(X) please_protect_your_isnan_with_parentheses

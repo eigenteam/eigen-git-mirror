@@ -52,7 +52,7 @@ struct PacketType : internal::packet_traits<Scalar> {
 };
 
 // For CUDA packet types when using a GpuDevice
-#if defined(EIGEN_USE_GPU) && ((defined(EIGEN_CUDACC) && defined(EIGEN_HAS_CUDA_FP16)) || (defined(EIGEN_HIPCC) && defined(EIGEN_HAS_HIP_FP16)))
+#if defined(EIGEN_USE_GPU) && defined(EIGEN_HAS_GPU_FP16)
 template <>
 struct PacketType<half, GpuDevice> {
   typedef half2 type;

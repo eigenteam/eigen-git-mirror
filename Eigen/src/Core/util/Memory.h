@@ -171,7 +171,7 @@ EIGEN_DEVICE_FUNC inline void* aligned_malloc(std::size_t size)
   #if (EIGEN_DEFAULT_ALIGN_BYTES==0) || EIGEN_MALLOC_ALREADY_ALIGNED
   
     #if defined(EIGEN_HIP_DEVICE_COMPILE)
-    result = aligned_malloc(size);
+    result = ::malloc(size);
     #else
     result = std::malloc(size);
     #endif
@@ -195,7 +195,7 @@ EIGEN_DEVICE_FUNC inline void aligned_free(void *ptr)
   #if (EIGEN_DEFAULT_ALIGN_BYTES==0) || EIGEN_MALLOC_ALREADY_ALIGNED
 
     #if defined(EIGEN_HIP_DEVICE_COMPILE)
-    aligned_free(ptr);
+    ::free(ptr);
     #else
     std::free(ptr);
     #endif
@@ -244,7 +244,7 @@ template<> EIGEN_DEVICE_FUNC inline void* conditional_aligned_malloc<false>(std:
   check_that_malloc_is_allowed();
 
   #if defined(EIGEN_HIP_DEVICE_COMPILE)
-  void *result = aligned_malloc(size);
+  void *result = ::malloc(size);
   #else
   void *result = std::malloc(size);
   #endif
@@ -263,7 +263,7 @@ template<bool Align> EIGEN_DEVICE_FUNC inline void conditional_aligned_free(void
 template<> EIGEN_DEVICE_FUNC inline void conditional_aligned_free<false>(void *ptr)
 {
   #if defined(EIGEN_HIP_DEVICE_COMPILE)
-  aligned_free(ptr);
+  ::free(ptr);
   #else
   std::free(ptr);
   #endif

@@ -1222,9 +1222,8 @@ void test_cxx11_tensor_hip()
   CALL_SUBTEST(test_hip_elementwise());
   CALL_SUBTEST(test_hip_props());
   CALL_SUBTEST(test_hip_reduction());
-  // FIXME : uncommenting following tests results in compile failure
-  // CALL_SUBTEST(test_hip_contraction<ColMajor>());
-  // CALL_SUBTEST(test_hip_contraction<RowMajor>());
+  CALL_SUBTEST(test_hip_contraction<ColMajor>());
+  CALL_SUBTEST(test_hip_contraction<RowMajor>());
   CALL_SUBTEST(test_hip_convolution_1d<ColMajor>());
   CALL_SUBTEST(test_hip_convolution_1d<RowMajor>());
   CALL_SUBTEST(test_hip_convolution_inner_dim_col_major_1d());
