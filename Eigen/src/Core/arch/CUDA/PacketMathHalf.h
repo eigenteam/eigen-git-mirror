@@ -692,20 +692,20 @@ ptranspose(PacketBlock<Packet16h,16>& kernel) {
 
   // NOTE: no unpacklo/hi instr in this case, so using permute instr.
   __m256i a_p_0 = _mm256_permute2x128_si256(abcdefgh_01, ijklmnop_01, 0x20);
-  __m256i a_p_1 = _mm256_permute2x128_si256(abcdefgh_01, ijklmnop_01, 0x31);
-  __m256i a_p_2 = _mm256_permute2x128_si256(abcdefgh_23, ijklmnop_23, 0x20);
-  __m256i a_p_3 = _mm256_permute2x128_si256(abcdefgh_23, ijklmnop_23, 0x31);
-  __m256i a_p_4 = _mm256_permute2x128_si256(abcdefgh_45, ijklmnop_45, 0x20);
-  __m256i a_p_5 = _mm256_permute2x128_si256(abcdefgh_45, ijklmnop_45, 0x31);
-  __m256i a_p_6 = _mm256_permute2x128_si256(abcdefgh_67, ijklmnop_67, 0x20);
-  __m256i a_p_7 = _mm256_permute2x128_si256(abcdefgh_67, ijklmnop_67, 0x31);
-  __m256i a_p_8 = _mm256_permute2x128_si256(abcdefgh_89, ijklmnop_89, 0x20);
-  __m256i a_p_9 = _mm256_permute2x128_si256(abcdefgh_89, ijklmnop_89, 0x31);
-  __m256i a_p_a = _mm256_permute2x128_si256(abcdefgh_ab, ijklmnop_ab, 0x20);
-  __m256i a_p_b = _mm256_permute2x128_si256(abcdefgh_ab, ijklmnop_ab, 0x31);
-  __m256i a_p_c = _mm256_permute2x128_si256(abcdefgh_cd, ijklmnop_cd, 0x20);
-  __m256i a_p_d = _mm256_permute2x128_si256(abcdefgh_cd, ijklmnop_cd, 0x31);
-  __m256i a_p_e = _mm256_permute2x128_si256(abcdefgh_ef, ijklmnop_ef, 0x20);
+  __m256i a_p_1 = _mm256_permute2x128_si256(abcdefgh_23, ijklmnop_23, 0x20);
+  __m256i a_p_2 = _mm256_permute2x128_si256(abcdefgh_45, ijklmnop_45, 0x20);
+  __m256i a_p_3 = _mm256_permute2x128_si256(abcdefgh_67, ijklmnop_67, 0x20);
+  __m256i a_p_4 = _mm256_permute2x128_si256(abcdefgh_89, ijklmnop_89, 0x20);
+  __m256i a_p_5 = _mm256_permute2x128_si256(abcdefgh_ab, ijklmnop_ab, 0x20);
+  __m256i a_p_6 = _mm256_permute2x128_si256(abcdefgh_cd, ijklmnop_cd, 0x20);
+  __m256i a_p_7 = _mm256_permute2x128_si256(abcdefgh_ef, ijklmnop_ef, 0x20);
+  __m256i a_p_8 = _mm256_permute2x128_si256(abcdefgh_01, ijklmnop_01, 0x31);
+  __m256i a_p_9 = _mm256_permute2x128_si256(abcdefgh_23, ijklmnop_23, 0x31);
+  __m256i a_p_a = _mm256_permute2x128_si256(abcdefgh_45, ijklmnop_45, 0x31);
+  __m256i a_p_b = _mm256_permute2x128_si256(abcdefgh_67, ijklmnop_67, 0x31);
+  __m256i a_p_c = _mm256_permute2x128_si256(abcdefgh_89, ijklmnop_89, 0x31);
+  __m256i a_p_d = _mm256_permute2x128_si256(abcdefgh_ab, ijklmnop_ab, 0x31);
+  __m256i a_p_e = _mm256_permute2x128_si256(abcdefgh_cd, ijklmnop_cd, 0x31);
   __m256i a_p_f = _mm256_permute2x128_si256(abcdefgh_ef, ijklmnop_ef, 0x31);
 
   kernel.packet[0].x = a_p_0;
