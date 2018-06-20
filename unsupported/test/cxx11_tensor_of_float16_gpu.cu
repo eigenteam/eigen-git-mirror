@@ -9,7 +9,7 @@
 
 #define EIGEN_TEST_NO_LONGDOUBLE
 #define EIGEN_TEST_NO_COMPLEX
-#define EIGEN_TEST_FUNC cxx11_tensor_of_float16_cuda
+#define EIGEN_TEST_FUNC cxx11_tensor_of_float16_gpu
 #define EIGEN_DEFAULT_DENSE_INDEX_TYPE int
 #define EIGEN_USE_GPU
 
@@ -20,8 +20,8 @@
 using Eigen::Tensor;
 
 template<typename>
-void test_cuda_numext() {
-  Eigen::CudaStreamDevice stream;
+void test_gpu_numext() {
+  Eigen::GpuStreamDevice stream;
   Eigen::GpuDevice gpu_device(&stream);
   int num_elem = 101;
 
@@ -57,11 +57,11 @@ void test_cuda_numext() {
 }
 
 
-#ifdef EIGEN_HAS_CUDA_FP16
+#ifdef EIGEN_HAS_GPU_FP16
 
 template<typename>
-void test_cuda_conversion() {
-  Eigen::CudaStreamDevice stream;
+void test_gpu_conversion() {
+  Eigen::GpuStreamDevice stream;
   Eigen::GpuDevice gpu_device(&stream);
   int num_elem = 101;
   
@@ -95,8 +95,8 @@ void test_cuda_conversion() {
 }
 
 template<typename>
-void test_cuda_unary() {
-  Eigen::CudaStreamDevice stream;
+void test_gpu_unary() {
+  Eigen::GpuStreamDevice stream;
   Eigen::GpuDevice gpu_device(&stream);
   int num_elem = 101;
 
@@ -132,8 +132,8 @@ void test_cuda_unary() {
 }
 
 template<typename>
-void test_cuda_elementwise() {
-  Eigen::CudaStreamDevice stream;
+void test_gpu_elementwise() {
+  Eigen::GpuStreamDevice stream;
   Eigen::GpuDevice gpu_device(&stream);
   int num_elem = 101;
 
@@ -174,8 +174,8 @@ void test_cuda_elementwise() {
 }
 
 template<typename>
-void test_cuda_trancendental() {
-  Eigen::CudaStreamDevice stream;
+void test_gpu_trancendental() {
+  Eigen::GpuStreamDevice stream;
   Eigen::GpuDevice gpu_device(&stream);
   int num_elem = 101;
 
@@ -268,8 +268,8 @@ void test_cuda_trancendental() {
 }
 
 template<typename>
-void test_cuda_contractions() {
-  Eigen::CudaStreamDevice stream;
+void test_gpu_contractions() {
+  Eigen::GpuStreamDevice stream;
   Eigen::GpuDevice gpu_device(&stream);
   int rows = 23;
   int cols = 23;
@@ -319,12 +319,12 @@ void test_cuda_contractions() {
 }
 
 template<typename>
-void test_cuda_reductions(int size1, int size2, int redux) {
+void test_gpu_reductions(int size1, int size2, int redux) {
 
    std::cout << "Reducing " << size1 << " by " << size2
              << " tensor along dim " << redux << std::endl; 
 
-  Eigen::CudaStreamDevice stream;
+  Eigen::GpuStreamDevice stream;
   Eigen::GpuDevice gpu_device(&stream);
   int num_elem = size1*size2;
   int result_size = (redux == 1 ? size1 : size2);
@@ -368,20 +368,20 @@ void test_cuda_reductions(int size1, int size2, int redux) {
 }
 
 template<typename>
-void test_cuda_reductions() {
-  test_cuda_reductions<void>(13, 13, 0);
-  test_cuda_reductions<void>(13, 13, 1);
+void test_gpu_reductions() {
+  test_gpu_reductions<void>(13, 13, 0);
+  test_gpu_reductions<void>(13, 13, 1);
 
-  test_cuda_reductions<void>(35, 36, 0);
-  test_cuda_reductions<void>(35, 36, 1);
+  test_gpu_reductions<void>(35, 36, 0);
+  test_gpu_reductions<void>(35, 36, 1);
 
-  test_cuda_reductions<void>(36, 35, 0);
-  test_cuda_reductions<void>(36, 35, 1);
+  test_gpu_reductions<void>(36, 35, 0);
+  test_gpu_reductions<void>(36, 35, 1);
 }
 
 template<typename>
-void test_cuda_full_reductions() {
-  Eigen::CudaStreamDevice stream;
+void test_gpu_full_reductions() {
+  Eigen::GpuStreamDevice stream;
   Eigen::GpuDevice gpu_device(&stream);
   int size = 13;
   int num_elem = size*size;
@@ -429,9 +429,9 @@ void test_cuda_full_reductions() {
 }
 
 template<typename>
-void test_cuda_forced_evals() {
+void test_gpu_forced_evals() {
 
-  Eigen::CudaStreamDevice stream;
+  Eigen::GpuStreamDevice stream;
   Eigen::GpuDevice gpu_device(&stream);
   int num_elem = 101;
 
@@ -479,20 +479,20 @@ void test_cuda_forced_evals() {
 #endif
 
 
-void test_cxx11_tensor_of_float16_cuda()
+void test_cxx11_tensor_of_float16_gpu()
 {
-  CALL_SUBTEST_1(test_cuda_numext<void>());
+  CALL_SUBTEST_1(test_gpu_numext<void>());
 
-#ifdef EIGEN_HAS_CUDA_FP16
-  CALL_SUBTEST_1(test_cuda_conversion<void>());
-  CALL_SUBTEST_1(test_cuda_unary<void>());
-  CALL_SUBTEST_1(test_cuda_elementwise<void>());
-  CALL_SUBTEST_1(test_cuda_trancendental<void>());
-  CALL_SUBTEST_2(test_cuda_contractions<void>());
-  CALL_SUBTEST_3(test_cuda_reductions<void>());
-  CALL_SUBTEST_4(test_cuda_full_reductions<void>());
-  CALL_SUBTEST_5(test_cuda_forced_evals<void>());
+#ifdef EIGEN_HAS_GPU_FP16
+  CALL_SUBTEST_1(test_gpu_conversion<void>());
+  CALL_SUBTEST_1(test_gpu_unary<void>());
+  CALL_SUBTEST_1(test_gpu_elementwise<void>());
+  CALL_SUBTEST_1(test_gpu_trancendental<void>());
+  CALL_SUBTEST_2(test_gpu_contractions<void>());
+  CALL_SUBTEST_3(test_gpu_reductions<void>());
+  CALL_SUBTEST_4(test_gpu_full_reductions<void>());
+  CALL_SUBTEST_5(test_gpu_forced_evals<void>());
 #else
-  std::cout << "Half floats are not supported by this version of cuda: skipping the test" << std::endl;
+  std::cout << "Half floats are not supported by this version of gpu: skipping the test" << std::endl;
 #endif
 }

@@ -9,15 +9,16 @@
 
 #define EIGEN_TEST_NO_LONGDOUBLE
 #define EIGEN_TEST_NO_COMPLEX
-#define EIGEN_TEST_FUNC cxx11_tensor_random_cuda
+#define EIGEN_TEST_FUNC cxx11_tensor_random_gpu
 #define EIGEN_DEFAULT_DENSE_INDEX_TYPE int
 #define EIGEN_USE_GPU
 
 #include "main.h"
 #include <Eigen/CXX11/Tensor>
 
+#include <Eigen/CXX11/src/Tensor/TensorGpuHipCudaDefines.h>
 
-void test_cuda_random_uniform()
+void test_gpu_random_uniform()
 {
   Tensor<float, 2> out(72,97);
   out.setZero();
@@ -25,24 +26,24 @@ void test_cuda_random_uniform()
   std::size_t out_bytes = out.size() * sizeof(float);
 
   float* d_out;
-  cudaMalloc((void**)(&d_out), out_bytes);
+  gpuMalloc((void**)(&d_out), out_bytes);
 
-  Eigen::CudaStreamDevice stream;
+  Eigen::GpuStreamDevice stream;
   Eigen::GpuDevice gpu_device(&stream);
 
   Eigen::TensorMap<Eigen::Tensor<float, 2> > gpu_out(d_out, 72,97);
 
   gpu_out.device(gpu_device) = gpu_out.random();
 
-  assert(cudaMemcpyAsync(out.data(), d_out, out_bytes, cudaMemcpyDeviceToHost, gpu_device.stream()) == cudaSuccess);
-  assert(cudaStreamSynchronize(gpu_device.stream()) == cudaSuccess);
+  assert(gpuMemcpyAsync(out.data(), d_out, out_bytes, gpuMemcpyDeviceToHost, gpu_device.stream()) == gpuSuccess);
+  assert(gpuStreamSynchronize(gpu_device.stream()) == gpuSuccess);
 
   // For now we just check this code doesn't crash.
   // TODO: come up with a valid test of randomness
 }
 
 
-void test_cuda_random_normal()
+void test_gpu_random_normal()
 {
   Tensor<float, 2> out(72,97);
   out.setZero();
@@ -50,9 +51,9 @@ void test_cuda_random_normal()
   std::size_t out_bytes = out.size() * sizeof(float);
 
   float* d_out;
-  cudaMalloc((void**)(&d_out), out_bytes);
+  gpuMalloc((void**)(&d_out), out_bytes);
 
-  Eigen::CudaStreamDevice stream;
+  Eigen::GpuStreamDevice stream;
   Eigen::GpuDevice gpu_device(&stream);
 
   Eigen::TensorMap<Eigen::Tensor<float, 2> > gpu_out(d_out, 72,97);
@@ -60,8 +61,8 @@ void test_cuda_random_normal()
   Eigen::internal::NormalRandomGenerator<float> gen(true);
   gpu_out.device(gpu_device) = gpu_out.random(gen);
 
-  assert(cudaMemcpyAsync(out.data(), d_out, out_bytes, cudaMemcpyDeviceToHost, gpu_device.stream()) == cudaSuccess);
-  assert(cudaStreamSynchronize(gpu_device.stream()) == cudaSuccess);
+  assert(gpuMemcpyAsync(out.data(), d_out, out_bytes, gpuMemcpyDeviceToHost, gpu_device.stream()) == gpuSuccess);
+  assert(gpuStreamSynchronize(gpu_device.stream()) == gpuSuccess);
 }
 
 static void test_complex()
@@ -77,9 +78,9 @@ static void test_complex()
 }
 
 
-void test_cxx11_tensor_random_cuda()
+void test_cxx11_tensor_random_gpu()
 {
-  CALL_SUBTEST(test_cuda_random_uniform());
-  CALL_SUBTEST(test_cuda_random_normal());
+  CALL_SUBTEST(test_gpu_random_uniform());
+  CALL_SUBTEST(test_gpu_random_normal());
   CALL_SUBTEST(test_complex());
 }

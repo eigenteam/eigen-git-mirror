@@ -28,7 +28,7 @@ void test_cuda_complex_cwise_ops() {
   cudaMalloc((void**)(&d_in2), complex_bytes);
   cudaMalloc((void**)(&d_out), complex_bytes);
 
-  Eigen::CudaStreamDevice stream;
+  Eigen::GpuStreamDevice stream;
   Eigen::GpuDevice gpu_device(&stream);
 
   Eigen::TensorMap<Eigen::Tensor<std::complex<T>, 1, 0, int>, Eigen::Aligned> gpu_in1(

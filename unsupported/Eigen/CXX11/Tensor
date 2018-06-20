@@ -99,11 +99,7 @@ typedef unsigned __int64 uint64_t;
 #include "src/Tensor/TensorCostModel.h"
 #include "src/Tensor/TensorDeviceDefault.h"
 #include "src/Tensor/TensorDeviceThreadPool.h"
-#if defined(EIGEN_USE_HIP)
-  #include "src/Tensor/TensorDeviceHip.h"
-#else
-  #include "src/Tensor/TensorDeviceCuda.h"
-#endif
+#include "src/Tensor/TensorDeviceGpu.h"
 #include "src/Tensor/TensorDeviceSycl.h"
 #include "src/Tensor/TensorIndexList.h"
 #include "src/Tensor/TensorDimensionList.h"
@@ -120,28 +116,16 @@ typedef unsigned __int64 uint64_t;
 #include "src/Tensor/TensorEvaluator.h"
 #include "src/Tensor/TensorExpr.h"
 #include "src/Tensor/TensorReduction.h"
-#if defined(EIGEN_USE_HIP)
-  #include "src/Tensor/TensorReductionHip.h"
-#else
-  #include "src/Tensor/TensorReductionCuda.h"
-#endif
+#include "src/Tensor/TensorReductionGpu.h"
 #include "src/Tensor/TensorArgMax.h"
 #include "src/Tensor/TensorConcatenation.h"
 #include "src/Tensor/TensorContractionMapper.h"
 #include "src/Tensor/TensorContractionBlocking.h"
 #include "src/Tensor/TensorContraction.h"
 #include "src/Tensor/TensorContractionThreadPool.h"
-#if defined(EIGEN_USE_HIP)
-  #include "src/Tensor/TensorContractionHip.h"
-#else
-  #include "src/Tensor/TensorContractionCuda.h"
-#endif
+#include "src/Tensor/TensorContractionGpu.h"
 #include "src/Tensor/TensorConversion.h"
-#if defined(EIGEN_USE_HIP)
-  #include "src/Tensor/TensorConvolutionHip.h"
-#else
-  #include "src/Tensor/TensorConvolution.h"
-#endif   
+#include "src/Tensor/TensorConvolution.h"
 #include "src/Tensor/TensorFFT.h"
 #include "src/Tensor/TensorPatch.h"
 #include "src/Tensor/TensorImagePatch.h"

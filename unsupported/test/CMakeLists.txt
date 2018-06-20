@@ -274,24 +274,24 @@ if(CUDA_FOUND AND EIGEN_TEST_CUDA)
   cuda_include_directories("${CMAKE_CURRENT_BINARY_DIR}" "${CUDA_TOOLKIT_ROOT_DIR}/include")
   set(EIGEN_ADD_TEST_FILENAME_EXTENSION "cu")
 
-  ei_add_test(cxx11_tensor_complex_cuda)
-  ei_add_test(cxx11_tensor_complex_cwise_ops_cuda)
-  ei_add_test(cxx11_tensor_reduction_cuda)
-  ei_add_test(cxx11_tensor_argmax_cuda)
-  ei_add_test(cxx11_tensor_cast_float16_cuda)
-  ei_add_test(cxx11_tensor_scan_cuda)
+  ei_add_test(cxx11_tensor_complex_gpu)
+  ei_add_test(cxx11_tensor_complex_cwise_ops_gpu)
+  ei_add_test(cxx11_tensor_reduction_gpu)
+  ei_add_test(cxx11_tensor_argmax_gpu)
+  ei_add_test(cxx11_tensor_cast_float16_gpu)
+  ei_add_test(cxx11_tensor_scan_gpu)
 
   # Contractions require arch 3.0 or higher
   if (${EIGEN_CUDA_COMPUTE_ARCH} GREATER 29)
     ei_add_test(cxx11_tensor_device)
-    ei_add_test(cxx11_tensor_cuda)
-    ei_add_test(cxx11_tensor_contract_cuda)
-    ei_add_test(cxx11_tensor_of_float16_cuda)
+    ei_add_test(cxx11_tensor_gpu)
+    ei_add_test(cxx11_tensor_contract_gpu)
+    ei_add_test(cxx11_tensor_of_float16_gpu)
   endif()
 
   # The random number generation code requires arch 3.5 or greater.
   if (${EIGEN_CUDA_COMPUTE_ARCH} GREATER 34)
-    ei_add_test(cxx11_tensor_random_cuda)
+    ei_add_test(cxx11_tensor_random_gpu)
   endif()
 
 
@@ -318,18 +318,23 @@ if (EIGEN_TEST_HIP)
 	include_directories(${HIP_PATH}/include)
 
 	set(EIGEN_ADD_TEST_FILENAME_EXTENSION  "cu")
+	#
+	# complex datatype is not yet supported by HIP
+	# so leaving out those tests for now
+	#
+	# ei_add_test(cxx11_tensor_complex_gpu)
+	# ei_add_test(cxx11_tensor_complex_cwise_ops_gpu)
+	#
+	ei_add_test(cxx11_tensor_reduction_gpu)
+	ei_add_test(cxx11_tensor_argmax_gpu)
+	ei_add_test(cxx11_tensor_cast_float16_gpu)
+	ei_add_test(cxx11_tensor_scan_gpu)
+	ei_add_test(cxx11_tensor_device)
 
-	# ei_add_test(cxx11_tensor_complex_hip)
-	# ei_add_test(cxx11_tensor_complex_cwise_ops_hip)
-	ei_add_test(cxx11_tensor_reduction_hip)
-	ei_add_test(cxx11_tensor_argmax_hip)
-	ei_add_test(cxx11_tensor_cast_float16_hip)
-	ei_add_test(cxx11_tensor_scan_hip)
-	ei_add_test(cxx11_tensor_device_hip)
-	ei_add_test(cxx11_tensor_hip)
-	ei_add_test(cxx11_tensor_contract_hip)
-	ei_add_test(cxx11_tensor_of_float16_hip)
-	ei_add_test(cxx11_tensor_random_hip)
+	ei_add_test(cxx11_tensor_gpu)
+	ei_add_test(cxx11_tensor_contract_gpu)
+	ei_add_test(cxx11_tensor_of_float16_gpu)
+	ei_add_test(cxx11_tensor_random_gpu)
 	
 	unset(EIGEN_ADD_TEST_FILENAME_EXTENSION)
 	
