@@ -1050,7 +1050,7 @@ ptranspose(PacketBlock<Packet2d,2>& kernel) {
 
 template<> EIGEN_STRONG_INLINE Packet2d pblend(const Selector<2>& ifPacket, const Packet2d& thenPacket, const Packet2d& elsePacket) {
   Packet2l select = { ifPacket.select[0], ifPacket.select[1] };
-  Packet2bl mask = vec_cmpeq(reinterpret_cast<Packet2d>(select), reinterpret_cast<Packet2d>(p2l_ONE));
+  Packet2bl mask = reinterpret_cast<Packet2bl>( vec_cmpeq(reinterpret_cast<Packet2d>(select), reinterpret_cast<Packet2d>(p2l_ONE));
   return vec_sel(elsePacket, thenPacket, mask);
 }
 #endif // __VSX__
