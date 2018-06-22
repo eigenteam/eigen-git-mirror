@@ -103,7 +103,7 @@ static Packet16uc p16uc_PSET32_WODD   = vec_sld((Packet16uc) vec_splat((Packet4u
 static Packet16uc p16uc_PSET32_WEVEN  = vec_sld(p16uc_DUPLICATE32_HI, (Packet16uc) vec_splat((Packet4ui)p16uc_FORWARD, 3), 8);//{ 4,5,6,7, 4,5,6,7, 12,13,14,15, 12,13,14,15 };
 static Packet16uc p16uc_HALF64_0_16 = vec_sld((Packet16uc)p4i_ZERO, vec_splat((Packet16uc) vec_abs(p4i_MINUS16), 3), 8);      //{ 0,0,0,0, 0,0,0,0, 16,16,16,16, 16,16,16,16};
 #else
-static Packet16uc p16uc_FORWARD = p16uc_REVERSE32; 
+static Packet16uc p16uc_FORWARD = p16uc_REVERSE32;
 static Packet16uc p16uc_REVERSE64 = { 8,9,10,11, 12,13,14,15, 0,1,2,3, 4,5,6,7 };
 static Packet16uc p16uc_PSET32_WODD = vec_sld((Packet16uc) vec_splat((Packet4ui)p16uc_FORWARD, 1), (Packet16uc) vec_splat((Packet4ui)p16uc_FORWARD, 3), 8);//{ 0,1,2,3, 0,1,2,3, 8,9,10,11, 8,9,10,11 };
 static Packet16uc p16uc_PSET32_WEVEN = vec_sld((Packet16uc) vec_splat((Packet4ui)p16uc_FORWARD, 0), (Packet16uc) vec_splat((Packet4ui)p16uc_FORWARD, 2), 8);//{ 4,5,6,7, 4,5,6,7, 12,13,14,15, 12,13,14,15 };
@@ -782,7 +782,7 @@ typedef __vector __bool long         Packet2bl;
 
 static Packet2l  p2l_ONE  = { 1, 1 };
 static Packet2l  p2l_ZERO = reinterpret_cast<Packet2l>(p4i_ZERO);
-static Packet2d  p2d_ONE  = { 1.0, 1.0 }; 
+static Packet2d  p2d_ONE  = { 1.0, 1.0 };
 static Packet2d  p2d_ZERO = reinterpret_cast<Packet2d>(p4f_ZERO);
 static Packet2d  p2d_MZERO = { -0.0, -0.0 };
 
@@ -997,7 +997,7 @@ template<> EIGEN_STRONG_INLINE Packet2d preduxp<Packet2d>(const Packet2d* vecs)
   Packet2d v[2], sum;
   v[0] = vecs[0] + reinterpret_cast<Packet2d>(vec_sld(reinterpret_cast<Packet4f>(vecs[0]), reinterpret_cast<Packet4f>(vecs[0]), 8));
   v[1] = vecs[1] + reinterpret_cast<Packet2d>(vec_sld(reinterpret_cast<Packet4f>(vecs[1]), reinterpret_cast<Packet4f>(vecs[1]), 8));
- 
+
 #ifdef _BIG_ENDIAN
   sum = reinterpret_cast<Packet2d>(vec_sld(reinterpret_cast<Packet4f>(v[0]), reinterpret_cast<Packet4f>(v[1]), 8));
 #else
@@ -1050,7 +1050,7 @@ ptranspose(PacketBlock<Packet2d,2>& kernel) {
 
 template<> EIGEN_STRONG_INLINE Packet2d pblend(const Selector<2>& ifPacket, const Packet2d& thenPacket, const Packet2d& elsePacket) {
   Packet2l select = { ifPacket.select[0], ifPacket.select[1] };
-  Packet2bl mask = reinterpret_cast<Packet2bl>( vec_cmpeq(reinterpret_cast<Packet2d>(select), reinterpret_cast<Packet2d>(p2l_ONE));
+  Packet2bl mask = reinterpret_cast<Packet2bl>( vec_cmpeq(reinterpret_cast<Packet2d>(select), reinterpret_cast<Packet2d>(p2l_ONE)) );
   return vec_sel(elsePacket, thenPacket, mask);
 }
 #endif // __VSX__
