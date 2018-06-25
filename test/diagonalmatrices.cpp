@@ -30,6 +30,7 @@ template<typename MatrixType> void diagonalmatrices(const MatrixType& m)
              v2 = VectorType::Random(rows);
   RowVectorType rv1 = RowVectorType::Random(cols),
              rv2 = RowVectorType::Random(cols);
+
   LeftDiagonalMatrix ldm1(v1), ldm2(v2);
   RightDiagonalMatrix rdm1(rv1), rdm2(rv2);
   
@@ -105,6 +106,25 @@ template<typename MatrixType> void diagonalmatrices(const MatrixType& m)
   sq_m2 = sq_m1 * sq_m2;
   VERIFY_IS_APPROX( (sq_m1*v1.asDiagonal()).col(i), sq_m2.col(i) );
   VERIFY_IS_APPROX( (sq_m1*v1.asDiagonal()).row(i), sq_m2.row(i) );
+
+  if(v1.size()==1)
+  {
+    typedef Matrix<Scalar, Dynamic, 1> DynVectorType;
+    typedef Matrix<Scalar, 1, Dynamic> DynRowVectorType;
+    Index depth = internal::random<Index>(1,EIGEN_TEST_MAX_SIZE);
+    DynVectorType     dv1 = DynVectorType::Random(depth);
+    DynRowVectorType  drv1 = DynRowVectorType::Random(depth);
+    DynMatrixType dm1 = dv1;
+    DynMatrixType drm1 = drv1;
+    
+    Scalar s = v1(0);
+
+    VERIFY_IS_APPROX( v1.asDiagonal() * drv1, s*drv1 );
+    VERIFY_IS_APPROX( dv1 * v1.asDiagonal(), dv1*s );
+
+    VERIFY_IS_APPROX( v1.asDiagonal() * drm1, s*drm1 );
+    VERIFY_IS_APPROX( dm1 * v1.asDiagonal(), dm1*s );
+  }
 }
 
 template<int>
@@ -130,6 +150,7 @@ void test_diagonalmatrices()
     CALL_SUBTEST_7( diagonalmatrices(MatrixXi(internal::random<int>(1,EIGEN_TEST_MAX_SIZE), internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
     CALL_SUBTEST_8( diagonalmatrices(Matrix<double,Dynamic,Dynamic,RowMajor>(internal::random<int>(1,EIGEN_TEST_MAX_SIZE), internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
     CALL_SUBTEST_9( diagonalmatrices(MatrixXf(internal::random<int>(1,EIGEN_TEST_MAX_SIZE), internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
+    CALL_SUBTEST_9( diagonalmatrices(MatrixXf(1,1)) );
   }
   CALL_SUBTEST_10( bug987<0>() );
 }
