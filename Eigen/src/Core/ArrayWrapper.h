@@ -90,8 +90,8 @@ class ArrayWrapper : public ArrayBase<ArrayWrapper<ExpressionType> >
     EIGEN_DEVICE_FUNC
     inline void evalTo(Dest& dst) const { dst = m_expression; }
 
-    const typename internal::remove_all<NestedExpressionType>::type& 
     EIGEN_DEVICE_FUNC
+    const typename internal::remove_all<NestedExpressionType>::type& 
     nestedExpression() const 
     {
       return m_expression;
