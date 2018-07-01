@@ -106,25 +106,32 @@ template<typename MatrixType> void diagonalmatrices(const MatrixType& m)
   sq_m2 = sq_m1 * sq_m2;
   VERIFY_IS_APPROX( (sq_m1*v1.asDiagonal()).col(i), sq_m2.col(i) );
   VERIFY_IS_APPROX( (sq_m1*v1.asDiagonal()).row(i), sq_m2.row(i) );
+}
 
-  if(v1.size()==1)
-  {
-    typedef Matrix<Scalar, Dynamic, 1> DynVectorType;
-    typedef Matrix<Scalar, 1, Dynamic> DynRowVectorType;
-    Index depth = internal::random<Index>(1,EIGEN_TEST_MAX_SIZE);
-    DynVectorType     dv1 = DynVectorType::Random(depth);
-    DynRowVectorType  drv1 = DynRowVectorType::Random(depth);
-    DynMatrixType dm1 = dv1;
-    DynMatrixType drm1 = drv1;
-    
-    Scalar s = v1(0);
+template<typename MatrixType> void as_scalar_product(const MatrixType& m)
+{
+  typedef typename MatrixType::Scalar Scalar;
+  typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> VectorType;
+  typedef Matrix<Scalar, Dynamic, Dynamic> DynMatrixType;
+  typedef Matrix<Scalar, Dynamic, 1> DynVectorType;
+  typedef Matrix<Scalar, 1, Dynamic> DynRowVectorType;
 
-    VERIFY_IS_APPROX( v1.asDiagonal() * drv1, s*drv1 );
-    VERIFY_IS_APPROX( dv1 * v1.asDiagonal(), dv1*s );
+  Index rows = m.rows();
+  Index depth = internal::random<Index>(1,EIGEN_TEST_MAX_SIZE);
 
-    VERIFY_IS_APPROX( v1.asDiagonal() * drm1, s*drm1 );
-    VERIFY_IS_APPROX( dm1 * v1.asDiagonal(), dm1*s );
-  }
+  VectorType v1 = VectorType::Random(rows);  
+  DynVectorType     dv1  = DynVectorType::Random(depth);
+  DynRowVectorType  drv1 = DynRowVectorType::Random(depth);
+  DynMatrixType     dm1  = dv1;
+  DynMatrixType     drm1 = drv1;
+  
+  Scalar s = v1(0);
+
+  VERIFY_IS_APPROX( v1.asDiagonal() * drv1, s*drv1 );
+  VERIFY_IS_APPROX( dv1 * v1.asDiagonal(), dv1*s );
+
+  VERIFY_IS_APPROX( v1.asDiagonal() * drm1, s*drm1 );
+  VERIFY_IS_APPROX( dm1 * v1.asDiagonal(), dm1*s );
 }
 
 template<int>
@@ -142,15 +149,19 @@ void test_diagonalmatrices()
 {
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_1( diagonalmatrices(Matrix<float, 1, 1>()) );
+    CALL_SUBTEST_1( as_scalar_product(Matrix<float, 1, 1>()) );
+
     CALL_SUBTEST_2( diagonalmatrices(Matrix3f()) );
     CALL_SUBTEST_3( diagonalmatrices(Matrix<double,3,3,RowMajor>()) );
     CALL_SUBTEST_4( diagonalmatrices(Matrix4d()) );
     CALL_SUBTEST_5( diagonalmatrices(Matrix<float,4,4,RowMajor>()) );
     CALL_SUBTEST_6( diagonalmatrices(MatrixXcf(internal::random<int>(1,EIGEN_TEST_MAX_SIZE), internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
+    CALL_SUBTEST_6( as_scalar_product(MatrixXcf(1,1)) );
     CALL_SUBTEST_7( diagonalmatrices(MatrixXi(internal::random<int>(1,EIGEN_TEST_MAX_SIZE), internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
     CALL_SUBTEST_8( diagonalmatrices(Matrix<double,Dynamic,Dynamic,RowMajor>(internal::random<int>(1,EIGEN_TEST_MAX_SIZE), internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
     CALL_SUBTEST_9( diagonalmatrices(MatrixXf(internal::random<int>(1,EIGEN_TEST_MAX_SIZE), internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
     CALL_SUBTEST_9( diagonalmatrices(MatrixXf(1,1)) );
+    CALL_SUBTEST_9( as_scalar_product(MatrixXf(1,1)) );
   }
   CALL_SUBTEST_10( bug987<0>() );
 }
