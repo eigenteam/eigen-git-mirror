@@ -121,7 +121,7 @@ struct diagonal {
 };
 
 template<typename T>
-struct eigenvalues {
+struct eigenvalues_direct {
   EIGEN_DEVICE_FUNC
   void operator()(int i, const typename T::Scalar* in, typename T::Scalar* out) const
   {
@@ -133,6 +133,34 @@ struct eigenvalues {
     SelfAdjointEigenSolver<T> eig;
     eig.computeDirect(M);
     res = eig.eigenvalues();
+  }
+};
+
+template<typename T>
+struct eigenvalues {
+  EIGEN_DEVICE_FUNC
+  void operator()(int i, const typename T::Scalar* in, typename T::Scalar* out) const
+  {
+    using namespace Eigen;
+    typedef Matrix<typename T::Scalar, T::RowsAtCompileTime, 1> Vec;
+    T M(in+i);
+    Map<Vec> res(out+i*Vec::MaxSizeAtCompileTime);
+    T A = M*M.adjoint();
+    SelfAdjointEigenSolver<T> eig;
+    eig.compute(M);
+    res = eig.eigenvalues();
+  }
+};
+
+template<typename T>
+struct matrix_inverse {
+  EIGEN_DEVICE_FUNC
+  void operator()(int i, const typename T::Scalar* in, typename T::Scalar* out) const
+  {
+    using namespace Eigen;
+    T M(in+i);
+    Map<T> res(out+i*T::MaxSizeAtCompileTime);
+    res = M.inverse();
   }
 };
 
@@ -163,8 +191,13 @@ void test_cuda_basic()
   
   CALL_SUBTEST( run_and_compare_to_cuda(diagonal<Matrix3f,Vector3f>(), nthreads, in, out) );
   CALL_SUBTEST( run_and_compare_to_cuda(diagonal<Matrix4f,Vector4f>(), nthreads, in, out) );
+
+  CALL_SUBTEST( run_and_compare_to_cuda(matrix_inverse<Matrix2f>(), nthreads, in, out) );
+  CALL_SUBTEST( run_and_compare_to_cuda(matrix_inverse<Matrix3f>(), nthreads, in, out) );
+  CALL_SUBTEST( run_and_compare_to_cuda(matrix_inverse<Matrix4f>(), nthreads, in, out) );
   
-  CALL_SUBTEST( run_and_compare_to_cuda(eigenvalues<Matrix3f>(), nthreads, in, out) );
-  CALL_SUBTEST( run_and_compare_to_cuda(eigenvalues<Matrix2f>(), nthreads, in, out) );
+  CALL_SUBTEST( run_and_compare_to_cuda(eigenvalues_direct<Matrix3f>(), nthreads, in, out) );
+  CALL_SUBTEST( run_and_compare_to_cuda(eigenvalues_direct<Matrix2f>(), nthreads, in, out) );
+  CALL_SUBTEST( run_and_compare_to_cuda(eigenvalues<Matrix4f>(), nthreads, in, out) );
 
 }
