@@ -486,6 +486,13 @@ EIGEN_STRONG_INLINE Packet16h float2half(const Packet16f& a) {
 #endif
 }
 
+template<> EIGEN_STRONG_INLINE Packet16h pnegate(const Packet16h& a) {
+  // FIXME we could do that with bit manipulation
+  Packet16f af = half2float(a);
+  Packet16f rf = pnegate(af);
+  return float2half(rf);
+}
+
 template<> EIGEN_STRONG_INLINE Packet16h padd<Packet16h>(const Packet16h& a, const Packet16h& b) {
   Packet16f af = half2float(a);
   Packet16f bf = half2float(b);
@@ -510,6 +517,51 @@ template<> EIGEN_STRONG_INLINE Packet16h pmul<Packet16h>(const Packet16h& a, con
 template<> EIGEN_STRONG_INLINE half predux<Packet16h>(const Packet16h& from) {
   Packet16f from_float = half2float(from);
   return half(predux(from_float));
+}
+
+template<> EIGEN_STRONG_INLINE Packet16h preduxp<Packet16h>(const Packet16h* p) {
+  Packet16f pf[16];
+  pf[0] = half2float(p[0]);
+  pf[1] = half2float(p[1]);
+  pf[2] = half2float(p[2]);
+  pf[3] = half2float(p[3]);
+  pf[4] = half2float(p[4]);
+  pf[5] = half2float(p[5]);
+  pf[6] = half2float(p[6]);
+  pf[7] = half2float(p[7]);
+  pf[8] = half2float(p[8]);
+  pf[9] = half2float(p[9]);
+  pf[10] = half2float(p[10]);
+  pf[11] = half2float(p[11]);
+  pf[12] = half2float(p[12]);
+  pf[13] = half2float(p[13]);
+  pf[14] = half2float(p[14]);
+  pf[15] = half2float(p[15]);
+  Packet16f reduced = preduxp<Packet16f>(pf);
+  return float2half(reduced);
+}
+
+template<> EIGEN_STRONG_INLINE Packet16h preverse(const Packet16h& a)
+{
+  __m128i m = _mm_setr_epi8(14,15,12,13,10,11,8,9,6,7,4,5,2,3,0,1);
+  Packet16h res;
+  res.x = _mm256_set_m128i(_mm_shuffle_epi8(_mm256_extractf128_si256(a.x,0),m),
+                           _mm_shuffle_epi8(_mm256_extractf128_si256(a.x,1),m));
+  return res;
+}
+
+template<> EIGEN_STRONG_INLINE Packet16h pinsertfirst(const Packet16h& a, Eigen::half b)
+{
+  Packet16h res;
+  res.x = _mm256_insert_epi16(a.x,b.x,0);
+  return res;
+}
+
+template<> EIGEN_STRONG_INLINE Packet16h pinsertlast(const Packet16h& a, Eigen::half b)
+{
+  Packet16h res;
+  res.x = _mm256_insert_epi16(a.x,b.x,15);
+  return res;
 }
 
 template<> EIGEN_STRONG_INLINE Packet16h pgather<Eigen::half, Packet16h>(const Eigen::half* from, Index stride)
@@ -854,6 +906,7 @@ EIGEN_STRONG_INLINE Packet8h float2half(const Packet8f& a) {
 template<> EIGEN_STRONG_INLINE Packet8h pconj(const Packet8h& a) { return a; }
 
 template<> EIGEN_STRONG_INLINE Packet8h pnegate(const Packet8h& a) {
+  // FIXME we could do that with bit manipulation
   Packet8f af = half2float(a);
   Packet8f rf = pnegate(af);
   return float2half(rf);
@@ -957,7 +1010,7 @@ template<> EIGEN_STRONG_INLINE Packet8h pinsertfirst(const Packet8h& a, Eigen::h
 template<> EIGEN_STRONG_INLINE Packet8h pinsertlast(const Packet8h& a, Eigen::half b)
 {
   Packet8h res;
-  res.x = _mm_insert_epi16(a.x,int(b.x),15);
+  res.x = _mm_insert_epi16(a.x,int(b.x),7);
   return res;
 }
 
