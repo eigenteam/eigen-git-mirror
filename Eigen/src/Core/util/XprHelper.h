@@ -460,7 +460,7 @@ template<typename T, int n, typename PlainObject = typename plain_object_eval<T>
 {
   enum {
     ScalarReadCost = NumTraits<typename traits<T>::Scalar>::ReadCost,
-    CoeffReadCost = evaluator<T>::CoeffReadCost,  // NOTE What if an evaluator evaluate itself into a tempory?
+    CoeffReadCost = evaluator<T>::CoeffReadCost,  // NOTE What if an evaluator evaluate itself into a temporary?
                                                   //      Then CoeffReadCost will be small (e.g., 1) but we still have to evaluate, especially if n>1.
                                                   //      This situation is already taken care by the EvalBeforeNestingBit flag, which is turned ON
                                                   //      for all evaluator creating a temporary. This flag is then propagated by the parent evaluators.
