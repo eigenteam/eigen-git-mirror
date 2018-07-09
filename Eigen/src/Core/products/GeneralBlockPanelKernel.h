@@ -1526,10 +1526,10 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,DataMapper,mr,nr,ConjugateLhs,Conjuga
           // The following piece of code wont work for 512 bit registers
           // Moreover, if LhsProgress==8 it assumes that there is a half packet of the same size
           // as nr (which is currently 4) for the return type.
-          typedef typename unpacket_traits<SResPacket>::half SResPacketHalf;
+          const int SResPacketHalfSize = unpacket_traits<typename unpacket_traits<SResPacket>::half>::size;
           if ((SwappedTraits::LhsProgress % 4) == 0 &&
               (SwappedTraits::LhsProgress <= 8) &&
-              (SwappedTraits::LhsProgress!=8 || unpacket_traits<SResPacketHalf>::size==nr))
+              (SwappedTraits::LhsProgress!=8 || SResPacketHalfSize==nr))
           {
             SAccPacket C0, C1, C2, C3;
             straits.initAcc(C0);
