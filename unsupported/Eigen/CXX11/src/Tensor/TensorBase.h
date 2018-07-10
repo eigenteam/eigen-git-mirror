@@ -517,9 +517,15 @@ class TensorBase<Derived, ReadOnlyAccessors>
     typedef Eigen::IndexPair<Index> DimensionPair;
 
     template<typename OtherDerived, typename Dimensions> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-    const TensorContractionOp<const Dimensions, const Derived, const OtherDerived>
+    const TensorContractionOp<const Dimensions, const Derived, const OtherDerived, const NoOpOutputKernel>
     contract(const OtherDerived& other, const Dimensions& dims) const {
-      return TensorContractionOp<const Dimensions, const Derived, const OtherDerived>(derived(), other.derived(), dims);
+      return TensorContractionOp<const Dimensions, const Derived, const OtherDerived, const NoOpOutputKernel>(derived(), other.derived(), dims);
+    }
+
+    template<typename OtherDerived, typename Dimensions, typename OutputKernel> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    const TensorContractionOp<const Dimensions, const Derived, const OtherDerived, const OutputKernel>
+    contract(const OtherDerived& other, const Dimensions& dims, const OutputKernel& output_kernel) const {
+      return TensorContractionOp<const Dimensions, const Derived, const OtherDerived, const OutputKernel>(derived(), other.derived(), dims, output_kernel);
     }
 
     // Convolutions.

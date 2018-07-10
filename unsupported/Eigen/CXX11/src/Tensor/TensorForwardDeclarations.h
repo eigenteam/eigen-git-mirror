@@ -65,7 +65,7 @@ template<typename Op, typename Dims, typename XprType, template <class> class Ma
 template<typename XprType> class TensorIndexTupleOp;
 template<typename ReduceOp, typename Dims, typename XprType> class TensorTupleReducerOp;
 template<typename Axis, typename LeftXprType, typename RightXprType> class TensorConcatenationOp;
-template<typename Dimensions, typename LeftXprType, typename RightXprType> class TensorContractionOp;
+template<typename Dimensions, typename LeftXprType, typename RightXprType, typename OutputKernelType> class TensorContractionOp;
 template<typename TargetType, typename XprType> class TensorConversionOp;
 template<typename Dimensions, typename InputXprType, typename KernelXprType> class TensorConvolutionOp;
 template<typename FFT, typename XprType, int FFTDataType, int FFTDirection> class TensorFFTOp;
@@ -96,6 +96,8 @@ template<typename XprType> class TensorForcedEvalOp;
 
 template<typename ExpressionType, typename DeviceType> class TensorDevice;
 template<typename Derived, typename Device> struct TensorEvaluator;
+
+class NoOpOutputKernel;
 
 struct DefaultDevice;
 struct ThreadPoolDevice;

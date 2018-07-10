@@ -510,6 +510,55 @@ static void test_const_inputs()
   VERIFY_IS_APPROX(mat3(1,1), mat1(1,0)*mat2(0,1) + mat1(1,1)*mat2(1,1) + mat1(1,2)*mat2(2,1));
 }
 
+// Apply Sqrt to all output elements.
+struct SqrtOutputKernel {
+  template <typename Index, typename Scalar>
+  EIGEN_ALWAYS_INLINE void operator()(
+      const OutputKernel::OutputMapper<Index, Scalar>& output_mapper,
+      const TensorContractionParams&, Index, Index, Index num_rows,
+      Index num_cols) const {
+    for (int i = 0; i < num_rows; ++i) {
+      for (int j = 0; j < num_cols; ++j) {
+        output_mapper(i, j) = std::sqrt(output_mapper(i, j));
+      }
+    }
+  }
+};
+
+template <int DataLayout>
+static void test_large_contraction_with_output_kernel() {
+  Tensor<float, 4, DataLayout> t_left(30, 50, 8, 31);
+  Tensor<float, 5, DataLayout> t_right(8, 31, 7, 20, 10);
+  Tensor<float, 5, DataLayout> t_result(30, 50, 7, 20, 10);
+
+  t_left.setRandom();
+  t_right.setRandom();
+  // Put trash in mat4 to verify contraction clears output memory.
+  t_result.setRandom();
+
+  // Add a little offset so that the results won't be close to zero.
+  t_left += t_left.constant(1.0f);
+  t_right += t_right.constant(1.0f);
+
+  typedef Map<Eigen::Matrix<float, Dynamic, Dynamic, DataLayout>> MapXf;
+  MapXf m_left(t_left.data(), 1500, 248);
+  MapXf m_right(t_right.data(), 248, 1400);
+  Eigen::Matrix<float, Dynamic, Dynamic, DataLayout> m_result(1500, 1400);
+
+  // this contraction should be equivalent to a single matrix multiplication
+  Eigen::array<DimPair, 2> dims({{DimPair(2, 0), DimPair(3, 1)}});
+
+  // compute results by separate methods
+  t_result = t_left.contract(t_right, dims, SqrtOutputKernel());
+
+  m_result = m_left * m_right;
+
+  for (size_t i = 0; i < t_result.dimensions().TotalSize(); i++) {
+    VERIFY(&t_result.data()[i] != &m_result.data()[i]);
+    VERIFY_IS_APPROX(t_result.data()[i], std::sqrt(m_result.data()[i]));
+  }
+}
+
 void test_cxx11_tensor_contraction()
 {
   CALL_SUBTEST(test_evals<ColMajor>());
@@ -542,4 +591,6 @@ void test_cxx11_tensor_contraction()
   CALL_SUBTEST(test_tensor_product<RowMajor>());
   CALL_SUBTEST(test_const_inputs<ColMajor>());
   CALL_SUBTEST(test_const_inputs<RowMajor>());
+  CALL_SUBTEST(test_large_contraction_with_output_kernel<ColMajor>());
+  CALL_SUBTEST(test_large_contraction_with_output_kernel<RowMajor>());
 }
