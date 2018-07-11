@@ -289,8 +289,8 @@ template<typename XprType> struct blas_traits
     ExtractType,
     typename _ExtractType::PlainObject
     >::type DirectLinearAccessType;
-  static inline ExtractType extract(const XprType& x) { return x; }
-  static inline const Scalar extractScalarFactor(const XprType&) { return Scalar(1); }
+  static inline EIGEN_DEVICE_FUNC ExtractType extract(const XprType& x) { return x; }
+  static inline EIGEN_DEVICE_FUNC const Scalar extractScalarFactor(const XprType&) { return Scalar(1); }
 };
 
 // pop conjugate
@@ -318,8 +318,8 @@ struct blas_traits<CwiseBinaryOp<scalar_product_op<Scalar>, const CwiseNullaryOp
   typedef blas_traits<NestedXpr> Base;
   typedef CwiseBinaryOp<scalar_product_op<Scalar>, const CwiseNullaryOp<scalar_constant_op<Scalar>,Plain>, NestedXpr> XprType;
   typedef typename Base::ExtractType ExtractType;
-  static inline ExtractType extract(const XprType& x) { return Base::extract(x.rhs()); }
-  static inline Scalar extractScalarFactor(const XprType& x)
+  static inline EIGEN_DEVICE_FUNC ExtractType extract(const XprType& x) { return Base::extract(x.rhs()); }
+  static inline EIGEN_DEVICE_FUNC Scalar extractScalarFactor(const XprType& x)
   { return x.lhs().functor().m_other * Base::extractScalarFactor(x.rhs()); }
 };
 template<typename Scalar, typename NestedXpr, typename Plain>

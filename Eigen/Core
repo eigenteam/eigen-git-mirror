@@ -56,47 +56,59 @@
   #ifdef EIGEN_EXCEPTIONS
   #undef EIGEN_EXCEPTIONS
   #endif
+#endif
 
-  // All functions callable from CUDA code must be qualified with __device__
-  #ifdef EIGEN_CUDACC
-    // Do not try to vectorize on CUDA and SYCL!
-    #ifndef EIGEN_DONT_VECTORIZE
-    #define EIGEN_DONT_VECTORIZE
-    #endif
-
-    #define EIGEN_DEVICE_FUNC __host__ __device__
-    // We need cuda_runtime.h to ensure that that EIGEN_USING_STD_MATH macro
-    // works properly on the device side
-    #include <cuda_runtime.h>
-
-  #elif defined(EIGEN_HIPCC)
-    // Do not try to vectorize on HIP
-    #ifndef EIGEN_DONT_VECTORIZE
-    #define EIGEN_DONT_VECTORIZE
-    #endif
-
-    #define EIGEN_DEVICE_FUNC __host__ __device__
-    // We need hip_runtime.h to ensure that that EIGEN_USING_STD_MATH macro
-    // works properly on the device side
-    #include <hip/hip_runtime.h>
-    
-   #if defined(__HIP_DEVICE_COMPILE__) && !defined(EIGEN_NO_HIP)
-     // analogous to EIGEN_CUDA_ARCH, but for HIP
-     #define EIGEN_HIP_DEVICE_COMPILE __HIP_DEVICE_COMPILE__
-     // Note this check needs to come after we include hip_runtime.h since
-     // hip_runtime.h includes hip_common.h which in turn has the define
-     // for __HIP_DEVICE_COMPILE__
-   #endif
-
-  #else
-    #define EIGEN_DEVICE_FUNC
+// All functions callable from CUDA code must be qualified with __device__
+#ifdef EIGEN_CUDACC
+  // Do not try to vectorize on CUDA and SYCL!
+  #ifndef EIGEN_DONT_VECTORIZE
+  #define EIGEN_DONT_VECTORIZE
   #endif
+
+  #define EIGEN_DEVICE_FUNC __host__ __device__
+  // We need cuda_runtime.h to ensure that that EIGEN_USING_STD_MATH macro
+  // works properly on the device side
+  #include <cuda_runtime.h>
+
+  #if EIGEN_HAS_CONSTEXPR
+    // While available already with c++11, this is useful mostly starting with c++14 and relaxed constexpr rules
+    #if defined(__NVCC__)
+      // nvcc considers constexpr functions as __host__ __device__ with the option --expt-relaxed-constexpr
+      #ifdef __CUDACC_RELAXED_CONSTEXPR__
+        #define EIGEN_CONSTEXPR_ARE_DEVICE_FUNC
+      #endif
+    #elif defined(__clang__) && defined(__CUDA__)
+      // clang++ always considers constexpr functions as implicitly __host__ __device__
+      #define EIGEN_CONSTEXPR_ARE_DEVICE_FUNC
+    #endif
+
+#elif defined(EIGEN_HIPCC)
+  // Do not try to vectorize on HIP
+  #ifndef EIGEN_DONT_VECTORIZE
+  #define EIGEN_DONT_VECTORIZE
+  #endif
+
+  #define EIGEN_DEVICE_FUNC __host__ __device__
+  // We need hip_runtime.h to ensure that that EIGEN_USING_STD_MATH macro
+  // works properly on the device side
+  #include <hip/hip_runtime.h>
+    
+  #if defined(__HIP_DEVICE_COMPILE__) && !defined(EIGEN_NO_HIP)
+    // analogous to EIGEN_CUDA_ARCH, but for HIP
+    #define EIGEN_HIP_DEVICE_COMPILE __HIP_DEVICE_COMPILE__
+    // Note this check needs to come after we include hip_runtime.h since
+    // hip_runtime.h includes hip_common.h which in turn has the define
+    // for __HIP_DEVICE_COMPILE__
+  #endif
+
 #else
   #define EIGEN_DEVICE_FUNC
 #endif
 
 #ifdef __NVCC__
-#define EIGEN_DONT_VECTORIZE
+  #ifndef EIGEN_DONT_VECTORIZE
+  #define EIGEN_DONT_VECTORIZE
+  #endif
 #endif
 
 

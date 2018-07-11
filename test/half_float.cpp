@@ -257,13 +257,31 @@ void test_array()
   ss << a1;
 }
 
+void test_product()
+{
+  typedef Matrix<half,Dynamic,Dynamic> MatrixXh;
+  Index rows  = internal::random<Index>(1,EIGEN_TEST_MAX_SIZE);
+  Index cols  = internal::random<Index>(1,EIGEN_TEST_MAX_SIZE);
+  Index depth = internal::random<Index>(1,EIGEN_TEST_MAX_SIZE);
+  MatrixXh Ah = MatrixXh::Random(rows,depth);
+  MatrixXh Bh = MatrixXh::Random(depth,cols);
+  MatrixXh Ch = MatrixXh::Random(rows,cols);
+  MatrixXf Af = Ah.cast<float>();
+  MatrixXf Bf = Bh.cast<float>();
+  MatrixXf Cf = Ch.cast<float>();
+  VERIFY_IS_APPROX(Ch.noalias()+=Ah*Bh, (Cf.noalias()+=Af*Bf).cast<half>());
+}
+
 void test_half_float()
 {
-  CALL_SUBTEST(test_conversion());
   CALL_SUBTEST(test_numtraits());
-  CALL_SUBTEST(test_arithmetic());
-  CALL_SUBTEST(test_comparison());
-  CALL_SUBTEST(test_basic_functions());
-  CALL_SUBTEST(test_trigonometric_functions());
-  CALL_SUBTEST(test_array());
+  for(int i = 0; i < g_repeat; i++) {
+    CALL_SUBTEST(test_conversion());
+    CALL_SUBTEST(test_arithmetic());
+    CALL_SUBTEST(test_comparison());
+    CALL_SUBTEST(test_basic_functions());
+    CALL_SUBTEST(test_trigonometric_functions());
+    CALL_SUBTEST(test_array());
+    CALL_SUBTEST(test_product());
+  }
 }

@@ -26,17 +26,17 @@ struct quat_product<Architecture::SSE, Derived, OtherDerived, float>
   static inline Quaternion<float> run(const QuaternionBase<Derived>& _a, const QuaternionBase<OtherDerived>& _b)
   {
     Quaternion<float> res;
-    const __m128 mask = _mm_setr_ps(0.f,0.f,0.f,-0.f);
-    __m128 a = _a.coeffs().template packet<AAlignment>(0);
-    __m128 b = _b.coeffs().template packet<BAlignment>(0);
-    __m128 s1 = _mm_mul_ps(vec4f_swizzle1(a,1,2,0,2),vec4f_swizzle1(b,2,0,1,2));
-    __m128 s2 = _mm_mul_ps(vec4f_swizzle1(a,3,3,3,1),vec4f_swizzle1(b,0,1,2,1));
+    const Packet4f mask = _mm_setr_ps(0.f,0.f,0.f,-0.f);
+    Packet4f a = _a.coeffs().template packet<AAlignment>(0);
+    Packet4f b = _b.coeffs().template packet<BAlignment>(0);
+    Packet4f s1 = pmul(vec4f_swizzle1(a,1,2,0,2),vec4f_swizzle1(b,2,0,1,2));
+    Packet4f s2 = pmul(vec4f_swizzle1(a,3,3,3,1),vec4f_swizzle1(b,0,1,2,1));
     pstoret<float,Packet4f,ResAlignment>(
               &res.x(),
-              _mm_add_ps(_mm_sub_ps(_mm_mul_ps(a,vec4f_swizzle1(b,3,3,3,3)),
-                                    _mm_mul_ps(vec4f_swizzle1(a,2,0,1,0),
+              padd(psub(pmul(a,vec4f_swizzle1(b,3,3,3,3)),
+                                    pmul(vec4f_swizzle1(a,2,0,1,0),
                                                vec4f_swizzle1(b,1,2,0,0))),
-                         _mm_xor_ps(mask,_mm_add_ps(s1,s2))));
+                         pxor(mask,padd(s1,s2))));
     
     return res;
   }

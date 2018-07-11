@@ -39,6 +39,7 @@ template<int n> struct decrement_size
   *     MatrixBase::applyHouseholderOnTheRight()
   */
 template<typename Derived>
+EIGEN_DEVICE_FUNC
 void MatrixBase<Derived>::makeHouseholderInPlace(Scalar& tau, RealScalar& beta)
 {
   VectorBlock<Derived, internal::decrement_size<Base::SizeAtCompileTime>::ret> essentialPart(derived(), 1, size()-1);
@@ -62,6 +63,7 @@ void MatrixBase<Derived>::makeHouseholderInPlace(Scalar& tau, RealScalar& beta)
   */
 template<typename Derived>
 template<typename EssentialPart>
+EIGEN_DEVICE_FUNC
 void MatrixBase<Derived>::makeHouseholder(
   EssentialPart& essential,
   Scalar& tau,
@@ -110,6 +112,7 @@ void MatrixBase<Derived>::makeHouseholder(
   */
 template<typename Derived>
 template<typename EssentialPart>
+EIGEN_DEVICE_FUNC
 void MatrixBase<Derived>::applyHouseholderOnTheLeft(
   const EssentialPart& essential,
   const Scalar& tau,
@@ -147,6 +150,7 @@ void MatrixBase<Derived>::applyHouseholderOnTheLeft(
   */
 template<typename Derived>
 template<typename EssentialPart>
+EIGEN_DEVICE_FUNC
 void MatrixBase<Derived>::applyHouseholderOnTheRight(
   const EssentialPart& essential,
   const Scalar& tau,

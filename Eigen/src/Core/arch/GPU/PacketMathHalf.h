@@ -497,10 +497,10 @@ struct packet_traits<half> : default_packet_traits {
     AlignedOnScalar = 1,
     size = 16,
     HasHalfPacket = 0,
-    HasAdd    = 0,
-    HasSub    = 0,
-    HasMul    = 0,
-    HasNegate = 0,
+    HasAdd    = 1,
+    HasSub    = 1,
+    HasMul    = 1,
+    HasNegate = 1,
     HasAbs    = 0,
     HasAbs2   = 0,
     HasMin    = 0,
@@ -547,6 +547,21 @@ template<> EIGEN_STRONG_INLINE void pstore<half>(Eigen::half* to, const Packet16
 
 template<> EIGEN_STRONG_INLINE void pstoreu<half>(Eigen::half* to, const Packet16h& from) {
   _mm256_storeu_si256((__m256i*)to, from.x);
+}
+
+template<> EIGEN_STRONG_INLINE Packet16h
+ploaddup<Packet16h>(const Eigen::half*  from) {
+  Packet16h result;
+  unsigned short a = from[0].x;
+  unsigned short b = from[1].x;
+  unsigned short c = from[2].x;
+  unsigned short d = from[3].x;
+  unsigned short e = from[4].x;
+  unsigned short f = from[5].x;
+  unsigned short g = from[6].x;
+  unsigned short h = from[7].x;
+  result.x = _mm256_set_epi16(h, h, g, g, f, f, e, e, d, d, c, c, b, b, a, a);
+  return result;
 }
 
 template<> EIGEN_STRONG_INLINE Packet16h
@@ -621,10 +636,24 @@ EIGEN_STRONG_INLINE Packet16h float2half(const Packet16f& a) {
 #endif
 }
 
+template<> EIGEN_STRONG_INLINE Packet16h pnegate(const Packet16h& a) {
+  // FIXME we could do that with bit manipulation
+  Packet16f af = half2float(a);
+  Packet16f rf = pnegate(af);
+  return float2half(rf);
+}
+
 template<> EIGEN_STRONG_INLINE Packet16h padd<Packet16h>(const Packet16h& a, const Packet16h& b) {
   Packet16f af = half2float(a);
   Packet16f bf = half2float(b);
   Packet16f rf = padd(af, bf);
+  return float2half(rf);
+}
+
+template<> EIGEN_STRONG_INLINE Packet16h psub<Packet16h>(const Packet16h& a, const Packet16h& b) {
+  Packet16f af = half2float(a);
+  Packet16f bf = half2float(b);
+  Packet16f rf = psub(af, bf);
   return float2half(rf);
 }
 
@@ -638,6 +667,57 @@ template<> EIGEN_STRONG_INLINE Packet16h pmul<Packet16h>(const Packet16h& a, con
 template<> EIGEN_STRONG_INLINE half predux<Packet16h>(const Packet16h& from) {
   Packet16f from_float = half2float(from);
   return half(predux(from_float));
+}
+
+template<> EIGEN_STRONG_INLINE half predux_mul<Packet16h>(const Packet16h& from) {
+  Packet16f from_float = half2float(from);
+  return half(predux_mul(from_float));
+}
+
+template<> EIGEN_STRONG_INLINE Packet16h preduxp<Packet16h>(const Packet16h* p) {
+  Packet16f pf[16];
+  pf[0] = half2float(p[0]);
+  pf[1] = half2float(p[1]);
+  pf[2] = half2float(p[2]);
+  pf[3] = half2float(p[3]);
+  pf[4] = half2float(p[4]);
+  pf[5] = half2float(p[5]);
+  pf[6] = half2float(p[6]);
+  pf[7] = half2float(p[7]);
+  pf[8] = half2float(p[8]);
+  pf[9] = half2float(p[9]);
+  pf[10] = half2float(p[10]);
+  pf[11] = half2float(p[11]);
+  pf[12] = half2float(p[12]);
+  pf[13] = half2float(p[13]);
+  pf[14] = half2float(p[14]);
+  pf[15] = half2float(p[15]);
+  Packet16f reduced = preduxp<Packet16f>(pf);
+  return float2half(reduced);
+}
+
+template<> EIGEN_STRONG_INLINE Packet16h preverse(const Packet16h& a)
+{
+  __m128i m = _mm_setr_epi8(14,15,12,13,10,11,8,9,6,7,4,5,2,3,0,1);
+  Packet16h res;
+  res.x = _mm256_insertf128_si256(
+                    _mm256_castsi128_si256(_mm_shuffle_epi8(_mm256_extractf128_si256(a.x,1),m)),
+                                           _mm_shuffle_epi8(_mm256_extractf128_si256(a.x,0),m), 1);
+  return res;
+}
+
+template<> EIGEN_STRONG_INLINE Packet16h pinsertfirst(const Packet16h& a, Eigen::half b)
+{
+  Packet16h res;
+  res.x = _mm256_insert_epi16(a.x,b.x,0);
+  return res;
+}
+
+template<> EIGEN_STRONG_INLINE Packet16h pinsertlast(const Packet16h& a, Eigen::half b)
+{
+  Packet16h res;
+  res.x = _mm256_insert_epi16(a.x,b.x,15);
+  return res;
 }
 
 template<> EIGEN_STRONG_INLINE Packet16h pgather<Eigen::half, Packet16h>(const Eigen::half* from, Index stride)
@@ -747,20 +827,20 @@ ptranspose(PacketBlock<Packet16h,16>& kernel) {
 
   // NOTE: no unpacklo/hi instr in this case, so using permute instr.
   __m256i a_p_0 = _mm256_permute2x128_si256(abcdefgh_01, ijklmnop_01, 0x20);
-  __m256i a_p_1 = _mm256_permute2x128_si256(abcdefgh_01, ijklmnop_01, 0x31);
-  __m256i a_p_2 = _mm256_permute2x128_si256(abcdefgh_23, ijklmnop_23, 0x20);
-  __m256i a_p_3 = _mm256_permute2x128_si256(abcdefgh_23, ijklmnop_23, 0x31);
-  __m256i a_p_4 = _mm256_permute2x128_si256(abcdefgh_45, ijklmnop_45, 0x20);
-  __m256i a_p_5 = _mm256_permute2x128_si256(abcdefgh_45, ijklmnop_45, 0x31);
-  __m256i a_p_6 = _mm256_permute2x128_si256(abcdefgh_67, ijklmnop_67, 0x20);
-  __m256i a_p_7 = _mm256_permute2x128_si256(abcdefgh_67, ijklmnop_67, 0x31);
-  __m256i a_p_8 = _mm256_permute2x128_si256(abcdefgh_89, ijklmnop_89, 0x20);
-  __m256i a_p_9 = _mm256_permute2x128_si256(abcdefgh_89, ijklmnop_89, 0x31);
-  __m256i a_p_a = _mm256_permute2x128_si256(abcdefgh_ab, ijklmnop_ab, 0x20);
-  __m256i a_p_b = _mm256_permute2x128_si256(abcdefgh_ab, ijklmnop_ab, 0x31);
-  __m256i a_p_c = _mm256_permute2x128_si256(abcdefgh_cd, ijklmnop_cd, 0x20);
-  __m256i a_p_d = _mm256_permute2x128_si256(abcdefgh_cd, ijklmnop_cd, 0x31);
-  __m256i a_p_e = _mm256_permute2x128_si256(abcdefgh_ef, ijklmnop_ef, 0x20);
+  __m256i a_p_1 = _mm256_permute2x128_si256(abcdefgh_23, ijklmnop_23, 0x20);
+  __m256i a_p_2 = _mm256_permute2x128_si256(abcdefgh_45, ijklmnop_45, 0x20);
+  __m256i a_p_3 = _mm256_permute2x128_si256(abcdefgh_67, ijklmnop_67, 0x20);
+  __m256i a_p_4 = _mm256_permute2x128_si256(abcdefgh_89, ijklmnop_89, 0x20);
+  __m256i a_p_5 = _mm256_permute2x128_si256(abcdefgh_ab, ijklmnop_ab, 0x20);
+  __m256i a_p_6 = _mm256_permute2x128_si256(abcdefgh_cd, ijklmnop_cd, 0x20);
+  __m256i a_p_7 = _mm256_permute2x128_si256(abcdefgh_ef, ijklmnop_ef, 0x20);
+  __m256i a_p_8 = _mm256_permute2x128_si256(abcdefgh_01, ijklmnop_01, 0x31);
+  __m256i a_p_9 = _mm256_permute2x128_si256(abcdefgh_23, ijklmnop_23, 0x31);
+  __m256i a_p_a = _mm256_permute2x128_si256(abcdefgh_45, ijklmnop_45, 0x31);
+  __m256i a_p_b = _mm256_permute2x128_si256(abcdefgh_67, ijklmnop_67, 0x31);
+  __m256i a_p_c = _mm256_permute2x128_si256(abcdefgh_89, ijklmnop_89, 0x31);
+  __m256i a_p_d = _mm256_permute2x128_si256(abcdefgh_ab, ijklmnop_ab, 0x31);
+  __m256i a_p_e = _mm256_permute2x128_si256(abcdefgh_cd, ijklmnop_cd, 0x31);
   __m256i a_p_f = _mm256_permute2x128_si256(abcdefgh_ef, ijklmnop_ef, 0x31);
 
   kernel.packet[0].x = a_p_0;
@@ -865,10 +945,10 @@ struct packet_traits<Eigen::half> : default_packet_traits {
     AlignedOnScalar = 1,
     size = 8,
     HasHalfPacket = 0,
-    HasAdd    = 0,
-    HasSub    = 0,
-    HasMul    = 0,
-    HasNegate = 0,
+    HasAdd    = 1,
+    HasSub    = 1,
+    HasMul    = 1,
+    HasNegate = 1,
     HasAbs    = 0,
     HasAbs2   = 0,
     HasMin    = 0,
@@ -915,6 +995,17 @@ template<> EIGEN_STRONG_INLINE void pstore<Eigen::half>(Eigen::half* to, const P
 
 template<> EIGEN_STRONG_INLINE void pstoreu<Eigen::half>(Eigen::half* to, const Packet8h& from) {
   _mm_storeu_si128(reinterpret_cast<__m128i*>(to), from.x);
+}
+
+template<> EIGEN_STRONG_INLINE Packet8h
+ploaddup<Packet8h>(const Eigen::half*  from) {
+  Packet8h result;
+  unsigned short a = from[0].x;
+  unsigned short b = from[1].x;
+  unsigned short c = from[2].x;
+  unsigned short d = from[3].x;
+  result.x = _mm_set_epi16(d, d, c, c, b, b, a, a);
+  return result;
 }
 
 template<> EIGEN_STRONG_INLINE Packet8h
@@ -970,10 +1061,24 @@ EIGEN_STRONG_INLINE Packet8h float2half(const Packet8f& a) {
 
 template<> EIGEN_STRONG_INLINE Packet8h pconj(const Packet8h& a) { return a; }
 
+template<> EIGEN_STRONG_INLINE Packet8h pnegate(const Packet8h& a) {
+  // FIXME we could do that with bit manipulation
+  Packet8f af = half2float(a);
+  Packet8f rf = pnegate(af);
+  return float2half(rf);
+}
+
 template<> EIGEN_STRONG_INLINE Packet8h padd<Packet8h>(const Packet8h& a, const Packet8h& b) {
   Packet8f af = half2float(a);
   Packet8f bf = half2float(b);
   Packet8f rf = padd(af, bf);
+  return float2half(rf);
+}
+
+template<> EIGEN_STRONG_INLINE Packet8h psub<Packet8h>(const Packet8h& a, const Packet8h& b) {
+  Packet8f af = half2float(a);
+  Packet8f bf = half2float(b);
+  Packet8f rf = psub(af, bf);
   return float2half(rf);
 }
 
@@ -1028,6 +1133,52 @@ template<> EIGEN_STRONG_INLINE Eigen::half predux_mul<Packet8h>(const Packet8h& 
   float reduced = predux_mul<Packet8f>(af);
   return Eigen::half(reduced);
 }
+
+template<> EIGEN_STRONG_INLINE Packet8h preduxp<Packet8h>(const Packet8h* p) {
+  Packet8f pf[8];
+  pf[0] = half2float(p[0]);
+  pf[1] = half2float(p[1]);
+  pf[2] = half2float(p[2]);
+  pf[3] = half2float(p[3]);
+  pf[4] = half2float(p[4]);
+  pf[5] = half2float(p[5]);
+  pf[6] = half2float(p[6]);
+  pf[7] = half2float(p[7]);
+  Packet8f reduced = preduxp<Packet8f>(pf);
+  return float2half(reduced);
+}
+
+template<> EIGEN_STRONG_INLINE Packet8h preverse(const Packet8h& a)
+{
+  __m128i m = _mm_setr_epi8(14,15,12,13,10,11,8,9,6,7,4,5,2,3,0,1);
+  Packet8h res;
+  res.x = _mm_shuffle_epi8(a.x,m);
+  return res;
+}
+
+template<> EIGEN_STRONG_INLINE Packet8h pinsertfirst(const Packet8h& a, Eigen::half b)
+{
+  Packet8h res;
+  res.x = _mm_insert_epi16(a.x,int(b.x),0);
+  return res;
+}
+
+template<> EIGEN_STRONG_INLINE Packet8h pinsertlast(const Packet8h& a, Eigen::half b)
+{
+  Packet8h res;
+  res.x = _mm_insert_epi16(a.x,int(b.x),7);
+  return res;
+}
+
+template<int Offset>
+struct palign_impl<Offset,Packet8h>
+{
+  static EIGEN_STRONG_INLINE void run(Packet8h& first, const Packet8h& second)
+  {
+    if (Offset!=0)
+      first.x = _mm_alignr_epi8(second.x,first.x, Offset*2);
+  }
+};
 
 EIGEN_STRONG_INLINE void
 ptranspose(PacketBlock<Packet8h,8>& kernel) {

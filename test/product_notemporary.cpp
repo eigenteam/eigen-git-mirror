@@ -128,11 +128,19 @@ template<typename MatrixType> void product_notemporary(const MatrixType& m)
   VERIFY_EVALUATION_COUNT( cvres.noalias() = (rm3+rm3) * (m1*cv1), 1 );
 
   // Check outer products
+  #ifdef EIGEN_ALLOCA
+  bool temp_via_alloca = m3.rows()*sizeof(Scalar) <= EIGEN_STACK_ALLOCATION_LIMIT;
+  #else
+  bool temp_via_alloca = false;
+  #endif
   m3 = cv1 * rv1;
   VERIFY_EVALUATION_COUNT( m3.noalias() = cv1 * rv1, 0 );
-  VERIFY_EVALUATION_COUNT( m3.noalias() = (cv1+cv1) * (rv1+rv1), 1 );
+  VERIFY_EVALUATION_COUNT( m3.noalias() = (cv1+cv1) * (rv1+rv1), temp_via_alloca ? 0 : 1 );
   VERIFY_EVALUATION_COUNT( m3.noalias() = (m1*cv1) * (rv1), 1 );
   VERIFY_EVALUATION_COUNT( m3.noalias() += (m1*cv1) * (rv1), 1 );
+  rm3 = cv1 * rv1;
+  VERIFY_EVALUATION_COUNT( rm3.noalias() = cv1 * rv1, 0 );
+  VERIFY_EVALUATION_COUNT( rm3.noalias() = (cv1+cv1) * (rv1+rv1), temp_via_alloca ? 0 : 1 );
   VERIFY_EVALUATION_COUNT( rm3.noalias() = (cv1) * (rv1 * m1), 1 );
   VERIFY_EVALUATION_COUNT( rm3.noalias() -= (cv1) * (rv1 * m1), 1 );
   VERIFY_EVALUATION_COUNT( rm3.noalias() = (m1*cv1) * (rv1 * m1), 2 );

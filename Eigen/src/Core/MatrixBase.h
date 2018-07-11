@@ -328,6 +328,7 @@ template<typename Derived> class MatrixBase
 
     inline const PartialPivLU<PlainObject> lu() const;
 
+    EIGEN_DEVICE_FUNC
     inline const Inverse<Derived> inverse() const;
 
     template<typename ResultType>
@@ -337,12 +338,15 @@ template<typename Derived> class MatrixBase
       bool& invertible,
       const RealScalar& absDeterminantThreshold = NumTraits<Scalar>::dummy_precision()
     ) const;
+
     template<typename ResultType>
     inline void computeInverseWithCheck(
       ResultType& inverse,
       bool& invertible,
       const RealScalar& absDeterminantThreshold = NumTraits<Scalar>::dummy_precision()
     ) const;
+
+    EIGEN_DEVICE_FUNC
     Scalar determinant() const;
 
 /////////// Cholesky module ///////////
@@ -414,15 +418,19 @@ template<typename Derived> class MatrixBase
 
 ////////// Householder module ///////////
 
+    EIGEN_DEVICE_FUNC
     void makeHouseholderInPlace(Scalar& tau, RealScalar& beta);
     template<typename EssentialPart>
+    EIGEN_DEVICE_FUNC
     void makeHouseholder(EssentialPart& essential,
                          Scalar& tau, RealScalar& beta) const;
     template<typename EssentialPart>
+    EIGEN_DEVICE_FUNC
     void applyHouseholderOnTheLeft(const EssentialPart& essential,
                                    const Scalar& tau,
                                    Scalar* workspace);
     template<typename EssentialPart>
+    EIGEN_DEVICE_FUNC
     void applyHouseholderOnTheRight(const EssentialPart& essential,
                                     const Scalar& tau,
                                     Scalar* workspace);

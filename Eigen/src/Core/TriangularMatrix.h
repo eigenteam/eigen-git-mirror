@@ -65,6 +65,7 @@ template<typename Derived> class TriangularBase : public EigenBase<Derived>
     inline Index innerStride() const { return derived().innerStride(); }
     
     // dummy resize function
+    EIGEN_DEVICE_FUNC
     void resize(Index rows, Index cols)
     {
       EIGEN_UNUSED_VARIABLE(rows);
@@ -716,6 +717,7 @@ struct unary_evaluator<TriangularView<MatrixType,Mode>, IndexBased>
 {
   typedef TriangularView<MatrixType,Mode> XprType;
   typedef evaluator<typename internal::remove_all<MatrixType>::type> Base;
+  EIGEN_DEVICE_FUNC
   unary_evaluator(const XprType &xpr) : Base(xpr.nestedExpression()) {}
 };
 

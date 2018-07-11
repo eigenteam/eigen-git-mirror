@@ -290,6 +290,7 @@ template<typename DstXprType, typename XprType>
 struct Assignment<DstXprType, Inverse<XprType>, internal::assign_op<typename DstXprType::Scalar,typename XprType::Scalar>, Dense2Dense>
 {
   typedef Inverse<XprType> SrcXprType;
+  EIGEN_DEVICE_FUNC
   static void run(DstXprType &dst, const SrcXprType &src, const internal::assign_op<typename DstXprType::Scalar,typename XprType::Scalar> &)
   {
     Index dstRows = src.rows();
@@ -332,6 +333,7 @@ struct Assignment<DstXprType, Inverse<XprType>, internal::assign_op<typename Dst
   * \sa computeInverseAndDetWithCheck()
   */
 template<typename Derived>
+EIGEN_DEVICE_FUNC
 inline const Inverse<Derived> MatrixBase<Derived>::inverse() const
 {
   EIGEN_STATIC_ASSERT(!NumTraits<Scalar>::IsInteger,THIS_FUNCTION_IS_NOT_FOR_INTEGER_NUMERIC_TYPES)

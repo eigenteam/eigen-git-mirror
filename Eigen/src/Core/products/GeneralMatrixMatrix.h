@@ -431,10 +431,10 @@ struct generic_product_impl<Lhs,Rhs,DenseShape,DenseShape,GemmProduct>
     // to determine the following heuristic.
     // EIGEN_GEMM_TO_COEFFBASED_THRESHOLD is typically defined to 20 in GeneralProduct.h,
     // unless it has been specialized by the user or for a given architecture.
-    // Note that the condition rhs.rows()>0 was required because lazy produc is (was?) not happy with empty inputs.
+    // Note that the condition rhs.rows()>0 was required because lazy product is (was?) not happy with empty inputs.
     // I'm not sure it is still required.
     if((rhs.rows()+dst.rows()+dst.cols())<EIGEN_GEMM_TO_COEFFBASED_THRESHOLD && rhs.rows()>0)
-      lazyproduct::evalTo(dst, lhs, rhs);
+      lazyproduct::eval_dynamic(dst, lhs, rhs, internal::assign_op<typename Dst::Scalar,Scalar>());
     else
     {
       dst.setZero();
@@ -446,7 +446,7 @@ struct generic_product_impl<Lhs,Rhs,DenseShape,DenseShape,GemmProduct>
   static void addTo(Dst& dst, const Lhs& lhs, const Rhs& rhs)
   {
     if((rhs.rows()+dst.rows()+dst.cols())<EIGEN_GEMM_TO_COEFFBASED_THRESHOLD && rhs.rows()>0)
-      lazyproduct::addTo(dst, lhs, rhs);
+      lazyproduct::eval_dynamic(dst, lhs, rhs, internal::add_assign_op<typename Dst::Scalar,Scalar>());
     else
       scaleAndAddTo(dst,lhs, rhs, Scalar(1));
   }
@@ -455,7 +455,7 @@ struct generic_product_impl<Lhs,Rhs,DenseShape,DenseShape,GemmProduct>
   static void subTo(Dst& dst, const Lhs& lhs, const Rhs& rhs)
   {
     if((rhs.rows()+dst.rows()+dst.cols())<EIGEN_GEMM_TO_COEFFBASED_THRESHOLD && rhs.rows()>0)
-      lazyproduct::subTo(dst, lhs, rhs);
+      lazyproduct::eval_dynamic(dst, lhs, rhs, internal::sub_assign_op<typename Dst::Scalar,Scalar>());
     else
       scaleAndAddTo(dst, lhs, rhs, Scalar(-1));
   }
