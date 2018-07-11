@@ -1080,7 +1080,7 @@ struct unary_evaluator<Block<ArgType, BlockRows, BlockCols, InnerPanel>, IndexBa
     : m_argImpl(block.nestedExpression()), 
       m_startRow(block.startRow()), 
       m_startCol(block.startCol()),
-      m_linear_offset((InnerPanel|| XprType::IsVectorAtCompileTime)?(XprType::IsRowMajor ? block.startRow()*block.cols() + block.startCol() : block.startCol()*block.rows() + block.startRow()):0)
+      m_linear_offset(ForwardLinearAccess?(ArgType::IsRowMajor ? block.startRow()*block.nestedExpression().cols() + block.startCol() : block.startCol()*block.nestedExpression().rows() + block.startRow()):0)
   { }
  
   typedef typename XprType::Scalar Scalar;
@@ -1088,7 +1088,7 @@ struct unary_evaluator<Block<ArgType, BlockRows, BlockCols, InnerPanel>, IndexBa
 
   enum {
     RowsAtCompileTime = XprType::RowsAtCompileTime,
-    ForwardLinearAccess = (InnerPanel || XprType::IsVectorAtCompileTime) && bool(evaluator<ArgType>::Flags&LinearAccessBit)
+    ForwardLinearAccess = (InnerPanel || XprType::IsRowMajor==ArgType::IsRowMajor) && bool(evaluator<ArgType>::Flags&LinearAccessBit)
   };
  
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
@@ -1162,7 +1162,7 @@ protected:
   evaluator<ArgType> m_argImpl;
   const variable_if_dynamic<Index, (ArgType::RowsAtCompileTime == 1 && BlockRows==1) ? 0 : Dynamic> m_startRow;
   const variable_if_dynamic<Index, (ArgType::ColsAtCompileTime == 1 && BlockCols==1) ? 0 : Dynamic> m_startCol;
-  const variable_if_dynamic<Index, (InnerPanel || XprType::IsVectorAtCompileTime) ? Dynamic : 0> m_linear_offset;
+  const variable_if_dynamic<Index, ForwardLinearAccess ? Dynamic : 0> m_linear_offset;
 };
 
 // TODO: This evaluator does not actually use the child evaluator; 

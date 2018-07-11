@@ -166,7 +166,14 @@ template<typename MatrixType> void block(const MatrixType& m)
   VERIFY_IS_APPROX( ((m1+m2).block(r1,c1,r2-r1+1,c2-c1+1).col(0)) , ((m1+m2).col(c1).segment(r1,r2-r1+1)) );
   VERIFY_IS_APPROX( ((m1+m2).block(r1,c1,r2-r1+1,c2-c1+1).transpose().col(0)) , ((m1+m2).row(r1).segment(c1,c2-c1+1)).transpose() );
   VERIFY_IS_APPROX( ((m1+m2).transpose().block(c1,r1,c2-c1+1,r2-r1+1).col(0)) , ((m1+m2).row(r1).segment(c1,c2-c1+1)).transpose() );
-  VERIFY_IS_APPROX( ((m1+m2).template block<1,Dynamic>(r1,c1,1,c2-c1+1)) , ((m1+m2).eval().row(r1).segment(c1,c2-c1+1)) );
+  VERIFY_IS_APPROX( ((m1+m2).template block<Dynamic,1>(r1,c1,r2-r1+1,1)) , ((m1+m2).eval().col(c1).eval().segment(r1,r2-r1+1)) );
+  VERIFY_IS_APPROX( ((m1+m2).template block<1,Dynamic>(r1,c1,1,c2-c1+1)) , ((m1+m2).eval().row(r1).eval().segment(c1,c2-c1+1)) );
+  VERIFY_IS_APPROX( ((m1+m2).transpose().template block<1,Dynamic>(c1,r1,1,r2-r1+1)) , ((m1+m2).eval().col(c1).eval().segment(r1,r2-r1+1)).transpose() );
+  VERIFY_IS_APPROX( (m1+m2).row(r1).eval(), (m1+m2).eval().row(r1) );
+  VERIFY_IS_APPROX( (m1+m2).adjoint().col(r1).eval(), (m1+m2).adjoint().eval().col(r1) );
+  VERIFY_IS_APPROX( (m1+m2).adjoint().row(c1).eval(), (m1+m2).adjoint().eval().row(c1) );
+  VERIFY_IS_APPROX( (m1*1).row(r1).segment(c1,c2-c1+1).eval(), m1.row(r1).eval().segment(c1,c2-c1+1).eval() );
+  VERIFY_IS_APPROX( m1.col(c1).reverse().segment(r1,r2-r1+1).eval(),m1.col(c1).reverse().eval().segment(r1,r2-r1+1).eval() );
 
   VERIFY_IS_APPROX( (m1*1).topRows(r1),  m1.topRows(r1) );
   VERIFY_IS_APPROX( (m1*1).leftCols(c1), m1.leftCols(c1) );
