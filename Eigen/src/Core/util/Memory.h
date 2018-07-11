@@ -720,7 +720,7 @@ template<typename T> void swap(scoped_array<T> &a,scoped_array<T> &b)
     Eigen::internal::aligned_stack_memory_handler<TYPE> EIGEN_CAT(NAME,_stack_memory_destructor)((BUFFER)==0 ? NAME : 0,SIZE,true)
 
 
-#define ei_declare_local_nested_eval(XPR_T,XPR,N,NAME) typename Eigen::internal::nested_eval<XPR_T,N>::type NAME(XPR);
+#define ei_declare_local_nested_eval(XPR_T,XPR,N,NAME) typename Eigen::internal::nested_eval<XPR_T,N>::type NAME(XPR)
 
 #endif
 
