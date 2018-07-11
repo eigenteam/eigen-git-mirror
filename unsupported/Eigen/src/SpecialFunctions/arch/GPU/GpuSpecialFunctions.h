@@ -7,8 +7,8 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef EIGEN_CUDA_SPECIALFUNCTIONS_H
-#define EIGEN_CUDA_SPECIALFUNCTIONS_H
+#ifndef EIGEN_GPU_SPECIALFUNCTIONS_H
+#define EIGEN_GPU_SPECIALFUNCTIONS_H
 
 namespace Eigen {
 
@@ -223,4 +223,4 @@ pi1e<double2>(const double2& x) {
 
 } // end namespace Eigen
 
-#endif // EIGEN_CUDA_SPECIALFUNCTIONS_H
+#endif // EIGEN_GPU_SPECIALFUNCTIONS_H

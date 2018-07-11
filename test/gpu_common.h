@@ -1,13 +1,22 @@
 
-#ifndef EIGEN_TEST_CUDA_COMMON_H
-#define EIGEN_TEST_CUDA_COMMON_H
+#ifndef EIGEN_TEST_GPU_COMMON_H
+#define EIGEN_TEST_GPU_COMMON_H
 
-#include <cuda.h>
-#include <cuda_runtime.h>
-#include <cuda_runtime_api.h>
+#ifdef EIGEN_USE_HIP
+  #include <hip/hip_runtime.h>
+  #include <hip/hip_runtime_api.h>
+#else
+  #include <cuda.h>
+  #include <cuda_runtime.h>
+  #include <cuda_runtime_api.h>
+#endif
+
 #include <iostream>
 
-#ifndef __CUDACC__
+#define EIGEN_USE_GPU
+#include <unsupported/Eigen/CXX11/src/Tensor/TensorGpuHipCudaDefines.h>
+
+#if !defined(__CUDACC__) && !defined(__HIPCC__)
 dim3 threadIdx, blockDim, blockIdx;
 #endif
 
@@ -21,7 +30,7 @@ void run_on_cpu(const Kernel& ker, int n, const Input& in, Output& out)
 
 template<typename Kernel, typename Input, typename Output>
 __global__
-void run_on_cuda_meta_kernel(const Kernel ker, int n, const Input* in, Output* out)
+void run_on_gpu_meta_kernel(const Kernel ker, int n, const Input* in, Output* out)
 {
   int i = threadIdx.x + blockIdx.x*blockDim.x;
   if(i<n) {
@@ -31,61 +40,70 @@ void run_on_cuda_meta_kernel(const Kernel ker, int n, const Input* in, Output* o
 
 
 template<typename Kernel, typename Input, typename Output>
-void run_on_cuda(const Kernel& ker, int n, const Input& in, Output& out)
+void run_on_gpu(const Kernel& ker, int n, const Input& in, Output& out)
 {
   typename Input::Scalar*  d_in;
   typename Output::Scalar* d_out;
   std::ptrdiff_t in_bytes  = in.size()  * sizeof(typename Input::Scalar);
   std::ptrdiff_t out_bytes = out.size() * sizeof(typename Output::Scalar);
   
-  cudaMalloc((void**)(&d_in),  in_bytes);
-  cudaMalloc((void**)(&d_out), out_bytes);
+  gpuMalloc((void**)(&d_in),  in_bytes);
+  gpuMalloc((void**)(&d_out), out_bytes);
   
-  cudaMemcpy(d_in,  in.data(),  in_bytes,  cudaMemcpyHostToDevice);
-  cudaMemcpy(d_out, out.data(), out_bytes, cudaMemcpyHostToDevice);
+  gpuMemcpy(d_in,  in.data(),  in_bytes,  gpuMemcpyHostToDevice);
+  gpuMemcpy(d_out, out.data(), out_bytes, gpuMemcpyHostToDevice);
   
   // Simple and non-optimal 1D mapping assuming n is not too large
   // That's only for unit testing!
   dim3 Blocks(128);
   dim3 Grids( (n+int(Blocks.x)-1)/int(Blocks.x) );
 
-  cudaThreadSynchronize();
-  run_on_cuda_meta_kernel<<<Grids,Blocks>>>(ker, n, d_in, d_out);
-  cudaThreadSynchronize();
+  gpuDeviceSynchronize();
+  
+#ifdef EIGEN_USE_HIP
+  hipLaunchKernelGGL(run_on_gpu_meta_kernel<Kernel,
+		     typename std::decay<decltype(*d_in)>::type,
+		     typename std::decay<decltype(*d_out)>::type>, 
+		     dim3(Grids), dim3(Blocks), 0, 0, ker, n, d_in, d_out);
+#else
+  run_on_gpu_meta_kernel<<<Grids,Blocks>>>(ker, n, d_in, d_out);
+#endif
+  
+  gpuDeviceSynchronize();
   
   // check inputs have not been modified
-  cudaMemcpy(const_cast<typename Input::Scalar*>(in.data()),  d_in,  in_bytes,  cudaMemcpyDeviceToHost);
-  cudaMemcpy(out.data(), d_out, out_bytes, cudaMemcpyDeviceToHost);
+  gpuMemcpy(const_cast<typename Input::Scalar*>(in.data()),  d_in,  in_bytes,  gpuMemcpyDeviceToHost);
+  gpuMemcpy(out.data(), d_out, out_bytes, gpuMemcpyDeviceToHost);
   
-  cudaFree(d_in);
-  cudaFree(d_out);
+  gpuFree(d_in);
+  gpuFree(d_out);
 }
 
 
 template<typename Kernel, typename Input, typename Output>
-void run_and_compare_to_cuda(const Kernel& ker, int n, const Input& in, Output& out)
+void run_and_compare_to_gpu(const Kernel& ker, int n, const Input& in, Output& out)
 {
-  Input  in_ref,  in_cuda;
-  Output out_ref, out_cuda;
-  #ifndef __CUDA_ARCH__
-  in_ref = in_cuda = in;
-  out_ref = out_cuda = out;
+  Input  in_ref,  in_gpu;
+  Output out_ref, out_gpu;
+  #if !defined(__CUDA_ARCH__) && !defined(__HIP_DEVICE_COMPILE__)
+  in_ref = in_gpu = in;
+  out_ref = out_gpu = out;
   #endif
   run_on_cpu (ker, n, in_ref,  out_ref);
-  run_on_cuda(ker, n, in_cuda, out_cuda);
-  #ifndef __CUDA_ARCH__
-  VERIFY_IS_APPROX(in_ref, in_cuda);
-  VERIFY_IS_APPROX(out_ref, out_cuda);
+  run_on_gpu(ker, n, in_gpu, out_gpu);
+  #if !defined(__CUDA_ARCH__) && !defined(__HIP_DEVICE_COMPILE__)
+  VERIFY_IS_APPROX(in_ref, in_gpu);
+  VERIFY_IS_APPROX(out_ref, out_gpu);
   #endif
 }
 
 
-void ei_test_init_cuda()
+void ei_test_init_gpu()
 {
   int device = 0;
-  cudaDeviceProp deviceProp;
-  cudaGetDeviceProperties(&deviceProp, device);
-  std::cout << "CUDA device info:\n";
+  gpuDeviceProp_t deviceProp;
+  gpuGetDeviceProperties(&deviceProp, device);
+  std::cout << "GPU device info:\n";
   std::cout << "  name:                        " << deviceProp.name << "\n";
   std::cout << "  capability:                  " << deviceProp.major << "." << deviceProp.minor << "\n";
   std::cout << "  multiProcessorCount:         " << deviceProp.multiProcessorCount << "\n";
@@ -98,4 +116,4 @@ void ei_test_init_cuda()
   std::cout << "  computeMode:                 " << deviceProp.computeMode << "\n";
 }
 
-#endif // EIGEN_TEST_CUDA_COMMON_H
+#endif // EIGEN_TEST_GPU_COMMON_H

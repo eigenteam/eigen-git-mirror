@@ -32,8 +32,7 @@
 #define gpuGetDeviceCount hipGetDeviceCount
 #define gpuGetErrorString hipGetErrorString
 #define gpuGetDeviceProperties hipGetDeviceProperties
-// FIXME : use hipStreamDefault instead of 0x00
-#define gpuStreamDefault 0x00
+#define gpuStreamDefault hipStreamDefault
 #define gpuGetDevice hipGetDevice
 #define gpuSetDevice hipSetDevice
 #define gpuMalloc hipMalloc
@@ -47,6 +46,7 @@
 #define gpuSharedMemConfig hipSharedMemConfig
 #define gpuDeviceSetSharedMemConfig hipDeviceSetSharedMemConfig
 #define gpuStreamSynchronize hipStreamSynchronize
+#define gpuDeviceSynchronize hipDeviceSynchronize
 #define gpuMemcpy hipMemcpy
 
 #else
@@ -73,6 +73,7 @@
 #define gpuSharedMemConfig cudaSharedMemConfig
 #define gpuDeviceSetSharedMemConfig cudaDeviceSetSharedMemConfig
 #define gpuStreamSynchronize cudaStreamSynchronize
+#define gpuDeviceSynchronize cudaDeviceSynchronize
 #define gpuMemcpy cudaMemcpy
 
 #endif

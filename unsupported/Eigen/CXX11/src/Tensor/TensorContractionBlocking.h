@@ -28,6 +28,20 @@ class TensorContractionBlocking {
   typedef typename LhsMapper::Scalar LhsScalar;
   typedef typename RhsMapper::Scalar RhsScalar;
 
+ /*
+   adding EIGEN_DEVICE_FUNC unconditionally to 'TensorContractionBlocking' constructor in `TensorContractionBlocking.h`
+     requires adding EIGEN_DEVICE_FUNC to `computeProductBlockingSizes` in `GeneralBlockPanelKernel.h`
+     which in turn, requires adding EIGEN_DEVICE_FUNC to `evaluateProductBlockingSizesHeuristic` in `GeneralBlockPanelKernel.h`
+     which in turn, requires adding EIGEN_DEVICE_FUNC to `manage_caching_sizes` in `GeneralBlockPanelKernel.h`
+     (else HIPCC will error out)
+
+   However adding EIGEN_DEVICE_FUNC to `manage_caching_sizes` in `GeneralBlockPanelKernel.h`
+   results in NVCC erroring out with the following error
+
+   ../Eigen/src/Core/products/GeneralBlockPanelKernel.h(57): error #2901:
+      dynamic initialization is not supported for function-scope static variables within a __device__/__global__ function
+ */
+ 
   #if !defined(EIGEN_HIPCC)
   EIGEN_DEVICE_FUNC
   #endif

@@ -399,7 +399,7 @@ if(CUDA_FOUND)
   cuda_include_directories(${CMAKE_CURRENT_BINARY_DIR})
   set(EIGEN_ADD_TEST_FILENAME_EXTENSION  "cu")
   
-  ei_add_test(cuda_basic)
+  ei_add_test(gpu_basic)
   
   unset(EIGEN_ADD_TEST_FILENAME_EXTENSION)
 
@@ -429,7 +429,7 @@ if (EIGEN_TEST_HIP)
 	include_directories(${HIP_PATH}/include)
 
 	set(EIGEN_ADD_TEST_FILENAME_EXTENSION  "cu")
-	ei_add_test(hip_basic)
+	ei_add_test(gpu_basic)
 	unset(EIGEN_ADD_TEST_FILENAME_EXTENSION)
 	
       elseif (${HIP_PLATFORM} STREQUAL "nvcc")

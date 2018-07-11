@@ -859,10 +859,7 @@ struct TensorEvaluator<const TensorStridingSlicingOp<StartIndices, StopIndices, 
     return inputIndex;
   }
   
-  #if defined(EIGEN_HIPCC)
-  EIGEN_DEVICE_FUNC
-  #endif
-  static EIGEN_STRONG_INLINE Index clamp(Index value, Index min, Index max) {
+  static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Index clamp(Index value, Index min, Index max) {
 #ifndef __SYCL_DEVICE_ONLY__
     return numext::maxi(min, numext::mini(max,value));
 #else

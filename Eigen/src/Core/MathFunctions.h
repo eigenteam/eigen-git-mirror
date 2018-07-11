@@ -982,7 +982,12 @@ template<>
 EIGEN_DEVICE_FUNC
 EIGEN_ALWAYS_INLINE long double mini(const long double& x, const long double& y)
 {
+#if defined(EIGEN_HIPCC)
+  // no "fminl" on HIP yet
+  return (x < y) ? x : y;
+#else
   return fminl(x, y);
+#endif
 }
 
 template<typename T>
@@ -1007,7 +1012,12 @@ template<>
 EIGEN_DEVICE_FUNC
 EIGEN_ALWAYS_INLINE long double maxi(const long double& x, const long double& y)
 {
+#if defined(EIGEN_HIPCC)
+  // no "fmaxl" on HIP yet
+  return (x > y) ? x : y;
+#else
   return fmaxl(x, y);
+#endif
 }
 #endif
 

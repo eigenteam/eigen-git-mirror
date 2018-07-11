@@ -32,6 +32,7 @@
 #undef gpuSharedMemConfig
 #undef gpuDeviceSetSharedMemConfig
 #undef gpuStreamSynchronize
+#undef gpuDeviceSynchronize
 #undef gpuMemcpy
 
 #undef EIGEN_CXX11_TENSOR_GPU_HIP_CUDA_DEFINES_H

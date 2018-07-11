@@ -497,6 +497,9 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType, MakePointer_>,
 
   EIGEN_STRONG_INLINE
     #if !defined(EIGEN_HIPCC)
+    // Marking this as EIGEN_DEVICE_FUNC for HIPCC requires also doing the same for all the functions
+    // being called within here, which then leads to proliferation of EIGEN_DEVICE_FUNC markings, one
+    // of which will eventually result in an NVCC error
     EIGEN_DEVICE_FUNC
     #endif
     bool evalSubExprsIfNeeded(typename MakePointer_<CoeffReturnType>::Type data) {
@@ -778,17 +781,9 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType, MakePointer_>,
   // Indexed by reduced dimensions.
   array<Index, NumReducedDims> m_reducedDims;
 
-#if defined(EIGEN_HIPCC)
- public:
-#endif
-  
   // Evaluator for the input expression.
   TensorEvaluator<ArgType, Device> m_impl;
 
-#if defined(EIGEN_HIPCC)
- private:
-#endif
-  
   // Operation to apply for computing the reduction.
   Op m_reducer;
 
