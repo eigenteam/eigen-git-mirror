@@ -676,6 +676,14 @@ template<typename T> struct is_diagonal<DiagonalWrapper<T> >
 template<typename T, int S> struct is_diagonal<DiagonalMatrix<T,S> >
 { enum { ret = true }; };
 
+
+template<typename T> struct is_identity
+{ enum { value = false }; };
+
+template<typename T> struct is_identity<CwiseNullaryOp<internal::scalar_identity_op<typename T::Scalar>, T> >
+{ enum { value = true }; };
+
+
 template<typename S1, typename S2> struct glue_shapes;
 template<> struct glue_shapes<DenseShape,TriangularShape> { typedef TriangularShape type;  };
 
