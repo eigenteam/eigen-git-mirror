@@ -35,7 +35,7 @@ namespace Eigen {
   * std::cout << expr98.eval(x=6) << "\n";
   * \endcode
   *
-  * It is currently only used internally to define and minipulate the placeholders::last and placeholders::end symbols in Eigen::seq and Eigen::seqN.
+  * It is currently only used internally to define and manipulate the placeholders::last and placeholders::end symbols in Eigen::seq and Eigen::seqN.
   *
   */
 namespace Symbolic {
@@ -187,7 +187,7 @@ public:
 
 template<typename T>
 struct is_symbolic {
-  // BaseExpr has no conversion ctor, so we only have to check whether T can be staticaly cast to its base class BaseExpr<T>.
+  // BaseExpr has no conversion ctor, so we only have to check whether T can be statically cast to its base class BaseExpr<T>.
   enum { value = internal::is_convertible<T,BaseExpr<T> >::value };
 };
 

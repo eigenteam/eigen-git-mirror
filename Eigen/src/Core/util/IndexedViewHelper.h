@@ -117,7 +117,7 @@ template<> struct get_compile_time_incr<SingleRange> {
   enum { value = 1 }; // 1 or 0 ??
 };
 
-// Turn a single index into something that looks like an array (i.e., that exposes a .size(), and operatro[](int) methods)
+// Turn a single index into something that looks like an array (i.e., that exposes a .size(), and operator[](int) methods)
 template<typename T, int XprSize>
 struct IndexedViewCompatibleType<T,XprSize,typename internal::enable_if<internal::is_integral<T>::value>::type> {
   // Here we could simply use Array, but maybe it's less work for the compiler to use
