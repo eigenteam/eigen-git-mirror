@@ -145,16 +145,19 @@ private:
   struct yes {int a[1];};
   struct no  {int a[2];};
 
-  static yes test(const To&, int);
+  template<typename T>
+  static yes test(T, int);
+
+  template<typename T>
   static no  test(any_conversion, ...);
 
 public:
-  static From ms_from;
+  static From* ms_from;
 #ifdef __INTEL_COMPILER
   #pragma warning push
   #pragma warning ( disable : 2259 )
 #endif
-  enum { value = sizeof(test(ms_from, 0))==sizeof(yes) };
+  enum { value = sizeof(test<To>(*ms_from, 0))==sizeof(yes) };
 #ifdef __INTEL_COMPILER
   #pragma warning pop
 #endif
@@ -163,8 +166,7 @@ public:
 template<typename From, typename To>
 struct is_convertible
 {
-  enum { value = is_convertible_impl<typename remove_all<From>::type,
-                                     typename remove_all<To  >::type>::value };
+  enum { value = is_convertible_impl<From,To>::value };
 };
 
 /** \internal Allows to enable/disable an overload

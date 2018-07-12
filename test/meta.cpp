@@ -19,6 +19,14 @@ struct FooReturnType {
   typedef int ReturnType;
 };
 
+struct MyInterface {
+  virtual void func() = 0;
+  virtual ~MyInterface() {}
+};
+struct MyImpl : public MyInterface {
+  void func() {}
+};
+
 void test_meta()
 {
   VERIFY((internal::conditional<(3<4),internal::true_type, internal::false_type>::type::value));
@@ -62,14 +70,19 @@ void test_meta()
   VERIFY(( internal::is_same<const float,internal::remove_pointer<const float*>::type >::value));
   VERIFY(( internal::is_same<float,internal::remove_pointer<float* const >::type >::value));
   
-  VERIFY(( internal::is_convertible<float,double>::value ));
-  VERIFY(( internal::is_convertible<int,double>::value ));
-  VERIFY(( internal::is_convertible<double,int>::value ));
-  VERIFY((!internal::is_convertible<std::complex<double>,double>::value ));
-  VERIFY(( internal::is_convertible<Array33f,Matrix3f>::value ));
+
+  // is_convertible
+  STATIC_CHECK(( internal::is_convertible<float,double>::value ));
+  STATIC_CHECK(( internal::is_convertible<int,double>::value ));
+  STATIC_CHECK(( internal::is_convertible<int, short>::value ));
+  STATIC_CHECK(( internal::is_convertible<short, int>::value ));
+  STATIC_CHECK(( internal::is_convertible<double,int>::value ));
+  STATIC_CHECK(( internal::is_convertible<double,std::complex<double> >::value ));
+  STATIC_CHECK((!internal::is_convertible<std::complex<double>,double>::value ));
+  STATIC_CHECK(( internal::is_convertible<Array33f,Matrix3f>::value ));
 //   VERIFY((!internal::is_convertible<Matrix3f,Matrix3d>::value )); //does not work because the conversion is prevented by a static assertion
-  VERIFY((!internal::is_convertible<Array33f,int>::value ));
-  VERIFY((!internal::is_convertible<MatrixXf,float>::value ));
+  STATIC_CHECK((!internal::is_convertible<Array33f,int>::value ));
+  STATIC_CHECK((!internal::is_convertible<MatrixXf,float>::value ));
   {
     float f;
     MatrixXf A, B;
@@ -78,6 +91,15 @@ void test_meta()
     VERIFY(( check_is_convertible(a.transpose()*b, f) ));
     VERIFY((!check_is_convertible(A*B, f) ));
     VERIFY(( check_is_convertible(A*B, A) ));
+  }
+
+  STATIC_CHECK(( !internal::is_convertible<MyInterface, MyImpl>::value ));
+  STATIC_CHECK(( !internal::is_convertible<MyImpl, MyInterface>::value ));
+  STATIC_CHECK((  internal::is_convertible<MyImpl, const MyInterface&>::value ));
+  {
+    int i;
+    VERIFY(( check_is_convertible(fix<3>(), i) ));
+    VERIFY((!check_is_convertible(i, fix<DynamicIndex>()) ));
   }
 
   VERIFY((  internal::has_ReturnType<FooReturnType>::value ));
