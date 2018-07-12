@@ -11,6 +11,10 @@
 #ifndef EIGEN_MACROS_H
 #define EIGEN_MACROS_H
 
+//------------------------------------------------------------------------------------------
+// Eigen version and basic defaults
+//------------------------------------------------------------------------------------------
+
 #define EIGEN_WORLD_VERSION 3
 #define EIGEN_MAJOR_VERSION 3
 #define EIGEN_MINOR_VERSION 90
@@ -19,7 +23,40 @@
                                       (EIGEN_MAJOR_VERSION>y || (EIGEN_MAJOR_VERSION>=y && \
                                                                  EIGEN_MINOR_VERSION>=z))))
 
+#ifdef EIGEN_DEFAULT_TO_ROW_MAJOR
+#define EIGEN_DEFAULT_MATRIX_STORAGE_ORDER_OPTION Eigen::RowMajor
+#else
+#define EIGEN_DEFAULT_MATRIX_STORAGE_ORDER_OPTION Eigen::ColMajor
+#endif
+
+#ifndef EIGEN_DEFAULT_DENSE_INDEX_TYPE
+#define EIGEN_DEFAULT_DENSE_INDEX_TYPE std::ptrdiff_t
+#endif
+
+// Upperbound on the C++ version to use.
+// Expected values are 03, 11, 14, 17, etc.
+// By default, let's use an arbitrarily large C++ version.
+#ifndef EIGEN_MAX_CPP_VER
+#define EIGEN_MAX_CPP_VER 99
+#endif
+
+/** Allows to disable some optimizations which might affect the accuracy of the result.
+  * Such optimization are enabled by default, and set EIGEN_FAST_MATH to 0 to disable them.
+  * They currently include:
+  *   - single precision ArrayBase::sin() and ArrayBase::cos() for SSE and AVX vectorization.
+  */
+#ifndef EIGEN_FAST_MATH
+#define EIGEN_FAST_MATH 1
+#endif
+
+#ifndef EIGEN_STACK_ALLOCATION_LIMIT
+// 131072 == 128 KB
+#define EIGEN_STACK_ALLOCATION_LIMIT 131072
+#endif
+
+//------------------------------------------------------------------------------------------
 // Compiler identification, EIGEN_COMP_*
+//------------------------------------------------------------------------------------------
 
 /// \internal EIGEN_COMP_GNUC set to 1 for all compilers compatible with GCC
 #ifdef __GNUC__
@@ -147,7 +184,11 @@
 #endif
 
 
+
+//------------------------------------------------------------------------------------------
 // Architecture identification, EIGEN_ARCH_*
+//------------------------------------------------------------------------------------------
+
 
 #if defined(__x86_64__) || defined(_M_X64) || defined(__amd64)
   #define EIGEN_ARCH_x86_64 1
@@ -217,7 +258,9 @@
 
 
 
+//------------------------------------------------------------------------------------------
 // Operating system identification, EIGEN_OS_*
+//------------------------------------------------------------------------------------------
 
 /// \internal EIGEN_OS_UNIX set to 1 if the OS is a unix variant
 #if defined(__unix__) || defined(__unix)
@@ -319,26 +362,112 @@
 #endif
 
 
+//------------------------------------------------------------------------------------------
+// Detect GPU compilers and architectures
+//------------------------------------------------------------------------------------------
+
+// NVCC is not supported as the target platform for HIPCC
+// Note that this also makes EIGEN_CUDACC and EIGEN_HIPCC mutually exclusive
+#if defined(__NVCC__) && defined(__HIPCC__)
+  #error "NVCC as the target platform for HIPCC is currently not supported."
+#endif
+
+#if defined(__CUDACC__) && !defined(EIGEN_NO_CUDA)
+  // Means the compiler is either nvcc or clang with CUDA enabled
+  #define EIGEN_CUDACC __CUDACC__
+#endif
+
+#if defined(__CUDA_ARCH__) && !defined(EIGEN_NO_CUDA)
+  // Means we are generating code for the device
+  #define EIGEN_CUDA_ARCH __CUDA_ARCH__
+#endif
+
+// Starting with CUDA 9 the composite __CUDACC_VER__ is not available.
+#if defined(__CUDACC_VER_MAJOR__) && (__CUDACC_VER_MAJOR__ >= 9)
+  #define EIGEN_CUDACC_VER  ((__CUDACC_VER_MAJOR__ * 10000) + (__CUDACC_VER_MINOR__ * 100))
+#elif defined(__CUDACC_VER__)
+  #define EIGEN_CUDACC_VER __CUDACC_VER__
+#else
+  #define EIGEN_CUDACC_VER 0
+#endif
+
+#if defined(__HIPCC__) && !defined(EIGEN_NO_HIP)
+  // Means the compiler is HIPCC (analogous to EIGEN_CUDACC, but for HIP)
+  #define EIGEN_HIPCC __HIPCC__
+
+  // We need hip_common.h here because __HIP_DEVICE_COMPILE__ is defined in this header.
+  #include <hip/hip_common.h>
+
+  #if defined(__HIP_DEVICE_COMPILE__)
+    // analogous to EIGEN_CUDA_ARCH, but for HIP
+    #define EIGEN_HIP_DEVICE_COMPILE __HIP_DEVICE_COMPILE__
+  #endif
+#endif
+
+// Unify CUDA/HIPCC
+
+#if defined(EIGEN_CUDACC) || defined(EIGEN_HIPCC)
+//
+// If either EIGEN_CUDACC or EIGEN_HIPCC is defined, then define EIGEN_GPUCC
+//
+#define EIGEN_GPUCC
+//
+// EIGEN_HIPCC implies the HIP compiler and is used to tweak Eigen code for use in HIP kernels
+// EIGEN_CUDACC implies the CUDA compiler and is used to tweak Eigen code for use in CUDA kernels
+//
+// In most cases the same tweaks are required to the Eigen code to enable in both the HIP and CUDA kernels.
+// For those cases, the corresponding code should be guarded with
+//      #if defined(EIGEN_GPUCC)
+// instead of
+//      #if defined(EIGEN_CUDACC) || defined(EIGEN_HIPCC)
+//
+// For cases where the tweak is specific to HIP, the code should be guarded with
+//      #if defined(EIGEN_HIPCC)
+//
+// For cases where the tweak is specific to CUDA, the code should be guarded with
+//      #if defined(EIGEN_CUDACC)
+//
+#endif
+
+#if defined(EIGEN_CUDA_ARCH) || defined(EIGEN_HIP_DEVICE_COMPILE)
+//
+// If either EIGEN_CUDA_ARCH or EIGEN_HIP_DEVICE_COMPILE is defined, then define EIGEN_GPU_COMPILE_PHASE
+//
+#define EIGEN_GPU_COMPILE_PHASE
+//
+// GPU compilers (HIPCC, NVCC) typically do two passes over the source code,
+//   + one to compile the source for the "host" (ie CPU)
+//   + another to compile the source for the "device" (ie. GPU)
+//
+// Code that needs to enabled only during the either the "host" or "device" compilation phase
+// needs to be guarded with a macro that indicates the current compilation phase
+//
+// EIGEN_HIP_DEVICE_COMPILE implies the device compilation phase in HIP
+// EIGEN_CUDA_ARCH implies the device compilation phase in CUDA
+//
+// In most cases, the "host" / "device" specific code is the same for both HIP and CUDA
+// For those cases, the code should be guarded with
+//       #if defined(EIGEN_GPU_COMPILE_PHASE)
+// instead of
+//       #if defined(EIGEN_CUDA_ARCH) || defined(EIGEN_HIP_DEVICE_COMPILE)
+//
+// For cases where the tweak is specific to HIP, the code should be guarded with
+//      #if defined(EIGEN_HIP_DEVICE_COMPILE)
+//
+// For cases where the tweak is specific to CUDA, the code should be guarded with
+//      #if defined(EIGEN_CUDA_ARCH)
+//
+#endif
+
+//------------------------------------------------------------------------------------------
+// Detect Compiler/Architecture/OS specific features
+//------------------------------------------------------------------------------------------
 
 #if EIGEN_GNUC_AT_MOST(4,3) && !EIGEN_COMP_CLANG
   // see bug 89
   #define EIGEN_SAFE_TO_USE_STANDARD_ASSERT_MACRO 0
 #else
   #define EIGEN_SAFE_TO_USE_STANDARD_ASSERT_MACRO 1
-#endif
-
-// This macro can be used to prevent from macro expansion, e.g.:
-//   std::max EIGEN_NOT_A_MACRO(a,b)
-#define EIGEN_NOT_A_MACRO
-
-#ifdef EIGEN_DEFAULT_TO_ROW_MAJOR
-#define EIGEN_DEFAULT_MATRIX_STORAGE_ORDER_OPTION Eigen::RowMajor
-#else
-#define EIGEN_DEFAULT_MATRIX_STORAGE_ORDER_OPTION Eigen::ColMajor
-#endif
-
-#ifndef EIGEN_DEFAULT_DENSE_INDEX_TYPE
-#define EIGEN_DEFAULT_DENSE_INDEX_TYPE std::ptrdiff_t
 #endif
 
 // Cross compiler wrapper around LLVM's __has_builtin
@@ -360,13 +489,6 @@
 #define EIGEN_HAS_STATIC_ARRAY_TEMPLATE 1
 #else
 #define EIGEN_HAS_STATIC_ARRAY_TEMPLATE 0
-#endif
-
-// Upperbound on the C++ version to use.
-// Expected values are 03, 11, 14, 17, etc.
-// By default, let's use an arbitrarily large C++ version.
-#ifndef EIGEN_MAX_CPP_VER
-#define EIGEN_MAX_CPP_VER 99
 #endif
 
 #if EIGEN_MAX_CPP_VER>=11 && (defined(__cplusplus) && (__cplusplus >= 201103L) || EIGEN_COMP_MSVC >= 1900)
@@ -442,22 +564,22 @@
 // Does the compiler fully support const expressions? (as in c++14)
 #ifndef EIGEN_HAS_CONSTEXPR
 
-#if defined(EIGEN_CUDACC)
-// Const expressions are supported provided that c++11 is enabled and we're using either clang or nvcc 7.5 or above
-#if EIGEN_MAX_CPP_VER>=14 && (__cplusplus > 199711L && (EIGEN_COMP_CLANG || EIGEN_CUDACC_VER >= 70500))
+  #if defined(EIGEN_CUDACC)
+  // Const expressions are supported provided that c++11 is enabled and we're using either clang or nvcc 7.5 or above
+  #if EIGEN_MAX_CPP_VER>=14 && (__cplusplus > 199711L && (EIGEN_COMP_CLANG || EIGEN_CUDACC_VER >= 70500))
+    #define EIGEN_HAS_CONSTEXPR 1
+  #endif
+  #elif EIGEN_MAX_CPP_VER>=14 && (__has_feature(cxx_relaxed_constexpr) || (defined(__cplusplus) && __cplusplus >= 201402L) || \
+    (EIGEN_GNUC_AT_LEAST(4,8) && (__cplusplus > 199711L)) || \
+    (EIGEN_COMP_CLANG >= 306 && (__cplusplus > 199711L)))
   #define EIGEN_HAS_CONSTEXPR 1
-#endif
-#elif EIGEN_MAX_CPP_VER>=14 && (__has_feature(cxx_relaxed_constexpr) || (defined(__cplusplus) && __cplusplus >= 201402L) || \
-  (EIGEN_GNUC_AT_LEAST(4,8) && (__cplusplus > 199711L)) || \
-  (EIGEN_COMP_CLANG >= 306 && (__cplusplus > 199711L)))
-#define EIGEN_HAS_CONSTEXPR 1
-#endif
+  #endif
 
-#ifndef EIGEN_HAS_CONSTEXPR
-#define EIGEN_HAS_CONSTEXPR 0
-#endif
+  #ifndef EIGEN_HAS_CONSTEXPR
+  #define EIGEN_HAS_CONSTEXPR 0
+  #endif
 
-#endif
+#endif // EIGEN_HAS_CONSTEXPR
 
 // Does the compiler support C++11 math?
 // Let's be conservative and enable the default C++11 implementation only if we are sure it exists
@@ -495,14 +617,28 @@
   #endif
 #endif
 
-/** Allows to disable some optimizations which might affect the accuracy of the result.
-  * Such optimization are enabled by default, and set EIGEN_FAST_MATH to 0 to disable them.
-  * They currently include:
-  *   - single precision ArrayBase::sin() and ArrayBase::cos() for SSE and AVX vectorization.
-  */
-#ifndef EIGEN_FAST_MATH
-#define EIGEN_FAST_MATH 1
+
+#if defined(EIGEN_CUDACC) && EIGEN_HAS_CONSTEXPR
+  // While available already with c++11, this is useful mostly starting with c++14 and relaxed constexpr rules
+  #if defined(__NVCC__)
+    // nvcc considers constexpr functions as __host__ __device__ with the option --expt-relaxed-constexpr
+    #ifdef __CUDACC_RELAXED_CONSTEXPR__
+      #define EIGEN_CONSTEXPR_ARE_DEVICE_FUNC
+    #endif
+  #elif defined(__clang__) && defined(__CUDA__)
+    // clang++ always considers constexpr functions as implicitly __host__ __device__
+    #define EIGEN_CONSTEXPR_ARE_DEVICE_FUNC
+  #endif
 #endif
+
+
+//------------------------------------------------------------------------------------------
+// Preprocessor programming helpers
+//------------------------------------------------------------------------------------------
+
+// This macro can be used to prevent from macro expansion, e.g.:
+//   std::max EIGEN_NOT_A_MACRO(a,b)
+#define EIGEN_NOT_A_MACRO
 
 #define EIGEN_DEBUG_VAR(x) std::cerr << #x << " = " << x << std::endl;
 
@@ -554,6 +690,36 @@
 #else
 #define EIGEN_PERMISSIVE_EXPR
 #endif
+
+// GPU stuff
+
+// Disable some features when compiling with GPU compilers (NVCC/clang-cuda/SYCL/HIPCC)
+#if defined(EIGEN_CUDACC) || defined(__SYCL_DEVICE_ONLY__) || defined(EIGEN_HIPCC)
+  // Do not try asserts on device code
+  #ifndef EIGEN_NO_DEBUG
+  #define EIGEN_NO_DEBUG
+  #endif
+
+  #ifdef EIGEN_INTERNAL_DEBUGGING
+  #undef EIGEN_INTERNAL_DEBUGGING
+  #endif
+
+  #ifdef EIGEN_EXCEPTIONS
+  #undef EIGEN_EXCEPTIONS
+  #endif
+#endif
+
+// All functions callable from CUDA/HIP code must be qualified with __device__
+#ifdef EIGEN_GPUCC
+  #ifndef EIGEN_DONT_VECTORIZE
+  #define EIGEN_DONT_VECTORIZE
+  #endif
+
+  #define EIGEN_DEVICE_FUNC __host__ __device__
+#else
+  #define EIGEN_DEVICE_FUNC
+#endif
+
 
 // this macro allows to get rid of linking errors about multiply defined functions.
 //  - static is not very good because it prevents definitions from different object files to be merged.
@@ -666,169 +832,6 @@ namespace Eigen {
 #  define EIGEN_CONST_CONDITIONAL(cond)  cond
 #endif
 
-//------------------------------------------------------------------------------------------
-// Static and dynamic alignment control
-//
-// The main purpose of this section is to define EIGEN_MAX_ALIGN_BYTES and EIGEN_MAX_STATIC_ALIGN_BYTES
-// as the maximal boundary in bytes on which dynamically and statically allocated data may be alignment respectively.
-// The values of EIGEN_MAX_ALIGN_BYTES and EIGEN_MAX_STATIC_ALIGN_BYTES can be specified by the user. If not,
-// a default value is automatically computed based on architecture, compiler, and OS.
-//
-// This section also defines macros EIGEN_ALIGN_TO_BOUNDARY(N) and the shortcuts EIGEN_ALIGN{8,16,32,_MAX}
-// to be used to declare statically aligned buffers.
-//------------------------------------------------------------------------------------------
-
-
-/* EIGEN_ALIGN_TO_BOUNDARY(n) forces data to be n-byte aligned. This is used to satisfy SIMD requirements.
- * However, we do that EVEN if vectorization (EIGEN_VECTORIZE) is disabled,
- * so that vectorization doesn't affect binary compatibility.
- *
- * If we made alignment depend on whether or not EIGEN_VECTORIZE is defined, it would be impossible to link
- * vectorized and non-vectorized code.
- */
-#if (defined EIGEN_CUDACC)
-  #define EIGEN_ALIGN_TO_BOUNDARY(n) __align__(n)
-#elif EIGEN_COMP_GNUC || EIGEN_COMP_PGI || EIGEN_COMP_IBM || EIGEN_COMP_ARM
-  #define EIGEN_ALIGN_TO_BOUNDARY(n) __attribute__((aligned(n)))
-#elif EIGEN_COMP_MSVC
-  #define EIGEN_ALIGN_TO_BOUNDARY(n) __declspec(align(n))
-#elif EIGEN_COMP_SUNCC
-  // FIXME not sure about this one:
-  #define EIGEN_ALIGN_TO_BOUNDARY(n) __attribute__((aligned(n)))
-#else
-  #error Please tell me what is the equivalent of __attribute__((aligned(n))) for your compiler
-#endif
-
-// If the user explicitly disable vectorization, then we also disable alignment
-#if defined(EIGEN_DONT_VECTORIZE)
-  #define EIGEN_IDEAL_MAX_ALIGN_BYTES 0
-#elif defined(__AVX512F__)
-  // 64 bytes static alignment is preferred only if really required
-  #define EIGEN_IDEAL_MAX_ALIGN_BYTES 64
-#elif defined(__AVX__)
-  // 32 bytes static alignment is preferred only if really required
-  #define EIGEN_IDEAL_MAX_ALIGN_BYTES 32
-#else
-  #define EIGEN_IDEAL_MAX_ALIGN_BYTES 16
-#endif
-
-
-// EIGEN_MIN_ALIGN_BYTES defines the minimal value for which the notion of explicit alignment makes sense
-#define EIGEN_MIN_ALIGN_BYTES 16
-
-// Defined the boundary (in bytes) on which the data needs to be aligned. Note
-// that unless EIGEN_ALIGN is defined and not equal to 0, the data may not be
-// aligned at all regardless of the value of this #define.
-
-#if (defined(EIGEN_DONT_ALIGN_STATICALLY) || defined(EIGEN_DONT_ALIGN))  && defined(EIGEN_MAX_STATIC_ALIGN_BYTES) && EIGEN_MAX_STATIC_ALIGN_BYTES>0
-#error EIGEN_MAX_STATIC_ALIGN_BYTES and EIGEN_DONT_ALIGN[_STATICALLY] are both defined with EIGEN_MAX_STATIC_ALIGN_BYTES!=0. Use EIGEN_MAX_STATIC_ALIGN_BYTES=0 as a synonym of EIGEN_DONT_ALIGN_STATICALLY.
-#endif
-
-// EIGEN_DONT_ALIGN_STATICALLY and EIGEN_DONT_ALIGN are deprecated
-// They imply EIGEN_MAX_STATIC_ALIGN_BYTES=0
-#if defined(EIGEN_DONT_ALIGN_STATICALLY) || defined(EIGEN_DONT_ALIGN)
-  #ifdef EIGEN_MAX_STATIC_ALIGN_BYTES
-    #undef EIGEN_MAX_STATIC_ALIGN_BYTES
-  #endif
-  #define EIGEN_MAX_STATIC_ALIGN_BYTES 0
-#endif
-
-#ifndef EIGEN_MAX_STATIC_ALIGN_BYTES
-
-  // Try to automatically guess what is the best default value for EIGEN_MAX_STATIC_ALIGN_BYTES
-
-  // 16 byte alignment is only useful for vectorization. Since it affects the ABI, we need to enable
-  // 16 byte alignment on all platforms where vectorization might be enabled. In theory we could always
-  // enable alignment, but it can be a cause of problems on some platforms, so we just disable it in
-  // certain common platform (compiler+architecture combinations) to avoid these problems.
-  // Only static alignment is really problematic (relies on nonstandard compiler extensions),
-  // try to keep heap alignment even when we have to disable static alignment.
-  #if EIGEN_COMP_GNUC && !(EIGEN_ARCH_i386_OR_x86_64 || EIGEN_ARCH_ARM_OR_ARM64 || EIGEN_ARCH_PPC || EIGEN_ARCH_IA64)
-  #define EIGEN_GCC_AND_ARCH_DOESNT_WANT_STACK_ALIGNMENT 1
-  #elif EIGEN_ARCH_ARM_OR_ARM64 && EIGEN_COMP_GNUC_STRICT && EIGEN_GNUC_AT_MOST(4, 6)
-  // Old versions of GCC on ARM, at least 4.4, were once seen to have buggy static alignment support.
-  // Not sure which version fixed it, hopefully it doesn't affect 4.7, which is still somewhat in use.
-  // 4.8 and newer seem definitely unaffected.
-  #define EIGEN_GCC_AND_ARCH_DOESNT_WANT_STACK_ALIGNMENT 1
-  #else
-  #define EIGEN_GCC_AND_ARCH_DOESNT_WANT_STACK_ALIGNMENT 0
-  #endif
-
-  // static alignment is completely disabled with GCC 3, Sun Studio, and QCC/QNX
-  #if !EIGEN_GCC_AND_ARCH_DOESNT_WANT_STACK_ALIGNMENT \
-  && !EIGEN_GCC3_OR_OLDER \
-  && !EIGEN_COMP_SUNCC \
-  && !EIGEN_OS_QNX
-    #define EIGEN_ARCH_WANTS_STACK_ALIGNMENT 1
-  #else
-    #define EIGEN_ARCH_WANTS_STACK_ALIGNMENT 0
-  #endif
-
-  #if EIGEN_ARCH_WANTS_STACK_ALIGNMENT
-    #define EIGEN_MAX_STATIC_ALIGN_BYTES EIGEN_IDEAL_MAX_ALIGN_BYTES
-  #else
-    #define EIGEN_MAX_STATIC_ALIGN_BYTES 0
-  #endif
-
-#endif
-
-// If EIGEN_MAX_ALIGN_BYTES is defined, then it is considered as an upper bound for EIGEN_MAX_ALIGN_BYTES
-#if defined(EIGEN_MAX_ALIGN_BYTES) && EIGEN_MAX_ALIGN_BYTES<EIGEN_MAX_STATIC_ALIGN_BYTES
-#undef EIGEN_MAX_STATIC_ALIGN_BYTES
-#define EIGEN_MAX_STATIC_ALIGN_BYTES EIGEN_MAX_ALIGN_BYTES
-#endif
-
-#if EIGEN_MAX_STATIC_ALIGN_BYTES==0 && !defined(EIGEN_DISABLE_UNALIGNED_ARRAY_ASSERT)
-  #define EIGEN_DISABLE_UNALIGNED_ARRAY_ASSERT
-#endif
-
-// At this stage, EIGEN_MAX_STATIC_ALIGN_BYTES>0 is the true test whether we want to align arrays on the stack or not.
-// It takes into account both the user choice to explicitly enable/disable alignment (by setting EIGEN_MAX_STATIC_ALIGN_BYTES)
-// and the architecture config (EIGEN_ARCH_WANTS_STACK_ALIGNMENT).
-// Henceforth, only EIGEN_MAX_STATIC_ALIGN_BYTES should be used.
-
-
-// Shortcuts to EIGEN_ALIGN_TO_BOUNDARY
-#define EIGEN_ALIGN8  EIGEN_ALIGN_TO_BOUNDARY(8)
-#define EIGEN_ALIGN16 EIGEN_ALIGN_TO_BOUNDARY(16)
-#define EIGEN_ALIGN32 EIGEN_ALIGN_TO_BOUNDARY(32)
-#define EIGEN_ALIGN64 EIGEN_ALIGN_TO_BOUNDARY(64)
-#if EIGEN_MAX_STATIC_ALIGN_BYTES>0
-#define EIGEN_ALIGN_MAX EIGEN_ALIGN_TO_BOUNDARY(EIGEN_MAX_STATIC_ALIGN_BYTES)
-#else
-#define EIGEN_ALIGN_MAX
-#endif
-
-
-// Dynamic alignment control
-
-#if defined(EIGEN_DONT_ALIGN) && defined(EIGEN_MAX_ALIGN_BYTES) && EIGEN_MAX_ALIGN_BYTES>0
-#error EIGEN_MAX_ALIGN_BYTES and EIGEN_DONT_ALIGN are both defined with EIGEN_MAX_ALIGN_BYTES!=0. Use EIGEN_MAX_ALIGN_BYTES=0 as a synonym of EIGEN_DONT_ALIGN.
-#endif
-
-#ifdef EIGEN_DONT_ALIGN
-  #ifdef EIGEN_MAX_ALIGN_BYTES
-    #undef EIGEN_MAX_ALIGN_BYTES
-  #endif
-  #define EIGEN_MAX_ALIGN_BYTES 0
-#elif !defined(EIGEN_MAX_ALIGN_BYTES)
-  #define EIGEN_MAX_ALIGN_BYTES EIGEN_IDEAL_MAX_ALIGN_BYTES
-#endif
-
-#if EIGEN_IDEAL_MAX_ALIGN_BYTES > EIGEN_MAX_ALIGN_BYTES
-#define EIGEN_DEFAULT_ALIGN_BYTES EIGEN_IDEAL_MAX_ALIGN_BYTES
-#else
-#define EIGEN_DEFAULT_ALIGN_BYTES EIGEN_MAX_ALIGN_BYTES
-#endif
-
-
-#ifndef EIGEN_UNALIGNED_VECTORIZE
-#define EIGEN_UNALIGNED_VECTORIZE 1
-#endif
-
-//----------------------------------------------------------------------
-
-
 #ifdef EIGEN_DONT_USE_RESTRICT_KEYWORD
   #define EIGEN_RESTRICT
 #endif
@@ -836,10 +839,6 @@ namespace Eigen {
   #define EIGEN_RESTRICT __restrict
 #endif
 
-#ifndef EIGEN_STACK_ALLOCATION_LIMIT
-// 131072 == 128 KB
-#define EIGEN_STACK_ALLOCATION_LIMIT 131072
-#endif
 
 #ifndef EIGEN_DEFAULT_IO_FORMAT
 #ifdef EIGEN_MAKING_DOCS
@@ -853,6 +852,18 @@ namespace Eigen {
 
 // just an empty macro !
 #define EIGEN_EMPTY
+
+
+// When compiling CUDA/HIP device code with NVCC or HIPCC
+// pull in math functions from the global namespace.
+// In host mode, and when device code is compiled with clang,
+// use the std versions.
+#if (defined(EIGEN_CUDA_ARCH) && defined(__NVCC__)) || defined(EIGEN_HIP_DEVICE_COMPILE)
+  #define EIGEN_USING_STD_MATH(FUNC) using ::FUNC;
+#else
+  #define EIGEN_USING_STD_MATH(FUNC) using std::FUNC;
+#endif
+
 
 #if EIGEN_COMP_MSVC_STRICT && (EIGEN_COMP_MSVC < 1900 || EIGEN_CUDACC_VER>0)
   // for older MSVC versions, as well as 1900 && CUDA 8, using the base operator is sufficient (cf Bugs 1000, 1324)
@@ -1000,6 +1011,11 @@ namespace Eigen {
 #define EIGEN_MAKE_SCALAR_BINARY_OP(METHOD,OPNAME) \
   EIGEN_MAKE_SCALAR_BINARY_OP_ONTHELEFT(METHOD,OPNAME) \
   EIGEN_MAKE_SCALAR_BINARY_OP_ONTHERIGHT(METHOD,OPNAME)
+
+
+#if (defined(_CPPUNWIND) || defined(__EXCEPTIONS)) && !defined(EIGEN_CUDA_ARCH) && !defined(EIGEN_EXCEPTIONS) && !defined(EIGEN_USE_SYCL) && !defined(EIGEN_HIP_DEVICE_COMPILE)
+  #define EIGEN_EXCEPTIONS
+#endif
 
 
 #ifdef EIGEN_EXCEPTIONS
