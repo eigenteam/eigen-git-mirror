@@ -9,10 +9,10 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef EIGEN_CXX11_TENSOR_TENSOR_CONTRACTION_CUDA_H
-#define EIGEN_CXX11_TENSOR_TENSOR_CONTRACTION_CUDA_H
+#ifndef EIGEN_CXX11_TENSOR_TENSOR_CONTRACTION_GPU_H
+#define EIGEN_CXX11_TENSOR_TENSOR_CONTRACTION_GPU_H
 
-#if defined(EIGEN_USE_GPU) && defined(EIGEN_CUDACC)
+#if defined(EIGEN_USE_GPU) && defined(EIGEN_GPUCC)
 
 namespace Eigen {
 
@@ -388,7 +388,7 @@ EigenContractionKernelInternal(const LhsMapper lhs, const RhsMapper rhs,
   // the sum across all big k blocks of the product of little k block of index (x, y)
   // with block of index (y, z). To compute the final output, we need to reduce
   // the 8 threads over y by summation.
-#if defined(EIGEN_CUDACC_VER) && EIGEN_CUDACC_VER < 90000
+#if defined(EIGEN_HIPCC) || (defined(EIGEN_CUDACC_VER) && EIGEN_CUDACC_VER < 90000)
 #define shuffleInc(i, j, mask) res(i, j) += __shfl_xor(res(i, j), mask)
 #else
 #define shuffleInc(i, j, mask) res(i, j) += __shfl_xor_sync(0xFFFFFFFF, res(i, j), mask)
@@ -503,7 +503,11 @@ EigenContractionKernelInternal(const LhsMapper lhs, const RhsMapper rhs,
 template<typename Scalar, typename Index, typename LhsMapper,
          typename RhsMapper, typename OutputMapper>
 __global__ void
+#if defined(EIGEN_HIPCC)
+__launch_bounds__(512, 1)
+#else  
 __launch_bounds__(512)
+#endif  
 EigenContractionKernel(const LhsMapper lhs, const RhsMapper rhs,
                        const OutputMapper output,
                        const Index m_size, const Index n_size, const Index k_size) {
@@ -542,7 +546,6 @@ EigenFloatContractionKernelInternal16x16(const LhsMapper lhs, const RhsMapper rh
     results[i].x = results[i].y = results[i].z = results[i].w = 0;
   }
 
-
 #define prefetch_lhs(reg, row, col)                            \
     if (!CHECK_LHS_BOUNDARY) {                                 \
       if (col < k_size) {                                      \
@@ -563,12 +566,12 @@ EigenFloatContractionKernelInternal16x16(const LhsMapper lhs, const RhsMapper rh
           reg.x =lhs(row + 0, col);                            \
         }                                                      \
       }                                                        \
-    }                                                          \
-
+    }							       \
 
   Index lhs_vert = base_m+threadIdx.x*4;
 
   for (Index k = 0; k < k_size; k += 16) {
+
     lhs_pf0 = internal::pset1<float4>(0);
     rhs_pf0 = internal::pset1<float4>(0);
 
@@ -618,7 +621,7 @@ EigenFloatContractionKernelInternal16x16(const LhsMapper lhs, const RhsMapper rh
       x1 = rhs_pf0.x;
       x2 = rhs_pf0.z;
     }
-    #if defined(EIGEN_CUDACC_VER) && EIGEN_CUDACC_VER < 90000
+    #if defined(EIGEN_HIPCC) || (defined(EIGEN_CUDACC_VER) && EIGEN_CUDACC_VER < 90000)
     x1 = __shfl_xor(x1, 4);
     x2 = __shfl_xor(x2, 4);
     #else
@@ -695,7 +698,7 @@ EigenFloatContractionKernelInternal16x16(const LhsMapper lhs, const RhsMapper rh
 
 #undef prefetch_lhs
 #undef add_vals
-
+  
   Index horiz_base = threadIdx.y*4+base_n;
   if (!CHECK_LHS_BOUNDARY && !CHECK_RHS_BOUNDARY) {
     for (int i = 0; i < 4; i++) {
@@ -783,7 +786,6 @@ EigenFloatContractionKernelInternal(const LhsMapper lhs, const RhsMapper rhs,
   for (int i=0; i < 8; i++) {
     results[i].x = results[i].y = results[i].z = results[i].w = 0;
   }
-
 
   Index lhs_vert = base_m+threadIdx.x*4+(threadIdx.y%4)*32;
   for (Index k = 0; k < k_size; k += 32) {
@@ -1069,7 +1071,6 @@ EigenFloatContractionKernelInternal(const LhsMapper lhs, const RhsMapper rhs,
     __syncthreads();
   } // end loop over k
 
-
   __syncthreads();
   Index horiz_base = (threadIdx.y/4)*8+base_n;
   if (!CHECK_LHS_BOUNDARY && !CHECK_RHS_BOUNDARY) {
@@ -1134,7 +1135,11 @@ EigenFloatContractionKernelInternal(const LhsMapper lhs, const RhsMapper rhs,
 template<typename Index, typename LhsMapper,
          typename RhsMapper, typename OutputMapper>
 __global__ void
+#if defined(EIGEN_HIPCC)
+__launch_bounds__(256, 1)
+#else  
 __launch_bounds__(256)
+#endif
 EigenFloatContractionKernel(const LhsMapper lhs, const RhsMapper rhs,
                        const OutputMapper output,
                        const Index m_size, const Index n_size, const Index k_size) {
@@ -1177,7 +1182,11 @@ EigenFloatContractionKernel(const LhsMapper lhs, const RhsMapper rhs,
 template<typename Index, typename LhsMapper,
          typename RhsMapper, typename OutputMapper>
 __global__ void
+#if defined(EIGEN_HIPCC)
+__launch_bounds__(256, 1)
+#else  
 __launch_bounds__(256)
+#endif
 EigenFloatContractionKernel16x16(const LhsMapper lhs, const RhsMapper rhs,
                        const OutputMapper output,
                        const Index m_size, const Index n_size, const Index k_size) {
@@ -1323,7 +1332,7 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
     const Index n_blocks = (n + 63) / 64;
     const dim3 num_blocks(m_blocks, n_blocks, 1);
     const dim3 block_size(8, 8, 8);
-    LAUNCH_CUDA_KERNEL((EigenContractionKernel<Scalar, Index, LhsMapper, RhsMapper, OutputMapper>), num_blocks, block_size, 0, device, lhs, rhs, output, m, n, k);
+    LAUNCH_GPU_KERNEL((EigenContractionKernel<Scalar, Index, LhsMapper, RhsMapper, OutputMapper>), num_blocks, block_size, 0, device, lhs, rhs, output, m, n, k);
     }
   };
 
@@ -1334,13 +1343,13 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
         const Index n_blocks = (n + 63) / 64;
         const dim3 num_blocks(m_blocks, n_blocks, 1);
         const dim3 block_size(16, 16, 1);
-        LAUNCH_CUDA_KERNEL((EigenFloatContractionKernel16x16<Index, LhsMapper, RhsMapper, OutputMapper>), num_blocks, block_size, 0, device, lhs, rhs, output, m, n, k);
+        LAUNCH_GPU_KERNEL((EigenFloatContractionKernel16x16<Index, LhsMapper, RhsMapper, OutputMapper>), num_blocks, block_size, 0, device, lhs, rhs, output, m, n, k);
       } else {
         const Index m_blocks = (m + 127) / 128;
         const Index n_blocks = (n + 63) / 64;
         const dim3 num_blocks(m_blocks, n_blocks, 1);
         const dim3 block_size(8, 32, 1);
-        LAUNCH_CUDA_KERNEL((EigenFloatContractionKernel<Index, LhsMapper, RhsMapper, OutputMapper>), num_blocks, block_size, 0, device, lhs, rhs, output, m, n, k);
+        LAUNCH_GPU_KERNEL((EigenFloatContractionKernel<Index, LhsMapper, RhsMapper, OutputMapper>), num_blocks, block_size, 0, device, lhs, rhs, output, m, n, k);
       }
     }
   };
@@ -1384,12 +1393,17 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
 
     OutputMapper output(buffer, m);
 
-    setCudaSharedMemConfig(cudaSharedMemBankSizeEightByte);
+#if defined(EIGEN_USE_HIP)
+    setGpuSharedMemConfig(hipSharedMemBankSizeEightByte);
+#else
+    setGpuSharedMemConfig(cudaSharedMemBankSizeEightByte);
+#endif
+
     LaunchKernels<LhsScalar, RhsScalar, Index, LhsMapper, RhsMapper, OutputMapper>::Run(lhs, rhs, output,  m, n, k, this->m_device);
   }
 };
 
 } // end namespace Eigen
 
-#endif // EIGEN_USE_GPU and EIGEN_CUDACC
-#endif // EIGEN_CXX11_TENSOR_TENSOR_CONTRACTION_CUDA_H
+#endif // EIGEN_USE_GPU and EIGEN_GPUCC
+#endif // EIGEN_CXX11_TENSOR_TENSOR_CONTRACTION_GPU_H

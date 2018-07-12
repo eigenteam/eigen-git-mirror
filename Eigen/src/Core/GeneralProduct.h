@@ -35,7 +35,7 @@ template<int Rows, int Cols, int Depth> struct product_type_selector;
 template<int Size, int MaxSize> struct product_size_category
 {
   enum {
-    #ifndef EIGEN_CUDA_ARCH
+    #ifndef EIGEN_GPU_COMPILE_PHASE
     is_large = MaxSize == Dynamic ||
                Size >= EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD ||
                (Size==Dynamic && MaxSize>=EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD),

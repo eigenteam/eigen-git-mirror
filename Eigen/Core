@@ -22,6 +22,17 @@
   #define EIGEN_CUDA_ARCH __CUDA_ARCH__
 #endif
 
+#if defined(__HIPCC__) && !defined(EIGEN_NO_HIP)
+  // analogous to EIGEN_CUDACC, but for HIP
+  #define EIGEN_HIPCC __HIPCC__
+#endif
+
+// NVCC is not supported as the target platform for HIPCC
+// Note that this also makes EIGEN_CUDACC and EIGEN_HIPCC mutually exclusive
+#if defined(__NVCC__) && defined(__HIPCC__)
+  #error "NVCC as the target platform for HIPCC is currently not supported."
+#endif
+
 // Starting with CUDA 9 the composite __CUDACC_VER__ is not available.
 #if defined(__CUDACC_VER_MAJOR__) && (__CUDACC_VER_MAJOR__ >= 9)
 #define EIGEN_CUDACC_VER  ((__CUDACC_VER_MAJOR__ * 10000) + (__CUDACC_VER_MINOR__ * 100))
@@ -32,8 +43,8 @@
 #endif
 
 // Handle NVCC/CUDA/SYCL
-#if defined(EIGEN_CUDACC) || defined(__SYCL_DEVICE_ONLY__)
-  // Do not try asserts on CUDA and SYCL!
+#if defined(EIGEN_CUDACC) || defined(__SYCL_DEVICE_ONLY__) || defined(EIGEN_HIPCC)
+  // Do not try asserts on CUDA, HIP and SYCL!
   #ifndef EIGEN_NO_DEBUG
   #define EIGEN_NO_DEBUG
   #endif
@@ -71,6 +82,26 @@
       #define EIGEN_CONSTEXPR_ARE_DEVICE_FUNC
     #endif
   #endif
+
+#elif defined(EIGEN_HIPCC)
+  // Do not try to vectorize on HIP
+  #ifndef EIGEN_DONT_VECTORIZE
+  #define EIGEN_DONT_VECTORIZE
+  #endif
+
+  #define EIGEN_DEVICE_FUNC __host__ __device__
+  // We need hip_runtime.h to ensure that that EIGEN_USING_STD_MATH macro
+  // works properly on the device side
+  #include <hip/hip_runtime.h>
+  
+  #if defined(__HIP_DEVICE_COMPILE__) && !defined(EIGEN_NO_HIP)
+    // analogous to EIGEN_CUDA_ARCH, but for HIP
+    #define EIGEN_HIP_DEVICE_COMPILE __HIP_DEVICE_COMPILE__
+    // Note this check needs to come after we include hip_runtime.h since
+    // hip_runtime.h includes hip_common.h which in turn has the define
+    // for __HIP_DEVICE_COMPILE__
+  #endif
+
 #else
   #define EIGEN_DEVICE_FUNC
 #endif
@@ -81,16 +112,71 @@
   #endif
 #endif
 
-// When compiling CUDA device code with NVCC, pull in math functions from the
-// global namespace.  In host mode, and when device doee with clang, use the
-// std versions.
-#if defined(EIGEN_CUDA_ARCH) && defined(__NVCC__)
+
+#if defined(EIGEN_CUDACC) || defined(EIGEN_HIPCC)
+//
+// If either EIGEN_CUDACC or EIGEN_HIPCC is defined, then define EIGEN_GPUCC
+//
+#define EIGEN_GPUCC
+//
+// EIGEN_HIPCC implies the HIP compiler and is used to tweak Eigen code for use in HIP kernels
+// EIGEN_CUDACC implies the CUDA compiler and is used to tweak Eigen code for use in CUDA kernels
+//
+// In most cases the same tweaks are required to the Eigen code to enable in both the HIP and CUDA kernels.
+// For those cases, the corresponding code should be guarded with
+//      #if defined(EIGEN_GPUCC)
+// instead of
+//      #if defined(EIGEN_CUDACC) || defined(EIGEN_HIPCC)
+//
+// For cases where the tweak is specific to HIP, the code should be guarded with
+//      #if defined(EIGEN_HIPCC)
+//
+// For cases where the tweak is specific to CUDA, the code should be guarded with
+//      #if defined(EIGEN_CUDACC)
+//
+#endif
+
+#if defined(EIGEN_CUDA_ARCH) || defined(EIGEN_HIP_DEVICE_COMPILE)
+//
+// If either EIGEN_CUDA_ARCH or EIGEN_HIP_DEVICE_COMPILE is defined, then define EIGEN_GPU_COMPILE_PHASE
+//
+#define EIGEN_GPU_COMPILE_PHASE
+//
+// GPU compilers (HIPCC, NVCC) typically do two passes over the source code,
+//   + one to compile the source for the "host" (ie CPU)
+//   + another to compile the source for the "device" (ie. GPU)
+// 
+// Code that needs to enabled only during the either the "host" or "device" compilation phase
+// needs to be guarded with a macro that indicates the current compilation phase
+//
+// EIGEN_HIP_DEVICE_COMPILE implies the device compilation phase in HIP
+// EIGEN_CUDA_ARCH implies the device compilation phase in CUDA
+//
+// In most cases, the "host" / "device" specific code is the same for both HIP and CUDA
+// For those cases, the code should be guarded with
+//       #if defined(EIGEN_GPU_COMPILE_PHASE)
+// instead of
+//       #if defined(EIGEN_CUDA_ARCH) || defined(EIGEN_HIP_DEVICE_COMPILE)
+//
+// For cases where the tweak is specific to HIP, the code should be guarded with
+//      #if defined(EIGEN_HIP_DEVICE_COMPILE)
+//
+// For cases where the tweak is specific to CUDA, the code should be guarded with
+//      #if defined(EIGEN_CUDA_ARCH)
+//
+#endif
+
+
+// When compiling CUDA device code with NVCC, or HIP device code with HIPCC
+// pull in math functions from the global namespace.  In host mode, and when
+// device doee with clang, use the std versions.
+#if (defined(EIGEN_CUDA_ARCH) && defined(__NVCC__)) || (defined(EIGEN_HIP_DEVICE_COMPILE) && defined(__HIPCC__))
   #define EIGEN_USING_STD_MATH(FUNC) using ::FUNC;
 #else
   #define EIGEN_USING_STD_MATH(FUNC) using std::FUNC;
 #endif
 
-#if (defined(_CPPUNWIND) || defined(__EXCEPTIONS)) && !defined(EIGEN_CUDA_ARCH) && !defined(EIGEN_EXCEPTIONS) && !defined(EIGEN_USE_SYCL)
+#if (defined(_CPPUNWIND) || defined(__EXCEPTIONS)) && !defined(EIGEN_CUDA_ARCH) && !defined(EIGEN_EXCEPTIONS) && !defined(EIGEN_USE_SYCL) && !defined(EIGEN_HIP_DEVICE_COMPILE)
   #define EIGEN_EXCEPTIONS
 #endif
 
@@ -271,7 +357,7 @@
 #endif
 
 #if defined EIGEN_CUDACC
-  #define EIGEN_VECTORIZE_CUDA
+  #define EIGEN_VECTORIZE_GPU
   #include <vector_types.h>
   #if EIGEN_CUDACC_VER >= 70500
     #define EIGEN_HAS_CUDA_FP16
@@ -281,6 +367,27 @@
 #if defined EIGEN_HAS_CUDA_FP16
   #include <host_defines.h>
   #include <cuda_fp16.h>
+#endif
+
+#if defined(EIGEN_HIPCC) && defined(EIGEN_HIP_DEVICE_COMPILE)
+
+  #define EIGEN_VECTORIZE_GPU
+  #include <hip/hip_vector_types.h>
+
+  #define EIGEN_HAS_HIP_FP16
+  #include <hip/hip_fp16.h>
+
+  #define HIP_PATCH_WITH_NEW_FP16 18215
+  #if (HIP_VERSION_PATCH < HIP_PATCH_WITH_NEW_FP16)
+    #define EIGEN_HAS_OLD_HIP_FP16
+    // Old HIP implementation does not have a explicit typedef for "half2"
+    typedef __half2 half2;
+  #endif
+  
+#endif
+
+#if defined(EIGEN_HAS_CUDA_FP16) || defined(EIGEN_HAS_HIP_FP16)
+  #define EIGEN_HAS_GPU_FP16
 #endif
 
 #if (defined _OPENMP) && (!defined EIGEN_DONT_PARALLELIZE)
@@ -403,7 +510,6 @@ using std::ptrdiff_t;
 #include "src/Core/util/IntegralConstant.h"
 #include "src/Core/util/SymbolicIndex.h"
 
-
 #include "src/Core/NumTraits.h"
 #include "src/Core/MathFunctions.h"
 #include "src/Core/GenericPacketMath.h"
@@ -447,13 +553,13 @@ using std::ptrdiff_t;
 #endif
 
 // Half float support
-#include "src/Core/arch/CUDA/Half.h"
-#include "src/Core/arch/CUDA/PacketMathHalf.h"
-#include "src/Core/arch/CUDA/TypeCasting.h"
+#include "src/Core/arch/GPU/Half.h"
+#include "src/Core/arch/GPU/PacketMathHalf.h"
+#include "src/Core/arch/GPU/TypeCasting.h"
 
-#if defined EIGEN_VECTORIZE_CUDA
-  #include "src/Core/arch/CUDA/PacketMath.h"
-  #include "src/Core/arch/CUDA/MathFunctions.h"
+#if defined EIGEN_VECTORIZE_GPU
+  #include "src/Core/arch/GPU/PacketMath.h"
+  #include "src/Core/arch/GPU/MathFunctions.h"
 #endif
 
 #include "src/Core/arch/Default/Settings.h"

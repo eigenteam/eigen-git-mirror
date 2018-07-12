@@ -9,7 +9,7 @@
 
 #include "main.h"
 
-#include <Eigen/src/Core/arch/CUDA/Half.h>
+#include <Eigen/src/Core/arch/GPU/Half.h>
 
 // Make sure it's possible to forward declare Eigen::half
 namespace Eigen {

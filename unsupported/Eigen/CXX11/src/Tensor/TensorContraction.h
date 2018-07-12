@@ -448,7 +448,10 @@ struct TensorContractionEvaluatorBase
   }
 
   template <bool lhs_inner_dim_contiguous, bool rhs_inner_dim_contiguous, bool rhs_inner_dim_reordered, int Alignment>
-  EIGEN_DEVICE_FUNC void evalGemv(Scalar* buffer) const {
+  #if !defined(EIGEN_HIPCC)    
+  EIGEN_DEVICE_FUNC
+  #endif
+  void evalGemv(Scalar* buffer) const {
     const Index rows = m_i_size;
     const Index cols = m_k_size;
 
@@ -489,7 +492,10 @@ struct TensorContractionEvaluatorBase
   }
 
   template <bool lhs_inner_dim_contiguous, bool rhs_inner_dim_contiguous, bool rhs_inner_dim_reordered, int Alignment>
-  EIGEN_DEVICE_FUNC void evalGemm(Scalar* buffer) const {
+  #if !defined(EIGEN_HIPCC)    
+  EIGEN_DEVICE_FUNC
+  #endif
+  void evalGemm(Scalar* buffer) const {
     #if defined(EIGEN_VECTORIZE_AVX) && defined(EIGEN_USE_LIBXSMM)
     if (m_can_use_xsmm) {
       evalGemmXSMM(buffer);

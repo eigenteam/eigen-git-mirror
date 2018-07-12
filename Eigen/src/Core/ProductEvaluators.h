@@ -885,7 +885,7 @@ struct product_evaluator<Product<Lhs, Rhs, ProductKind>, ProductTag, DiagonalSha
     return m_diagImpl.coeff(row) * m_matImpl.coeff(row, col);
   }
   
-#ifndef EIGEN_CUDACC
+#ifndef EIGEN_GPUCC
   template<int LoadMode,typename PacketType>
   EIGEN_STRONG_INLINE PacketType packet(Index row, Index col) const
   {
@@ -929,7 +929,7 @@ struct product_evaluator<Product<Lhs, Rhs, ProductKind>, ProductTag, DenseShape,
     return m_matImpl.coeff(row, col) * m_diagImpl.coeff(col);
   }
   
-#ifndef EIGEN_CUDACC
+#ifndef EIGEN_GPUCC
   template<int LoadMode,typename PacketType>
   EIGEN_STRONG_INLINE PacketType packet(Index row, Index col) const
   {

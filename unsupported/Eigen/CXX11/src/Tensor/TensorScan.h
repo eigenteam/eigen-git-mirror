@@ -242,7 +242,7 @@ struct ScanLauncher {
   }
 };
 
-#if defined(EIGEN_USE_GPU) && defined(EIGEN_CUDACC)
+#if defined(EIGEN_USE_GPU) && (defined(EIGEN_GPUCC))
 
 // GPU implementation of scan
 // TODO(ibab) This placeholder implementation performs multiple scans in
@@ -278,10 +278,11 @@ struct ScanLauncher<Self, Reducer, GpuDevice> {
      Index total_size = internal::array_prod(self.dimensions());
      Index num_blocks = (total_size / self.size() + 63) / 64;
      Index block_size = 64;
-     LAUNCH_CUDA_KERNEL((ScanKernel<Self, Reducer>), num_blocks, block_size, 0, self.device(), self, total_size, data);
+
+     LAUNCH_GPU_KERNEL((ScanKernel<Self, Reducer>), num_blocks, block_size, 0, self.device(), self, total_size, data);
   }
 };
-#endif  // EIGEN_USE_GPU && EIGEN_CUDACC
+#endif  // EIGEN_USE_GPU && (EIGEN_GPUCC)
 
 }  // end namespace Eigen
 

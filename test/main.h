@@ -67,11 +67,27 @@
 // protected by parenthesis against macro expansion, the min()/max() macros
 // are defined here and any not-parenthesized min/max call will cause a
 // compiler error.
-#define min(A,B) please_protect_your_min_with_parentheses
-#define max(A,B) please_protect_your_max_with_parentheses
-#define isnan(X) please_protect_your_isnan_with_parentheses
-#define isinf(X) please_protect_your_isinf_with_parentheses
-#define isfinite(X) please_protect_your_isfinite_with_parentheses
+#if !defined(__HIPCC__)
+  //
+  // HIP header files include the following files
+  //  <thread>
+  //  <regex>
+  //  <unordered_map>
+  // which seem to contain not-parenthesized calls to "max"/"min", triggering the following check and causing the compile to fail
+  //
+  // Including those header files before the following macro definition for "min" / "max", only partially resolves the issue
+  // This is because other HIP header files also define "isnan" / "isinf" / "isfinite" functions, which are needed in other
+  // headers.
+  //
+  // So instead choosing to simply disable this check for HIP
+  //
+  #define min(A,B) please_protect_your_min_with_parentheses
+  #define max(A,B) please_protect_your_max_with_parentheses
+  #define isnan(X) please_protect_your_isnan_with_parentheses
+  #define isinf(X) please_protect_your_isinf_with_parentheses
+  #define isfinite(X) please_protect_your_isfinite_with_parentheses
+#endif
+
 #ifdef M_PI
 #undef M_PI
 #endif
@@ -154,7 +170,7 @@ namespace Eigen
 
 #define EIGEN_DEFAULT_IO_FORMAT IOFormat(4, 0, "  ", "\n", "", "", "", "")
 
-#if (defined(_CPPUNWIND) || defined(__EXCEPTIONS)) && !defined(__CUDA_ARCH__)
+#if (defined(_CPPUNWIND) || defined(__EXCEPTIONS)) && !defined(__CUDA_ARCH__) && !defined(__HIP_DEVICE_COMPILE__)
   #define EIGEN_EXCEPTIONS
 #endif
 
@@ -233,7 +249,7 @@ namespace Eigen
       }
     #endif //EIGEN_EXCEPTIONS
 
-  #elif !defined(__CUDACC__) // EIGEN_DEBUG_ASSERTS
+  #elif !defined(__CUDACC__) && !defined(__HIPCC__)// EIGEN_DEBUG_ASSERTS
     // see bug 89. The copy_bool here is working around a bug in gcc <= 4.3
     #define eigen_assert(a) \
       if( (!Eigen::internal::copy_bool(a)) && (!no_more_assert) )\
@@ -290,7 +306,7 @@ namespace Eigen
     std::cout << "Can't VERIFY_RAISES_STATIC_ASSERT( " #a " ) with exceptions disabled\n";
 #endif
     
-  #if !defined(__CUDACC__)
+  #if !defined(__CUDACC__) && !defined(__HIPCC__)
   #define EIGEN_USE_CUSTOM_ASSERT
   #endif
 

@@ -48,7 +48,7 @@ typedef typename conditional<Vectorizable,_LhsPacket,LhsScalar>::type LhsPacket;
 typedef typename conditional<Vectorizable,_RhsPacket,RhsScalar>::type RhsPacket;
 typedef typename conditional<Vectorizable,_ResPacket,ResScalar>::type ResPacket;
 
-EIGEN_DONT_INLINE static void run(
+EIGEN_DEVICE_FUNC EIGEN_DONT_INLINE static void run(
   Index rows, Index cols,
   const LhsMapper& lhs,
   const RhsMapper& rhs,
@@ -57,7 +57,7 @@ EIGEN_DONT_INLINE static void run(
 };
 
 template<typename Index, typename LhsScalar, typename LhsMapper, bool ConjugateLhs, typename RhsScalar, typename RhsMapper, bool ConjugateRhs, int Version>
-EIGEN_DONT_INLINE void general_matrix_vector_product<Index,LhsScalar,LhsMapper,ColMajor,ConjugateLhs,RhsScalar,RhsMapper,ConjugateRhs,Version>::run(
+EIGEN_DEVICE_FUNC EIGEN_DONT_INLINE void general_matrix_vector_product<Index,LhsScalar,LhsMapper,ColMajor,ConjugateLhs,RhsScalar,RhsMapper,ConjugateRhs,Version>::run(
   Index rows, Index cols,
   const LhsMapper& alhs,
   const RhsMapper& rhs,
@@ -231,7 +231,7 @@ typedef typename conditional<Vectorizable,_LhsPacket,LhsScalar>::type LhsPacket;
 typedef typename conditional<Vectorizable,_RhsPacket,RhsScalar>::type RhsPacket;
 typedef typename conditional<Vectorizable,_ResPacket,ResScalar>::type ResPacket;
 
-EIGEN_DONT_INLINE static void run(
+EIGEN_DEVICE_FUNC EIGEN_DONT_INLINE static void run(
   Index rows, Index cols,
   const LhsMapper& lhs,
   const RhsMapper& rhs,
@@ -240,7 +240,7 @@ EIGEN_DONT_INLINE static void run(
 };
 
 template<typename Index, typename LhsScalar, typename LhsMapper, bool ConjugateLhs, typename RhsScalar, typename RhsMapper, bool ConjugateRhs, int Version>
-EIGEN_DONT_INLINE void general_matrix_vector_product<Index,LhsScalar,LhsMapper,RowMajor,ConjugateLhs,RhsScalar,RhsMapper,ConjugateRhs,Version>::run(
+EIGEN_DEVICE_FUNC EIGEN_DONT_INLINE void general_matrix_vector_product<Index,LhsScalar,LhsMapper,RowMajor,ConjugateLhs,RhsScalar,RhsMapper,ConjugateRhs,Version>::run(
   Index rows, Index cols,
   const LhsMapper& alhs,
   const RhsMapper& rhs,

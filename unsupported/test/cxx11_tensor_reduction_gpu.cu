@@ -9,7 +9,7 @@
 
 #define EIGEN_TEST_NO_LONGDOUBLE
 #define EIGEN_TEST_NO_COMPLEX
-#define EIGEN_TEST_FUNC cxx11_tensor_reduction_cuda
+#define EIGEN_TEST_FUNC cxx11_tensor_reduction_gpu
 #define EIGEN_USE_GPU
 
 #include "main.h"
@@ -19,7 +19,7 @@
 template<typename Type, int DataLayout>
 static void test_full_reductions() {
 
-  Eigen::CudaStreamDevice stream;
+  Eigen::GpuStreamDevice stream;
   Eigen::GpuDevice gpu_device(&stream);
 
   const int num_rows = internal::random<int>(1024, 5*1024);
@@ -67,7 +67,7 @@ static void test_first_dim_reductions() {
   Tensor<Type, 2, DataLayout> redux = in.sum(red_axis);
 
   // Create device
-  Eigen::CudaStreamDevice stream;
+  Eigen::GpuStreamDevice stream;
   Eigen::GpuDevice dev(&stream);
   
   // Create data(T)
@@ -107,7 +107,7 @@ static void test_last_dim_reductions() {
   Tensor<Type, 2, DataLayout> redux = in.sum(red_axis);
 
   // Create device
-  Eigen::CudaStreamDevice stream;
+  Eigen::GpuStreamDevice stream;
   Eigen::GpuDevice dev(&stream);
   
   // Create data
@@ -134,7 +134,7 @@ static void test_last_dim_reductions() {
 }
 
 
-void test_cxx11_tensor_reduction_cuda() {
+void test_cxx11_tensor_reduction_gpu() {
   CALL_SUBTEST_1((test_full_reductions<float, ColMajor>()));
   CALL_SUBTEST_1((test_full_reductions<double, ColMajor>()));
   CALL_SUBTEST_2((test_full_reductions<float, RowMajor>()));

@@ -34,7 +34,7 @@ void test_cuda_nullary() {
   cudaMemcpy(d_in1, in1.data(), complex_bytes, cudaMemcpyHostToDevice);
   cudaMemcpy(d_in2, in2.data(), complex_bytes, cudaMemcpyHostToDevice);
 
-  Eigen::CudaStreamDevice stream;
+  Eigen::GpuStreamDevice stream;
   Eigen::GpuDevice gpu_device(&stream);
 
   Eigen::TensorMap<Eigen::Tensor<std::complex<float>, 1, 0, int>, Eigen::Aligned> gpu_in1(
@@ -70,7 +70,7 @@ void test_cuda_nullary() {
 
 static void test_cuda_sum_reductions() {
 
-  Eigen::CudaStreamDevice stream;
+  Eigen::GpuStreamDevice stream;
   Eigen::GpuDevice gpu_device(&stream);
 
   const int num_rows = internal::random<int>(1024, 5*1024);
@@ -106,7 +106,7 @@ static void test_cuda_sum_reductions() {
 
 static void test_cuda_mean_reductions() {
 
-  Eigen::CudaStreamDevice stream;
+  Eigen::GpuStreamDevice stream;
   Eigen::GpuDevice gpu_device(&stream);
 
   const int num_rows = internal::random<int>(1024, 5*1024);
@@ -142,7 +142,7 @@ static void test_cuda_mean_reductions() {
 
 static void test_cuda_product_reductions() {
 
-  Eigen::CudaStreamDevice stream;
+  Eigen::GpuStreamDevice stream;
   Eigen::GpuDevice gpu_device(&stream);
 
   const int num_rows = internal::random<int>(1024, 5*1024);

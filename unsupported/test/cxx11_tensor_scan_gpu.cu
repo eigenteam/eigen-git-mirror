@@ -9,19 +9,20 @@
 
 #define EIGEN_TEST_NO_LONGDOUBLE
 #define EIGEN_TEST_NO_COMPLEX
-#define EIGEN_TEST_FUNC cxx11_tensor_scan_cuda
+#define EIGEN_TEST_FUNC cxx11_tensor_scan_gpu
 #define EIGEN_DEFAULT_DENSE_INDEX_TYPE int
 #define EIGEN_USE_GPU
 
 #include "main.h"
 #include <unsupported/Eigen/CXX11/Tensor>
 
+#include <Eigen/CXX11/src/Tensor/TensorGpuHipCudaDefines.h>
 
 using Eigen::Tensor;
 typedef Tensor<float, 1>::DimensionPair DimPair;
 
 template<int DataLayout>
-void test_cuda_cumsum(int m_size, int k_size, int n_size)
+void test_gpu_cumsum(int m_size, int k_size, int n_size)
 {
   std::cout << "Testing for (" << m_size << "," << k_size << "," << n_size << ")" << std::endl;
   Tensor<float, 3, DataLayout> t_input(m_size, k_size, n_size);
@@ -36,12 +37,12 @@ void test_cuda_cumsum(int m_size, int k_size, int n_size)
   float* d_t_input;
   float* d_t_result;
 
-  cudaMalloc((void**)(&d_t_input), t_input_bytes);
-  cudaMalloc((void**)(&d_t_result), t_result_bytes);
+  gpuMalloc((void**)(&d_t_input), t_input_bytes);
+  gpuMalloc((void**)(&d_t_result), t_result_bytes);
 
-  cudaMemcpy(d_t_input, t_input.data(), t_input_bytes, cudaMemcpyHostToDevice);
+  gpuMemcpy(d_t_input, t_input.data(), t_input_bytes, gpuMemcpyHostToDevice);
 
-  Eigen::CudaStreamDevice stream;
+  Eigen::GpuStreamDevice stream;
   Eigen::GpuDevice gpu_device(&stream);
 
   Eigen::TensorMap<Eigen::Tensor<float, 3, DataLayout> >
@@ -52,7 +53,7 @@ void test_cuda_cumsum(int m_size, int k_size, int n_size)
   gpu_t_result.device(gpu_device) = gpu_t_input.cumsum(1);
   t_result = t_input.cumsum(1);
 
-  cudaMemcpy(t_result_gpu.data(), d_t_result, t_result_bytes, cudaMemcpyDeviceToHost);
+  gpuMemcpy(t_result_gpu.data(), d_t_result, t_result_bytes, gpuMemcpyDeviceToHost);
   for (DenseIndex i = 0; i < t_result.size(); i++) {
     if (fabs(t_result(i) - t_result_gpu(i)) < 1e-4f) {
       continue;
@@ -65,13 +66,13 @@ void test_cuda_cumsum(int m_size, int k_size, int n_size)
     assert(false);
   }
 
-  cudaFree((void*)d_t_input);
-  cudaFree((void*)d_t_result);
+  gpuFree((void*)d_t_input);
+  gpuFree((void*)d_t_result);
 }
 
 
-void test_cxx11_tensor_scan_cuda()
+void test_cxx11_tensor_scan_gpu()
 {
-  CALL_SUBTEST_1(test_cuda_cumsum<ColMajor>(128, 128, 128));
-  CALL_SUBTEST_2(test_cuda_cumsum<RowMajor>(128, 128, 128));
+  CALL_SUBTEST_1(test_gpu_cumsum<ColMajor>(128, 128, 128));
+  CALL_SUBTEST_2(test_gpu_cumsum<RowMajor>(128, 128, 128));
 }
