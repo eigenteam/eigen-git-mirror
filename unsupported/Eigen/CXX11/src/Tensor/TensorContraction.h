@@ -549,6 +549,11 @@ struct TensorContractionEvaluatorBase
     internal::general_matrix_vector_product<Index,LhsScalar,LhsMapper,ColMajor,false,RhsScalar,RhsMapper,false>::run(
         rows, cols, lhs, rhs,
         buffer, resIncr, alpha);
+
+    typedef internal::blas_data_mapper<Scalar, Index, ColMajor> OutputMapper;
+    m_output_kernel(OutputMapper(buffer, rows), m_tensor_contraction_params,
+                    static_cast<Index>(0), static_cast<Index>(0), rows,
+                    static_cast<Index>(1));
   }
 
   template <bool lhs_inner_dim_contiguous, bool rhs_inner_dim_contiguous, bool rhs_inner_dim_reordered, int Alignment>
