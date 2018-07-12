@@ -58,6 +58,15 @@ bool is_same_symb(const T1& a, const T2& b, Index size)
   return a.eval(last=size-1) == b.eval(last=size-1);
 }
 
+template<typename T>
+void check_is_symbolic(const T&) {
+  STATIC_CHECK(( Symbolic::is_symbolic<T>::value ))
+}
+
+template<typename T>
+void check_isnot_symbolic(const T&) {
+  STATIC_CHECK(( !Symbolic::is_symbolic<T>::value ))
+}
 
 #define VERIFY_EQ_INT(A,B) VERIFY_IS_APPROX(int(A),int(B))
 
@@ -65,6 +74,13 @@ void check_symbolic_index()
 {
   using Eigen::placeholders::last;
   using Eigen::placeholders::end;
+
+  check_is_symbolic(last);
+  check_is_symbolic(end);
+  check_is_symbolic(last+1);
+  check_is_symbolic(last-end);
+  check_is_symbolic(2*last-end/2);
+  check_isnot_symbolic(fix<3>());
 
   Index size=100;
 
