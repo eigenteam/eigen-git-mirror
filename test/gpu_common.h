@@ -88,6 +88,9 @@ void run_and_compare_to_gpu(const Kernel& ker, int n, const Input& in, Output& o
   #if !defined(__CUDA_ARCH__) && !defined(__HIP_DEVICE_COMPILE__)
   in_ref = in_gpu = in;
   out_ref = out_gpu = out;
+  #else
+  EIGEN_UNUSED_VARIABLE(in);
+  EIGEN_UNUSED_VARIABLE(out);
   #endif
   run_on_cpu (ker, n, in_ref,  out_ref);
   run_on_gpu(ker, n, in_gpu, out_gpu);
