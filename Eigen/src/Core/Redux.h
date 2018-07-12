@@ -332,6 +332,7 @@ struct redux_impl<Func, Evaluator, LinearVectorizedTraversal, CompleteUnrolling>
   EIGEN_DEVICE_FUNC static EIGEN_STRONG_INLINE
   Scalar run(const Evaluator &eval, const Func& func, const XprType &xpr)
   {
+    EIGEN_ONLY_USED_FOR_DEBUG(xpr)
     eigen_assert(xpr.rows()>0 && xpr.cols()>0 && "you are using an empty matrix");
     if (VectorizedSize > 0) {
       Scalar res = func.predux(redux_vec_unroller<Func, Evaluator, 0, Size / PacketSize>::run(eval,func));
