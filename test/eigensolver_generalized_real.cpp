@@ -15,7 +15,6 @@
 
 template<typename MatrixType> void generalized_eigensolver_real(const MatrixType& m)
 {
-  typedef typename MatrixType::Index Index;
   /* this test covers the following files:
      GeneralizedEigenSolver.h
   */

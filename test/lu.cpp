@@ -18,7 +18,6 @@ typename MatrixType::RealScalar matrix_l1_norm(const MatrixType& m) {
 
 template<typename MatrixType> void lu_non_invertible()
 {
-  typedef typename MatrixType::Index Index;
   typedef typename MatrixType::RealScalar RealScalar;
   /* this test covers the following files:
      LU.h
@@ -181,7 +180,6 @@ template<typename MatrixType> void lu_partial_piv()
   /* this test covers the following files:
      PartialPivLU.h
   */
-  typedef typename MatrixType::Index Index;
   typedef typename NumTraits<typename MatrixType::Scalar>::Real RealScalar;
   Index size = internal::random<Index>(1,4);
 

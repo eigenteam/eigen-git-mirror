@@ -13,8 +13,6 @@
 
 template<typename MatrixType> void qr()
 {
-  typedef typename MatrixType::Index Index;
-
   static const int Rows = MatrixType::RowsAtCompileTime, Cols = MatrixType::ColsAtCompileTime;
   Index max_size = EIGEN_TEST_MAX_SIZE;
   Index min_size = numext::maxi(1,EIGEN_TEST_MAX_SIZE/10);

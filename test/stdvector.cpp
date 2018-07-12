@@ -14,8 +14,8 @@
 template<typename MatrixType>
 void check_stdvector_matrix(const MatrixType& m)
 {
-  typename MatrixType::Index rows = m.rows();
-  typename MatrixType::Index cols = m.cols();
+  Index rows = m.rows();
+  Index cols = m.cols();
   MatrixType x = MatrixType::Random(rows,cols), y = MatrixType::Random(rows,cols);
   std::vector<MatrixType,Eigen::aligned_allocator<MatrixType> > v(10, MatrixType(rows,cols)), w(20, y);
   v[5] = x;

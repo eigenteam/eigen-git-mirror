@@ -39,7 +39,6 @@ is_same_block(const T1& a, const T2& b)
 
 template<typename MatrixType> void block(const MatrixType& m)
 {
-  typedef typename MatrixType::Index Index;
   typedef typename MatrixType::Scalar Scalar;
   typedef typename MatrixType::RealScalar RealScalar;
   typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> VectorType;
@@ -227,7 +226,6 @@ template<typename MatrixType> void block(const MatrixType& m)
 template<typename MatrixType>
 void compare_using_data_and_stride(const MatrixType& m)
 {
-  typedef typename MatrixType::Index Index;
   Index rows = m.rows();
   Index cols = m.cols();
   Index size = m.size();
@@ -261,7 +259,6 @@ void compare_using_data_and_stride(const MatrixType& m)
 template<typename MatrixType>
 void data_and_stride(const MatrixType& m)
 {
-  typedef typename MatrixType::Index Index;
   Index rows = m.rows();
   Index cols = m.cols();
 

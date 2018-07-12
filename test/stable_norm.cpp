@@ -21,7 +21,6 @@ template<typename MatrixType> void stable_norm(const MatrixType& m)
   */
   using std::sqrt;
   using std::abs;
-  typedef typename MatrixType::Index Index;
   typedef typename MatrixType::Scalar Scalar;
   typedef typename NumTraits<Scalar>::Real RealScalar;
   

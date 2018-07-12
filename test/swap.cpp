@@ -28,8 +28,8 @@ template<typename MatrixType> void swap(const MatrixType& m)
   typedef typename MatrixType::Scalar Scalar;
 
   eigen_assert((!internal::is_same<MatrixType,OtherMatrixType>::value));
-  typename MatrixType::Index rows = m.rows();
-  typename MatrixType::Index cols = m.cols();
+  Index rows = m.rows();
+  Index cols = m.cols();
   
   // construct 3 matrix guaranteed to be distinct
   MatrixType m1 = MatrixType::Random(rows,cols);
