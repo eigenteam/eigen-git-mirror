@@ -129,7 +129,7 @@ struct eigenvalues_direct {
     Map<Vec> res(out+i*Vec::MaxSizeAtCompileTime);
     T A = M*M.adjoint();
     SelfAdjointEigenSolver<T> eig;
-    eig.computeDirect(M);
+    eig.computeDirect(A);
     res = eig.eigenvalues();
   }
 };
@@ -145,7 +145,7 @@ struct eigenvalues {
     Map<Vec> res(out+i*Vec::MaxSizeAtCompileTime);
     T A = M*M.adjoint();
     SelfAdjointEigenSolver<T> eig;
-    eig.compute(M);
+    eig.compute(A);
     res = eig.eigenvalues();
   }
 };
@@ -202,11 +202,14 @@ void test_gpu_basic()
   CALL_SUBTEST( run_and_compare_to_gpu(matrix_inverse<Matrix3f>(), nthreads, in, out) );
   CALL_SUBTEST( run_and_compare_to_gpu(matrix_inverse<Matrix4f>(), nthreads, in, out) );
   
-#if !defined(EIGEN_USE_HIP)
-  // FIXME
-  // These subtests result in a linking error on the HIP platform
   CALL_SUBTEST( run_and_compare_to_gpu(eigenvalues_direct<Matrix3f>(), nthreads, in, out) );
   CALL_SUBTEST( run_and_compare_to_gpu(eigenvalues_direct<Matrix2f>(), nthreads, in, out) );
+
+#if defined(__NVCC__)
+  // FIXME
+  // These subtests compiles only with nvcc and fail with HIPCC and clang-cuda
   CALL_SUBTEST( run_and_compare_to_gpu(eigenvalues<Matrix4f>(), nthreads, in, out) );
+  typedef Matrix<float,6,6> Matrix6f;
+  CALL_SUBTEST( run_and_compare_to_gpu(eigenvalues<Matrix6f>(), nthreads, in, out) );
 #endif
 }
