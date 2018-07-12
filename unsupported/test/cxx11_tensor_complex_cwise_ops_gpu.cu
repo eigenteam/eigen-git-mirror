@@ -48,11 +48,13 @@ void test_cuda_complex_cwise_ops() {
     Add = 0,
     Sub,
     Mul,
-    Div
+    Div,
+    Neg,
+    NbOps
   };
 
   Tensor<std::complex<T>, 1, 0, int> actual(kNumItems);
-  for (int op = Add; op <= Div; op++) {
+  for (int op = Add; op < NbOps; op++) {
     std::complex<T> expected;
     switch (static_cast<CwiseOp>(op)) {
       case Add:
@@ -70,6 +72,10 @@ void test_cuda_complex_cwise_ops() {
       case Div:
         gpu_out.device(gpu_device) = gpu_in1 / gpu_in2;
         expected = a / b;
+        break;
+      case Neg:
+        gpu_out.device(gpu_device) = -gpu_in1;
+        expected = -a;
         break;
     }
     assert(cudaMemcpyAsync(actual.data(), d_out, complex_bytes, cudaMemcpyDeviceToHost,
