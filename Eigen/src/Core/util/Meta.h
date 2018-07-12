@@ -360,6 +360,13 @@ template<typename T, int N> struct array_size<T (&)[N]> {
 };
 
 #if EIGEN_HAS_CXX11
+}}
+namespace std {
+  template<class T, std::size_t N> struct array;
+}
+namespace Eigen {
+namespace internal {
+
 template<typename T, std::size_t N> struct array_size<const std::array<T,N> > {
   enum { value = N };
 };
