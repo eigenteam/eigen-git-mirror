@@ -1088,7 +1088,7 @@ struct unary_evaluator<Block<ArgType, BlockRows, BlockCols, InnerPanel>, IndexBa
 
   enum {
     RowsAtCompileTime = XprType::RowsAtCompileTime,
-    ForwardLinearAccess = (InnerPanel || XprType::IsRowMajor==ArgType::IsRowMajor) && bool(evaluator<ArgType>::Flags&LinearAccessBit)
+    ForwardLinearAccess = (InnerPanel || int(XprType::IsRowMajor)==int(ArgType::IsRowMajor)) && bool(evaluator<ArgType>::Flags&LinearAccessBit)
   };
  
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
