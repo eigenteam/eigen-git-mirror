@@ -646,6 +646,7 @@ struct igammac_cf_impl {
       case DERIVATIVE:
         return ans * dax_da + dans_da * ax;
       case SAMPLE_DERIVATIVE:
+      default: // this is needed to suppress clang warning
         return -(dans_da + ans * dlogax_da) * x;
     }
   }
@@ -707,6 +708,7 @@ struct igamma_series_impl {
       case DERIVATIVE:
         return ans * dax_da + dans_da * ax;
       case SAMPLE_DERIVATIVE:
+      default: // this is needed to suppress clang warning
         return -(dans_da + ans * dlogax_da) * x / a;
     }
   }
