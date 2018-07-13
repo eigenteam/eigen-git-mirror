@@ -161,7 +161,7 @@ private:
   static no  test(any_conversion, ...);
 
 public:
-  static From* ms_from;
+  static typename internal::remove_reference<From>::type* ms_from;
 #ifdef __INTEL_COMPILER
   #pragma warning push
   #pragma warning ( disable : 2259 )

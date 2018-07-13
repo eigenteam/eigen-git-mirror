@@ -80,7 +80,15 @@ void test_meta()
   STATIC_CHECK(( internal::is_convertible<double,std::complex<double> >::value ));
   STATIC_CHECK((!internal::is_convertible<std::complex<double>,double>::value ));
   STATIC_CHECK(( internal::is_convertible<Array33f,Matrix3f>::value ));
-//   VERIFY((!internal::is_convertible<Matrix3f,Matrix3d>::value )); //does not work because the conversion is prevented by a static assertion
+  STATIC_CHECK(( internal::is_convertible<Matrix3f&,Matrix3f>::value ));
+  STATIC_CHECK(( internal::is_convertible<Matrix3f&,Matrix3f&>::value ));
+  STATIC_CHECK(( internal::is_convertible<Matrix3f&,const Matrix3f&>::value ));
+  STATIC_CHECK(( internal::is_convertible<const Matrix3f&,Matrix3f>::value ));
+  STATIC_CHECK(( internal::is_convertible<const Matrix3f&,const Matrix3f&>::value ));
+  STATIC_CHECK((!internal::is_convertible<const Matrix3f&,Matrix3f&>::value ));
+  STATIC_CHECK((!internal::is_convertible<const Matrix3f,Matrix3f&>::value ));
+  STATIC_CHECK(( internal::is_convertible<Matrix3f,Matrix3f&>::value )); // std::is_convertible returns false here though Matrix3f from; Matrix3f& to = from; is valid.
+  //STATIC_CHECK((!internal::is_convertible<Matrix3f,Matrix3d>::value )); //does not work because the conversion is prevented by a static assertion
   STATIC_CHECK((!internal::is_convertible<Array33f,int>::value ));
   STATIC_CHECK((!internal::is_convertible<MatrixXf,float>::value ));
   {
