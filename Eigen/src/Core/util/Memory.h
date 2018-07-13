@@ -593,7 +593,7 @@ template<typename T> struct smart_memmove_helper<T,false> {
 // the compiler still emits bad code because stack allocation checks use "<=".
 // TODO: Eliminate after https://bugs.llvm.org/show_bug.cgi?id=23772
 // is fixed.
-#if defined(__clang__) && defined(__ANDROID__) && defined(__thumb__)
+#if defined(__clang__) && defined(__thumb__)
   #undef EIGEN_ALLOCA
 #endif
 
