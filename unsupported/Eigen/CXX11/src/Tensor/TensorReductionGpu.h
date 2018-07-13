@@ -60,10 +60,10 @@ __device__ EIGEN_ALWAYS_INLINE void atomicReduce(T* output, T accum, R& reducer)
     }
   }
   else {
-    assert(0 && "Wordsize not supported");
+    gpu_assert(0 && "Wordsize not supported");
   }
 #else // EIGEN_CUDA_ARCH >= 300
-  assert(0 && "Shouldn't be called on unsupported device");
+  gpu_assert(0 && "Shouldn't be called on unsupported device");
 #endif // EIGEN_CUDA_ARCH >= 300
 }
 
@@ -105,7 +105,7 @@ __device__ inline void atomicReduce(float* output, float accum, SumReducer<float
 #if (defined(EIGEN_HIP_DEVICE_COMPILE) && defined(__HIP_ARCH_HAS_WARP_SHUFFLE__)) || (EIGEN_CUDA_ARCH >= 300)
   atomicAdd(output, accum);
 #else // EIGEN_CUDA_ARCH >= 300
-  assert(0 && "Shouldn't be called on unsupported device");
+  gpu_assert(0 && "Shouldn't be called on unsupported device");
 #endif // EIGEN_CUDA_ARCH >= 300
 }
 
@@ -196,7 +196,7 @@ __global__ void FullReductionKernel(Reducer reducer, const Self input, Index num
 #endif
   }
 #else // EIGEN_CUDA_ARCH >= 300
-  assert(0 && "Shouldn't be called on unsupported device");
+  gpu_assert(0 && "Shouldn't be called on unsupported device");
 #endif // EIGEN_CUDA_ARCH >= 300
 }
 
@@ -304,7 +304,7 @@ __global__ void ReductionCleanupKernelHalfFloat(Op& reducer, half* output, half2
 template <typename Self, typename Op, typename OutputType, bool PacketAccess, typename Enabled = void>
 struct FullReductionLauncher {
   static void run(const Self&, Op&, const GpuDevice&, OutputType*, typename Self::Index) {
-    assert(false && "Should only be called on doubles, floats and half floats");
+    gpu_assert(false && "Should only be called on doubles, floats and half floats");
   }
 };
 
@@ -337,7 +337,7 @@ struct FullReductionLauncher<
 template <typename Self, typename Op>
 struct FullReductionLauncher<Self, Op, Eigen::half, false> {
   static void run(const Self&, Op&, const GpuDevice&, half*, typename Self::Index) {
-    assert(false && "Should not be called since there is no packet accessor");
+    gpu_assert(false && "Should not be called since there is no packet accessor");
   }
 };
 
@@ -388,7 +388,7 @@ struct FullReducer<Self, Op, GpuDevice, Vectorizable> {
 
   template <typename OutputType>
   static void run(const Self& self, Op& reducer, const GpuDevice& device, OutputType* output) {
-    assert(HasOptimizedImplementation && "Should only be called on doubles, floats or half floats");
+    gpu_assert(HasOptimizedImplementation && "Should only be called on doubles, floats or half floats");
     const Index num_coeffs = array_prod(self.m_impl.dimensions());
     // Don't crash when we're called with an input tensor of size 0.
     if (num_coeffs == 0) {
@@ -479,7 +479,7 @@ __global__ void InnerReductionKernel(Reducer reducer, const Self input, Index nu
     }
   }
 #else // EIGEN_CUDA_ARCH >= 300
-  assert(0 && "Shouldn't be called on unsupported device");
+  gpu_assert(0 && "Shouldn't be called on unsupported device");
 #endif // EIGEN_CUDA_ARCH >= 300
 }
 
@@ -601,7 +601,7 @@ __global__ void InnerReductionKernelHalfFloat(Reducer reducer, const Self input,
 template <typename Self, typename Op, typename OutputType, bool PacketAccess, typename Enabled = void>
 struct InnerReductionLauncher {
   static EIGEN_DEVICE_FUNC bool run(const Self&, Op&, const GpuDevice&, OutputType*, typename Self::Index, typename Self::Index) {
-    assert(false && "Should only be called to reduce doubles, floats and half floats on a gpu device");
+    gpu_assert(false && "Should only be called to reduce doubles, floats and half floats on a gpu device");
     return true;
   }
 };
@@ -648,7 +648,7 @@ struct InnerReductionLauncher<
 template <typename Self, typename Op>
 struct InnerReductionLauncher<Self, Op, Eigen::half, false> {
   static bool run(const Self&, Op&, const GpuDevice&, half*, typename Self::Index, typename Self::Index) {
-    assert(false && "Should not be called since there is no packet accessor");
+    gpu_assert(false && "Should not be called since there is no packet accessor");
     return true;
   }
 };
@@ -709,7 +709,7 @@ struct InnerReducer<Self, Op, GpuDevice> {
 
   template <typename OutputType>
   static bool run(const Self& self, Op& reducer, const GpuDevice& device, OutputType* output, typename Self::Index num_coeffs_to_reduce, typename Self::Index num_preserved_vals) {
-    assert(HasOptimizedImplementation && "Should only be called on doubles, floats or half floats");
+    gpu_assert(HasOptimizedImplementation && "Should only be called on doubles, floats or half floats");
     const Index num_coeffs = array_prod(self.m_impl.dimensions());
     // Don't crash when we're called with an input tensor of size 0.
     if (num_coeffs == 0) {
@@ -777,7 +777,7 @@ struct OuterReducer<Self, Op, GpuDevice> {
     EIGEN_DEVICE_FUNC
     #endif
     bool run(const Self&, Op&, const Device&, OutputType*, typename Self::Index, typename Self::Index) {
-    assert(false && "Should only be called to reduce doubles or floats on a gpu device");
+    gpu_assert(false && "Should only be called to reduce doubles or floats on a gpu device");
     return true;
   }
 

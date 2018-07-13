@@ -78,10 +78,11 @@
 
 #endif
 
-#if defined(EIGEN_HIP_DEVICE_COMPILE)
-// HIPCC does not support the use of assert on the GPU side.
-#undef assert
-#define assert(COND)
+#if defined(EIGEN_HIP_DEVICE_COMPILE) || (defined(EIGEN_CUDACC) && (EIGEN_CUDACC_VER==0))
+// clang-cuda and HIPCC do not support the use of assert on the GPU side.
+#define gpu_assert(COND)
+#else
+#define gpu_assert(COND) assert(COND)
 #endif
 
 #endif  // EIGEN_CXX11_TENSOR_GPU_HIP_CUDA_DEFINES_H

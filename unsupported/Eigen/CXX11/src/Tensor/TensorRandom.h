@@ -19,7 +19,7 @@ EIGEN_DEVICE_FUNC uint64_t get_random_seed() {
 #if defined(EIGEN_GPU_COMPILE_PHASE)
   // We don't support 3d kernels since we currently only use 1 and
   // 2d kernels.
-  assert(threadIdx.z == 0);
+  gpu_assert(threadIdx.z == 0);
   return clock64() +
       blockIdx.x * blockDim.x + threadIdx.x +
       gridDim.x * blockDim.x * (blockIdx.y * blockDim.y + threadIdx.y);

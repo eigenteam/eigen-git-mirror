@@ -903,7 +903,7 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
         }
 
         const int shared_mem = block_size.y * (maxX + kernel_size - 1) * sizeof(Scalar);
-        assert(shared_mem <= maxSharedMem);
+        gpu_assert(shared_mem <= maxSharedMem);
 
         const int num_x_blocks = ceil(numX, maxX);
         const int blocksPerProcessor = numext::mini(maxBlocksPerProcessor, maxSharedMem / shared_mem);
@@ -960,7 +960,7 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
         block_size.z = numext::mini<int>(1024/(block_size.x*block_size.y), maxP);
 
         const int shared_mem = block_size.z * (maxX + kernel_size_x - 1) * (maxY + kernel_size_y - 1) * sizeof(Scalar);
-        assert(shared_mem <= maxSharedMem);
+        gpu_assert(shared_mem <= maxSharedMem);
 
         const int num_x_blocks = ceil(numX, maxX);
         const int num_y_blocks = ceil(numY, maxY);
@@ -1040,7 +1040,7 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
         dim3 num_blocks(ceil(numX, maxX), ceil(numY, maxY), ceil(numZ, maxZ));
 
         const int shared_mem = (maxX + kernel_size_x - 1) * (maxY + kernel_size_y - 1) * (maxZ + kernel_size_z - 1) * sizeof(Scalar);
-        assert(shared_mem <= maxSharedMem);
+        gpu_assert(shared_mem <= maxSharedMem);
 
         //cout << "launching 3D kernel with block_size.x: " << block_size.x << " block_size.y: " << block_size.y  << " block_size.z: " << block_size.z << " num_blocks.x: " << num_blocks.x << " num_blocks.y: " << num_blocks.y << " num_blocks.z: " << num_blocks.z  << " shared_mem: " << shared_mem << " in stream " << m_device.stream() << endl;
         const array<Index, 3> indices(m_indices[idxX], m_indices[idxY],
