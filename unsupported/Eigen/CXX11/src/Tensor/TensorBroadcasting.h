@@ -122,7 +122,6 @@ struct TensorEvaluator<const TensorBroadcastingOp<Broadcast, ArgType>, Device>
     // tensor with N >= 1 of 1 element first and then broadcast.
     EIGEN_STATIC_ASSERT((NumDims > 0), YOU_MADE_A_PROGRAMMING_MISTAKE);
     const InputDimensions& input_dims = m_impl.dimensions();
-    const Broadcast& broadcast = op.broadcast();
     isCopy = true;
     for (int i = 0; i < NumDims; ++i) {
       eigen_assert(input_dims[i] > 0);
@@ -151,7 +150,7 @@ struct TensorEvaluator<const TensorBroadcastingOp<Broadcast, ArgType>, Device>
     if (input_dims[0] == 1) {
       oneByN = true;
       for (int i = 1; i < NumDims; ++i) {
-        if (broadcast[i] != 1) {
+        if (m_broadcast[i] != 1) {
           oneByN = false;
           break;
         }
@@ -159,7 +158,7 @@ struct TensorEvaluator<const TensorBroadcastingOp<Broadcast, ArgType>, Device>
     } else if (input_dims[NumDims-1] == 1) {
       nByOne = true;
       for (int i = 0; i < NumDims-1; ++i) {
-        if (broadcast[i] != 1) {
+        if (m_broadcast[i] != 1) {
           nByOne = false;
           break;
         }
@@ -173,7 +172,7 @@ struct TensorEvaluator<const TensorBroadcastingOp<Broadcast, ArgType>, Device>
         nByOne = true;
         oneByN = true;
         for (int i = 1; i < NumDims-1; ++i) {
-          if (broadcast[i] != 1) {
+          if (m_broadcast[i] != 1) {
             nByOne = false;
             oneByN = false;
             break;
