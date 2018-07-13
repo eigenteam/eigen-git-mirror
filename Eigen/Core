@@ -80,6 +80,10 @@
 // for min/max:
 #include <algorithm>
 
+#if EIGEN_HAS_CXX11
+#include <array>
+#endif
+
 // for std::is_nothrow_move_assignable
 #ifdef EIGEN_INCLUDE_TYPE_TRAITS
 #include <type_traits>
