@@ -77,7 +77,7 @@ inline void throw_std_bad_alloc()
     // "no overloaded function has restriction specifiers that are compatible with the ambient context"
     //
     // "throw_std_bad_alloc" has the EIGEN_DEVICE_FUNC attribute, so it seems that hipcc expects
-    // the same on "operator new" 
+    // the same on "operator new"
     // Reverting code back to the old version in this #if block for the hipcc compiler
     //
     new int[huge];
@@ -169,13 +169,13 @@ EIGEN_DEVICE_FUNC inline void* aligned_malloc(std::size_t size)
 
   void *result;
   #if (EIGEN_DEFAULT_ALIGN_BYTES==0) || EIGEN_MALLOC_ALREADY_ALIGNED
-  
+
     #if defined(EIGEN_HIP_DEVICE_COMPILE)
     result = ::malloc(size);
     #else
     result = std::malloc(size);
     #endif
-    
+
     #if EIGEN_DEFAULT_ALIGN_BYTES==16
     eigen_assert((size<16 || (std::size_t(result)%16)==0) && "System's malloc returned an unaligned pointer. Compile with EIGEN_MALLOC_ALREADY_ALIGNED=0 to fallback to handmade alignd memory allocator.");
     #endif
@@ -199,7 +199,7 @@ EIGEN_DEVICE_FUNC inline void aligned_free(void *ptr)
     #else
     std::free(ptr);
     #endif
-    
+
   #else
     handmade_aligned_free(ptr);
   #endif
@@ -248,7 +248,7 @@ template<> EIGEN_DEVICE_FUNC inline void* conditional_aligned_malloc<false>(std:
   #else
   void *result = std::malloc(size);
   #endif
-  
+
   if(!result && size)
     throw_std_bad_alloc();
   return result;
@@ -588,6 +588,15 @@ template<typename T> struct smart_memmove_helper<T,false> {
   #endif
 #endif
 
+// With clang -Oz -mthumb, alloca changes the stack pointer in a way that is
+// not allowed in Thumb2. -DEIGEN_STACK_ALLOCATION_LIMIT=0 doesn't work because
+// the compiler still emits bad code because stack allocation checks use "<=".
+// TODO: Eliminate after https://bugs.llvm.org/show_bug.cgi?id=23772
+// is fixed.
+#if defined(__clang__) && defined(__ANDROID__) && defined(__thumb__)
+  #undef EIGEN_ALLOCA
+#endif
+
 // This helper class construct the allocated memory, and takes care of destructing and freeing the handled data
 // at destruction time. In practice this helper class is mainly useful to avoid memory leak in case of exceptions.
 template<typename T> class aligned_stack_memory_handler : noncopyable
@@ -701,7 +710,7 @@ template<typename T> void swap(scoped_array<T> &a,scoped_array<T> &b)
 } // end namespace internal
 
 /** \internal
-  * 
+  *
   * The macro ei_declare_aligned_stack_constructed_variable(TYPE,NAME,SIZE,BUFFER) declares, allocates,
   * and construct an aligned buffer named NAME of SIZE elements of type TYPE on the stack
   * if the size in bytes is smaller than EIGEN_STACK_ALLOCATION_LIMIT, and if stack allocation is supported by the platform
@@ -716,7 +725,7 @@ template<typename T> void swap(scoped_array<T> &a,scoped_array<T> &b)
   * }
   * \endcode
   * The underlying stack allocation function can controlled with the EIGEN_ALLOCA preprocessor token.
-  * 
+  *
   * The macro ei_declare_local_nested_eval(XPR_T,XPR,N,NAME) is analogue to
   * \code
   *   typename internal::nested_eval<XPRT_T,N>::type NAME(XPR);
