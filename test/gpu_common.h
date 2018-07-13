@@ -100,12 +100,47 @@ void run_and_compare_to_gpu(const Kernel& ker, int n, const Input& in, Output& o
   #endif
 }
 
+struct compile_time_device_info {
+  EIGEN_DEVICE_FUNC
+  void operator()(int /*i*/, const int* /*in*/, int* info) const
+  {
+    #if defined(__CUDA_ARCH__)
+    info[0] = int(__CUDA_ARCH__ +0);
+    #endif
+    #if defined(EIGEN_HIP_DEVICE_COMPILE)
+    info[1] = int(EIGEN_HIP_DEVICE_COMPILE +0);
+    #endif
+  }
+};
 
 void ei_test_init_gpu()
 {
   int device = 0;
   gpuDeviceProp_t deviceProp;
   gpuGetDeviceProperties(&deviceProp, device);
+
+  ArrayXi dummy(1), info(10);
+  info = -1;
+  run_on_gpu(compile_time_device_info(),10,dummy,info);
+
+
+  std::cout << "GPU compile-time info:\n";
+  
+  #ifdef EIGEN_CUDACC
+  std::cout << "  EIGEN_CUDACC:                 " << int(EIGEN_CUDACC) << "\n";
+  #endif
+  
+  #ifdef EIGEN_CUDACC_VER
+  std::cout << "  EIGEN_CUDACC_VER:             " << int(EIGEN_CUDACC_VER) << "\n";
+  #endif
+
+  #ifdef EIGEN_HIPCC
+  std::cout << "  EIGEN_HIPCC:                 " << int(EIGEN_HIPCC) << "\n";
+  #endif
+
+  std::cout << "  EIGEN_CUDA_ARCH:             " << info[0] << "\n";  
+  std::cout << "  EIGEN_HIP_DEVICE_COMPILE:    " << info[1] << "\n";
+
   std::cout << "GPU device info:\n";
   std::cout << "  name:                        " << deviceProp.name << "\n";
   std::cout << "  capability:                  " << deviceProp.major << "." << deviceProp.minor << "\n";
