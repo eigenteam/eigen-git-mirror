@@ -14,15 +14,15 @@
 namespace Eigen {
 
 template <typename Environment>
-class NonBlockingThreadPoolTempl : public Eigen::ThreadPoolInterface {
+class ThreadPoolTempl : public Eigen::ThreadPoolInterface {
  public:
   typedef typename Environment::Task Task;
   typedef RunQueue<Task, 1024> Queue;
 
-  NonBlockingThreadPoolTempl(int num_threads, Environment env = Environment())
-      : NonBlockingThreadPoolTempl(num_threads, true, env) {}
+  ThreadPoolTempl(int num_threads, Environment env = Environment())
+      : ThreadPoolTempl(num_threads, true, env) {}
 
-  NonBlockingThreadPoolTempl(int num_threads, bool allow_spinning,
+  ThreadPoolTempl(int num_threads, bool allow_spinning,
                              Environment env = Environment())
       : env_(env),
         num_threads_(num_threads),
@@ -66,7 +66,7 @@ class NonBlockingThreadPoolTempl : public Eigen::ThreadPoolInterface {
     }
   }
 
-  ~NonBlockingThreadPoolTempl() {
+  ~ThreadPoolTempl() {
     done_ = true;
 
     // Now if all threads block without work, they will start exiting.
@@ -136,7 +136,7 @@ class NonBlockingThreadPoolTempl : public Eigen::ThreadPoolInterface {
 
   int CurrentThreadId() const final {
     const PerThread* pt =
-        const_cast<NonBlockingThreadPoolTempl*>(this)->GetPerThread();
+        const_cast<ThreadPoolTempl*>(this)->GetPerThread();
     if (pt->pool == this) {
       return pt->thread_id;
     } else {
@@ -149,7 +149,7 @@ class NonBlockingThreadPoolTempl : public Eigen::ThreadPoolInterface {
 
   struct PerThread {
     constexpr PerThread() : pool(NULL), rand(0), thread_id(-1) { }
-    NonBlockingThreadPoolTempl* pool;  // Parent pool, or null for normal threads.
+    ThreadPoolTempl* pool;  // Parent pool, or null for normal threads.
     uint64_t rand;  // Random generator state.
     int thread_id;  // Worker thread index in pool.
   };
@@ -337,7 +337,7 @@ class NonBlockingThreadPoolTempl : public Eigen::ThreadPoolInterface {
   }
 };
 
-typedef NonBlockingThreadPoolTempl<StlThreadEnvironment> NonBlockingThreadPool;
+typedef ThreadPoolTempl<StlThreadEnvironment> ThreadPool;
 
 }  // namespace Eigen
 

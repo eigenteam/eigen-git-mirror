@@ -150,13 +150,6 @@ class TensorExecutor<Expression, ThreadPoolDevice, Vectorizable> {
     if (needs_assign)
     {
       const Index size = array_prod(evaluator.dimensions());
-#if !defined(EIGEN_USE_SIMPLE_THREAD_POOL)
-      device.parallelFor(size, evaluator.costPerCoeff(Vectorizable),
-                         EvalRange<Evaluator, Index, Vectorizable>::alignBlockSize,
-                         [&evaluator](Index first, Index last) {
-                           EvalRange<Evaluator, Index, Vectorizable>::run(&evaluator, first, last);
-                         });
-#else
       size_t num_threads = device.numThreads();
       if (num_threads > 1) {
         num_threads = TensorCostModel<ThreadPoolDevice>::numThreads(
@@ -182,7 +175,6 @@ class TensorExecutor<Expression, ThreadPoolDevice, Vectorizable> {
         }
         barrier.Wait();
       }
-#endif  // defined(!EIGEN_USE_SIMPLE_THREAD_POOL)
     }
     evaluator.cleanup();
   }
