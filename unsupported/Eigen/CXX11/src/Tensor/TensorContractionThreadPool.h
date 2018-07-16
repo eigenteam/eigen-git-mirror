@@ -598,11 +598,13 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
         else
           pack_lhs(start, k);
       } else {
-        Index mid = (start + end) / 2;
-        device_.enqueueNoNotification(
-            [=]() { enqueue_packing_helper(mid, end, k, rhs); });
-        device_.enqueueNoNotification(
-            [=]() { enqueue_packing_helper(start, mid, k, rhs); });
+        while (end - start > 1) {
+          Index mid = (start + end) / 2;
+          device_.enqueueNoNotification(
+              [=]() { enqueue_packing_helper(mid, end, k, rhs); });
+          end = mid;
+        }
+        enqueue_packing_helper(start, end, k, rhs);
       }
     }
 
