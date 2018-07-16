@@ -4,7 +4,7 @@ if(NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/split_test_helper.h)
   file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/split_test_helper.h "")
   foreach(i RANGE 1 999)
     file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/split_test_helper.h
-      "#ifdef EIGEN_TEST_PART_${i}\n"
+      "#if defined(EIGEN_TEST_PART_${i}) || defined(EIGEN_TEST_PART_ALL)\n"
       "#define CALL_SUBTEST_${i}(FUNC) CALL_SUBTEST(FUNC)\n"
       "#else\n"
       "#define CALL_SUBTEST_${i}(FUNC)\n"
