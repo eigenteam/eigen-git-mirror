@@ -8,6 +8,7 @@ if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
   message(FATAL_ERROR "In-source builds not allowed. Please make a new directory (called a build directory) and run CMake from there. You may need to remove CMakeCache.txt. ")
 endif()
 
+
 # Alias Eigen_*_DIR to Eigen3_*_DIR:
 
 set(Eigen_SOURCE_DIR ${Eigen3_SOURCE_DIR})
@@ -107,7 +108,7 @@ if(NOT WIN32 OR NOT CMAKE_HOST_SYSTEM_NAME MATCHES Windows)
   option(EIGEN_BUILD_PKGCONFIG "Build pkg-config .pc file for Eigen" ON)
 endif()
 
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
+set(CMAKE_INCLUDE_CURRENT_DIR OFF)
 
 option(EIGEN_SPLIT_LARGE_TESTS "Split large tests into smaller executables" ON)
 
@@ -377,7 +378,7 @@ option(EIGEN_TEST_CXX11 "Enable testing with C++11 and C++11 features (e.g. Tens
 
 set(EIGEN_CUDA_COMPUTE_ARCH 30 CACHE STRING "The CUDA compute architecture level to target when compiling CUDA code")
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 # Backward compatibility support for EIGEN_INCLUDE_INSTALL_DIR
 if(EIGEN_INCLUDE_INSTALL_DIR)

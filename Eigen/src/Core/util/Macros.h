@@ -537,7 +537,7 @@
 #endif
 #endif
 
-// Does the compiler support type_trais?
+// Does the compiler support type_traits?
 #ifndef EIGEN_HAS_TYPE_TRAITS
 #if EIGEN_MAX_CPP_VER>=11 && (EIGEN_HAS_CXX11 || EIGEN_COMP_MSVC >= 1700)
 #define EIGEN_HAS_TYPE_TRAITS 1
@@ -617,6 +617,16 @@
   #endif
 #endif
 
+#ifndef EIGEN_HAS_CXX11_ATOMIC
+  #if    EIGEN_MAX_CPP_VER>=11 && \
+         (__has_feature(cxx_atomic) \
+      || (__cplusplus > 201103L) \
+      || ((__cplusplus >= 201103L) && (EIGEN_COMP_MSVC==0 || EIGEN_COMP_MSVC >= 1700)))
+    #define EIGEN_HAS_CXX11_ATOMIC 1
+  #else
+    #define EIGEN_HAS_CXX11_ATOMIC 0
+  #endif
+#endif
 
 #if defined(EIGEN_CUDACC) && EIGEN_HAS_CONSTEXPR
   // While available already with c++11, this is useful mostly starting with c++14 and relaxed constexpr rules

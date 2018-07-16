@@ -108,7 +108,7 @@ static void run(Index rows, Index cols, Index depth,
       // i.e., we test that info[tid].users equals 0.
       // Then, we set info[tid].users to the number of threads to mark that all other threads are going to use it.
       while(info[tid].users!=0) {}
-      info[tid].users += threads;
+      info[tid].users = threads;
 
       pack_lhs(blockA+info[tid].lhs_start*actual_kc, lhs.getSubMapper(info[tid].lhs_start,k), actual_kc, info[tid].lhs_length);
 
@@ -146,7 +146,9 @@ static void run(Index rows, Index cols, Index depth,
       // Release all the sub blocks A'_i of A' for the current thread,
       // i.e., we simply decrement the number of users by 1
       for(Index i=0; i<threads; ++i)
+#if !EIGEN_HAS_CXX11_ATOMIC
         #pragma omp atomic
+#endif
         info[i].users -= 1;
     }
   }

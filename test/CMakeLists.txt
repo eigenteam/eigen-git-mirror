@@ -387,7 +387,6 @@ if(CUDA_FOUND)
   if(EIGEN_TEST_CUDA_CLANG)
    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 --cuda-gpu-arch=sm_30")
   endif()
-  cuda_include_directories(${CMAKE_CURRENT_BINARY_DIR})
   set(EIGEN_ADD_TEST_FILENAME_EXTENSION  "cu")
   
   ei_add_test(gpu_basic)
@@ -416,7 +415,6 @@ if (EIGEN_TEST_HIP)
 
       if (${HIP_PLATFORM} STREQUAL "hcc")
 
-	include_directories(${CMAKE_CURRENT_BINARY_DIR})
 	include_directories(${HIP_PATH}/include)
 
 	set(EIGEN_ADD_TEST_FILENAME_EXTENSION  "cu")
