@@ -1,16 +1,7 @@
-# generate split test header file only if it does not yet exist
-# in order to prevent a rebuild every time cmake is configured
-if(NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/split_test_helper.h)  
-  file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/split_test_helper.h "")
-  foreach(i RANGE 1 999)
-    file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/split_test_helper.h
-      "#if defined(EIGEN_TEST_PART_${i}) || defined(EIGEN_TEST_PART_ALL)\n"
-      "#define CALL_SUBTEST_${i}(FUNC) CALL_SUBTEST(FUNC)\n"
-      "#else\n"
-      "#define CALL_SUBTEST_${i}(FUNC)\n"
-      "#endif\n\n"
-    )
-  endforeach()
+# The file split_test_helper.h was generated at first run,
+# it is now included in test/
+if(EXISTS ${CMAKE_CURRENT_BINARY_DIR}/split_test_helper.h)
+  file(REMOVE ${CMAKE_CURRENT_BINARY_DIR}/split_test_helper.h)
 endif()
 
 # check if we have a Fortran compiler
