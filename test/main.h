@@ -122,8 +122,8 @@ inline void on_temporary_creation(long int size) {
 #define VERIFY_EVALUATION_COUNT(XPR,N) {\
     nb_temporaries = 0; \
     XPR; \
-    if(nb_temporaries!=N) { std::cerr << "nb_temporaries == " << nb_temporaries << "\n"; }\
-    VERIFY( (#XPR) && nb_temporaries==N ); \
+    if(nb_temporaries!=(N)) { std::cerr << "nb_temporaries == " << nb_temporaries << "\n"; }\
+    VERIFY( (#XPR) && nb_temporaries==(N) ); \
   }
   
 #endif
