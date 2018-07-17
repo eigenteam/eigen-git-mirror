@@ -95,14 +95,20 @@ static EIGEN_STRONG_INLINE void wait_until_ready(SyncType* n) {
 // Build a thread pool device on top the an existing pool of threads.
 struct ThreadPoolDevice {
   // The ownership of the thread pool remains with the caller.
-  ThreadPoolDevice(ThreadPoolInterface* pool, int num_cores) : pool_(pool), num_threads_(num_cores) { }
+  ThreadPoolDevice(ThreadPoolInterface* pool, int num_cores)
+      : pool_(pool), num_threads_(num_cores), allocator_(nullptr) { }
 
   EIGEN_STRONG_INLINE void* allocate(size_t num_bytes) const {
-    return internal::aligned_malloc(num_bytes);
+    return allocator_ ? allocator_->allocate(num_bytes)
+        : internal::aligned_malloc(num_bytes);
   }
 
   EIGEN_STRONG_INLINE void deallocate(void* buffer) const {
-    internal::aligned_free(buffer);
+    if (allocator_) {
+      allocator_->deallocate(buffer);
+    } else {
+      internal::aligned_free(buffer);
+    }
   }
 
   EIGEN_STRONG_INLINE void memcpy(void* dst, const void* src, size_t n) const {
@@ -267,9 +273,13 @@ struct ThreadPoolDevice {
   // Thread pool accessor.
   ThreadPoolInterface* getPool() const { return pool_; }
 
+  // Allocator accessor.
+  Allocator* getAllocator() const { return allocator_; }
+
  private:
   ThreadPoolInterface* pool_;
   int num_threads_;
+  Allocator* allocator_;
 };
 
 
