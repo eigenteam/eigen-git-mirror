@@ -23,15 +23,18 @@
 namespace Eigen {
 
 template <typename Index, typename LhsScalar, typename RhsScalar,bool lhs_inner_dim_contiguous, bool rhs_inner_dim_contiguous, bool rhs_inner_dim_reordered> struct LaunchSyclKernels;
-template<typename Indices, typename LeftArgType, typename RightArgType>
-struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgType>, const Eigen::SyclDevice> :
-    public TensorContractionEvaluatorBase<TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgType>, const Eigen::SyclDevice> > {
+template<typename Indices, typename LeftArgType, typename RightArgType, typename OutputKernelType>
+struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgType, OutputKernelType>, const Eigen::SyclDevice> :
+    public TensorContractionEvaluatorBase<TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgType, OutputKernelType>, const Eigen::SyclDevice> > {
+
+  static_assert(std::is_same<OutputKernelType, const NoOpOutputKernel>::value,
+                "SYCL tensor contraction does not support output kernels.");
 
   typedef const Eigen::SyclDevice Device;
 
-  typedef TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgType>, Device> Self;
+  typedef TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgType, OutputKernelType>, Device> Self;
   typedef TensorContractionEvaluatorBase<Self> Base;
-  typedef TensorContractionOp<Indices, LeftArgType, RightArgType> XprType;
+  typedef TensorContractionOp<Indices, LeftArgType, RightArgType, OutputKernelType> XprType;
   typedef typename internal::remove_const<typename XprType::Scalar>::type Scalar;
   typedef typename XprType::Index Index;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
