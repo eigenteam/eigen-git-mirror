@@ -105,6 +105,22 @@ class QuaternionBase : public RotationBase<Derived, 3>
   EIGEN_DEVICE_FUNC Derived& operator=(const AngleAxisType& aa);
   template<class OtherDerived> EIGEN_DEVICE_FUNC Derived& operator=(const MatrixBase<OtherDerived>& m);
 
+#if EIGEN_HAS_RVALUE_REFERENCES
+  // Because we have a user-defined copy assignment operator, we don't get an implicit move constructor or assignment operator.
+  /** Default move constructor */
+  EIGEN_DEVICE_FUNC inline QuaternionBase(QuaternionBase&& other) EIGEN_NOEXCEPT_IF(std::is_nothrow_move_constructible<Scalar>::value) = default;
+
+  /** Default move assignment operator */
+  EIGEN_DEVICE_FUNC QuaternionBase& operator=(QuaternionBase&& other) EIGEN_NOEXCEPT_IF(std::is_nothrow_move_assignable<Scalar>::value) = default;
+
+  // And now because we declared a constructor, we don't get a default constructor or copy constructor. Say we want them.
+  /** Default constructor */
+  EIGEN_DEVICE_FUNC QuaternionBase() = default;
+
+  /** Copy constructor */
+  EIGEN_DEVICE_FUNC QuaternionBase(const QuaternionBase& other) = default;
+#endif
+
   /** \returns a quaternion representing an identity rotation
     * \sa MatrixBase::Identity()
     */
@@ -275,6 +291,19 @@ public:
   template<typename OtherScalar, int OtherOptions>
   EIGEN_DEVICE_FUNC explicit inline Quaternion(const Quaternion<OtherScalar, OtherOptions>& other)
   { m_coeffs = other.coeffs().template cast<Scalar>(); }
+
+#if EIGEN_HAS_RVALUE_REFERENCES
+  // We define a copy constructor, which means we don't get an implicit move constructor or assignment operator.
+  /** Default move constructor */
+  EIGEN_DEVICE_FUNC inline Quaternion(Quaternion&& other) EIGEN_NOEXCEPT_IF(std::is_nothrow_move_constructible<Scalar>::value) = default;
+
+  /** Default move assignment operator */
+  EIGEN_DEVICE_FUNC Quaternion& operator=(Quaternion&& other) EIGEN_NOEXCEPT_IF(std::is_nothrow_move_assignable<Scalar>::value) = default;
+
+  // And now because we declared a constructor, we don't get an implicit copy constructor. Say we want one.
+  /** Default copy constructor */
+  EIGEN_DEVICE_FUNC Quaternion(const Quaternion& other) = default;
+#endif
 
   EIGEN_DEVICE_FUNC static Quaternion UnitRandom();
 
