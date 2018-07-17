@@ -356,7 +356,7 @@ template<typename VectorsType, typename CoeffsType, int Side> class HouseholderS
       if(m_length>=BlockSize && dst.cols()>1)
       {
         // Make sure we have at least 2 useful blocks, otherwise it is point-less:
-        Index blockSize = m_length<2*BlockSize ? (m_length+1)/2 : BlockSize;
+        Index blockSize = m_length<Index(2*BlockSize) ? (m_length+1)/2 : Index(BlockSize);
         for(Index i = 0; i < m_length; i+=blockSize)
         {
           Index end = m_reverse ? (std::min)(m_length,i+blockSize) : m_length-i;

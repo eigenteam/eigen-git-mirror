@@ -499,10 +499,7 @@ void SparseLU<MatrixType, OrderingType>::factorize(const MatrixType& matrix)
   eigen_assert(m_analysisIsOk && "analyzePattern() should be called first"); 
   eigen_assert((matrix.rows() == matrix.cols()) && "Only for squared matrices");
   
-  typedef typename IndexVector::Scalar StorageIndex; 
-  
   m_isInitialized = true;
-  
   
   // Apply the column permutation computed in analyzepattern()
   //   m_mat = matrix * m_perm_c.inverse(); 
