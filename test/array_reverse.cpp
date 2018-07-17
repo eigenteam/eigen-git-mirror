@@ -123,6 +123,15 @@ template<typename MatrixType> void reverse(const MatrixType& m)
   VERIFY_IS_APPROX(x, m1(r, cols - 1 - c));
 }
 
+template<int>
+void array_reverse_extra()
+{
+  Vector4f x; x << 1, 2, 3, 4;
+  Vector4f y; y << 4, 3, 2, 1;
+  VERIFY(x.reverse()[1] == 3);
+  VERIFY(x.reverse() == y);
+}
+
 EIGEN_DECLARE_TEST(array_reverse)
 {
   for(int i = 0; i < g_repeat; i++) {
@@ -136,10 +145,5 @@ EIGEN_DECLARE_TEST(array_reverse)
     CALL_SUBTEST_8( reverse(Matrix<float, 100, 100>()) );
     CALL_SUBTEST_9( reverse(Matrix<float,Dynamic,Dynamic,RowMajor>(internal::random<int>(1,EIGEN_TEST_MAX_SIZE), internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
   }
-#ifdef EIGEN_TEST_PART_3
-  Vector4f x; x << 1, 2, 3, 4;
-  Vector4f y; y << 4, 3, 2, 1;
-  VERIFY(x.reverse()[1] == 3);
-  VERIFY(x.reverse() == y);
-#endif
+  CALL_SUBTEST_3( array_reverse_extra<0>() );
 }

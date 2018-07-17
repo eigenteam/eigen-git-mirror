@@ -11,9 +11,59 @@
 #include "main.h"
 #include <Eigen/LU>
 
-template<typename MatrixType> void inverse(const MatrixType& m)
+template<typename MatrixType>
+void inverse_for_fixed_size(const MatrixType&, typename internal::enable_if<MatrixType::SizeAtCompileTime==Dynamic>::type* = 0)
+{
+}
+
+template<typename MatrixType>
+void inverse_for_fixed_size(const MatrixType& m1, typename internal::enable_if<MatrixType::SizeAtCompileTime!=Dynamic>::type* = 0)
 {
   using std::abs;
+
+  MatrixType m2, identity = MatrixType::Identity();
+
+  typedef typename MatrixType::Scalar Scalar;
+  typedef typename NumTraits<Scalar>::Real RealScalar;
+  typedef Matrix<Scalar, MatrixType::ColsAtCompileTime, 1> VectorType;
+  
+  //computeInverseAndDetWithCheck tests
+  //First: an invertible matrix
+  bool invertible;
+  Scalar det;
+
+  m2.setZero();
+  m1.computeInverseAndDetWithCheck(m2, det, invertible);
+  VERIFY(invertible);
+  VERIFY_IS_APPROX(identity, m1*m2);
+  VERIFY_IS_APPROX(det, m1.determinant());
+
+  m2.setZero();
+  m1.computeInverseWithCheck(m2, invertible);
+  VERIFY(invertible);
+  VERIFY_IS_APPROX(identity, m1*m2);
+
+  //Second: a rank one matrix (not invertible, except for 1x1 matrices)
+  VectorType v3 = VectorType::Random();
+  MatrixType m3 = v3*v3.transpose(), m4;
+  m3.computeInverseAndDetWithCheck(m4, det, invertible);
+  VERIFY( m1.rows()==1 ? invertible : !invertible );
+  VERIFY_IS_MUCH_SMALLER_THAN(abs(det-m3.determinant()), RealScalar(1));
+  m3.computeInverseWithCheck(m4, invertible);
+  VERIFY( m1.rows()==1 ? invertible : !invertible );
+  
+  // check with submatrices
+  {
+    Matrix<Scalar, MatrixType::RowsAtCompileTime+1, MatrixType::RowsAtCompileTime+1, MatrixType::Options> m5;
+    m5.setRandom();
+    m5.topLeftCorner(m1.rows(),m1.rows()) = m1;
+    m2 = m5.template topLeftCorner<MatrixType::RowsAtCompileTime,MatrixType::ColsAtCompileTime>().inverse();
+    VERIFY_IS_APPROX( (m5.template topLeftCorner<MatrixType::RowsAtCompileTime,MatrixType::ColsAtCompileTime>()), m2.inverse() );
+  }
+}
+
+template<typename MatrixType> void inverse(const MatrixType& m)
+{
   /* this test covers the following files:
      Inverse.h
   */
@@ -39,44 +89,7 @@ template<typename MatrixType> void inverse(const MatrixType& m)
   // since for the general case we implement separately row-major and col-major, test that
   VERIFY_IS_APPROX(MatrixType(m1.transpose().inverse()), MatrixType(m1.inverse().transpose()));
 
-#if !defined(EIGEN_TEST_PART_5) && !defined(EIGEN_TEST_PART_6)
-  typedef typename NumTraits<Scalar>::Real RealScalar;
-  typedef Matrix<Scalar, MatrixType::ColsAtCompileTime, 1> VectorType;
-  
-  //computeInverseAndDetWithCheck tests
-  //First: an invertible matrix
-  bool invertible;
-  Scalar det;
-
-  m2.setZero();
-  m1.computeInverseAndDetWithCheck(m2, det, invertible);
-  VERIFY(invertible);
-  VERIFY_IS_APPROX(identity, m1*m2);
-  VERIFY_IS_APPROX(det, m1.determinant());
-
-  m2.setZero();
-  m1.computeInverseWithCheck(m2, invertible);
-  VERIFY(invertible);
-  VERIFY_IS_APPROX(identity, m1*m2);
-
-  //Second: a rank one matrix (not invertible, except for 1x1 matrices)
-  VectorType v3 = VectorType::Random(rows);
-  MatrixType m3 = v3*v3.transpose(), m4(rows,cols);
-  m3.computeInverseAndDetWithCheck(m4, det, invertible);
-  VERIFY( rows==1 ? invertible : !invertible );
-  VERIFY_IS_MUCH_SMALLER_THAN(abs(det-m3.determinant()), RealScalar(1));
-  m3.computeInverseWithCheck(m4, invertible);
-  VERIFY( rows==1 ? invertible : !invertible );
-  
-  // check with submatrices
-  {
-    Matrix<Scalar, MatrixType::RowsAtCompileTime+1, MatrixType::RowsAtCompileTime+1, MatrixType::Options> m5;
-    m5.setRandom();
-    m5.topLeftCorner(rows,rows) = m1;
-    m2 = m5.template topLeftCorner<MatrixType::RowsAtCompileTime,MatrixType::ColsAtCompileTime>().inverse();
-    VERIFY_IS_APPROX( (m5.template topLeftCorner<MatrixType::RowsAtCompileTime,MatrixType::ColsAtCompileTime>()), m2.inverse() );
-  }
-#endif
+  inverse_for_fixed_size(m1);
 
   // check in-place inversion
   if(MatrixType::RowsAtCompileTime>=2 && MatrixType::RowsAtCompileTime<=4)

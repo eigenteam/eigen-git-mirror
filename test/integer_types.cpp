@@ -131,6 +131,17 @@ template<typename MatrixType> void integer_type_tests(const MatrixType& m)
   VERIFY_IS_APPROX((m1 * m2.transpose()) * m1, m1 * (m2.transpose() * m1));
 }
 
+template<int>
+void integer_types_extra()
+{
+  VERIFY_IS_EQUAL(internal::scalar_div_cost<int>::value, 8);
+  VERIFY_IS_EQUAL(internal::scalar_div_cost<unsigned int>::value, 8);
+  if(sizeof(long)>sizeof(int)) {
+    VERIFY(int(internal::scalar_div_cost<long>::value) > int(internal::scalar_div_cost<int>::value));
+    VERIFY(int(internal::scalar_div_cost<unsigned long>::value) > int(internal::scalar_div_cost<int>::value));
+  }
+}
+
 EIGEN_DECLARE_TEST(integer_types)
 {
   for(int i = 0; i < g_repeat; i++) {
@@ -156,12 +167,5 @@ EIGEN_DECLARE_TEST(integer_types)
 
     CALL_SUBTEST_8( integer_type_tests(Matrix<unsigned long long, Dynamic, 5>(1, 5)) );
   }
-#ifdef EIGEN_TEST_PART_9
-  VERIFY_IS_EQUAL(internal::scalar_div_cost<int>::value, 8);
-  VERIFY_IS_EQUAL(internal::scalar_div_cost<unsigned int>::value, 8);
-  if(sizeof(long)>sizeof(int)) {
-    VERIFY(int(internal::scalar_div_cost<long>::value) > int(internal::scalar_div_cost<int>::value));
-    VERIFY(int(internal::scalar_div_cost<unsigned long>::value) > int(internal::scalar_div_cost<int>::value));
-  }
-#endif
+  CALL_SUBTEST_9( integer_types_extra<0>() );
 }

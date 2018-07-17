@@ -30,21 +30,9 @@ void test_aliasing()
   x = z;
 }
 
-EIGEN_DECLARE_TEST(product_large)
+template<int>
+void product_large_regressions()
 {
-  for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST_1( product(MatrixXf(internal::random<int>(1,EIGEN_TEST_MAX_SIZE), internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
-    CALL_SUBTEST_2( product(MatrixXd(internal::random<int>(1,EIGEN_TEST_MAX_SIZE), internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
-    CALL_SUBTEST_2( product(MatrixXd(internal::random<int>(1,10), internal::random<int>(1,10))) );
-
-    CALL_SUBTEST_3( product(MatrixXi(internal::random<int>(1,EIGEN_TEST_MAX_SIZE), internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
-    CALL_SUBTEST_4( product(MatrixXcf(internal::random<int>(1,EIGEN_TEST_MAX_SIZE/2), internal::random<int>(1,EIGEN_TEST_MAX_SIZE/2))) );
-    CALL_SUBTEST_5( product(Matrix<float,Dynamic,Dynamic,RowMajor>(internal::random<int>(1,EIGEN_TEST_MAX_SIZE), internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
-
-    CALL_SUBTEST_1( test_aliasing<float>() );
-  }
-
-#if defined EIGEN_TEST_PART_6
   {
     // test a specific issue in DiagonalProduct
     int N = 1000000;
@@ -97,7 +85,23 @@ EIGEN_DECLARE_TEST(product_large)
                 * (((A*A)*(A*A))*((A*A)*(A*A))*((A*A)*(A*A))*((A*A)*(A*A))*((A*A)*(A*A)) * ((A*A)*(A*A))*((A*A)*(A*A))*((A*A)*(A*A))*((A*A)*(A*A))*((A*A)*(A*A)));
     VERIFY_IS_APPROX(B,C);
   }
-#endif
+}
+
+EIGEN_DECLARE_TEST(product_large)
+{
+  for(int i = 0; i < g_repeat; i++) {
+    CALL_SUBTEST_1( product(MatrixXf(internal::random<int>(1,EIGEN_TEST_MAX_SIZE), internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
+    CALL_SUBTEST_2( product(MatrixXd(internal::random<int>(1,EIGEN_TEST_MAX_SIZE), internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
+    CALL_SUBTEST_2( product(MatrixXd(internal::random<int>(1,10), internal::random<int>(1,10))) );
+
+    CALL_SUBTEST_3( product(MatrixXi(internal::random<int>(1,EIGEN_TEST_MAX_SIZE), internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
+    CALL_SUBTEST_4( product(MatrixXcf(internal::random<int>(1,EIGEN_TEST_MAX_SIZE/2), internal::random<int>(1,EIGEN_TEST_MAX_SIZE/2))) );
+    CALL_SUBTEST_5( product(Matrix<float,Dynamic,Dynamic,RowMajor>(internal::random<int>(1,EIGEN_TEST_MAX_SIZE), internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
+
+    CALL_SUBTEST_1( test_aliasing<float>() );
+  }
+
+  CALL_SUBTEST_6( product_large_regressions<0>() );
 
   // Regression test for bug 714:
 #if defined EIGEN_HAS_OPENMP

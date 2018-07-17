@@ -145,6 +145,34 @@ template<typename MatrixType> void adjoint(const MatrixType& m)
   VERIFY_IS_APPROX(rv1.template cast<Scalar>().dot(v1), rv1.dot(v1));
 }
 
+template<int>
+void adjoint_extra()
+{
+  MatrixXcf a(10,10), b(10,10);
+  VERIFY_RAISES_ASSERT(a = a.transpose());
+  VERIFY_RAISES_ASSERT(a = a.transpose() + b);
+  VERIFY_RAISES_ASSERT(a = b + a.transpose());
+  VERIFY_RAISES_ASSERT(a = a.conjugate().transpose());
+  VERIFY_RAISES_ASSERT(a = a.adjoint());
+  VERIFY_RAISES_ASSERT(a = a.adjoint() + b);
+  VERIFY_RAISES_ASSERT(a = b + a.adjoint());
+
+  // no assertion should be triggered for these cases:
+  a.transpose() = a.transpose();
+  a.transpose() += a.transpose();
+  a.transpose() += a.transpose() + b;
+  a.transpose() = a.adjoint();
+  a.transpose() += a.adjoint();
+  a.transpose() += a.adjoint() + b;
+
+  // regression tests for check_for_aliasing
+  MatrixXd c(10,10);
+  c = 1.0 * MatrixXd::Ones(10,10) + c;
+  c = MatrixXd::Ones(10,10) * 1.0 + c;
+  c = c + MatrixXd::Ones(10,10) .cwiseProduct( MatrixXd::Zero(10,10) );
+  c = MatrixXd::Ones(10,10) * MatrixXd::Zero(10,10);
+}
+
 EIGEN_DECLARE_TEST(adjoint)
 {
   for(int i = 0; i < g_repeat; i++) {
@@ -168,32 +196,6 @@ EIGEN_DECLARE_TEST(adjoint)
   // test a large static matrix only once
   CALL_SUBTEST_7( adjoint(Matrix<float, 100, 100>()) );
 
-#ifdef EIGEN_TEST_PART_13
-  {
-    MatrixXcf a(10,10), b(10,10);
-    VERIFY_RAISES_ASSERT(a = a.transpose());
-    VERIFY_RAISES_ASSERT(a = a.transpose() + b);
-    VERIFY_RAISES_ASSERT(a = b + a.transpose());
-    VERIFY_RAISES_ASSERT(a = a.conjugate().transpose());
-    VERIFY_RAISES_ASSERT(a = a.adjoint());
-    VERIFY_RAISES_ASSERT(a = a.adjoint() + b);
-    VERIFY_RAISES_ASSERT(a = b + a.adjoint());
-
-    // no assertion should be triggered for these cases:
-    a.transpose() = a.transpose();
-    a.transpose() += a.transpose();
-    a.transpose() += a.transpose() + b;
-    a.transpose() = a.adjoint();
-    a.transpose() += a.adjoint();
-    a.transpose() += a.adjoint() + b;
-
-    // regression tests for check_for_aliasing
-    MatrixXd c(10,10);
-    c = 1.0 * MatrixXd::Ones(10,10) + c;
-    c = MatrixXd::Ones(10,10) * 1.0 + c;
-    c = c + MatrixXd::Ones(10,10) .cwiseProduct( MatrixXd::Zero(10,10) );
-    c = MatrixXd::Ones(10,10) * MatrixXd::Zero(10,10);
-  }
-#endif
+  CALL_SUBTEST_13( adjoint_extra<0>() );
 }
 

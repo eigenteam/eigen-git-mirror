@@ -640,6 +640,20 @@ void big_sparse_triplet(Index rows, Index cols, double density) {
   VERIFY_IS_APPROX(sum, m.sum());
 }
 
+template<int>
+void bug1105()
+{
+  // Regression test for bug 1105
+  int n = Eigen::internal::random<int>(200,600);
+  SparseMatrix<std::complex<double>,0, long> mat(n, n);
+  std::complex<double> val;
+
+  for(int i=0; i<n; ++i)
+  {
+    mat.coeffRef(i, i%(n/10)) = val;
+    VERIFY(mat.data().allocatedSize()<20*n);
+  }
+}
 
 EIGEN_DECLARE_TEST(sparse_basic)
 {
@@ -671,18 +685,5 @@ EIGEN_DECLARE_TEST(sparse_basic)
   CALL_SUBTEST_3((big_sparse_triplet<SparseMatrix<float, RowMajor, int> >(10000, 10000, 0.125)));
   CALL_SUBTEST_4((big_sparse_triplet<SparseMatrix<double, ColMajor, long int> >(10000, 10000, 0.125)));
 
-  // Regression test for bug 1105
-#ifdef EIGEN_TEST_PART_7
-  {
-    int n = Eigen::internal::random<int>(200,600);
-    SparseMatrix<std::complex<double>,0, long> mat(n, n);
-    std::complex<double> val;
-
-    for(int i=0; i<n; ++i)
-    {
-      mat.coeffRef(i, i%(n/10)) = val;
-      VERIFY(mat.data().allocatedSize()<20*n);
-    }
-  }
-#endif
+  CALL_SUBTEST_7( bug1105<0>() );
 }
