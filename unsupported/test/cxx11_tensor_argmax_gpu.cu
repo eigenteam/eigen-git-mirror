@@ -242,7 +242,7 @@ void test_gpu_argmin_dim()
   }
 }
 
-void test_cxx11_tensor_gpu()
+EIGEN_DECLARE_TEST(cxx11_tensor_argmax_gpu)
 {
   CALL_SUBTEST_1(test_gpu_simple_argmax<RowMajor>());
   CALL_SUBTEST_1(test_gpu_simple_argmax<ColMajor>());

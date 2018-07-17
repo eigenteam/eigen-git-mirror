@@ -78,7 +78,7 @@ static void test_complex()
 }
 
 
-void test_cxx11_tensor_random_gpu()
+EIGEN_DECLARE_TEST(cxx11_tensor_random_gpu)
 {
   CALL_SUBTEST(test_gpu_random_uniform());
   CALL_SUBTEST(test_gpu_random_normal());

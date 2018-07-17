@@ -610,6 +610,7 @@ template<typename SolverType> struct direct_selfadjoint_eigenvalues<SolverType,3
   static inline bool extract_kernel(MatrixType& mat, Ref<VectorType> res, Ref<VectorType> representative)
   {
     EIGEN_USING_STD_MATH(abs);
+    EIGEN_USING_STD_MATH(sqrt);
     Index i0;
     // Find non-zero column i0 (by construction, there must exist a non zero coefficient on the diagonal):
     mat.diagonal().cwiseAbs().maxCoeff(&i0);
@@ -620,8 +621,8 @@ template<typename SolverType> struct direct_selfadjoint_eigenvalues<SolverType,3
     VectorType c0, c1;
     n0 = (c0 = representative.cross(mat.col((i0+1)%3))).squaredNorm();
     n1 = (c1 = representative.cross(mat.col((i0+2)%3))).squaredNorm();
-    if(n0>n1) res = c0/std::sqrt(n0);
-    else      res = c1/std::sqrt(n1);
+    if(n0>n1) res = c0/sqrt(n0);
+    else      res = c1/sqrt(n1);
 
     return true;
   }
@@ -723,7 +724,7 @@ struct direct_selfadjoint_eigenvalues<SolverType,2,false>
   EIGEN_DEVICE_FUNC
   static inline void computeRoots(const MatrixType& m, VectorType& roots)
   {
-    using std::sqrt;
+    EIGEN_USING_STD_MATH(sqrt);
     const Scalar t0 = Scalar(0.5) * sqrt( numext::abs2(m(0,0)-m(1,1)) + Scalar(4)*numext::abs2(m(1,0)));
     const Scalar t1 = Scalar(0.5) * (m(0,0) + m(1,1));
     roots(0) = t1 - t0;

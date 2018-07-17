@@ -72,7 +72,7 @@ void test_fallback_conversion() {
 }
 
 
-void test_cxx11_tensor_cast_float16_gpu()
+EIGEN_DECLARE_TEST(cxx11_tensor_cast_float16_gpu)
 {
   CALL_SUBTEST(test_gpu_conversion());
   CALL_SUBTEST(test_fallback_conversion());

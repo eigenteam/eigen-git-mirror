@@ -193,7 +193,7 @@ void test_gpu_contraction_sizes() {
   }
 }
 
-void test_cxx11_tensor_gpu()
+EIGEN_DECLARE_TEST(cxx11_tensor_contract_gpu)
 {
   CALL_SUBTEST_1(test_gpu_contraction<ColMajor>(128, 128, 128));
   CALL_SUBTEST_1(test_gpu_contraction<RowMajor>(128, 128, 128));
