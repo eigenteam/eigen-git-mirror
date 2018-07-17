@@ -71,7 +71,7 @@ void test_gpu_cumsum(int m_size, int k_size, int n_size)
 }
 
 
-void test_cxx11_tensor_scan_gpu()
+EIGEN_DECLARE_TEST(cxx11_tensor_scan_gpu)
 {
   CALL_SUBTEST_1(test_gpu_cumsum<ColMajor>(128, 128, 128));
   CALL_SUBTEST_2(test_gpu_cumsum<RowMajor>(128, 128, 128));

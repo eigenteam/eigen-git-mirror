@@ -395,8 +395,10 @@
   // Means the compiler is HIPCC (analogous to EIGEN_CUDACC, but for HIP)
   #define EIGEN_HIPCC __HIPCC__
 
-  // We need hip_common.h here because __HIP_DEVICE_COMPILE__ is defined in this header.
-  #include <hip/hip_common.h>
+  // We need to include hip_runtime.h here because it pulls in
+  // ++ hip_common.h which contains the define for  __HIP_DEVICE_COMPILE__ 
+  // ++ host_defines.h which contains the defines for the __host__ and __device__ macros
+  #include <hip/hip_runtime.h>
 
   #if defined(__HIP_DEVICE_COMPILE__)
     // analogous to EIGEN_CUDA_ARCH, but for HIP

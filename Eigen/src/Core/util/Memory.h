@@ -580,7 +580,7 @@ template<typename T> struct smart_memmove_helper<T,false> {
 
 // you can overwrite Eigen's default behavior regarding alloca by defining EIGEN_ALLOCA
 // to the appropriate stack allocation function
-#if ! defined EIGEN_ALLOCA && ! defined EIGEN_CUDA_ARCH
+#if ! defined EIGEN_ALLOCA && ! defined EIGEN_GPU_COMPILE_PHASE
   #if EIGEN_OS_LINUX || EIGEN_OS_MAC || (defined alloca)
     #define EIGEN_ALLOCA alloca
   #elif EIGEN_COMP_MSVC

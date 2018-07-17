@@ -1215,16 +1215,16 @@ EigenFloatContractionKernel16x16(const LhsMapper lhs, const RhsMapper rhs,
 }
 
 
-template<typename Indices, typename LeftArgType, typename RightArgType>
-struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgType>, GpuDevice> :
-    public TensorContractionEvaluatorBase<TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgType>, GpuDevice> > {
+template<typename Indices, typename LeftArgType, typename RightArgType, typename OutputKernelType>
+struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgType, OutputKernelType>, GpuDevice> :
+    public TensorContractionEvaluatorBase<TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgType, OutputKernelType>, GpuDevice> > {
 
   typedef GpuDevice Device;
 
-  typedef TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgType>, Device> Self;
+  typedef TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgType, OutputKernelType>, Device> Self;
   typedef TensorContractionEvaluatorBase<Self> Base;
 
-  typedef TensorContractionOp<Indices, LeftArgType, RightArgType> XprType;
+  typedef TensorContractionOp<Indices, LeftArgType, RightArgType, OutputKernelType> XprType;
   typedef typename internal::remove_const<typename XprType::Scalar>::type Scalar;
   typedef typename XprType::Index Index;
   typedef typename XprType::CoeffReturnType CoeffReturnType;

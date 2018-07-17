@@ -1472,7 +1472,7 @@ void test_gpu_gamma_sample_der_alpha()
   gpuFree(d_out);
 }
 
-void test_cxx11_tensor_gpu()
+EIGEN_DECLARE_TEST(cxx11_tensor_gpu)
 {
   CALL_SUBTEST_1(test_gpu_nullary());
   CALL_SUBTEST_1(test_gpu_elementwise_small());

@@ -449,8 +449,7 @@ struct TensorContractionEvaluatorBase
     // tensor dimensions (i, j) into the original tensor dimensions.
     // TODO(ezhulenev): Add parameters required to infer output tensor index for
     // more complex contractions than 2x2 on internal dimension.
-    m_tensor_contraction_params = {
-        /**swapped_arguments=*/static_cast<int>(Layout) == RowMajor};
+    m_tensor_contraction_params.swapped_arguments = static_cast<int>(Layout) == RowMajor;
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Dimensions& dimensions() const { return m_dimensions; }
