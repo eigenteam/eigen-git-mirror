@@ -150,7 +150,7 @@ typedef Matrix<double,3,3,RowMajor>         Matrix3dRowMajor;
 typedef Matrix<long double,3,3>             Matrix3e;
 typedef Matrix<long double,Dynamic,Dynamic> MatrixXe;
  
-void test_matrix_power()
+EIGEN_DECLARE_TEST(matrix_power)
 {
   CALL_SUBTEST_2(test2dRotation<double>(1e-13));
   CALL_SUBTEST_1(test2dRotation<float>(2e-5));  // was 1e-5, relaxed for clang 2.8 / linux / x86-64

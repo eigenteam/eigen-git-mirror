@@ -169,7 +169,7 @@ void specificTest2()
 }
 
 
-void test_geo_alignedbox()
+EIGEN_DECLARE_TEST(geo_alignedbox)
 {
   for(int i = 0; i < g_repeat; i++)
   {

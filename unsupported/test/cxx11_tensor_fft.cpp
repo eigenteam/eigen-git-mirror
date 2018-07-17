@@ -253,7 +253,7 @@ static void test_fft_non_power_of_2_round_trip(int exponent) {
   }
 }
 
-void test_cxx11_tensor_fft() {
+EIGEN_DECLARE_TEST(cxx11_tensor_fft) {
     test_fft_complex_input_golden();
     test_fft_real_input_golden();
 

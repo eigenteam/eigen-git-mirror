@@ -100,7 +100,7 @@ void check_stddeque_quaternion(const QuaternionType&)
   VERIFY_IS_APPROX(v.back(), x);
 }
 
-void test_stddeque()
+EIGEN_DECLARE_TEST(stddeque)
 {
   // some non vectorizable fixed sizes
   CALL_SUBTEST_1(check_stddeque_matrix(Vector2f()));

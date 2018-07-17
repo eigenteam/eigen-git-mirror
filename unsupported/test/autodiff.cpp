@@ -354,7 +354,7 @@ double bug_1264() {
 
 #endif
 
-void test_autodiff()
+EIGEN_DECLARE_TEST(autodiff)
 {
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_1( test_autodiff_scalar<1>() );

@@ -366,7 +366,7 @@ static void test_minmax_nan_propagation()
   test_minmax_nan_propagation_templ<double>();
 }
 
-void test_cxx11_tensor_expr()
+EIGEN_DECLARE_TEST(cxx11_tensor_expr)
 {
   CALL_SUBTEST(test_1d());
   CALL_SUBTEST(test_2d());

@@ -220,7 +220,7 @@ void test_hypot()
   VERIFY((numext::isnan)(numext::hypot(a,nan)));
 }
 
-void test_stable_norm()
+EIGEN_DECLARE_TEST(stable_norm)
 {
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_3( test_hypot<double>() );

@@ -264,7 +264,7 @@ void test_ref_fixed_size_assert()
   VERIFY_RAISES_STATIC_ASSERT( Ref<const Vector3f> y = 2*v4; (void)y; );
 }
 
-void test_ref()
+EIGEN_DECLARE_TEST(ref)
 {
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_1( ref_vector(Matrix<float, 1, 1>()) );

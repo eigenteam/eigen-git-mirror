@@ -228,7 +228,7 @@ void bug_1311()
   VERIFY_IS_APPROX(res, A*b);
 }
 
-void test_product_small()
+EIGEN_DECLARE_TEST(product_small)
 {
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_1( product(Matrix<float, 3, 2>()) );

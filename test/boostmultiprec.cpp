@@ -145,7 +145,7 @@ namespace Eigen {
 
 }
 
-void test_boostmultiprec()
+EIGEN_DECLARE_TEST(boostmultiprec)
 {
   typedef Matrix<Real,Dynamic,Dynamic> Mat;
   typedef Matrix<std::complex<Real>,Dynamic,Dynamic> MatC;

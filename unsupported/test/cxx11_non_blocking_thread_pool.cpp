@@ -116,7 +116,7 @@ static void test_cancel()
   tp.Cancel();
 }
 
-void test_cxx11_non_blocking_thread_pool()
+EIGEN_DECLARE_TEST(cxx11_non_blocking_thread_pool)
 {
   CALL_SUBTEST(test_create_destroy_empty_pool());
   CALL_SUBTEST(test_parallelism(true));

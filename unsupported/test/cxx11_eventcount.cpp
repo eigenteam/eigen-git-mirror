@@ -135,7 +135,7 @@ static void test_stress_eventcount()
   }
 }
 
-void test_cxx11_eventcount()
+EIGEN_DECLARE_TEST(cxx11_eventcount)
 {
   CALL_SUBTEST(test_basic_eventcount());
   CALL_SUBTEST(test_stress_eventcount());

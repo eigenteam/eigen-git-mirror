@@ -143,7 +143,7 @@ void mapstaticmethods(const PlainObjectType& m)
   VERIFY(true); // just to avoid 'unused function' warning
 }
 
-void test_mapstaticmethods()
+EIGEN_DECLARE_TEST(mapstaticmethods)
 {
   ptr = internal::aligned_new<float>(1000);
   for(int i = 0; i < 1000; i++) ptr[i] = float(i);

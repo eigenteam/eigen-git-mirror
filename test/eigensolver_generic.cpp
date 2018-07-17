@@ -100,7 +100,7 @@ template<typename MatrixType> void eigensolver_verify_assert(const MatrixType& m
   VERIFY_RAISES_ASSERT(eig.pseudoEigenvectors());
 }
 
-void test_eigensolver_generic()
+EIGEN_DECLARE_TEST(eigensolver_generic)
 {
   int s = 0;
   for(int i = 0; i < g_repeat; i++) {

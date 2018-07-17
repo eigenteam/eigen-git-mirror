@@ -181,7 +181,7 @@ void testMatrixType(const MatrixType& m)
   }
 }
 
-void test_matrix_function()
+EIGEN_DECLARE_TEST(matrix_function)
 {
   CALL_SUBTEST_1(testMatrixType(Matrix<float,1,1>()));
   CALL_SUBTEST_2(testMatrixType(Matrix3cf()));

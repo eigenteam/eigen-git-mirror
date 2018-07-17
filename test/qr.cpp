@@ -100,7 +100,7 @@ template<typename MatrixType> void qr_verify_assert()
   VERIFY_RAISES_ASSERT(qr.logAbsDeterminant())
 }
 
-void test_qr()
+EIGEN_DECLARE_TEST(qr)
 {
   for(int i = 0; i < g_repeat; i++) {
    CALL_SUBTEST_1( qr(MatrixXf(internal::random<int>(1,EIGEN_TEST_MAX_SIZE),internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );

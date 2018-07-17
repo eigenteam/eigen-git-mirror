@@ -94,7 +94,7 @@ template<typename Scalar, int Size, int OtherSize> void symm(int size = Size, in
 
 }
 
-void test_product_symm()
+EIGEN_DECLARE_TEST(product_symm)
 {
   for(int i = 0; i < g_repeat ; i++)
   {

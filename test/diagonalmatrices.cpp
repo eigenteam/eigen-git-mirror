@@ -144,7 +144,7 @@ void bug987()
   VERIFY_IS_APPROX(( res1 = points.topLeftCorner<2,2>()*diag.asDiagonal()) , res2 = tmp2*diag.asDiagonal() );
 }
 
-void test_diagonalmatrices()
+EIGEN_DECLARE_TEST(diagonalmatrices)
 {
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_1( diagonalmatrices(Matrix<float, 1, 1>()) );

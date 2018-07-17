@@ -68,8 +68,6 @@ macro(ei_add_test_internal testname testname_with_suffix)
 
   ei_add_target_property(${targetname} COMPILE_FLAGS "-DEIGEN_TEST_MAX_SIZE=${EIGEN_TEST_MAX_SIZE}")
 
-  ei_add_target_property(${targetname} COMPILE_FLAGS "-DEIGEN_TEST_FUNC=${testname}")
-
   if(MSVC)
     ei_add_target_property(${targetname} COMPILE_FLAGS "/bigobj")
   endif()
@@ -169,8 +167,6 @@ macro(ei_add_test_internal_sycl testname testname_with_suffix)
   endif(EIGEN_NO_ASSERTION_CHECKING)
 
   ei_add_target_property(${targetname} COMPILE_FLAGS "-DEIGEN_TEST_MAX_SIZE=${EIGEN_TEST_MAX_SIZE}")
-
-  ei_add_target_property(${targetname} COMPILE_FLAGS "-DEIGEN_TEST_FUNC=${testname}")
 
   if(MSVC AND NOT EIGEN_SPLIT_LARGE_TESTS)
     ei_add_target_property(${targetname} COMPILE_FLAGS "/bigobj")

@@ -92,7 +92,7 @@ template<typename MatrixType> void inverse(const MatrixType& m)
   }
 }
 
-void test_inverse()
+EIGEN_DECLARE_TEST(inverse)
 {
   int s = 0;
   for(int i = 0; i < g_repeat; i++) {

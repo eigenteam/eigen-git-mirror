@@ -488,7 +488,7 @@ template<typename MatrixType> void cholesky_verify_assert()
   VERIFY_RAISES_ASSERT(ldlt.solveInPlace(&tmp))
 }
 
-void test_cholesky()
+EIGEN_DECLARE_TEST(cholesky)
 {
   int s = 0;
   for(int i = 0; i < g_repeat; i++) {

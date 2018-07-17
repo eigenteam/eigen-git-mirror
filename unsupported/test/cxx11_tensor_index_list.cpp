@@ -373,7 +373,7 @@ static void test_dim_check()
 
 #endif
 
-void test_cxx11_tensor_index_list()
+EIGEN_DECLARE_TEST(cxx11_tensor_index_list)
 {
 #ifdef EIGEN_HAS_INDEX_LIST
   CALL_SUBTEST(test_static_index_list());

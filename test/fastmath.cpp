@@ -88,7 +88,7 @@ void check_inf_nan(bool dryrun) {
   }
 }
 
-void test_fastmath() {
+EIGEN_DECLARE_TEST(fastmath) {
   std::cout << "*** float *** \n\n"; check_inf_nan<float>(true);
   std::cout << "*** double ***\n\n"; check_inf_nan<double>(true);
   std::cout << "*** long double *** \n\n"; check_inf_nan<long double>(true);

@@ -797,7 +797,7 @@ void test_imagenet_patches()
   }
 }
 
-void test_cxx11_tensor_image_patch()
+EIGEN_DECLARE_TEST(cxx11_tensor_image_patch)
 {
   CALL_SUBTEST_1(test_simple_patch());
   CALL_SUBTEST_2(test_patch_no_extra_dim());

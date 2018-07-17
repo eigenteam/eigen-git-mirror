@@ -484,7 +484,7 @@ static void test_reduce_middle_dims() {
   }
 }
 
-void test_cxx11_tensor_reduction() {
+EIGEN_DECLARE_TEST(cxx11_tensor_reduction) {
   CALL_SUBTEST(test_trivial_reductions<ColMajor>());
   CALL_SUBTEST(test_trivial_reductions<RowMajor>());
   CALL_SUBTEST(test_simple_reductions<ColMajor>());

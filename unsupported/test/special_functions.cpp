@@ -472,7 +472,7 @@ template<typename ArrayType> void array_special_functions()
 #endif  // EIGEN_HAS_C99_MATH
 }
 
-void test_special_functions()
+EIGEN_DECLARE_TEST(special_functions)
 {
   CALL_SUBTEST_1(array_special_functions<ArrayXf>());
   CALL_SUBTEST_2(array_special_functions<ArrayXd>());

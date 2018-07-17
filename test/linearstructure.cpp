@@ -110,7 +110,7 @@ template<typename MatrixType> void real_complex(DenseIndex rows = MatrixType::Ro
   VERIFY(g_called && "matrix<complex> - real not properly optimized");
 }
 
-void test_linearstructure()
+EIGEN_DECLARE_TEST(linearstructure)
 {
   g_called = true;
   VERIFY(g_called); // avoid `unneeded-internal-declaration` warning.

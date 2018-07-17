@@ -220,7 +220,7 @@ void bug_159()
   EIGEN_UNUSED_VARIABLE(m)
 }
 
-void test_triangular()
+EIGEN_DECLARE_TEST(triangular)
 {
   int maxsize = (std::min)(EIGEN_TEST_MAX_SIZE,20);
   for(int i = 0; i < g_repeat ; i++)

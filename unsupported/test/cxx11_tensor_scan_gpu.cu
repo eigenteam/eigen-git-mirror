@@ -9,7 +9,7 @@
 
 #define EIGEN_TEST_NO_LONGDOUBLE
 #define EIGEN_TEST_NO_COMPLEX
-#define EIGEN_TEST_FUNC cxx11_tensor_scan_gpu
+
 #define EIGEN_DEFAULT_DENSE_INDEX_TYPE int
 #define EIGEN_USE_GPU
 

@@ -8,7 +8,7 @@
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #define EIGEN_TEST_NO_LONGDOUBLE
-#define EIGEN_TEST_FUNC cxx11_tensor_complex_cwise_ops
+
 #define EIGEN_USE_GPU
 
 #include "main.h"

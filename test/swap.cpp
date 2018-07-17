@@ -83,7 +83,7 @@ template<typename MatrixType> void swap(const MatrixType& m)
   }
 }
 
-void test_swap()
+EIGEN_DECLARE_TEST(swap)
 {
   int s = internal::random<int>(1,EIGEN_TEST_MAX_SIZE);
   CALL_SUBTEST_1( swap(Matrix3f()) ); // fixed size, no vectorization 

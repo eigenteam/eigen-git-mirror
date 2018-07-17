@@ -119,7 +119,7 @@ template<typename T> void check_custom_new_delete()
 #endif
 }
 
-void test_dynalloc()
+EIGEN_DECLARE_TEST(dynalloc)
 {
   // low level dynamic memory allocation
   CALL_SUBTEST(check_handmade_aligned_malloc());

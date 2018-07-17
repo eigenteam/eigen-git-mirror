@@ -386,7 +386,7 @@ template<typename Scalar> struct vectorization_logic_half<Scalar,false>
   static void run() {}
 };
 
-void test_vectorization_logic()
+EIGEN_DECLARE_TEST(vectorization_logic)
 {
 
 #ifdef EIGEN_VECTORIZE

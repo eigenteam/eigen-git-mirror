@@ -24,7 +24,7 @@ template<typename T1, typename T2> void test_umfpack_support_T()
   check_sparse_square_determinant(umfpack_rowmajor);
 }
 
-void test_umfpack_support()
+EIGEN_DECLARE_TEST(umfpack_support)
 {
   CALL_SUBTEST_1((test_umfpack_support_T<double, int>()));
   CALL_SUBTEST_2((test_umfpack_support_T<std::complex<double>, int>()));

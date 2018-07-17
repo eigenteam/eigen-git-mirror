@@ -60,7 +60,7 @@ using TMatrix = Matrix<Scalar,Rows,Cols>;
 
 #endif
 
-void test_num_dimensions()
+EIGEN_DECLARE_TEST(num_dimensions)
 {
   int n = 10;
   ArrayXXd A(n,n);

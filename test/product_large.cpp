@@ -30,7 +30,7 @@ void test_aliasing()
   x = z;
 }
 
-void test_product_large()
+EIGEN_DECLARE_TEST(product_large)
 {
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_1( product(MatrixXf(internal::random<int>(1,EIGEN_TEST_MAX_SIZE), internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );

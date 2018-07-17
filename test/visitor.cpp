@@ -113,7 +113,7 @@ template<typename VectorType> void vectorVisitor(const VectorType& w)
   VERIFY(eigen_maxidx == (std::min)(idx0,idx2));
 }
 
-void test_visitor()
+EIGEN_DECLARE_TEST(visitor)
 {
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_1( matrixVisitor(Matrix<float, 1, 1>()) );

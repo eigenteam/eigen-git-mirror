@@ -177,7 +177,7 @@ void map_not_aligned_on_scalar()
   internal::aligned_delete(array1, (size+1)*(size+1)+1);
 }
 
-void test_mapped_matrix()
+EIGEN_DECLARE_TEST(mapped_matrix)
 {
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_1( map_class_vector(Matrix<float, 1, 1>()) );

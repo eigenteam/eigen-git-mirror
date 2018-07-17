@@ -237,7 +237,7 @@ template<typename MatrixType> void vectorwiseop_matrix(const MatrixType& m)
   VERIFY_EVALUATION_COUNT( m2 = (m1.rowwise() - m1.colwise().sum()/RealScalar(m1.rows())), (MatrixType::RowsAtCompileTime!=1 ? 1 : 0) );
 }
 
-void test_vectorwiseop()
+EIGEN_DECLARE_TEST(vectorwiseop)
 {
   CALL_SUBTEST_1( vectorwiseop_array(Array22cd()) );
   CALL_SUBTEST_2( vectorwiseop_array(Array<double, 3, 2>()) );

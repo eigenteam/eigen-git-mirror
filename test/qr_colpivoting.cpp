@@ -296,7 +296,7 @@ template<typename MatrixType> void qr_verify_assert()
   VERIFY_RAISES_ASSERT(qr.logAbsDeterminant())
 }
 
-void test_qr_colpivoting()
+EIGEN_DECLARE_TEST(qr_colpivoting)
 {
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_1( qr<MatrixXf>() );

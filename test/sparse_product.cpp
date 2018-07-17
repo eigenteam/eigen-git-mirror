@@ -453,7 +453,7 @@ void test_mixing_types()
   VERIFY_IS_APPROX( dC2 = sC1 * dR1.col(0), dC3 = sC1 * dR1.template cast<Cplx>().col(0) );
 }
 
-void test_sparse_product()
+EIGEN_DECLARE_TEST(sparse_product)
 {
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_1( (sparse_product<SparseMatrix<double,ColMajor> >()) );

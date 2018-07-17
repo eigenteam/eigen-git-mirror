@@ -119,7 +119,7 @@ template<typename Func> void adolc_forward_jacobian(const Func& f)
     VERIFY_IS_APPROX(j, jref);
 }
 
-void test_forward_adolc()
+EIGEN_DECLARE_TEST(forward_adolc)
 {
   adtl::setNumDir(NUMBER_DIRECTIONS);
 

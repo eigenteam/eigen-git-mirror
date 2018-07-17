@@ -155,7 +155,7 @@ void run_fixed_size_test(int num_elements)
   VERIFY(error < Scalar(16)*std::numeric_limits<Scalar>::epsilon());
 }
 
-void test_umeyama()
+EIGEN_DECLARE_TEST(umeyama)
 {
   for (int i=0; i<g_repeat; ++i)
   {

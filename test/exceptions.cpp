@@ -107,7 +107,7 @@ void memoryleak()
   VERIFY(ScalarWithExceptions::instances==0 && "global memory leak detected in " && EIGEN_MAKESTRING(OP)); \
 }
 
-void test_exceptions()
+EIGEN_DECLARE_TEST(exceptions)
 {
   CALL_SUBTEST( memoryleak() );
 }

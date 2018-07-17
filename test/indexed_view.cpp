@@ -388,7 +388,7 @@ void check_indexed_view()
 
 }
 
-void test_indexed_view()
+EIGEN_DECLARE_TEST(indexed_view)
 {
 //   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_1( check_indexed_view() );

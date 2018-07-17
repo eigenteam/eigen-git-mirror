@@ -627,7 +627,7 @@ template<typename Scalar> void packetmath_scatter_gather()
   }
 }
 
-void test_packetmath()
+EIGEN_DECLARE_TEST(packetmath)
 {
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_1( packetmath<float>() );

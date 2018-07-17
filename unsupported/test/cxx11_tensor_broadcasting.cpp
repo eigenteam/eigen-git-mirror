@@ -292,7 +292,7 @@ static void test_simple_broadcasting_one_by_n_by_one_2d()
   }
 }
 
-void test_cxx11_tensor_broadcasting()
+EIGEN_DECLARE_TEST(cxx11_tensor_broadcasting)
 {
   CALL_SUBTEST(test_simple_broadcasting<ColMajor>());
   CALL_SUBTEST(test_simple_broadcasting<RowMajor>());

@@ -106,7 +106,7 @@ GLint createShader(const char* vtx, const char* frg)
   return prg_id;
 }
 
-void test_openglsupport()
+EIGEN_DECLARE_TEST(openglsupport)
 {
   int argc = 0;
   glutInit(&argc, 0);

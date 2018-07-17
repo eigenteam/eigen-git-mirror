@@ -123,7 +123,7 @@ template<typename MatrixType> void reverse(const MatrixType& m)
   VERIFY_IS_APPROX(x, m1(r, cols - 1 - c));
 }
 
-void test_array_reverse()
+EIGEN_DECLARE_TEST(array_reverse)
 {
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_1( reverse(Matrix<float, 1, 1>()) );

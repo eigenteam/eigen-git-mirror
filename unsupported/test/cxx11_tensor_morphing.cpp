@@ -459,7 +459,7 @@ static void test_composition()
 }
 
 
-void test_cxx11_tensor_morphing()
+EIGEN_DECLARE_TEST(cxx11_tensor_morphing)
 {
   CALL_SUBTEST_1(test_simple_reshape<void>());
   CALL_SUBTEST_1(test_reshape_in_expr<void>());

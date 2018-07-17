@@ -101,7 +101,7 @@ using namespace std;
 #define VERIFY_IS_APPROX_EVALUATOR(DEST,EXPR) VERIFY_IS_APPROX(copy_using_evaluator(DEST,(EXPR)), (EXPR).eval());
 #define VERIFY_IS_APPROX_EVALUATOR2(DEST,EXPR,REF) VERIFY_IS_APPROX(copy_using_evaluator(DEST,(EXPR)), (REF).eval());
 
-void test_evaluators()
+EIGEN_DECLARE_TEST(evaluators)
 {
   // Testing Matrix evaluator and Transpose
   Vector2d v = Vector2d::Random();

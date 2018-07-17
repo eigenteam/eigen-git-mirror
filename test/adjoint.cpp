@@ -145,7 +145,7 @@ template<typename MatrixType> void adjoint(const MatrixType& m)
   VERIFY_IS_APPROX(rv1.template cast<Scalar>().dot(v1), rv1.dot(v1));
 }
 
-void test_adjoint()
+EIGEN_DECLARE_TEST(adjoint)
 {
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_1( adjoint(Matrix<float, 1, 1>()) );

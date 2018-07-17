@@ -559,7 +559,7 @@ static void test_large_contraction_with_output_kernel() {
   }
 }
 
-void test_cxx11_tensor_contraction()
+EIGEN_DECLARE_TEST(cxx11_tensor_contraction)
 {
   CALL_SUBTEST(test_evals<ColMajor>());
   CALL_SUBTEST(test_evals<RowMajor>());

@@ -136,7 +136,7 @@ static void test_strides() {
                                input(12)*kernel(2)));
 }
 
-void test_cxx11_tensor_convolution()
+EIGEN_DECLARE_TEST(cxx11_tensor_convolution)
 {
   CALL_SUBTEST(test_evals<ColMajor>());
   CALL_SUBTEST(test_evals<RowMajor>());

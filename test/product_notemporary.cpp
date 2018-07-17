@@ -150,7 +150,7 @@ template<typename MatrixType> void product_notemporary(const MatrixType& m)
   VERIFY_EVALUATION_COUNT( rvres.noalias() = rv1 * (m1 * m2.adjoint()), 1 );
 }
 
-void test_product_notemporary()
+EIGEN_DECLARE_TEST(product_notemporary)
 {
   int s;
   for(int i = 0; i < g_repeat; i++) {

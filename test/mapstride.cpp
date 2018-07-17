@@ -197,7 +197,7 @@ void bug1453()
   VERIFY_IS_APPROX(RowMatrix32i::Map(data, InnerStride<>(2)), RowMatrixXi::Map(data, 3, 2, Stride<4,2>()));
 }
 
-void test_mapstride()
+EIGEN_DECLARE_TEST(mapstride)
 {
   for(int i = 0; i < g_repeat; i++) {
     int maxn = 30;

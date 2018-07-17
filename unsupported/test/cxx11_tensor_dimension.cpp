@@ -60,7 +60,7 @@ static void test_rank_zero()
   VERIFY_IS_EQUAL((int)dscalar.rank(), 0);
 }
 
-void test_cxx11_tensor_dimension()
+EIGEN_DECLARE_TEST(cxx11_tensor_dimension)
 {
   CALL_SUBTEST(test_dynamic_size());
   CALL_SUBTEST(test_fixed_size());

@@ -117,7 +117,7 @@ template<typename Scalar> void test_sparseqr_scalar()
   dQ = solver.matrixQ();
   VERIFY_IS_APPROX(Q, dQ);
 }
-void test_sparseqr()
+EIGEN_DECLARE_TEST(sparseqr)
 {
   for(int i=0; i<g_repeat; ++i)
   {

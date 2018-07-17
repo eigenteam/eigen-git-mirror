@@ -33,7 +33,7 @@ void check_abs() {
   }
 }
 
-void test_numext() {
+EIGEN_DECLARE_TEST(numext) {
   CALL_SUBTEST( check_abs<bool>() );
   CALL_SUBTEST( check_abs<signed char>() );
   CALL_SUBTEST( check_abs<unsigned char>() );

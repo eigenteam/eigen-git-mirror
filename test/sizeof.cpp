@@ -18,7 +18,7 @@ template<typename MatrixType> void verifySizeOf(const MatrixType&)
     VERIFY_IS_EQUAL(sizeof(MatrixType),sizeof(Scalar*) + 2 * sizeof(Index));
 }
 
-void test_sizeof()
+EIGEN_DECLARE_TEST(sizeof)
 {
   CALL_SUBTEST(verifySizeOf(Matrix<float, 1, 1>()) );
   CALL_SUBTEST(verifySizeOf(Array<float, 2, 1>()) );

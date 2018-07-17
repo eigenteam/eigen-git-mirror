@@ -113,7 +113,7 @@ void check_symbolic_index()
 #endif
 }
 
-void test_symbolic_index()
+EIGEN_DECLARE_TEST(symbolic_index)
 {
   CALL_SUBTEST_1( check_symbolic_index() );
   CALL_SUBTEST_2( check_symbolic_index() );

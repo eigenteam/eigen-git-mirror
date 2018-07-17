@@ -159,7 +159,7 @@ static void test_trace_in_expr() {
 }
 
 
-void test_cxx11_tensor_trace() {
+EIGEN_DECLARE_TEST(cxx11_tensor_trace) {
   CALL_SUBTEST(test_0D_trace<ColMajor>());
   CALL_SUBTEST(test_0D_trace<RowMajor>());
   CALL_SUBTEST(test_all_dimensions_trace<ColMajor>());

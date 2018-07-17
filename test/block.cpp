@@ -276,7 +276,7 @@ void data_and_stride(const MatrixType& m)
   compare_using_data_and_stride(m1.col(c1).transpose());
 }
 
-void test_block()
+EIGEN_DECLARE_TEST(block)
 {
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_1( block(Matrix<float, 1, 1>()) );

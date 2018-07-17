@@ -215,7 +215,7 @@ static void test_shuffle_unshuffle()
 }
 
 
-void test_cxx11_tensor_shuffling()
+EIGEN_DECLARE_TEST(cxx11_tensor_shuffling)
 {
   CALL_SUBTEST(test_simple_shuffling<ColMajor>());
   CALL_SUBTEST(test_simple_shuffling<RowMajor>());

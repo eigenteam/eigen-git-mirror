@@ -131,7 +131,7 @@ template<typename MatrixType> void integer_type_tests(const MatrixType& m)
   VERIFY_IS_APPROX((m1 * m2.transpose()) * m1, m1 * (m2.transpose() * m1));
 }
 
-void test_integer_types()
+EIGEN_DECLARE_TEST(integer_types)
 {
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_1( integer_type_tests(Matrix<unsigned int, 1, 1>()) );

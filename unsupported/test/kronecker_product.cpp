@@ -83,7 +83,7 @@ void check_sparse_kronecker_product(const MatrixType& ab)
 }
 
 
-void test_kronecker_product()
+EIGEN_DECLARE_TEST(kronecker_product)
 {
   // DM = dense matrix; SM = sparse matrix
 
@@ -240,7 +240,7 @@ void test_kronecker_product()
 #include "main.h"
 #include <Eigen/KroneckerProduct>
 
-void test_kronecker_product()
+EIGEN_DECLARE_TEST(kronecker_product)
 {
   MatrixXd a(2,2), b(3,3), c;
   a.setRandom();

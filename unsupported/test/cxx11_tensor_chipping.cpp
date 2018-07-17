@@ -410,7 +410,7 @@ static void test_chip_raw_data_row_major()
   VERIFY_IS_EQUAL(chip4.data(), static_cast<float*>(0));
 }
 
-void test_cxx11_tensor_chipping()
+EIGEN_DECLARE_TEST(cxx11_tensor_chipping)
 {
   CALL_SUBTEST(test_simple_chip<ColMajor>());
   CALL_SUBTEST(test_simple_chip<RowMajor>());

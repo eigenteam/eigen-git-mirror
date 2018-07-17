@@ -641,7 +641,7 @@ void big_sparse_triplet(Index rows, Index cols, double density) {
 }
 
 
-void test_sparse_basic()
+EIGEN_DECLARE_TEST(sparse_basic)
 {
   for(int i = 0; i < g_repeat; i++) {
     int r = Eigen::internal::random<int>(1,200), c = Eigen::internal::random<int>(1,200);

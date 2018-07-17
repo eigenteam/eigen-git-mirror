@@ -15,7 +15,6 @@
 
 #define EIGEN_TEST_NO_LONGDOUBLE
 #define EIGEN_TEST_NO_COMPLEX
-#define EIGEN_TEST_FUNC gpu_basic
 #define EIGEN_DEFAULT_DENSE_INDEX_TYPE int
 
 #include "main.h"
@@ -162,7 +161,7 @@ struct matrix_inverse {
   }
 };
 
-void test_gpu_basic()
+EIGEN_DECLARE_TEST(gpu_basic)
 {
   ei_test_init_gpu();
   

@@ -285,7 +285,7 @@ template<typename PlainObjectType> void check_const_correctness(const PlainObjec
   VERIFY( !(Map<ConstPlainObjectType, Aligned>::Flags & LvalueBit) );
 }
 
-void test_geo_quaternion()
+EIGEN_DECLARE_TEST(geo_quaternion)
 {
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_1(( quaternion<float,AutoAlign>() ));

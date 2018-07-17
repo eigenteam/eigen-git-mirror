@@ -272,7 +272,7 @@ template<typename Scalar> void eulerangles_rand()
   check_all_var(ea);
 }
 
-void test_EulerAngles()
+EIGEN_DECLARE_TEST(EulerAngles)
 {
   // Simple cast test
   EulerAnglesXYZd onesEd(1, 1, 1);

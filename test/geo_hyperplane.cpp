@@ -180,7 +180,7 @@ template<typename Scalar> void hyperplane_alignment()
 }
 
 
-void test_geo_hyperplane()
+EIGEN_DECLARE_TEST(geo_hyperplane)
 {
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_1( hyperplane(Hyperplane<float,2>()) );

@@ -142,7 +142,7 @@ void check_marketio()
   VERIFY_IS_EQUAL(DenseMatrix(m1),DenseMatrix(m2));
 }
 
-void test_sparse_extra()
+EIGEN_DECLARE_TEST(sparse_extra)
 {
   for(int i = 0; i < g_repeat; i++) {
     int s = Eigen::internal::random<int>(1,50);

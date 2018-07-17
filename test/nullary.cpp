@@ -239,7 +239,7 @@ void testMatrixType(const MatrixType& m)
   VERIFY_IS_APPROX( A(i,j), s1 );
 }
 
-void test_nullary()
+EIGEN_DECLARE_TEST(nullary)
 {
   CALL_SUBTEST_1( testMatrixType(Matrix2d()) );
   CALL_SUBTEST_2( testMatrixType(MatrixXcf(internal::random<int>(1,300),internal::random<int>(1,300))) );

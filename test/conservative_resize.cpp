@@ -109,7 +109,7 @@ void run_vector_tests()
   }
 }
 
-void test_conservative_resize()
+EIGEN_DECLARE_TEST(conservative_resize)
 {
   for(int i=0; i<g_repeat; ++i)
   {

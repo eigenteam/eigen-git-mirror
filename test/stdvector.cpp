@@ -117,7 +117,7 @@ void check_stdvector_quaternion(const QuaternionType&)
   }
 }
 
-void test_stdvector()
+EIGEN_DECLARE_TEST(stdvector)
 {
   // some non vectorizable fixed sizes
   CALL_SUBTEST_1(check_stdvector_matrix(Vector2f()));

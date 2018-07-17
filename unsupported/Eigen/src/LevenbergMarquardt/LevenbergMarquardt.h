@@ -117,7 +117,7 @@ class LevenbergMarquardt : internal::no_assignment_operator
     typedef typename JacobianType::RealScalar RealScalar; 
     typedef typename QRSolver::StorageIndex PermIndex;
     typedef Matrix<Scalar,Dynamic,1> FVectorType;
-    typedef PermutationMatrix<Dynamic,Dynamic> PermutationType;
+    typedef PermutationMatrix<Dynamic,Dynamic,int> PermutationType;
   public:
     LevenbergMarquardt(FunctorType& functor) 
     : m_functor(functor),m_nfev(0),m_njev(0),m_fnorm(0.0),m_gnorm(0),

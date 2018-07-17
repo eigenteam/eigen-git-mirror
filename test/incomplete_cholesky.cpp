@@ -29,7 +29,7 @@ template<typename T, typename I> void test_incomplete_cholesky_T()
   CALL_SUBTEST( check_sparse_spd_solving(cg_illt_uplo_amd) );
 }
 
-void test_incomplete_cholesky()
+EIGEN_DECLARE_TEST(incomplete_cholesky)
 {
   CALL_SUBTEST_1(( test_incomplete_cholesky_T<double,int>() ));
   CALL_SUBTEST_2(( test_incomplete_cholesky_T<std::complex<double>, int>() ));

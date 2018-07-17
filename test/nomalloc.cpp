@@ -202,7 +202,7 @@ template<typename MatrixType> void test_reference(const MatrixType& m) {
 
 }
 
-void test_nomalloc()
+EIGEN_DECLARE_TEST(nomalloc)
 {
   // create some dynamic objects
   Eigen::MatrixXd M1 = MatrixXd::Random(3,3);

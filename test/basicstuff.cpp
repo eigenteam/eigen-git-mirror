@@ -268,7 +268,7 @@ void fixedSizeMatrixConstruction()
   }
 }
 
-void test_basicstuff()
+EIGEN_DECLARE_TEST(basicstuff)
 {
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_1( basicStuff(Matrix<float, 1, 1>()) );

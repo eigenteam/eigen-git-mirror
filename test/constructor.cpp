@@ -37,7 +37,7 @@ template<typename MatrixType> void ctor_init1(const MatrixType& m)
 }
 
 
-void test_constructor()
+EIGEN_DECLARE_TEST(constructor)
 {
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_1( ctor_init1(Matrix<float, 1, 1>()) );

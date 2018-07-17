@@ -123,7 +123,7 @@ static void test_concatenation_as_lvalue()
 }
 
 
-void test_cxx11_tensor_concatenation()
+EIGEN_DECLARE_TEST(cxx11_tensor_concatenation)
 {
    CALL_SUBTEST(test_dimension_failures<ColMajor>());
    CALL_SUBTEST(test_dimension_failures<RowMajor>());

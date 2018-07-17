@@ -256,7 +256,7 @@ void regrrssion_bug_1410()
   VERIFY((internal::traits<MatrixWrapper<Array4i> >::Flags&LvalueBit)==LvalueBit);
 }
 
-void test_array_for_matrix()
+EIGEN_DECLARE_TEST(array_for_matrix)
 {
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_1( array_for_matrix(Matrix<float, 1, 1>()) );

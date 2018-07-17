@@ -29,7 +29,7 @@ template<typename MatrixType> void upperbidiag(const MatrixType& m)
   VERIFY_IS_APPROX(a.adjoint(),d);
 }
 
-void test_upperbidiagonalization()
+EIGEN_DECLARE_TEST(upperbidiagonalization)
 {
   for(int i = 0; i < g_repeat; i++) {
    CALL_SUBTEST_1( upperbidiag(MatrixXf(3,3)) );

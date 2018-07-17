@@ -84,7 +84,7 @@ template<typename Scalar> void mmtr(int size)
   VERIFY_IS_APPROX(matc, ref2);
 }
 
-void test_product_mmtr()
+EIGEN_DECLARE_TEST(product_mmtr)
 {
   for(int i = 0; i < g_repeat ; i++)
   {

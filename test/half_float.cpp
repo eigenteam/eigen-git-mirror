@@ -272,7 +272,7 @@ void test_product()
   VERIFY_IS_APPROX(Ch.noalias()+=Ah*Bh, (Cf.noalias()+=Af*Bf).cast<half>());
 }
 
-void test_half_float()
+EIGEN_DECLARE_TEST(half_float)
 {
   CALL_SUBTEST(test_numtraits());
   for(int i = 0; i < g_repeat; i++) {

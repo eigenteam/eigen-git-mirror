@@ -242,7 +242,7 @@ template<typename MatrixType> void lu_verify_assert()
   VERIFY_RAISES_ASSERT(plu.inverse())
 }
 
-void test_lu()
+EIGEN_DECLARE_TEST(lu)
 {
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_1( lu_non_invertible<Matrix3f>() );

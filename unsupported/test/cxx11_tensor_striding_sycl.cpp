@@ -13,7 +13,7 @@
 
 #define EIGEN_TEST_NO_LONGDOUBLE
 #define EIGEN_TEST_NO_COMPLEX
-#define EIGEN_TEST_FUNC cxx11_tensor_striding_sycl
+
 #define EIGEN_DEFAULT_DENSE_INDEX_TYPE int64_t
 #define EIGEN_USE_SYCL
 
@@ -196,7 +196,7 @@ template <typename Dev_selector> void tensorStridingPerDevice(Dev_selector& s){
   test_striding_as_lvalue<float, RowMajor, int64_t>(sycl_device);
 }
 
-void test_cxx11_tensor_striding_sycl() {
+EIGEN_DECLARE_TEST(cxx11_tensor_striding_sycl) {
   for (const auto& device :Eigen::get_sycl_supported_devices()) {
     CALL_SUBTEST(tensorStridingPerDevice(device));
   }

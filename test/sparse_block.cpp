@@ -288,7 +288,7 @@ template<typename SparseMatrixType> void sparse_block(const SparseMatrixType& re
   }
 }
 
-void test_sparse_block()
+EIGEN_DECLARE_TEST(sparse_block)
 {
   for(int i = 0; i < g_repeat; i++) {
     int r = Eigen::internal::random<int>(1,200), c = Eigen::internal::random<int>(1,200);

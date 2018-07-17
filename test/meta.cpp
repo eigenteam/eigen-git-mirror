@@ -27,7 +27,7 @@ struct MyImpl : public MyInterface {
   void func() {}
 };
 
-void test_meta()
+EIGEN_DECLARE_TEST(meta)
 {
   VERIFY((internal::conditional<(3<4),internal::true_type, internal::false_type>::type::value));
   VERIFY(( internal::is_same<float,float>::value));

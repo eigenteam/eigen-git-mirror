@@ -125,7 +125,7 @@ template<typename MatrixType> void qr_verify_assert()
   VERIFY_RAISES_ASSERT(qr.logAbsDeterminant())
 }
 
-void test_qr_fullpivoting()
+EIGEN_DECLARE_TEST(qr_fullpivoting)
 {
   for(int i = 0; i < 1; i++) {
     CALL_SUBTEST_5( qr<Matrix3f>() );

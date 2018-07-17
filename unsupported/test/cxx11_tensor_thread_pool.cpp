@@ -399,7 +399,7 @@ void test_multithread_shuffle()
 }
 
 
-void test_cxx11_tensor_thread_pool()
+EIGEN_DECLARE_TEST(cxx11_tensor_thread_pool)
 {
   CALL_SUBTEST_1(test_multithread_elementwise());
   CALL_SUBTEST_1(test_multithread_compound_assignment());
