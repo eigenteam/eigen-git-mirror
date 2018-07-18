@@ -64,8 +64,9 @@ template<typename MatrixType> void map_class_matrix(const MatrixType& m)
   for(int i = 0; i < size; i++) array2[i] = Scalar(1);
   // array3unaligned -> unaligned pointer to heap
   Scalar* array3 = new Scalar[size+1];
-  for(int i = 0; i < size+1; i++) array3[i] = Scalar(1);
-  Scalar* array3unaligned = internal::UIntPtr(array3)%EIGEN_MAX_ALIGN_BYTES == 0 ? array3+1 : array3;
+  Index sizep1 = size + 1; // <- without this temporary MSVC 2103 generates bad code
+  for(Index i = 0; i < sizep1; i++) array3[i] = Scalar(1);
+  Scalar* array3unaligned = (internal::UIntPtr(array3)%EIGEN_MAX_ALIGN_BYTES) == 0 ? array3+1 : array3;
   Scalar array4[256];
   if(size<=256)
     for(int i = 0; i < size; i++) array4[i] = Scalar(1);
