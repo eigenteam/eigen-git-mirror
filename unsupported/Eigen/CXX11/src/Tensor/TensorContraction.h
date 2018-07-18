@@ -182,7 +182,7 @@ struct NoOpOutputKernel {
       Index num_cols) const {}
 };
 
-template<typename Indices, typename LhsXprType, typename RhsXprType, typename OutputKernelType>
+template<typename Indices, typename LhsXprType, typename RhsXprType, typename OutputKernelType = const NoOpOutputKernel>
 class TensorContractionOp : public TensorBase<TensorContractionOp<Indices, LhsXprType, RhsXprType, OutputKernelType>, ReadOnlyAccessors>
 {
   public:
@@ -507,7 +507,7 @@ struct TensorContractionEvaluatorBase
   }
 
   template <bool lhs_inner_dim_contiguous, bool rhs_inner_dim_contiguous, bool rhs_inner_dim_reordered, int Alignment>
-  #if !defined(EIGEN_HIPCC)    
+  #if !defined(EIGEN_HIPCC)
   EIGEN_DEVICE_FUNC
   #endif
   void evalGemv(Scalar* buffer) const {
@@ -556,7 +556,7 @@ struct TensorContractionEvaluatorBase
   }
 
   template <bool lhs_inner_dim_contiguous, bool rhs_inner_dim_contiguous, bool rhs_inner_dim_reordered, int Alignment>
-  #if !defined(EIGEN_HIPCC)    
+  #if !defined(EIGEN_HIPCC)
   EIGEN_DEVICE_FUNC
   #endif
   void evalGemm(Scalar* buffer) const {
