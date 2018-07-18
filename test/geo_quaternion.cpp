@@ -12,6 +12,7 @@
 #include <Eigen/Geometry>
 #include <Eigen/LU>
 #include <Eigen/SVD>
+#include "AnnoyingScalar.h"
 
 template<typename T> T bounded_acos(T v)
 {
@@ -85,7 +86,7 @@ template<typename Scalar, int Options> void quaternion(void)
   if (refangle>Scalar(EIGEN_PI))
     refangle = Scalar(2)*Scalar(EIGEN_PI) - refangle;
 
-  if((q1.coeffs()-q2.coeffs()).norm() > 10*largeEps)
+  if((q1.coeffs()-q2.coeffs()).norm() > Scalar(10)*largeEps)
   {
     VERIFY_IS_MUCH_SMALLER_THAN(abs(q1.angularDistance(q2) - refangle), Scalar(1));
   }
@@ -113,7 +114,7 @@ template<typename Scalar, int Options> void quaternion(void)
 
   // Do not execute the test if the rotation angle is almost zero, or
   // the rotation axis and v1 are almost parallel.
-  if (abs(aa.angle()) > 5*test_precision<Scalar>()
+  if (abs(aa.angle()) > Scalar(5)*test_precision<Scalar>()
       && (aa.axis() - v1.normalized()).norm() < Scalar(1.99)
       && (aa.axis() + v1.normalized()).norm() < Scalar(1.99))
   {
@@ -285,18 +286,36 @@ template<typename PlainObjectType> void check_const_correctness(const PlainObjec
   VERIFY( !(Map<ConstPlainObjectType, Aligned>::Flags & LvalueBit) );
 }
 
+#if EIGEN_HAS_RVALUE_REFERENCES
+
+// Regression for bug 1573
+struct MovableClass {
+  MovableClass() = default;
+  MovableClass(const MovableClass&) = default;
+  MovableClass(MovableClass&&) noexcept = default;
+  MovableClass& operator=(const MovableClass&) = default;
+  MovableClass& operator=(MovableClass&&) = default;
+  Quaternionf m_quat;
+};
+
+#endif
+
 EIGEN_DECLARE_TEST(geo_quaternion)
 {
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_1(( quaternion<float,AutoAlign>() ));
     CALL_SUBTEST_1( check_const_correctness(Quaternionf()) );
+    CALL_SUBTEST_1(( quaternion<float,DontAlign>() ));
+    CALL_SUBTEST_1(( quaternionAlignment<float>() ));
+    CALL_SUBTEST_1( mapQuaternion<float>() );
+
     CALL_SUBTEST_2(( quaternion<double,AutoAlign>() ));
     CALL_SUBTEST_2( check_const_correctness(Quaterniond()) );
-    CALL_SUBTEST_3(( quaternion<float,DontAlign>() ));
-    CALL_SUBTEST_4(( quaternion<double,DontAlign>() ));
-    CALL_SUBTEST_5(( quaternionAlignment<float>() ));
-    CALL_SUBTEST_6(( quaternionAlignment<double>() ));
-    CALL_SUBTEST_1( mapQuaternion<float>() );
+    CALL_SUBTEST_2(( quaternion<double,DontAlign>() ));
+    CALL_SUBTEST_2(( quaternionAlignment<double>() ));
     CALL_SUBTEST_2( mapQuaternion<double>() );
+
+    AnnoyingScalar::dont_throw = true;
+    CALL_SUBTEST_3(( quaternion<AnnoyingScalar,AutoAlign>() ));
   }
 }
