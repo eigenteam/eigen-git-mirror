@@ -396,7 +396,7 @@
   #define EIGEN_HIPCC __HIPCC__
 
   // We need to include hip_runtime.h here because it pulls in
-  // ++ hip_common.h which contains the define for  __HIP_DEVICE_COMPILE__ 
+  // ++ hip_common.h which contains the define for  __HIP_DEVICE_COMPILE__
   // ++ host_defines.h which contains the defines for the __host__ and __device__ macros
   #include <hip/hip_runtime.h>
 
@@ -541,7 +541,9 @@
 
 // Does the compiler support type_traits?
 #ifndef EIGEN_HAS_TYPE_TRAITS
-#if EIGEN_MAX_CPP_VER>=11 && (EIGEN_HAS_CXX11 || EIGEN_COMP_MSVC >= 1700)
+#if EIGEN_MAX_CPP_VER>=11 && (EIGEN_HAS_CXX11 || EIGEN_COMP_MSVC >= 1700) \
+  && (!EIGEN_COMP_GNUC || EIGEN_GNUC_AT_LEAST(5, 1))
+    // ^^ Full support of type traits was added only to GCC 5.1.0.
 #define EIGEN_HAS_TYPE_TRAITS 1
 #define EIGEN_INCLUDE_TYPE_TRAITS
 #else
