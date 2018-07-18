@@ -22,7 +22,7 @@ struct my_exception
 
 // An AnnoyingScalar is a pseudo scalar type that:
 // - can randomly through an exception in operator +
-// - randomly allocate on the heap or initialize a reference to itself making it non trivially copyable, nor movable.
+// - randomly allocate on the heap or initialize a reference to itself making it non trivially copyable, nor movable, nor relocatable.
 
 class AnnoyingScalar
 {

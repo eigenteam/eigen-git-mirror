@@ -921,13 +921,19 @@ namespace internal {
 template <typename Derived, typename OtherDerived, bool IsVector>
 struct conservative_resize_like_impl
 {
+  #if EIGEN_HAS_TYPE_TRAITS
+  static const bool IsRelocatable = std::is_trivially_copyable<typename Derived::Scalar>::value;
+  #else
+  static const bool IsRelocatable = NumTraits<typename Derived::Scalar>::RequireInitialization;
+  #endif
   static void run(DenseBase<Derived>& _this, Index rows, Index cols)
   {
     if (_this.rows() == rows && _this.cols() == cols) return;
     EIGEN_STATIC_ASSERT_DYNAMIC_SIZE(Derived)
 
-    if ( ( Derived::IsRowMajor && _this.cols() == cols) || // row-major and we change only the number of rows
-         (!Derived::IsRowMajor && _this.rows() == rows) )  // column-major and we change only the number of columns
+    if ( IsRelocatable
+          && (( Derived::IsRowMajor && _this.cols() == cols) ||  // row-major and we change only the number of rows
+              (!Derived::IsRowMajor && _this.rows() == rows) ))  // column-major and we change only the number of columns
     {
       internal::check_rows_cols_for_overflow<Derived::MaxSizeAtCompileTime>::run(rows, cols);
       _this.derived().m_storage.conservativeResize(rows*cols,rows,cols);
@@ -955,8 +961,9 @@ struct conservative_resize_like_impl
     EIGEN_STATIC_ASSERT_DYNAMIC_SIZE(Derived)
     EIGEN_STATIC_ASSERT_DYNAMIC_SIZE(OtherDerived)
 
-    if ( ( Derived::IsRowMajor && _this.cols() == other.cols()) || // row-major and we change only the number of rows
-         (!Derived::IsRowMajor && _this.rows() == other.rows()) )  // column-major and we change only the number of columns
+    if ( IsRelocatable &&
+          (( Derived::IsRowMajor && _this.cols() == other.cols()) ||  // row-major and we change only the number of rows
+           (!Derived::IsRowMajor && _this.rows() == other.rows()) ))  // column-major and we change only the number of columns
     {
       const Index new_rows = other.rows() - _this.rows();
       const Index new_cols = other.cols() - _this.cols();
@@ -984,13 +991,18 @@ template <typename Derived, typename OtherDerived>
 struct conservative_resize_like_impl<Derived,OtherDerived,true>
   : conservative_resize_like_impl<Derived,OtherDerived,false>
 {
-  using conservative_resize_like_impl<Derived,OtherDerived,false>::run;
+  typedef conservative_resize_like_impl<Derived,OtherDerived,false> Base;
+  using Base::run;
+  using Base::IsRelocatable;
   
   static void run(DenseBase<Derived>& _this, Index size)
   {
     const Index new_rows = Derived::RowsAtCompileTime==1 ? 1 : size;
     const Index new_cols = Derived::RowsAtCompileTime==1 ? size : 1;
-    _this.derived().m_storage.conservativeResize(size,new_rows,new_cols);
+    if(IsRelocatable)
+      _this.derived().m_storage.conservativeResize(size,new_rows,new_cols);
+    else
+      Base::run(_this.derived(), new_rows, new_cols);
   }
 
   static void run(DenseBase<Derived>& _this, const DenseBase<OtherDerived>& other)
@@ -1001,7 +1013,10 @@ struct conservative_resize_like_impl<Derived,OtherDerived,true>
 
     const Index new_rows = Derived::RowsAtCompileTime==1 ? 1 : other.rows();
     const Index new_cols = Derived::RowsAtCompileTime==1 ? other.cols() : 1;
-    _this.derived().m_storage.conservativeResize(other.size(),new_rows,new_cols);
+    if(IsRelocatable)
+      _this.derived().m_storage.conservativeResize(other.size(),new_rows,new_cols);
+    else
+      Base::run(_this.derived(), new_rows, new_cols);
 
     if (num_new_elements > 0)
       _this.tail(num_new_elements) = other.tail(num_new_elements);
