@@ -1219,6 +1219,9 @@ template<typename Indices, typename LeftArgType, typename RightArgType, typename
 struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgType, OutputKernelType>, GpuDevice> :
     public TensorContractionEvaluatorBase<TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgType, OutputKernelType>, GpuDevice> > {
 
+  static_assert(std::is_same<OutputKernelType, const NoOpOutputKernel>::value,
+                "GPU tensor contraction does not support output kernels.");
+
   typedef GpuDevice Device;
 
   typedef TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgType, OutputKernelType>, Device> Self;
