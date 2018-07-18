@@ -339,6 +339,21 @@
     #define EIGEN_VECTORIZE_ZVECTOR
     #include <vecintrin.h>
 
+  #elif defined __mips_msa
+
+    // Limit MSA optimizations to little-endian CPUs for now.
+    // TODO: Perhaps, eventually support MSA optimizations on big-endian CPUs?
+    #if defined(__BYTE_ORDER__) && (__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__)
+      #if defined(__LP64__)
+        #define EIGEN_MIPS_64
+      #else
+        #define EIGEN_MIPS_32
+      #endif
+      #define EIGEN_VECTORIZE
+      #define EIGEN_VECTORIZE_MSA
+      #include <msa.h>
+    #endif
+
   #endif
 #endif
 
@@ -404,6 +419,8 @@ inline static const char *SimdInstructionSetsInUse(void) {
   return "ARM NEON";
 #elif defined(EIGEN_VECTORIZE_ZVECTOR)
   return "S390X ZVECTOR";
+#elif defined(EIGEN_VECTORIZE_MSA)
+  return "MIPS MSA";
 #else
   return "None";
 #endif
