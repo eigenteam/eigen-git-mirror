@@ -105,22 +105,6 @@ class QuaternionBase : public RotationBase<Derived, 3>
   EIGEN_DEVICE_FUNC Derived& operator=(const AngleAxisType& aa);
   template<class OtherDerived> EIGEN_DEVICE_FUNC Derived& operator=(const MatrixBase<OtherDerived>& m);
 
-#if EIGEN_HAS_RVALUE_REFERENCES
-  // Because we have a user-defined copy assignment operator, we don't get an implicit move constructor or assignment operator.
-  /** Default move constructor */
-  EIGEN_DEVICE_FUNC inline QuaternionBase(QuaternionBase&& other) EIGEN_NOEXCEPT_IF(std::is_nothrow_move_constructible<Scalar>::value) = default;
-
-  /** Default move assignment operator */
-  EIGEN_DEVICE_FUNC QuaternionBase& operator=(QuaternionBase&& other) EIGEN_NOEXCEPT_IF(std::is_nothrow_move_assignable<Scalar>::value) = default;
-
-  // And now because we declared a constructor, we don't get a default constructor or copy constructor. Say we want them.
-  /** Default constructor */
-  EIGEN_DEVICE_FUNC QuaternionBase() = default;
-
-  /** Copy constructor */
-  EIGEN_DEVICE_FUNC QuaternionBase(const QuaternionBase& other) = default;
-#endif
-
   /** \returns a quaternion representing an identity rotation
     * \sa MatrixBase::Identity()
     */
@@ -295,14 +279,24 @@ public:
 #if EIGEN_HAS_RVALUE_REFERENCES
   // We define a copy constructor, which means we don't get an implicit move constructor or assignment operator.
   /** Default move constructor */
-  EIGEN_DEVICE_FUNC inline Quaternion(Quaternion&& other) EIGEN_NOEXCEPT_IF(std::is_nothrow_move_constructible<Scalar>::value) = default;
+  EIGEN_DEVICE_FUNC inline Quaternion(Quaternion&& other) EIGEN_NOEXCEPT_IF(std::is_nothrow_move_constructible<Scalar>::value)
+  {
+    m_coeffs(std::move(other.coeffs()));
+  }
 
   /** Default move assignment operator */
-  EIGEN_DEVICE_FUNC Quaternion& operator=(Quaternion&& other) EIGEN_NOEXCEPT_IF(std::is_nothrow_move_assignable<Scalar>::value) = default;
+  EIGEN_DEVICE_FUNC Quaternion& operator=(Quaternion&& other) EIGEN_NOEXCEPT_IF(std::is_nothrow_move_assignable<Scalar>::value)
+  {
+    m_coeffs = std::move(other.coeffs());
+    return *this;
+  }
 
   // And now because we declared a constructor, we don't get an implicit copy constructor. Say we want one.
   /** Default copy constructor */
-  EIGEN_DEVICE_FUNC Quaternion(const Quaternion& other) = default;
+  EIGEN_DEVICE_FUNC Quaternion(const Quaternion& other)
+  {
+    m_coeffs = other.coeffs();
+  }
 #endif
 
   EIGEN_DEVICE_FUNC static Quaternion UnitRandom();
@@ -657,7 +651,7 @@ EIGEN_DEVICE_FUNC Quaternion<Scalar,Options> Quaternion<Scalar,Options>::UnitRan
   const Scalar u1 = internal::random<Scalar>(0, 1),
                u2 = internal::random<Scalar>(0, 2*EIGEN_PI),
                u3 = internal::random<Scalar>(0, 2*EIGEN_PI);
-  const Scalar a = sqrt(1 - u1),
+  const Scalar a = sqrt(Scalar(1) - u1),
                b = sqrt(u1);
   return Quaternion (a * sin(u2), a * cos(u2), b * sin(u3), b * cos(u3));
 }
