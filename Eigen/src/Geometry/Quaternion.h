@@ -280,9 +280,8 @@ public:
   // We define a copy constructor, which means we don't get an implicit move constructor or assignment operator.
   /** Default move constructor */
   EIGEN_DEVICE_FUNC inline Quaternion(Quaternion&& other) EIGEN_NOEXCEPT_IF(std::is_nothrow_move_constructible<Scalar>::value)
-  {
-    m_coeffs(std::move(other.coeffs()));
-  }
+    : m_coeffs(std::move(other.coeffs()))
+  {}
 
   /** Default move assignment operator */
   EIGEN_DEVICE_FUNC Quaternion& operator=(Quaternion&& other) EIGEN_NOEXCEPT_IF(std::is_nothrow_move_assignable<Scalar>::value)
@@ -294,9 +293,8 @@ public:
   // And now because we declared a constructor, we don't get an implicit copy constructor. Say we want one.
   /** Default copy constructor */
   EIGEN_DEVICE_FUNC Quaternion(const Quaternion& other)
-  {
-    m_coeffs = other.coeffs();
-  }
+    : m_coeffs(other.coeffs())
+  {}
 #endif
 
   EIGEN_DEVICE_FUNC static Quaternion UnitRandom();
