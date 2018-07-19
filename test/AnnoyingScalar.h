@@ -139,13 +139,13 @@ namespace internal {
 AnnoyingScalar get_test_precision(const AnnoyingScalar&)
 { return Eigen::test_precision<AnnoyingScalar>(); }
 
-AnnoyingScalar test_relative_error(AnnoyingScalar a, AnnoyingScalar b)
+AnnoyingScalar test_relative_error(const AnnoyingScalar &a, const AnnoyingScalar &b)
 { return test_relative_error(*a.v, *b.v); }
 
-inline bool test_isApprox(AnnoyingScalar a, AnnoyingScalar b)
+inline bool test_isApprox(const AnnoyingScalar &a, const AnnoyingScalar &b)
 { return internal::isApprox(*a.v, *b.v, test_precision<float>()); }
 
-inline bool test_isMuchSmallerThan(AnnoyingScalar a, AnnoyingScalar b)
+inline bool test_isMuchSmallerThan(const AnnoyingScalar &a, const AnnoyingScalar &b)
 { return test_isMuchSmallerThan(*a.v, *b.v); }
 
 #endif // EIGEN_TEST_ANNOYING_SCALAR_H
