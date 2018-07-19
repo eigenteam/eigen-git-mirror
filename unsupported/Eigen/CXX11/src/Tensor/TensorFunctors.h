@@ -140,7 +140,7 @@ struct reducer_traits<SumReducer<T>, Device> {
 
 template <typename T> struct MeanReducer
 {
-  static const bool PacketAccess = packet_traits<T>::HasAdd && !NumTraits<T>::IsInteger;
+  static const bool PacketAccess = packet_traits<T>::HasAdd && packet_traits<T>::HasDiv && !NumTraits<T>::IsInteger;
   static const bool IsStateful = true;
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
