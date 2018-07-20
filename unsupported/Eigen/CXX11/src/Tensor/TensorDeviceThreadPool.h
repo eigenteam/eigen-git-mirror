@@ -91,6 +91,13 @@ static EIGEN_STRONG_INLINE void wait_until_ready(SyncType* n) {
   }
 }
 
+// An abstract interface to a device specific memory allocator.
+class Allocator {
+ public:
+  virtual ~Allocator() {}
+  EIGEN_DEVICE_FUNC virtual void* allocate(size_t num_bytes) const = 0;
+  EIGEN_DEVICE_FUNC virtual void deallocate(void* buffer) const = 0;
+};
 
 // Build a thread pool device on top the an existing pool of threads.
 struct ThreadPoolDevice {
