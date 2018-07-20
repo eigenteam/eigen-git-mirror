@@ -7,6 +7,12 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+#if EIGEN_COMP_MSVC==1800
+// This unit test takes forever to compile in Release mode with MSVC 2013,
+// multiple hours. So let's switch off optimization for this one.
+#pragma optimize("",off)
+#endif
+
 static long int nb_temporaries;
 
 inline void on_temporary_creation() {
