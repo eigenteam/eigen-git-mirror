@@ -171,7 +171,7 @@ template <typename T> struct MeanReducer
   }
   template <typename Packet>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Packet finalizePacket(const Packet& vaccum) const {
-    return pdiv(vaccum, pset1<Packet>(packetCount_));
+    return pdiv(vaccum, pset1<Packet>(T(packetCount_)));
   }
   template <typename Packet>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T finalizeBoth(const T saccum, const Packet& vaccum) const {
