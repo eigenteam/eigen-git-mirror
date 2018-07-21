@@ -284,6 +284,12 @@ struct DSizes : array<DenseIndex, NumDims> {
     (*this)[0] = i0;
   }
 
+  EIGEN_DEVICE_FUNC DSizes(const DimensionList<DenseIndex, NumDims>& a) {
+    for (int i = 0 ; i < NumDims; ++i) {
+      (*this)[i] = a[i];
+    }
+  }
+
 #if EIGEN_HAS_VARIADIC_TEMPLATES
   template<typename... IndexTypes> EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE explicit DSizes(DenseIndex firstDimension, DenseIndex secondDimension, IndexTypes... otherDimensions) : Base({{firstDimension, secondDimension, otherDimensions...}}) {
