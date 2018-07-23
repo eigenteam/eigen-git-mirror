@@ -293,6 +293,14 @@ void check_indexed_view()
   }
 
 #if EIGEN_HAS_CXX11
+  // check lastN
+  VERIFY_IS_APPROX( a(lastN(3)), a.tail(3) );
+  VERIFY( MATCH( a(lastN(3)), "7\n8\n9" ) );
+  VERIFY_IS_APPROX( a(lastN(fix<3>())), a.tail<3>() );
+  VERIFY( MATCH( a(lastN(3,2)), "5\n7\n9" ) );
+  VERIFY( MATCH( a(lastN(3,fix<2>())), "5\n7\n9" ) );
+  VERIFY( a(lastN(fix<3>())).SizeAtCompileTime == 3 );
+
   VERIFY( (A(all, std::array<int,4>{{1,3,2,4}})).ColsAtCompileTime == 4);
 
   VERIFY_IS_APPROX( (A(std::array<int,3>{{1,3,5}}, std::array<int,4>{{9,6,3,0}})), A(seqN(1,3,2), seqN(9,4,-3)) );

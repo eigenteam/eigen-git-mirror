@@ -225,7 +225,8 @@ auto seq(FirstType f, LastType l, IncrType incr)
                -typename internal::cleanup_index_type<FirstType>::type(f)+CleanedIncrType(incr)) / CleanedIncrType(incr),
               CleanedIncrType(incr));
 }
-#else
+
+#else // EIGEN_HAS_CXX11
 
 template<typename FirstType,typename LastType>
 typename internal::enable_if<!(Symbolic::is_symbolic<FirstType>::value || Symbolic::is_symbolic<LastType>::value),
@@ -314,9 +315,38 @@ seq(const Symbolic::BaseExpr<FirstTypeDerived> &f, const Symbolic::BaseExpr<Last
   typedef typename internal::cleanup_seq_incr<IncrType>::type CleanedIncrType;
   return seqN(f.derived(),(l.derived()-f.derived()+CleanedIncrType(incr))/CleanedIncrType(incr), incr);
 }
-#endif
+#endif // EIGEN_HAS_CXX11
 
 #endif // EIGEN_PARSED_BY_DOXYGEN
+
+
+#if EIGEN_HAS_CXX11
+/** \cpp11
+  * \returns a symbolic ArithmeticSequence representing the last \a size elements with increment \a incr.
+  *
+  * It is a shortcut for: \code seqN(last-(size-fix<1>)*incr, size, incr) \endcode
+  * 
+  * \sa lastN(SizeType), seqN(FirstType,SizeType), seq(FirstType,LastType,IncrType) */
+template<typename SizeType,typename IncrType>
+auto lastN(SizeType size, IncrType incr)
+-> decltype(seqN(Eigen::placeholders::last-(size-fix<1>())*incr, size, incr))
+{
+  return seqN(Eigen::placeholders::last-(size-fix<1>())*incr, size, incr);
+}
+
+/** \cpp11
+  * \returns a symbolic ArithmeticSequence representing the last \a size elements with a unit increment.
+  *
+  *  It is a shortcut for: \code seq(last+fix<1>-size, last) \endcode
+  * 
+  * \sa lastN(SizeType,IncrType, seqN(FirstType,SizeType), seq(FirstType,LastType) */
+template<typename SizeType>
+auto lastN(SizeType size)
+-> decltype(seqN(Eigen::placeholders::last+fix<1>()-size, size))
+{
+  return seqN(Eigen::placeholders::last+fix<1>()-size, size);
+}
+#endif
 
 namespace internal {
 
