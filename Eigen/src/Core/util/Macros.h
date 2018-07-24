@@ -518,6 +518,8 @@
 #endif
 
 // Does the compiler support C99?
+// Need to include <cmath> to make sure _GLIBCXX_USE_C99 gets defined
+#include <cmath>
 #ifndef EIGEN_HAS_C99_MATH
 #if EIGEN_MAX_CPP_VER>=11 && \
     ((defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 199901))       \
