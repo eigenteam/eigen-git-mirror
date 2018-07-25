@@ -290,6 +290,22 @@ struct DSizes : array<DenseIndex, NumDims> {
     }
   }
 
+#ifndef EIGEN_EMULATE_CXX11_META_H
+  template <typename std::ptrdiff_t... Indices>
+  EIGEN_DEVICE_FUNC DSizes(const Sizes<Indices...>& a) {
+    for (int i = 0 ; i < NumDims; ++i) {
+      (*this)[i] = a[i];
+    }
+  }
+#else
+  template <std::size_t V1, std::size_t V2, std::size_t V3, std::size_t V4, std::size_t V5>
+  EIGEN_DEVICE_FUNC DSizes(const Sizes<V1, V2, V3, V4, V5>& a) {
+    for (int i = 0 ; i < NumDims; ++i) {
+      (*this)[i] = a[i];
+    }
+  }
+#endif
+
 #if EIGEN_HAS_VARIADIC_TEMPLATES
   template<typename... IndexTypes> EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE explicit DSizes(DenseIndex firstDimension, DenseIndex secondDimension, IndexTypes... otherDimensions) : Base({{firstDimension, secondDimension, otherDimensions...}}) {

@@ -901,7 +901,7 @@ static void test_empty_dims(const internal::TensorBlockShapeType block_shape)
   CALL_SUBTEST(NAME<ColMajor>(ARG)); \
   CALL_SUBTEST(NAME<RowMajor>(ARG))
 
-EIGEN_DECLARE_TEST(cxx11_tensor_assign) {
+EIGEN_DECLARE_TEST(cxx11_tensor_block_access) {
   CALL_SUBTEST_LAYOUTS(test_block_mapper_sanity);
   CALL_SUBTEST_LAYOUTS(test_block_mapper_maps_every_element);
   CALL_SUBTEST_LAYOUTS(test_slice_block_mapper_maps_every_element);

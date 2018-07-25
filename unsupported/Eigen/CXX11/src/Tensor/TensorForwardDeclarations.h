@@ -129,8 +129,14 @@ struct IsVectorizable<GpuDevice, Expression> {
                             TensorEvaluator<Expression, GpuDevice>::IsAligned;
 };
 
+template <typename Device, typename Expression>
+struct IsTileable {
+  static const bool value = TensorEvaluator<Expression, Device>::BlockAccess;
+};
+
 template <typename Expression, typename Device,
-          bool Vectorizable = IsVectorizable<Device, Expression>::value>
+          bool Vectorizable = IsVectorizable<Device, Expression>::value,
+          bool Tileable = IsTileable<Device, Expression>::value>
 class TensorExecutor;
 
 }  // end namespace internal

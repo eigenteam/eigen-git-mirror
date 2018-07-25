@@ -65,6 +65,40 @@ enum class TensorBlockShapeType {
   kSkewedInnerDims,
 };
 
+struct TensorOpResourceRequirements {
+  TensorBlockShapeType block_shape;
+  std::size_t block_total_size;
+  // TODO(andydavis) Add 'target_num_threads' to support communication of
+  // thread-resource requirements. This will allow ops deep in the
+  // expression tree (like reductions) to communicate resources
+  // requirements based on local state (like the total number of reductions
+  // to be computed).
+  TensorOpResourceRequirements(internal::TensorBlockShapeType shape,
+                               const std::size_t size)
+      : block_shape(shape), block_total_size(size) {}
+};
+
+// Tries to merge multiple resource requirements.
+EIGEN_STRONG_INLINE void MergeResourceRequirements(
+    const std::vector<TensorOpResourceRequirements>& resources,
+    TensorBlockShapeType* block_shape, std::size_t* block_total_size) {
+  if (resources.empty()) {
+    return;
+  }
+  // TODO(andydavis) Implement different policies (i.e. revert to a default
+  // policy if block shapes/sizes conflict).
+  *block_shape = resources[0].block_shape;
+  *block_total_size = resources[0].block_total_size;
+  for (int i = 1; i < resources.size(); ++i) {
+    if (resources[i].block_shape == TensorBlockShapeType::kSkewedInnerDims &&
+        *block_shape != TensorBlockShapeType::kSkewedInnerDims) {
+      *block_shape = TensorBlockShapeType::kSkewedInnerDims;
+    }
+    *block_total_size =
+        numext::maxi(*block_total_size, resources[i].block_total_size);
+  }
+}
+
 /**
  * \class TensorBlock
  * \ingroup CXX11_Tensor_Module
@@ -74,7 +108,7 @@ enum class TensorBlockShapeType {
  * This class represents a tensor block specified by the index of the
  * first block coefficient, and the size of the block in each dimension.
  */
-template <typename Scalar, typename Index, std::size_t NumDims, int Layout>
+template <typename Scalar, typename Index, int NumDims, int Layout>
 class TensorBlock {
  public:
   typedef DSizes<Index, NumDims> Dimensions;
@@ -612,6 +646,83 @@ struct TensorBlockCwiseBinaryIO {
       }
     }
   }
+};
+
+/**
+ * \class TensorBlockView
+ * \ingroup CXX11_Tensor_Module
+ *
+ * \brief Read-only view into a block of data.
+ *
+ * This class provides read-only access to a block of data in impl. It may need
+ * to allocate space for holding the intermediate result.
+ *
+ */
+template <class ArgType, class Device>
+struct TensorBlockView {
+  typedef TensorEvaluator<ArgType, Device> Impl;
+  typedef typename Impl::Index Index;
+  typedef typename remove_const<typename Impl::Scalar>::type Scalar;
+  static const int NumDims = array_size<typename Impl::Dimensions>::value;
+  typedef DSizes<Index, NumDims> Dimensions;
+
+  // Constructs a TensorBlockView for `impl`. `block` is only used for for
+  // specifying the start offset, shape, and strides of the block.
+  template <typename OtherTensorBlock>
+  TensorBlockView(const Device& device,
+                  const TensorEvaluator<ArgType, Device>& impl,
+                  const OtherTensorBlock& block)
+      : m_device(device),
+        m_block_sizes(block.block_sizes()),
+        m_data(NULL),
+        m_allocated_data(NULL) {
+    if (Impl::RawAccess && impl.data() != NULL) {
+      m_data = impl.data() + block.first_coeff_index();
+      m_block_strides = block.tensor_strides();
+    } else {
+      // Actually make a copy.
+
+      // TODO(wuke): This sometimes put a lot pressure on the heap allocator.
+      // Consider allowing ops to request additional temporary block memory in
+      // TensorOpResourceRequirements.
+      m_allocated_data = static_cast<Scalar*>(
+          m_device.allocate(m_block_sizes.TotalSize() * sizeof(Scalar)));
+      m_data = m_allocated_data;
+      if (NumDims > 0) {
+        if (static_cast<int>(Impl::Layout) == static_cast<int>(ColMajor)) {
+          m_block_strides[0] = 1;
+          for (int i = 1; i < NumDims; ++i) {
+            m_block_strides[i] = m_block_strides[i - 1] * m_block_sizes[i - 1];
+          }
+        } else {
+          m_block_strides[NumDims - 1] = 1;
+          for (int i = NumDims - 2; i >= 0; --i) {
+            m_block_strides[i] = m_block_strides[i + 1] * m_block_sizes[i + 1];
+          }
+        }
+      }
+      TensorBlock<Scalar, Index, NumDims, Impl::Layout> input_block(
+          block.first_coeff_index(), m_block_sizes, m_block_strides,
+          block.tensor_strides(), m_allocated_data);
+      impl.block(&input_block);
+    }
+  }
+
+  ~TensorBlockView() {
+    if (m_allocated_data != NULL) {
+      m_device.deallocate(m_allocated_data);
+    }
+  }
+
+  const Dimensions& block_sizes() const { return m_block_sizes; }
+  const Dimensions& block_strides() const { return m_block_strides; }
+  const Scalar* data() const { return m_data; }
+
+ private:
+  const Device& m_device;
+  Dimensions m_block_sizes, m_block_strides;
+  const Scalar* m_data;      // Not owned.
+  Scalar* m_allocated_data;  // Owned.
 };
 
 /**
