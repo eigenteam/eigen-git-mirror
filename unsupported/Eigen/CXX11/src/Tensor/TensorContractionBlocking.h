@@ -21,12 +21,9 @@ enum {
 
 
 // Default Blocking Strategy
-template <typename LhsMapper, typename RhsMapper, typename Index, int ShardingType=ShardByCol>
+template <typename LhsScalar, typename RhsScalar, typename Index, int ShardingType=ShardByCol>
 class TensorContractionBlocking {
  public:
-
-  typedef typename LhsMapper::Scalar LhsScalar;
-  typedef typename RhsMapper::Scalar RhsScalar;
 
  /*
    adding EIGEN_DEVICE_FUNC unconditionally to 'TensorContractionBlocking' constructor in `TensorContractionBlocking.h`
@@ -41,7 +38,7 @@ class TensorContractionBlocking {
    ../Eigen/src/Core/products/GeneralBlockPanelKernel.h(57): error #2901:
       dynamic initialization is not supported for function-scope static variables within a __device__/__global__ function
  */
- 
+
   #if !defined(EIGEN_HIPCC)
   EIGEN_DEVICE_FUNC
   #endif

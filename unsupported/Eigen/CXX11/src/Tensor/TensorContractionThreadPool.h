@@ -71,8 +71,7 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
   TensorEvaluator(const XprType& op, const Device& device) :
       Base(op, device) {}
 
-  template <bool lhs_inner_dim_contiguous, bool rhs_inner_dim_contiguous,
-            bool rhs_inner_dim_reordered, int Alignment>
+  template <int Alignment>
   void evalProduct(Scalar* buffer) const {
     const Index m = this->m_i_size;
     const Index n = this->m_j_size;
@@ -95,39 +94,6 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
       return;
     }
 #endif
-
-    typedef
-        typename internal::remove_const<typename EvalLeftArgType::Scalar>::type
-            LhsScalar;
-    typedef
-        typename internal::remove_const<typename EvalRightArgType::Scalar>::type
-            RhsScalar;
-    typedef typename internal::gebp_traits<LhsScalar, RhsScalar> Traits;
-    typedef TensorEvaluator<EvalLeftArgType, Device> LeftEvaluator;
-    typedef TensorEvaluator<EvalRightArgType, Device> RightEvaluator;
-    typedef internal::TensorContractionInputMapper<
-        LhsScalar, Index, internal::Lhs, LeftEvaluator, left_nocontract_t,
-        contract_t, internal::packet_traits<LhsScalar>::size,
-        lhs_inner_dim_contiguous, false, Unaligned>
-        LhsMapper;
-    typedef internal::TensorContractionInputMapper<
-        RhsScalar, Index, internal::Rhs, RightEvaluator, right_nocontract_t,
-        contract_t, internal::packet_traits<RhsScalar>::size,
-        rhs_inner_dim_contiguous, rhs_inner_dim_reordered, Unaligned>
-        RhsMapper;
-    typedef internal::blas_data_mapper<Scalar, Index, ColMajor> OutputMapper;
-    typedef internal::gemm_pack_lhs<LhsScalar, Index,
-                                    typename LhsMapper::SubMapper, Traits::mr,
-                                    Traits::LhsProgress, ColMajor>
-        LhsPacker;
-    typedef internal::gemm_pack_rhs<
-        RhsScalar, Index, typename RhsMapper::SubMapper, Traits::nr, ColMajor>
-        RhsPacker;
-    typedef internal::gebp_kernel<LhsScalar, RhsScalar, Index, OutputMapper,
-                                  Traits::mr, Traits::nr, false, false>
-        GebpKernel;
-
-
 
     // Compute a set of algorithm parameters:
     // - kernel block sizes (bm, bn, bk)
@@ -158,14 +124,14 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
     // Again, we don't know number of threads yet, so we use 2.
     Index bm, bn, bk;
     if (shard_by_col) {
-      internal::TensorContractionBlocking<LhsMapper, RhsMapper, Index,
+      internal::TensorContractionBlocking<LhsScalar, RhsScalar, Index,
                                           internal::ShardByCol>
           blocking(k, m, n, 2);
       bm = blocking.mc();
       bn = blocking.nc();
       bk = blocking.kc();
     } else {
-      internal::TensorContractionBlocking<LhsMapper, RhsMapper, Index,
+      internal::TensorContractionBlocking<LhsScalar, RhsScalar, Index,
                                           internal::ShardByRow>
           blocking(k, m, n, 2);
       bm = blocking.mc();
@@ -187,29 +153,22 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
     if (n == 1) num_threads = 1;
 
     if (num_threads == 1) {
-      // The single-threaded algorithm should be faster in this case.
-      if (n == 1)
-        this->template evalGemv<lhs_inner_dim_contiguous,
-                                rhs_inner_dim_contiguous,
-                                rhs_inner_dim_reordered, Alignment>(buffer);
-      else
-        this->template evalGemm<lhs_inner_dim_contiguous,
-                                rhs_inner_dim_contiguous,
-                                rhs_inner_dim_reordered, Alignment>(buffer);
+      TENSOR_CONTRACTION_DISPATCH(this->template evalProductSequential,
+                                  Unaligned, (buffer));
       return;
     }
 
     // Now that we know number of threads, recalculate sharding and blocking.
     shard_by_col = shardByCol(m, n, num_threads);
     if (shard_by_col) {
-      internal::TensorContractionBlocking<LhsMapper, RhsMapper, Index,
+      internal::TensorContractionBlocking<LhsScalar, RhsScalar, Index,
                                           internal::ShardByCol>
           blocking(k, m, n, num_threads);
       bm = blocking.mc();
       bn = blocking.nc();
       bk = blocking.kc();
     } else {
-      internal::TensorContractionBlocking<LhsMapper, RhsMapper, Index,
+      internal::TensorContractionBlocking<LhsScalar, RhsScalar, Index,
                                           internal::ShardByRow>
           blocking(k, m, n, num_threads);
       bm = blocking.mc();
@@ -257,34 +216,55 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
     // more important in this case.
     if ((shard_by_col ? nm : nn) == 1) parallel_pack = false;
 
-    LhsMapper lhs(this->m_leftImpl, this->m_left_nocontract_strides,
-                  this->m_i_strides, this->m_left_contracting_strides,
-                  this->m_k_strides);
+    #define CONTEXT_ARGS                                                        \
+  (this, num_threads, buffer, m, n, k, bm, bn, bk, nm, nn, nk, gm, gn, nm0, \
+   nn0, shard_by_col, parallel_pack)                                        \
+      .run()
 
-    RhsMapper rhs(this->m_rightImpl, this->m_right_nocontract_strides,
-                  this->m_j_strides, this->m_right_contracting_strides,
-                  this->m_k_strides);
+    TENSOR_CONTRACTION_DISPATCH(Context, Alignment, CONTEXT_ARGS);
 
-    Context<LhsPacker, RhsPacker, GebpKernel, LhsMapper, RhsMapper,
-            OutputMapper>(this, num_threads, lhs, rhs, buffer, m, n,
-                          k, bm, bn, bk, nm, nn, nk, gm, gn, nm0, nn0,
-                          shard_by_col, parallel_pack)
-        .run();
+#undef CONTEXT_ARGS
+
   }
 
   // Context coordinates a single parallel gemm operation.
-  template <typename LhsPacker, typename RhsPacker, typename GebpKernel,
-            typename LhsMapper, typename RhsMapper, typename OutputMapper>
+ template <bool lhs_inner_dim_contiguous, bool rhs_inner_dim_contiguous,
+            bool rhs_inner_dim_reordered, int Alignment>
   class Context {
    public:
-    Context(const Self* self, int num_threads, LhsMapper& lhs,
-            RhsMapper& rhs, Scalar* buffer, Index tm, Index tn, Index tk, Index bm,
-            Index bn, Index bk, Index nm, Index nn, Index nk, Index gm,
-            Index gn, Index nm0, Index nn0, bool shard_by_col,
+    typedef internal::TensorContractionInputMapper<
+        LhsScalar, Index, internal::Lhs, LeftEvaluator, left_nocontract_t,
+        contract_t, internal::packet_traits<LhsScalar>::size,
+        lhs_inner_dim_contiguous, false, Unaligned>
+        LhsMapper;
+    typedef internal::TensorContractionInputMapper<
+        RhsScalar, Index, internal::Rhs, RightEvaluator, right_nocontract_t,
+        contract_t, internal::packet_traits<RhsScalar>::size,
+        rhs_inner_dim_contiguous, rhs_inner_dim_reordered, Unaligned>
+        RhsMapper;
+    typedef internal::gemm_pack_lhs<LhsScalar, Index,
+                                    typename LhsMapper::SubMapper, Traits::mr,
+                                    Traits::LhsProgress, ColMajor>
+        LhsPacker;
+    typedef internal::gemm_pack_rhs<
+        RhsScalar, Index, typename RhsMapper::SubMapper, Traits::nr, ColMajor>
+        RhsPacker;
+    typedef internal::blas_data_mapper<Scalar, Index, ColMajor> OutputMapper;
+    typedef internal::gebp_kernel<LhsScalar, RhsScalar, Index, OutputMapper,
+                                  Traits::mr, Traits::nr, false, false>
+        GebpKernel;
+
+    Context(const Self* self, int num_threads, Scalar* buffer, Index tm, Index tn,
+            Index tk, Index bm, Index bn, Index bk, Index nm, Index nn, Index nk,
+            Index gm, Index gn, Index nm0, Index nn0, bool shard_by_col,
             bool parallel_pack)
         : device_(self->m_device),
-          lhs_(lhs),
-          rhs_(rhs),
+          lhs_(self->m_leftImpl, self->m_left_nocontract_strides,
+               self->m_i_strides, self->m_left_contracting_strides,
+               self->m_k_strides),
+          rhs_(self->m_rightImpl, self->m_right_nocontract_strides,
+               self->m_j_strides, self->m_right_contracting_strides,
+               self->m_k_strides),
           buffer_(buffer),
           output_(buffer, tm),
           output_kernel_(self->m_output_kernel),
@@ -376,8 +356,8 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
    private:
     Notification done_;
     const Device& device_;
-    LhsMapper& lhs_;
-    RhsMapper& rhs_;
+    LhsMapper lhs_;
+    RhsMapper rhs_;
     Scalar* const buffer_;
     OutputMapper output_;
     OutputKernelType output_kernel_;
