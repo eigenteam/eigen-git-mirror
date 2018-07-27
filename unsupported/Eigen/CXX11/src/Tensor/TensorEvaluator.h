@@ -51,12 +51,10 @@ struct TensorEvaluator
       typename internal::remove_const<Scalar>::type, Index, NumCoords, Layout>
       TensorBlock;
   typedef typename internal::TensorBlockReader<
-      typename internal::remove_const<Scalar>::type, Index, NumCoords, Layout,
-      PacketAccess>
+      typename internal::remove_const<Scalar>::type, Index, NumCoords, Layout>
       TensorBlockReader;
   typedef typename internal::TensorBlockWriter<
-      typename internal::remove_const<Scalar>::type, Index, NumCoords, Layout,
-      PacketAccess>
+      typename internal::remove_const<Scalar>::type, Index, NumCoords, Layout>
       TensorBlockWriter;
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const Derived& m, const Device& device)
@@ -204,8 +202,7 @@ struct TensorEvaluator<const Derived, Device>
       typename internal::remove_const<Scalar>::type, Index, NumCoords, Layout>
       TensorBlock;
   typedef typename internal::TensorBlockReader<
-      typename internal::remove_const<Scalar>::type, Index, NumCoords, Layout,
-      PacketAccess>
+      typename internal::remove_const<Scalar>::type, Index, NumCoords, Layout>
       TensorBlockReader;
 
   // Used for accessor extraction in SYCL Managed TensorMap:

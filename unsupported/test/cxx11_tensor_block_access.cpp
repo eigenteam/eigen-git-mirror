@@ -37,6 +37,31 @@ static std::size_t RandomTargetSize(const DSizes<Index, NumDims>& dims) {
   return internal::random<int>(1, dims.TotalSize());
 }
 
+template <int NumDims>
+static DSizes<Index, NumDims> RandomDims() {
+  array<Index, NumDims> dims;
+  for (int i = 0; i < NumDims; ++i) {
+    dims[i] = internal::random<int>(1, 20);
+  }
+  return DSizes<Index, NumDims>(dims);
+};
+
+/** Dummy data type to test TensorBlock copy ops. */
+struct Data {
+  Data() : Data(0) {}
+  explicit Data(int v) { value = v; }
+  int value;
+};
+
+bool operator==(const Data& lhs, const Data& rhs) {
+  return lhs.value == rhs.value;
+}
+
+std::ostream& operator<<(std::ostream& os, const Data& d) {
+  os << "Data: value=" << d.value;
+  return os;
+}
+
 template <typename T>
 static T* GenerateRandomData(const Index& size) {
   T* data = new T[size];
@@ -44,6 +69,23 @@ static T* GenerateRandomData(const Index& size) {
     data[i] = internal::random<T>();
   }
   return data;
+}
+
+template <>
+Data* GenerateRandomData(const Index& size) {
+  Data* data = new Data[size];
+  for (int i = 0; i < size; ++i) {
+    data[i] = Data(internal::random<int>(1, 100));
+  }
+  return data;
+}
+
+template <int NumDims>
+static void Debug(DSizes<Index, NumDims> dims) {
+  for (int i = 0; i < NumDims; ++i) {
+    std::cout << dims[i] << "; ";
+  }
+  std::cout << std::endl;
 }
 
 template <int Layout>
@@ -96,7 +138,7 @@ static void test_block_mapper_sanity()
 // index in the visited set. Verify that every coeff accessed only once.
 template <typename T, int Layout, int NumDims>
 static void UpdateCoeffSet(
-    const internal::TensorBlock<T, Index, 4, Layout>& block,
+    const internal::TensorBlock<T, Index, NumDims, Layout>& block,
     Index first_coeff_index, int dim_index, std::set<Index>* visited_coeffs) {
   const DSizes<Index, NumDims> block_sizes = block.block_sizes();
   const DSizes<Index, NumDims> tensor_strides = block.tensor_strides();
@@ -114,14 +156,13 @@ static void UpdateCoeffSet(
   }
 }
 
-template <int Layout>
-static void test_block_mapper_maps_every_element()
-{
-  using T = int;
-  using TensorBlock = internal::TensorBlock<T, Index, 4, Layout>;
-  using TensorBlockMapper = internal::TensorBlockMapper<T, Index, 4, Layout>;
+template <typename T, int NumDims, int Layout>
+static void test_block_mapper_maps_every_element() {
+  using TensorBlock = internal::TensorBlock<T, Index, NumDims, Layout>;
+  using TensorBlockMapper =
+      internal::TensorBlockMapper<T, Index, NumDims, Layout>;
 
-  DSizes<Index, 4> dims(5, 7, 11, 17);
+  DSizes<Index, NumDims> dims = RandomDims<NumDims>();
 
   // Keep track of elements indices available via block access.
   std::set<Index> coeff_set;
@@ -131,29 +172,36 @@ static void test_block_mapper_maps_every_element()
 
   for (int i = 0; i < block_mapper.total_block_count(); ++i) {
     TensorBlock block = block_mapper.GetBlockForIndex(i, nullptr);
-    UpdateCoeffSet<T, Layout, 4>(block, block.first_coeff_index(),
-                                 choose(Layout, 3, 0), &coeff_set);
+    UpdateCoeffSet<T, Layout, NumDims>(block, block.first_coeff_index(),
+                                       choose(Layout, NumDims - 1, 0),
+                                       &coeff_set);
   }
 
   // Verify that every coefficient in the original Tensor is accessible through
   // TensorBlock only once.
-  auto total_coeffs = static_cast<int>(dims.TotalSize());
+  Index total_coeffs = dims.TotalSize();
   VERIFY_IS_EQUAL(coeff_set.size(), total_coeffs);
-  VERIFY_IS_EQUAL(*coeff_set.begin(), static_cast<Index>(0));
-  VERIFY_IS_EQUAL(*coeff_set.rbegin(), static_cast<Index>(total_coeffs - 1));
+  VERIFY_IS_EQUAL(*coeff_set.begin(), 0);
+  VERIFY_IS_EQUAL(*coeff_set.rbegin(), total_coeffs - 1);
 }
 
-template <int Layout>
-static void test_slice_block_mapper_maps_every_element()
-{
-  using T = int;
-  using TensorBlock = internal::TensorBlock<T, Index, 4, Layout>;
+template <typename T, int NumDims, int Layout>
+static void test_slice_block_mapper_maps_every_element() {
+  using TensorBlock = internal::TensorBlock<T, Index, NumDims, Layout>;
   using TensorSliceBlockMapper =
-      internal::TensorSliceBlockMapper<T, Index, 4, Layout>;
+      internal::TensorSliceBlockMapper<T, Index, NumDims, Layout>;
 
-  DSizes<Index, 4> tensor_dims(5,7,11,17);
-  DSizes<Index, 4> tensor_slice_offsets(1,3,5,7);
-  DSizes<Index, 4> tensor_slice_extents(3,2,4,5);
+  DSizes<Index, NumDims> tensor_dims = RandomDims<NumDims>();
+  DSizes<Index, NumDims> tensor_slice_offsets = RandomDims<NumDims>();
+  DSizes<Index, NumDims> tensor_slice_extents = RandomDims<NumDims>();
+
+  // Make sure that tensor offsets + extents do not overflow.
+  for (int i = 0; i < NumDims; ++i) {
+    tensor_slice_offsets[i] =
+        numext::mini(tensor_dims[i] - 1, tensor_slice_offsets[i]);
+    tensor_slice_extents[i] = numext::mini(
+        tensor_slice_extents[i], tensor_dims[i] - tensor_slice_offsets[i]);
+  }
 
   // Keep track of elements indices available via block access.
   std::set<Index> coeff_set;
@@ -161,61 +209,59 @@ static void test_slice_block_mapper_maps_every_element()
   auto total_coeffs = static_cast<int>(tensor_slice_extents.TotalSize());
 
   // Pick a random dimension sizes for the tensor blocks.
-  DSizes<Index, 4> block_sizes;
-  for (int i = 0; i < 4; ++i) {
+  DSizes<Index, NumDims> block_sizes;
+  for (int i = 0; i < NumDims; ++i) {
     block_sizes[i] = internal::random<int>(1, tensor_slice_extents[i]);
   }
 
   TensorSliceBlockMapper block_mapper(tensor_dims, tensor_slice_offsets,
                                       tensor_slice_extents, block_sizes,
-                                      DimensionList<Index, 4>());
+                                      DimensionList<Index, NumDims>());
 
   for (int i = 0; i < block_mapper.total_block_count(); ++i) {
     TensorBlock block = block_mapper.GetBlockForIndex(i, nullptr);
-    UpdateCoeffSet<T, Layout, 4>(block, block.first_coeff_index(),
-                                 choose(Layout, 3, 0), &coeff_set);
+    UpdateCoeffSet<T, Layout, NumDims>(block, block.first_coeff_index(),
+                                       choose(Layout, NumDims - 1, 0),
+                                       &coeff_set);
   }
 
   VERIFY_IS_EQUAL(coeff_set.size(), total_coeffs);
 }
 
-template <int Layout>
-static void test_block_io_copy_data_from_source_to_target()
-{
-  using T = float;
+template <typename T, int NumDims, int Layout>
+static void test_block_io_copy_data_from_source_to_target() {
+  typedef internal::TensorBlock<T, Index, NumDims, Layout> TensorBlock;
+  typedef internal::TensorBlockMapper<T, Index, NumDims, Layout>
+      TensorBlockMapper;
 
-  typedef internal::TensorBlock<T, Index, 5, Layout> TensorBlock;
-  typedef internal::TensorBlockMapper<T, Index, 5, Layout> TensorBlockMapper;
-
-  typedef internal::TensorBlockReader<T, Index, 5, Layout, true>
+  typedef internal::TensorBlockReader<T, Index, NumDims, Layout>
       TensorBlockReader;
-  typedef internal::TensorBlockWriter<T, Index, 5, Layout, true>
+  typedef internal::TensorBlockWriter<T, Index, NumDims, Layout>
       TensorBlockWriter;
 
-  typedef std::vector<T, aligned_allocator<T>> DataVector;
-
-  DSizes<Index, 5> input_tensor_dims(5, 7, 11, 17, 3);
+  DSizes<Index, NumDims> input_tensor_dims = RandomDims<NumDims>();
   const auto input_tensor_size = input_tensor_dims.TotalSize();
-  DataVector input_data(input_tensor_size, 0);
-  for (int i = 0; i < input_tensor_size; ++i) {
-    input_data[i] = internal::random<T>();
-  }
 
-  DataVector output_data(input_tensor_size, 0);
+  T* input_data = GenerateRandomData<T>(input_tensor_size);
+  T* output_data = new T[input_tensor_size];
 
   TensorBlockMapper block_mapper(input_tensor_dims, RandomShape(),
                                  RandomTargetSize(input_tensor_dims));
+  T* block_data = new T[block_mapper.block_dims_total_size()];
 
-  DataVector block_data(block_mapper.block_dims_total_size(), 0);
   for (int i = 0; i < block_mapper.total_block_count(); ++i) {
-    TensorBlock block = block_mapper.GetBlockForIndex(i, block_data.data());
-    TensorBlockReader::Run(&block, input_data.data());
-    TensorBlockWriter::Run(block, output_data.data());
+    TensorBlock block = block_mapper.GetBlockForIndex(i, block_data);
+    TensorBlockReader::Run(&block, input_data);
+    TensorBlockWriter::Run(block, output_data);
   }
 
   for (int i = 0; i < input_tensor_size; ++i) {
     VERIFY_IS_EQUAL(input_data[i], output_data[i]);
   }
+
+  delete[] input_data;
+  delete[] output_data;
+  delete[] block_data;
 }
 
 template <int Layout, int NumDims>
@@ -261,31 +307,32 @@ static array<Index, NumDims> ComputeStrides(
   return strides;
 }
 
-template <int Layout>
+template <typename T, int NumDims, int Layout>
 static void test_block_io_copy_using_reordered_dimensions() {
-  typedef internal::TensorBlock<float, Index, 5, Layout> TensorBlock;
-  typedef internal::TensorBlockMapper<float, Index, 5, Layout>
+  typedef internal::TensorBlock<T, Index, NumDims, Layout> TensorBlock;
+  typedef internal::TensorBlockMapper<T, Index, NumDims, Layout>
       TensorBlockMapper;
 
-  typedef internal::TensorBlockReader<float, Index, 5, Layout, false>
+  typedef internal::TensorBlockReader<T, Index, NumDims, Layout>
       TensorBlockReader;
-  typedef internal::TensorBlockWriter<float, Index, 5, Layout, false>
+  typedef internal::TensorBlockWriter<T, Index, NumDims, Layout>
       TensorBlockWriter;
 
-  DSizes<Index, 5> input_tensor_dims(5, 7, 11, 17, 3);
+  DSizes<Index, NumDims> input_tensor_dims = RandomDims<NumDims>();
   const auto input_tensor_size = input_tensor_dims.TotalSize();
 
   // Create a random input tensor.
-  auto* input_data = GenerateRandomData<float>(input_tensor_size);
+  T* input_data = GenerateRandomData<T>(input_tensor_size);
 
   // Create a random dimension re-ordering/shuffle.
-  std::vector<Index> shuffle = {0, 1, 2, 3, 4};
+  std::vector<Index> shuffle;
+  for (int i = 0; i < NumDims; ++i) shuffle.push_back(i);
   std::shuffle(shuffle.begin(), shuffle.end(), std::mt19937());
 
-  DSizes<Index, 5> output_tensor_dims;
-  array<Index, 5> input_to_output_dim_map;
-  array<Index, 5> output_to_input_dim_map;
-  for (Index i = 0; i < 5; ++i) {
+  DSizes<Index, NumDims> output_tensor_dims;
+  array<Index, NumDims> input_to_output_dim_map;
+  array<Index, NumDims> output_to_input_dim_map;
+  for (Index i = 0; i < NumDims; ++i) {
     output_tensor_dims[shuffle[i]] = input_tensor_dims[i];
     input_to_output_dim_map[i] = shuffle[i];
     output_to_input_dim_map[shuffle[i]] = i;
@@ -295,17 +342,17 @@ static void test_block_io_copy_using_reordered_dimensions() {
   TensorBlockMapper block_mapper(output_tensor_dims, RandomShape(),
                                  RandomTargetSize(input_tensor_dims));
 
-  auto* block_data = new float[block_mapper.block_dims_total_size()];
-  auto* output_data = new float[input_tensor_size];
+  auto* block_data = new T[block_mapper.block_dims_total_size()];
+  auto* output_data = new T[input_tensor_size];
 
-  array<Index, 5> input_tensor_strides =
-      ComputeStrides<Layout, 5>(input_tensor_dims);
-  array<Index, 5> output_tensor_strides =
-      ComputeStrides<Layout, 5>(output_tensor_dims);
+  array<Index, NumDims> input_tensor_strides =
+      ComputeStrides<Layout, NumDims>(input_tensor_dims);
+  array<Index, NumDims> output_tensor_strides =
+      ComputeStrides<Layout, NumDims>(output_tensor_dims);
 
   for (Index i = 0; i < block_mapper.total_block_count(); ++i) {
     TensorBlock block = block_mapper.GetBlockForIndex(i, block_data);
-    const Index first_coeff_index = GetInputIndex<Layout, 5>(
+    const Index first_coeff_index = GetInputIndex<Layout, NumDims>(
         block.first_coeff_index(), output_to_input_dim_map,
         input_tensor_strides, output_tensor_strides);
     TensorBlockReader::Run(&block, first_coeff_index, input_to_output_dim_map,
@@ -327,18 +374,21 @@ template <int Layout>
 static void test_block_io_zero_stride()
 {
   typedef internal::TensorBlock<float, Index, 5, Layout> TensorBlock;
-  typedef internal::TensorBlockReader<float, Index, 5, Layout, true>
+  typedef internal::TensorBlockReader<float, Index, 5, Layout>
       TensorBlockReader;
-  typedef internal::TensorBlockWriter<float, Index, 5, Layout, true>
+  typedef internal::TensorBlockWriter<float, Index, 5, Layout>
       TensorBlockWriter;
 
-  DSizes<Index, 5> input_tensor_dims(1, 2, 1, 3, 1);
-  const auto input_tensor_size = input_tensor_dims.TotalSize();
+  DSizes<Index, 5> rnd_dims = RandomDims<5>();
 
-  // Create a random input tensor.
+  DSizes<Index, 5> input_tensor_dims = rnd_dims;
+  input_tensor_dims[0] = 1;
+  input_tensor_dims[2] = 1;
+  input_tensor_dims[4] = 1;
+  const auto input_tensor_size = input_tensor_dims.TotalSize();
   auto* input_data = GenerateRandomData<float>(input_tensor_size);
 
-  DSizes<Index, 5> output_tensor_dims(3, 2, 3, 3, 2);
+  DSizes<Index, 5> output_tensor_dims = rnd_dims;
 
   DSizes<Index, 5> input_tensor_strides(
       ComputeStrides<Layout, 5>(input_tensor_dims));
@@ -401,9 +451,9 @@ static void test_block_io_zero_stride()
 template <int Layout>
 static void test_block_io_squeeze_ones() {
   typedef internal::TensorBlock<float, Index, 5, Layout> TensorBlock;
-  typedef internal::TensorBlockReader<float, Index, 5, Layout, true>
+  typedef internal::TensorBlockReader<float, Index, 5, Layout>
       TensorBlockReader;
-  typedef internal::TensorBlockWriter<float, Index, 5, Layout, true>
+  typedef internal::TensorBlockWriter<float, Index, 5, Layout>
       TensorBlockWriter;
 
   // Total size > 1.
@@ -467,23 +517,23 @@ static void test_block_io_squeeze_ones() {
   }
 }
 
-template <int Layout>
+template <typename T, int NumDims, int Layout>
 static void test_block_cwise_binary_io_basic() {
-  typedef internal::scalar_sum_op<float> BinaryFunctor;
-  typedef internal::TensorBlockCwiseBinaryIO<BinaryFunctor, Index, float, 5,
+  typedef internal::scalar_sum_op<T> BinaryFunctor;
+  typedef internal::TensorBlockCwiseBinaryIO<BinaryFunctor, Index, T, NumDims,
                                              Layout>
       TensorBlockCwiseBinaryIO;
 
-  DSizes<Index, 5> block_sizes(2, 3, 5, 7, 11);
-  DSizes<Index, 5> strides(ComputeStrides<Layout, 5>(block_sizes));
+  DSizes<Index, NumDims> block_sizes = RandomDims<NumDims>();
+  DSizes<Index, NumDims> strides(ComputeStrides<Layout, NumDims>(block_sizes));
 
   const auto total_size = block_sizes.TotalSize();
 
   // Create a random input tensors.
-  auto* left_data = GenerateRandomData<float>(total_size);
-  auto* right_data = GenerateRandomData<float>(total_size);
+  T* left_data = GenerateRandomData<T>(total_size);
+  T* right_data = GenerateRandomData<T>(total_size);
 
-  auto* output_data = new float[total_size];
+  T* output_data = new T[total_size];
   BinaryFunctor functor;
   TensorBlockCwiseBinaryIO::Run(functor, block_sizes, strides, output_data,
                                 strides, left_data, strides, right_data);
@@ -532,13 +582,22 @@ static void test_block_cwise_binary_io_zero_strides() {
                                              Layout>
       TensorBlockCwiseBinaryIO;
 
-  DSizes<Index, 5> left_sizes(1, 3, 1, 7, 1);
+  DSizes<Index, 5> rnd_dims = RandomDims<5>();
+
+  DSizes<Index, 5> left_sizes = rnd_dims;
+  left_sizes[0] = 1;
+  left_sizes[2] = 1;
+  left_sizes[4] = 1;
+
   DSizes<Index, 5> left_strides(ComputeStrides<Layout, 5>(left_sizes));
   left_strides[0] = 0;
   left_strides[2] = 0;
   left_strides[4] = 0;
 
-  DSizes<Index, 5> right_sizes(2, 1, 5, 1, 11);
+  DSizes<Index, 5> right_sizes = rnd_dims;
+  right_sizes[1] = 0;
+  right_sizes[3] = 0;
+
   DSizes<Index, 5> right_strides(ComputeStrides<Layout, 5>(right_sizes));
   right_strides[1] = 0;
   right_strides[3] = 0;
@@ -547,7 +606,7 @@ static void test_block_cwise_binary_io_zero_strides() {
   auto* left_data = GenerateRandomData<float>(left_sizes.TotalSize());
   auto* right_data = GenerateRandomData<float>(right_sizes.TotalSize());
 
-  DSizes<Index, 5> output_sizes(2, 3, 5, 7, 11);
+  DSizes<Index, 5> output_sizes = rnd_dims;
   DSizes<Index, 5> output_strides(ComputeStrides<Layout, 5>(output_sizes));
 
   const auto output_total_size = output_sizes.TotalSize();
@@ -557,11 +616,11 @@ static void test_block_cwise_binary_io_zero_strides() {
   TensorBlockCwiseBinaryIO::Run(functor, output_sizes, output_strides,
                                 output_data, left_strides, left_data,
                                 right_strides, right_data);
-  for (int i = 0; i < 2; ++i) {
-    for (int j = 0; j < 3; ++j) {
-      for (int k = 0; k < 5; ++k) {
-        for (int l = 0; l < 7; ++l) {
-          for (int m = 0; m < 11; ++m) {
+  for (int i = 0; i < rnd_dims[0]; ++i) {
+    for (int j = 0; j < rnd_dims[1]; ++j) {
+      for (int k = 0; k < rnd_dims[2]; ++k) {
+        for (int l = 0; l < rnd_dims[3]; ++l) {
+          for (int m = 0; m < rnd_dims[4]; ++m) {
             Index output_index = i * output_strides[0] + j * output_strides[1] +
                                  k * output_strides[2] + l * output_strides[3] +
                                  m * output_strides[4];
@@ -893,31 +952,44 @@ static void test_empty_dims(const internal::TensorBlockShapeType block_shape)
   }
 }
 
-#define CALL_SUBTEST_LAYOUTS(NAME) \
+#define TEST_LAYOUTS(NAME) \
   CALL_SUBTEST(NAME<ColMajor>()); \
   CALL_SUBTEST(NAME<RowMajor>())
 
-#define CALL_SUBTEST_LAYOUTS_WITH_ARG(NAME, ARG) \
+#define TEST_LAYOUTS_AND_DIMS(TYPE, NAME)    \
+  CALL_SUBTEST((NAME<TYPE, 1, ColMajor>())); \
+  CALL_SUBTEST((NAME<TYPE, 1, RowMajor>())); \
+  CALL_SUBTEST((NAME<TYPE, 2, ColMajor>())); \
+  CALL_SUBTEST((NAME<TYPE, 2, RowMajor>())); \
+  CALL_SUBTEST((NAME<TYPE, 3, ColMajor>())); \
+  CALL_SUBTEST((NAME<TYPE, 3, RowMajor>())); \
+  CALL_SUBTEST((NAME<TYPE, 4, ColMajor>())); \
+  CALL_SUBTEST((NAME<TYPE, 4, RowMajor>())); \
+  CALL_SUBTEST((NAME<TYPE, 5, ColMajor>())); \
+  CALL_SUBTEST((NAME<TYPE, 5, RowMajor>()))
+
+#define TEST_LAYOUTS_WITH_ARG(NAME, ARG) \
   CALL_SUBTEST(NAME<ColMajor>(ARG)); \
   CALL_SUBTEST(NAME<RowMajor>(ARG))
 
 EIGEN_DECLARE_TEST(cxx11_tensor_block_access) {
-  CALL_SUBTEST_LAYOUTS(test_block_mapper_sanity);
-  CALL_SUBTEST_LAYOUTS(test_block_mapper_maps_every_element);
-  CALL_SUBTEST_LAYOUTS(test_slice_block_mapper_maps_every_element);
-  CALL_SUBTEST_LAYOUTS(test_block_io_copy_data_from_source_to_target);
-  CALL_SUBTEST_LAYOUTS(test_block_io_copy_using_reordered_dimensions);
-  CALL_SUBTEST_LAYOUTS(test_block_io_zero_stride);
-  CALL_SUBTEST_LAYOUTS(test_block_io_squeeze_ones);
-  CALL_SUBTEST_LAYOUTS(test_block_cwise_binary_io_basic);
-  CALL_SUBTEST_LAYOUTS(test_block_cwise_binary_io_squeeze_ones);
-  CALL_SUBTEST_LAYOUTS(test_block_cwise_binary_io_zero_strides);
-  CALL_SUBTEST_LAYOUTS(test_uniform_block_shape);
-  CALL_SUBTEST_LAYOUTS(test_skewed_inner_dim_block_shape);
-
-  CALL_SUBTEST_LAYOUTS_WITH_ARG(test_empty_dims, TensorBlockShapeType::kUniformAllDims);
-  CALL_SUBTEST_LAYOUTS_WITH_ARG(test_empty_dims, TensorBlockShapeType::kSkewedInnerDims);
+  TEST_LAYOUTS(test_block_mapper_sanity);
+  TEST_LAYOUTS_AND_DIMS(float, test_block_mapper_maps_every_element);
+  TEST_LAYOUTS_AND_DIMS(float, test_slice_block_mapper_maps_every_element);
+  TEST_LAYOUTS_AND_DIMS(float, test_block_io_copy_data_from_source_to_target);
+  TEST_LAYOUTS_AND_DIMS(Data, test_block_io_copy_data_from_source_to_target);
+  TEST_LAYOUTS_AND_DIMS(float, test_block_io_copy_using_reordered_dimensions);
+  TEST_LAYOUTS_AND_DIMS(Data, test_block_io_copy_using_reordered_dimensions);
+  TEST_LAYOUTS(test_block_io_zero_stride);
+  TEST_LAYOUTS(test_block_io_squeeze_ones);
+  TEST_LAYOUTS_AND_DIMS(float, test_block_cwise_binary_io_basic);
+  TEST_LAYOUTS(test_block_cwise_binary_io_squeeze_ones);
+  TEST_LAYOUTS(test_block_cwise_binary_io_zero_strides);
+  TEST_LAYOUTS(test_uniform_block_shape);
+  TEST_LAYOUTS(test_skewed_inner_dim_block_shape);
+  TEST_LAYOUTS_WITH_ARG(test_empty_dims, TensorBlockShapeType::kUniformAllDims);
+  TEST_LAYOUTS_WITH_ARG(test_empty_dims, TensorBlockShapeType::kSkewedInnerDims);
 }
 
-#undef CALL_SUBTEST_LAYOUTS
-#undef CALL_SUBTEST_LAYOUTS_WITH_ARG
+#undef TEST_LAYOUTS
+#undef TEST_LAYOUTS_WITH_ARG

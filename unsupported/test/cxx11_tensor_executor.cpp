@@ -13,7 +13,6 @@
 
 #include <Eigen/CXX11/Tensor>
 
-using Eigen::Index;
 using Eigen::Tensor;
 using Eigen::RowMajor;
 using Eigen::ColMajor;
@@ -25,9 +24,16 @@ template <typename Device, bool Vectorizable, bool Tileable, int Layout>
 static void test_execute_binary_expr(Device d) {
   // Pick a large enough tensor size to bypass small tensor block evaluation
   // optimization.
-  Tensor<float, 3> lhs(840, 390, 37);
-  Tensor<float, 3> rhs(840, 390, 37);
-  Tensor<float, 3> dst(840, 390, 37);
+  int d0 = internal::random<int>(100, 200);
+  int d1 = internal::random<int>(100, 200);
+  int d2 = internal::random<int>(100, 200);
+
+  static constexpr int Options = 0;
+  using IndexType = int;
+
+  Tensor<float, 3, Options, IndexType> lhs(d0, d1, d2);
+  Tensor<float, 3, Options, IndexType> rhs(d0, d1, d2);
+  Tensor<float, 3, Options, IndexType> dst(d0, d1, d2);
 
   lhs.setRandom();
   rhs.setRandom();
@@ -40,9 +46,9 @@ static void test_execute_binary_expr(Device d) {
 
   Executor::run(Assign(dst, expr), d);
 
-  for (int i = 0; i < 840; ++i) {
-    for (int j = 0; j < 390; ++j) {
-      for (int k = 0; k < 37; ++k) {
+  for (int i = 0; i < d0; ++i) {
+    for (int j = 0; j < d1; ++j) {
+      for (int k = 0; k < d2; ++k) {
         float sum = lhs(i, j, k) + rhs(i, j, k);
         VERIFY_IS_EQUAL(sum, dst(i, j, k));
       }

@@ -67,21 +67,21 @@ enum class TensorBlockShapeType {
 
 struct TensorOpResourceRequirements {
   TensorBlockShapeType block_shape;
-  std::size_t block_total_size;
+  Index block_total_size;
   // TODO(andydavis) Add 'target_num_threads' to support communication of
   // thread-resource requirements. This will allow ops deep in the
   // expression tree (like reductions) to communicate resources
   // requirements based on local state (like the total number of reductions
   // to be computed).
   TensorOpResourceRequirements(internal::TensorBlockShapeType shape,
-                               const std::size_t size)
+                               const Index size)
       : block_shape(shape), block_total_size(size) {}
 };
 
 // Tries to merge multiple resource requirements.
 EIGEN_STRONG_INLINE void MergeResourceRequirements(
     const std::vector<TensorOpResourceRequirements>& resources,
-    TensorBlockShapeType* block_shape, std::size_t* block_total_size) {
+    TensorBlockShapeType* block_shape, Index* block_total_size) {
   if (resources.empty()) {
     return;
   }
@@ -108,12 +108,12 @@ EIGEN_STRONG_INLINE void MergeResourceRequirements(
  * This class represents a tensor block specified by the index of the
  * first block coefficient, and the size of the block in each dimension.
  */
-template <typename Scalar, typename Index, int NumDims, int Layout>
+template <typename Scalar, typename StorageIndex, int NumDims, int Layout>
 class TensorBlock {
  public:
-  typedef DSizes<Index, NumDims> Dimensions;
+  typedef DSizes<StorageIndex, NumDims> Dimensions;
 
-  TensorBlock(const Index first_coeff_index, const Dimensions& block_sizes,
+  TensorBlock(const StorageIndex first_coeff_index, const Dimensions& block_sizes,
               const Dimensions& block_strides, const Dimensions& tensor_strides,
               Scalar* data)
       : m_first_coeff_index(first_coeff_index),
@@ -122,7 +122,7 @@ class TensorBlock {
         m_tensor_strides(tensor_strides),
         m_data(data) {}
 
-  Index first_coeff_index() const { return m_first_coeff_index; }
+  StorageIndex first_coeff_index() const { return m_first_coeff_index; }
 
   const Dimensions& block_sizes() const { return m_block_sizes; }
 
@@ -135,108 +135,33 @@ class TensorBlock {
   const Scalar* data() const { return m_data; }
 
  private:
-  Index m_first_coeff_index;
+  StorageIndex m_first_coeff_index;
   Dimensions m_block_sizes;
   Dimensions m_block_strides;
   Dimensions m_tensor_strides;
   Scalar* m_data;  // Not owned.
 };
 
-template <typename Scalar, typename Index, bool Vectorizable>
+template <typename Scalar, typename StorageIndex>
 struct TensorBlockCopyOp {
   static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void Run(
-      const Index num_coeff_to_copy, const Index dst_index,
-      const Index dst_stride, Scalar* EIGEN_RESTRICT dst_data,
-      const Index src_index, const Index src_stride,
+      const StorageIndex num_coeff_to_copy, const StorageIndex dst_index,
+      const StorageIndex dst_stride, Scalar* EIGEN_RESTRICT dst_data,
+      const StorageIndex src_index, const StorageIndex src_stride,
       const Scalar* EIGEN_RESTRICT src_data) {
-    for (Index i = 0; i < num_coeff_to_copy; ++i) {
-      dst_data[dst_index + i * dst_stride] =
-          src_data[src_index + i * src_stride];
-    }
-  }
-};
+    const Scalar* src_base = &src_data[src_index];
+    Scalar* dst_base = &dst_data[dst_index];
 
-// NOTE: Benchmarks run on an implementation of this that broke each of the
-// loops in these conditionals into it's own template specialization (to
-// avoid conditionals in the caller's loop) did not show an improvement.
-template <typename Scalar, typename Index>
-struct TensorBlockCopyOp<Scalar, Index, true> {
-  typedef typename packet_traits<Scalar>::type Packet;
-  static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void Run(
-      const Index num_coeff_to_copy, const Index dst_index,
-      const Index dst_stride, Scalar* EIGEN_RESTRICT dst_data,
-      const Index src_index, const Index src_stride,
-      const Scalar* EIGEN_RESTRICT src_data) {
-    if (src_stride == 1) {
-      const Index packet_size = internal::unpacket_traits<Packet>::size;
-      const Index vectorized_size =
-          (num_coeff_to_copy / packet_size) * packet_size;
-      if (dst_stride == 1) {
-        // LINEAR
-        for (Index i = 0; i < vectorized_size; i += packet_size) {
-          Packet p = internal::ploadu<Packet>(src_data + src_index + i);
-          internal::pstoreu<Scalar, Packet>(dst_data + dst_index + i, p);
-        }
-        for (Index i = vectorized_size; i < num_coeff_to_copy; ++i) {
-          dst_data[dst_index + i] = src_data[src_index + i];
-        }
-      } else {
-        // SCATTER
-        for (Index i = 0; i < vectorized_size; i += packet_size) {
-          Packet p = internal::ploadu<Packet>(src_data + src_index + i);
-          internal::pscatter<Scalar, Packet>(
-              dst_data + dst_index + i * dst_stride, p, dst_stride);
-        }
-        for (Index i = vectorized_size; i < num_coeff_to_copy; ++i) {
-          dst_data[dst_index + i * dst_stride] = src_data[src_index + i];
-        }
-      }
-    } else if (src_stride == 0) {
-      const Index packet_size = internal::unpacket_traits<Packet>::size;
-      const Index vectorized_size =
-          (num_coeff_to_copy / packet_size) * packet_size;
-      if (dst_stride == 1) {
-        // LINEAR
-        for (Index i = 0; i < vectorized_size; i += packet_size) {
-          Packet p = internal::pload1<Packet>(src_data + src_index);
-          internal::pstoreu<Scalar, Packet>(dst_data + dst_index + i, p);
-        }
-        for (Index i = vectorized_size; i < num_coeff_to_copy; ++i) {
-          dst_data[dst_index + i] = src_data[src_index];
-        }
-      } else {
-        // SCATTER
-        for (Index i = 0; i < vectorized_size; i += packet_size) {
-          Packet p = internal::pload1<Packet>(src_data + src_index);
-          internal::pscatter<Scalar, Packet>(
-              dst_data + dst_index + i * dst_stride, p, dst_stride);
-        }
-        for (Index i = vectorized_size; i < num_coeff_to_copy; ++i) {
-          dst_data[dst_index + i * dst_stride] = src_data[src_index];
-        }
-      }
-    } else {
-      if (dst_stride == 1) {
-        // GATHER
-        const Index packet_size = internal::unpacket_traits<Packet>::size;
-        const Index vectorized_size =
-            (num_coeff_to_copy / packet_size) * packet_size;
-        for (Index i = 0; i < vectorized_size; i += packet_size) {
-          Packet p = internal::pgather<Scalar, Packet>(
-              src_data + src_index + i * src_stride, src_stride);
-          internal::pstoreu<Scalar, Packet>(dst_data + dst_index + i, p);
-        }
-        for (Index i = vectorized_size; i < num_coeff_to_copy; ++i) {
-          dst_data[dst_index + i] = src_data[src_index + i * src_stride];
-        }
-      } else {
-        // RANDOM
-        for (Index i = 0; i < num_coeff_to_copy; ++i) {
-          dst_data[dst_index + i * dst_stride] =
-              src_data[src_index + i * src_stride];
-        }
-      }
-    }
+    using Src = const Eigen::Array<Scalar, Dynamic, 1>;
+    using Dst = Eigen::Array<Scalar, Dynamic, 1>;
+
+    using SrcMap = Eigen::Map<Src, 0, InnerStride<>>;
+    using DstMap = Eigen::Map<Dst, 0, InnerStride<>>;
+
+    const SrcMap src(src_base, num_coeff_to_copy, InnerStride<>(src_stride));
+    DstMap dst(dst_base, num_coeff_to_copy, InnerStride<>(dst_stride));
+
+    dst = src;
   }
 };
 
@@ -249,34 +174,34 @@ struct TensorBlockCopyOp<Scalar, Index, true> {
  * This class is responsible for copying data between a tensor and a tensor
  * block.
  */
-template <typename Scalar, typename Index, int NumDims, int Layout,
-          bool Vectorizable, bool BlockRead>
+template <typename Scalar, typename StorageIndex, int NumDims, int Layout,
+          bool BlockRead>
 class TensorBlockIO {
  public:
-  typedef typename internal::TensorBlock<Scalar, Index, NumDims, Layout>
+  typedef typename internal::TensorBlock<Scalar, StorageIndex, NumDims, Layout>
       TensorBlock;
-  typedef typename internal::TensorBlockCopyOp<Scalar, Index, Vectorizable>
+  typedef typename internal::TensorBlockCopyOp<Scalar, StorageIndex>
       TensorBlockCopyOp;
 
  protected:
   struct BlockIteratorState {
-    Index input_stride;
-    Index output_stride;
-    Index input_span;
-    Index output_span;
-    Index size;
-    Index count;
+    StorageIndex input_stride;
+    StorageIndex output_stride;
+    StorageIndex input_span;
+    StorageIndex output_span;
+    StorageIndex size;
+    StorageIndex count;
   };
 
   static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void Copy(
-      const TensorBlock& block, Index first_coeff_index,
-      const array<Index, NumDims>& tensor_to_block_dim_map,
-      const array<Index, NumDims>& tensor_strides, const Scalar* src_data,
+      const TensorBlock& block, StorageIndex first_coeff_index,
+      const array<StorageIndex, NumDims>& tensor_to_block_dim_map,
+      const array<StorageIndex, NumDims>& tensor_strides, const Scalar* src_data,
       Scalar* dst_data) {
     // Find the innermost tensor dimension whose size is not 1. This is the
     // effective inner dim. If all dimensions are of size 1, then fallback to
     // using the actual innermost dim to avoid out-of-bound access.
-    Index num_size_one_inner_dims = 0;
+    StorageIndex num_size_one_inner_dims = 0;
     for (int i = 0; i < NumDims; ++i) {
       const int dim = cond<Layout>()(i, NumDims - i - 1);
       if (block.block_sizes()[tensor_to_block_dim_map[dim]] != 1) {
@@ -285,16 +210,16 @@ class TensorBlockIO {
       }
     }
     // Calculate strides and dimensions.
-    const Index tensor_stride1_dim = cond<Layout>()(
+    const StorageIndex tensor_stride1_dim = cond<Layout>()(
         num_size_one_inner_dims, NumDims - num_size_one_inner_dims - 1);
-    const Index block_dim_for_tensor_stride1_dim =
+    const StorageIndex block_dim_for_tensor_stride1_dim =
         NumDims == 0 ? 1 : tensor_to_block_dim_map[tensor_stride1_dim];
     size_t block_inner_dim_size =
         NumDims == 0 ? 1
                      : block.block_sizes()[block_dim_for_tensor_stride1_dim];
     for (int i = num_size_one_inner_dims + 1; i < NumDims; ++i) {
       const int dim = cond<Layout>()(i, NumDims - i - 1);
-      const Index block_stride =
+      const StorageIndex block_stride =
           block.block_strides()[tensor_to_block_dim_map[dim]];
       if (block_inner_dim_size == block_stride &&
           block_stride == tensor_strides[dim]) {
@@ -306,10 +231,10 @@ class TensorBlockIO {
       }
     }
 
-    Index inputIndex;
-    Index outputIndex;
-    Index input_stride;
-    Index output_stride;
+    StorageIndex inputIndex;
+    StorageIndex outputIndex;
+    StorageIndex input_stride;
+    StorageIndex output_stride;
 
     // Setup strides to read/write along the tensor's stride1 dimension.
     if (BlockRead) {
@@ -337,7 +262,7 @@ class TensorBlockIO {
     int num_squeezed_dims = 0;
     for (int i = num_size_one_inner_dims; i < NumDims - 1; ++i) {
       const int dim = cond<Layout>()(i + 1, NumDims - i - 2);
-      const Index size = block.block_sizes()[tensor_to_block_dim_map[dim]];
+      const StorageIndex size = block.block_sizes()[tensor_to_block_dim_map[dim]];
       if (size == 1) {
         continue;
       }
@@ -362,9 +287,9 @@ class TensorBlockIO {
     }
 
     // Iterate copying data from src to dst.
-    const Index block_total_size =
+    const StorageIndex block_total_size =
         NumDims == 0 ? 1 : block.block_sizes().TotalSize();
-    for (Index i = 0; i < block_total_size; i += block_inner_dim_size) {
+    for (StorageIndex i = 0; i < block_total_size; i += block_inner_dim_size) {
       TensorBlockCopyOp::Run(block_inner_dim_size, outputIndex, output_stride,
                              dst_data, inputIndex, input_stride, src_data);
       // Update index.
@@ -391,19 +316,18 @@ class TensorBlockIO {
  * This class is responsible for reading a tensor block.
  *
  */
-template <typename Scalar, typename Index, int NumDims, int Layout,
-          bool Vectorizable>
-class TensorBlockReader
-    : public TensorBlockIO<Scalar, Index, NumDims, Layout, Vectorizable, true> {
+template <typename Scalar, typename StorageIndex, int NumDims, int Layout>
+class TensorBlockReader : public TensorBlockIO<Scalar, StorageIndex, NumDims,
+                                               Layout, /*BlockRead=*/true> {
  public:
-  typedef typename internal::TensorBlock<Scalar, Index, NumDims, Layout>
+  typedef typename internal::TensorBlock<Scalar, StorageIndex, NumDims, Layout>
       TensorBlock;
-  typedef TensorBlockIO<Scalar, Index, NumDims, Layout, Vectorizable, true>
+  typedef TensorBlockIO<Scalar, StorageIndex, NumDims, Layout, /*BlockRead=*/true>
       Base;
 
   static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void Run(
       TensorBlock* block, const Scalar* src_data) {
-    array<Index, NumDims> tensor_to_block_dim_map;
+    array<StorageIndex, NumDims> tensor_to_block_dim_map;
     for (int i = 0; i < NumDims; ++i) {
       tensor_to_block_dim_map[i] = i;
     }
@@ -412,9 +336,9 @@ class TensorBlockReader
   }
 
   static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void Run(
-      TensorBlock* block, Index first_coeff_index,
-      const array<Index, NumDims>& tensor_to_block_dim_map,
-      const array<Index, NumDims>& tensor_strides, const Scalar* src_data) {
+      TensorBlock* block, StorageIndex first_coeff_index,
+      const array<StorageIndex, NumDims>& tensor_to_block_dim_map,
+      const array<StorageIndex, NumDims>& tensor_strides, const Scalar* src_data) {
     Base::Copy(*block, first_coeff_index, tensor_to_block_dim_map,
                tensor_strides, src_data, block->data());
   }
@@ -429,19 +353,18 @@ class TensorBlockReader
  * This class is responsible for writing a tensor block.
  *
  */
-template <typename Scalar, typename Index, int NumDims, int Layout,
-          bool Vectorizable>
-class TensorBlockWriter : public TensorBlockIO<Scalar, Index, NumDims, Layout,
-                                               Vectorizable, false> {
+template <typename Scalar, typename StorageIndex, int NumDims, int Layout>
+class TensorBlockWriter : public TensorBlockIO<Scalar, StorageIndex, NumDims,
+                                               Layout, /*BlockRead=*/false> {
  public:
-  typedef typename internal::TensorBlock<Scalar, Index, NumDims, Layout>
+  typedef typename internal::TensorBlock<Scalar, StorageIndex, NumDims, Layout>
       TensorBlock;
-  typedef TensorBlockIO<Scalar, Index, NumDims, Layout, Vectorizable, false>
+  typedef TensorBlockIO<Scalar, StorageIndex, NumDims, Layout, /*BlockRead=*/false>
       Base;
 
   static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void Run(
       const TensorBlock& block, Scalar* dst_data) {
-    array<Index, NumDims> tensor_to_block_dim_map;
+    array<StorageIndex, NumDims> tensor_to_block_dim_map;
     for (int i = 0; i < NumDims; ++i) {
       tensor_to_block_dim_map[i] = i;
     }
@@ -450,9 +373,9 @@ class TensorBlockWriter : public TensorBlockIO<Scalar, Index, NumDims, Layout,
   }
 
   static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void Run(
-      const TensorBlock& block, Index first_coeff_index,
-      const array<Index, NumDims>& tensor_to_block_dim_map,
-      const array<Index, NumDims>& tensor_strides, Scalar* dst_data) {
+      const TensorBlock& block, StorageIndex first_coeff_index,
+      const array<StorageIndex, NumDims>& tensor_to_block_dim_map,
+      const array<StorageIndex, NumDims>& tensor_strides, Scalar* dst_data) {
     Base::Copy(block, first_coeff_index, tensor_to_block_dim_map,
                tensor_strides, block.data(), dst_data);
   }
@@ -468,67 +391,34 @@ class TensorBlockWriter : public TensorBlockIO<Scalar, Index, NumDims, Layout,
  * result of the cwise binary op to the strided output array.
  *
  */
-template <bool Vectorizable>
 struct TensorBlockCwiseBinaryOp {
-  template <typename Index, typename BinaryFunctor, typename OutputScalar,
+  template <typename StorageIndex, typename BinaryFunctor, typename OutputScalar,
             typename LeftScalar, typename RightScalar>
   static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void Run(
-      const BinaryFunctor& functor, const Index num_coeff,
-      const Index output_index, const Index output_stride,
-      OutputScalar* output_data, const Index left_index,
-      const Index left_stride, const LeftScalar* left_data,
-      const Index right_index, const Index right_stride,
+      const BinaryFunctor& functor, const StorageIndex num_coeff,
+      const StorageIndex output_index, const StorageIndex output_stride,
+      OutputScalar* output_data, const StorageIndex left_index,
+      const StorageIndex left_stride, const LeftScalar* left_data,
+      const StorageIndex right_index, const StorageIndex right_stride,
       const RightScalar* right_data) {
-    for (Index i = 0; i < num_coeff; ++i) {
-      output_data[output_index + i * output_stride] =
-          functor(left_data[left_index + i * left_stride],
-                  right_data[right_index + i * right_stride]);
-    }
-  }
-};
+    using Lhs = const Eigen::Array<LeftScalar, Dynamic, 1>;
+    using Rhs = const Eigen::Array<RightScalar, Dynamic, 1>;
+    using Out = Eigen::Array<OutputScalar, Dynamic, 1>;
 
-template <>
-struct TensorBlockCwiseBinaryOp<true> {
-  template <typename Index, typename BinaryFunctor, typename OutputScalar,
-            typename LeftScalar, typename RightScalar>
-  static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void Run(
-      const BinaryFunctor& functor, const Index num_coeff,
-      const Index output_index, const Index output_stride,
-      OutputScalar* output_data, const Index left_index,
-      const Index left_stride, const LeftScalar* left_data,
-      const Index right_index, const Index right_stride,
-      const RightScalar* right_data) {
-    EIGEN_STATIC_ASSERT(functor_traits<BinaryFunctor>::PacketAccess,
-                        YOU_MADE_A_PROGRAMMING_MISTAKE);
-    typedef typename packet_traits<OutputScalar>::type OutputPacket;
-    typedef typename packet_traits<LeftScalar>::type LeftPacket;
-    typedef typename packet_traits<RightScalar>::type RightPacket;
-    const Index packet_size = unpacket_traits<OutputPacket>::size;
-    EIGEN_STATIC_ASSERT(unpacket_traits<LeftPacket>::size == packet_size,
-                        YOU_MADE_A_PROGRAMMING_MISTAKE);
-    EIGEN_STATIC_ASSERT(unpacket_traits<RightPacket>::size == packet_size,
-                        YOU_MADE_A_PROGRAMMING_MISTAKE);
-    const Index vectorized_size = (num_coeff / packet_size) * packet_size;
-    if (output_stride != 1 || left_stride != 1 || right_stride != 1) {
-      TensorBlockCwiseBinaryOp<false>::Run(
-          functor, num_coeff, output_index, output_stride, output_data,
-          left_index, left_stride, left_data, right_index, right_stride,
-          right_data);
-      return;
-    }
-    // Vectorization for the most common case.
-    for (Index i = 0; i < vectorized_size; i += packet_size) {
-      LeftPacket l = internal::ploadu<LeftPacket>(left_data + left_index + i);
-      RightPacket r =
-          internal::ploadu<RightPacket>(right_data + right_index + i);
-      OutputPacket p = functor.packetOp(l, r);
-      internal::pstoreu<OutputScalar, OutputPacket>(
-          output_data + output_index + i, p);
-    }
-    for (Index i = vectorized_size; i < num_coeff; ++i) {
-      output_data[output_index + i] =
-          functor(left_data[left_index + i], right_data[right_index + i]);
-    }
+    using LhsMap = Eigen::Map<Lhs, 0, InnerStride<>>;
+    using RhsMap = Eigen::Map<Rhs, 0, InnerStride<>>;
+    using OutMap = Eigen::Map<Out, 0, InnerStride<>>;
+
+    const LeftScalar* lhs_base = &left_data[left_index];
+    const RightScalar* rhs_base = &right_data[right_index];
+    OutputScalar* out_base = &output_data[output_index];
+
+    const LhsMap lhs(lhs_base, num_coeff, InnerStride<>(left_stride));
+    const RhsMap rhs(rhs_base, num_coeff, InnerStride<>(right_stride));
+    OutMap out(out_base, num_coeff, InnerStride<>(output_stride));
+
+    out =
+        Eigen::CwiseBinaryOp<BinaryFunctor, LhsMap, RhsMap>(lhs, rhs, functor);
   }
 };
 
@@ -541,28 +431,26 @@ struct TensorBlockCwiseBinaryOp<true> {
  * This class carries out the binary op on given blocks.
  *
  */
-template <typename BinaryFunctor, typename Index, typename OutputScalar,
+template <typename BinaryFunctor, typename StorageIndex, typename OutputScalar,
           int NumDims, int Layout>
 struct TensorBlockCwiseBinaryIO {
-  typedef typename internal::TensorBlock<OutputScalar, Index, NumDims,
+  typedef typename internal::TensorBlock<OutputScalar, StorageIndex, NumDims,
                                          Layout>::Dimensions Dimensions;
-  typedef internal::TensorBlockCwiseBinaryOp<
-      functor_traits<BinaryFunctor>::PacketAccess>
-      TensorBlockCwiseBinaryOp;
 
   struct BlockIteratorState {
-    Index output_stride, output_span;
-    Index left_stride, left_span;
-    Index right_stride, right_span;
-    Index size, count;
+    StorageIndex output_stride, output_span;
+    StorageIndex left_stride, left_span;
+    StorageIndex right_stride, right_span;
+    StorageIndex size, count;
   };
 
   template <typename LeftScalar, typename RightScalar>
   static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void Run(
       const BinaryFunctor& functor, const Dimensions& block_sizes,
       const Dimensions& block_strides, OutputScalar* output_data,
-      const array<Index, NumDims>& left_strides, const LeftScalar* left_data,
-      const array<Index, NumDims>& right_strides,
+      const array<StorageIndex, NumDims>& left_strides,
+      const LeftScalar* left_data,
+      const array<StorageIndex, NumDims>& right_strides,
       const RightScalar* right_data) {
     // Find the innermost dimension whose size is not 1. This is the effective
     // inner dim. If all dimensions are of size 1, fallback to using the actual
@@ -580,7 +468,7 @@ struct TensorBlockCwiseBinaryIO {
         NumDims == 0 ? 1
                      : cond<Layout>()(num_size_one_inner_dims,
                                       NumDims - num_size_one_inner_dims - 1);
-    Index inner_dim_size = NumDims == 0 ? 1 : block_sizes[inner_dim];
+    StorageIndex inner_dim_size = NumDims == 0 ? 1 : block_sizes[inner_dim];
     for (int i = num_size_one_inner_dims + 1; i < NumDims; ++i) {
       const int dim = cond<Layout>()(i, NumDims - i - 1);
       // Merge multiple inner dims into one for larger inner dim size (i.e.
@@ -595,10 +483,12 @@ struct TensorBlockCwiseBinaryIO {
       }
     }
 
-    Index output_index = 0, left_index = 0, right_index = 0;
-    const Index output_stride = NumDims == 0 ? 1 : block_strides[inner_dim];
-    const Index left_stride = NumDims == 0 ? 1 : left_strides[inner_dim];
-    const Index right_stride = NumDims == 0 ? 1 : right_strides[inner_dim];
+    StorageIndex output_index = 0, left_index = 0, right_index = 0;
+    const StorageIndex output_stride =
+        NumDims == 0 ? 1 : block_strides[inner_dim];
+    const StorageIndex left_stride = NumDims == 0 ? 1 : left_strides[inner_dim];
+    const StorageIndex right_stride =
+        NumDims == 0 ? 1 : right_strides[inner_dim];
 
     const int at_least_1_dim = NumDims <= 1 ? 1 : NumDims - 1;
     array<BlockIteratorState, at_least_1_dim> block_iter_state;
@@ -607,7 +497,7 @@ struct TensorBlockCwiseBinaryIO {
     int num_squeezed_dims = 0;
     for (int i = num_size_one_inner_dims; i < NumDims - 1; ++i) {
       const int dim = cond<Layout>()(i + 1, NumDims - i - 2);
-      const Index size = block_sizes[dim];
+      const StorageIndex size = block_sizes[dim];
       if (size == 1) {
         continue;
       }
@@ -624,8 +514,9 @@ struct TensorBlockCwiseBinaryIO {
     }
 
     // Compute cwise binary op.
-    const Index block_total_size = NumDims == 0 ? 1 : block_sizes.TotalSize();
-    for (Index i = 0; i < block_total_size; i += inner_dim_size) {
+    const StorageIndex block_total_size =
+        NumDims == 0 ? 1 : block_sizes.TotalSize();
+    for (StorageIndex i = 0; i < block_total_size; i += inner_dim_size) {
       TensorBlockCwiseBinaryOp::Run(functor, inner_dim_size, output_index,
                                     output_stride, output_data, left_index,
                                     left_stride, left_data, right_index,
@@ -661,10 +552,10 @@ struct TensorBlockCwiseBinaryIO {
 template <class ArgType, class Device>
 struct TensorBlockView {
   typedef TensorEvaluator<ArgType, Device> Impl;
-  typedef typename Impl::Index Index;
+  typedef typename Impl::Index StorageIndex;
   typedef typename remove_const<typename Impl::Scalar>::type Scalar;
   static const int NumDims = array_size<typename Impl::Dimensions>::value;
-  typedef DSizes<Index, NumDims> Dimensions;
+  typedef DSizes<StorageIndex, NumDims> Dimensions;
 
   // Constructs a TensorBlockView for `impl`. `block` is only used for for
   // specifying the start offset, shape, and strides of the block.
@@ -701,7 +592,7 @@ struct TensorBlockView {
           }
         }
       }
-      TensorBlock<Scalar, Index, NumDims, Impl::Layout> input_block(
+      TensorBlock<Scalar, StorageIndex, NumDims, Impl::Layout> input_block(
           block.first_coeff_index(), m_block_sizes, m_block_strides,
           block.tensor_strides(), m_allocated_data);
       impl.block(&input_block);
@@ -733,21 +624,21 @@ struct TensorBlockView {
  *
  * This class is responsible for iterating over the blocks of a tensor.
  */
-template <typename Scalar, typename Index, int NumDims, int Layout>
+template <typename Scalar, typename StorageIndex, int NumDims, int Layout>
 class TensorBlockMapper {
  public:
-  typedef typename internal::TensorBlock<Scalar, Index, NumDims, Layout>
+  typedef typename internal::TensorBlock<Scalar, StorageIndex, NumDims, Layout>
       TensorBlock;
-  typedef DSizes<Index, NumDims> Dimensions;
+  typedef DSizes<StorageIndex, NumDims> Dimensions;
 
   TensorBlockMapper(const Dimensions& dims,
                     const TensorBlockShapeType block_shape,
-                    size_t min_target_size)
+                    Index min_target_size)
       : m_dimensions(dims),
         m_block_dim_sizes(BlockDimensions(dims, block_shape, min_target_size)) {
     // Calculate block counts by dimension and total block count.
-    DSizes<Index, NumDims> block_count;
-    for (size_t i = 0; i < block_count.rank(); ++i) {
+    DSizes<StorageIndex, NumDims> block_count;
+    for (Index i = 0; i < block_count.rank(); ++i) {
       block_count[i] = divup(m_dimensions[i], m_block_dim_sizes[i]);
     }
     m_total_block_count = array_prod(block_count);
@@ -773,15 +664,15 @@ class TensorBlockMapper {
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorBlock
-  GetBlockForIndex(Index block_index, Scalar* data) const {
-    Index first_coeff_index = 0;
-    DSizes<Index, NumDims> coords;
-    DSizes<Index, NumDims> sizes;
-    DSizes<Index, NumDims> strides;
+  GetBlockForIndex(StorageIndex block_index, Scalar* data) const {
+    StorageIndex first_coeff_index = 0;
+    DSizes<StorageIndex, NumDims> coords;
+    DSizes<StorageIndex, NumDims> sizes;
+    DSizes<StorageIndex, NumDims> strides;
     if (NumDims > 0) {
       if (static_cast<int>(Layout) == static_cast<int>(ColMajor)) {
         for (int i = NumDims - 1; i > 0; --i) {
-          const Index idx = block_index / m_block_strides[i];
+          const StorageIndex idx = block_index / m_block_strides[i];
           coords[i] = idx * m_block_dim_sizes[i];
           sizes[i] =
               numext::mini((m_dimensions[i] - coords[i]), m_block_dim_sizes[i]);
@@ -799,7 +690,7 @@ class TensorBlockMapper {
         }
       } else {
         for (int i = 0; i < NumDims - 1; ++i) {
-          const Index idx = block_index / m_block_strides[i];
+          const StorageIndex idx = block_index / m_block_strides[i];
           coords[i] = idx * m_block_dim_sizes[i];
           sizes[i] =
               numext::mini((m_dimensions[i] - coords[i]), m_block_dim_sizes[i]);
@@ -824,19 +715,20 @@ class TensorBlockMapper {
                        data);
   }
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Index total_block_count() const {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE StorageIndex total_block_count() const {
     return m_total_block_count;
   }
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Index block_dims_total_size() const {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE StorageIndex
+  block_dims_total_size() const {
     return m_block_dim_sizes.TotalSize();
   }
 
  private:
   static Dimensions BlockDimensions(const Dimensions& tensor_dims,
                                     const TensorBlockShapeType block_shape,
-                                    size_t min_target_size) {
-    min_target_size = numext::maxi<size_t>(1, min_target_size);
+                                    Index min_target_size) {
+    min_target_size = numext::maxi<Index>(1, min_target_size);
 
     // If tensor fully fits into the target size, we'll treat it a single block.
     Dimensions block_dim_sizes = tensor_dims;
@@ -865,14 +757,14 @@ class TensorBlockMapper {
               dim_size_target, static_cast<size_t>(tensor_dims[i]));
         }
         // Add any un-allocated coefficients to inner dimension(s).
-        Index total_size = block_dim_sizes.TotalSize();
+        StorageIndex total_size = block_dim_sizes.TotalSize();
         for (int i = 0; i < NumDims; ++i) {
           const int dim = cond<Layout>()(i, NumDims - i - 1);
           if (block_dim_sizes[dim] < tensor_dims[dim]) {
-            const Index total_size_other_dims =
+            const StorageIndex total_size_other_dims =
                 total_size / block_dim_sizes[dim];
-            const Index alloc_avail =
-                divup<Index>(min_target_size, total_size_other_dims);
+            const StorageIndex alloc_avail =
+                divup<StorageIndex>(min_target_size, total_size_other_dims);
             if (alloc_avail == block_dim_sizes[dim]) {
               // Insufficient excess coefficients to allocate.
               break;
@@ -882,14 +774,14 @@ class TensorBlockMapper {
           }
         }
       } else if (block_shape == TensorBlockShapeType::kSkewedInnerDims) {
-        Index coeff_to_allocate = min_target_size;
+        StorageIndex coeff_to_allocate = min_target_size;
         for (int i = 0; i < NumDims; ++i) {
           const int dim = cond<Layout>()(i, NumDims - i - 1);
           block_dim_sizes[dim] =
               numext::mini(coeff_to_allocate, tensor_dims[dim]);
-          coeff_to_allocate =
-              divup(coeff_to_allocate,
-                    numext::maxi(static_cast<Index>(1), block_dim_sizes[dim]));
+          coeff_to_allocate = divup(
+              coeff_to_allocate,
+              numext::maxi(static_cast<StorageIndex>(1), block_dim_sizes[dim]));
         }
         eigen_assert(coeff_to_allocate == 1);
       } else {
@@ -908,7 +800,7 @@ class TensorBlockMapper {
   Dimensions m_block_dim_sizes;
   Dimensions m_block_strides;
   Dimensions m_tensor_strides;
-  Index m_total_block_count;
+  StorageIndex m_total_block_count;
 };
 
 /**
@@ -923,12 +815,12 @@ class TensorBlockMapper {
  * processed together.
  *
  */
-template <typename Scalar, typename Index, int NumDims, int Layout>
+template <typename Scalar, typename StorageIndex, int NumDims, int Layout>
 class TensorSliceBlockMapper {
  public:
-  typedef typename internal::TensorBlock<Scalar, Index, NumDims, Layout>
+  typedef typename internal::TensorBlock<Scalar, StorageIndex, NumDims, Layout>
       TensorBlock;
-  typedef DSizes<Index, NumDims> Dimensions;
+  typedef DSizes<StorageIndex, NumDims> Dimensions;
 
   TensorSliceBlockMapper(const Dimensions& tensor_dims,
                          const Dimensions& tensor_slice_offsets,
@@ -942,7 +834,7 @@ class TensorSliceBlockMapper {
         m_block_stride_order(block_stride_order),
         m_total_block_count(1) {
     // Calculate block counts by dimension and total block count.
-    DSizes<Index, NumDims> block_count;
+    DSizes<StorageIndex, NumDims> block_count;
     for (size_t i = 0; i < block_count.rank(); ++i) {
       block_count[i] = divup(m_tensor_slice_extents[i], m_block_dim_sizes[i]);
     }
@@ -969,11 +861,11 @@ class TensorSliceBlockMapper {
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorBlock
-  GetBlockForIndex(Index block_index, Scalar* data) const {
-    Index first_coeff_index = 0;
-    DSizes<Index, NumDims> coords;
-    DSizes<Index, NumDims> sizes;
-    DSizes<Index, NumDims> strides;
+  GetBlockForIndex(StorageIndex block_index, Scalar* data) const {
+    StorageIndex first_coeff_index = 0;
+    DSizes<StorageIndex, NumDims> coords;
+    DSizes<StorageIndex, NumDims> sizes;
+    DSizes<StorageIndex, NumDims> strides;
     if (static_cast<int>(Layout) == static_cast<int>(ColMajor)) {
       for (int i = NumDims - 1; i > 0; --i) {
         const Index idx = block_index / m_block_strides[i];
@@ -991,16 +883,16 @@ class TensorSliceBlockMapper {
           m_block_dim_sizes[0]);
       first_coeff_index += coords[0] * m_tensor_strides[0];
 
-      Index prev_dim = m_block_stride_order[0];
+      StorageIndex prev_dim = m_block_stride_order[0];
       strides[prev_dim] = 1;
       for (int i = 1; i < NumDims; ++i) {
-        const Index curr_dim = m_block_stride_order[i];
+        const StorageIndex curr_dim = m_block_stride_order[i];
         strides[curr_dim] = strides[prev_dim] * sizes[prev_dim];
         prev_dim = curr_dim;
       }
     } else {
       for (int i = 0; i < NumDims - 1; ++i) {
-        const Index idx = block_index / m_block_strides[i];
+        const StorageIndex idx = block_index / m_block_strides[i];
         coords[i] = m_tensor_slice_offsets[i] + idx * m_block_dim_sizes[i];
         sizes[i] = numext::mini(
             m_tensor_slice_offsets[i] + m_tensor_slice_extents[i] - coords[i],
@@ -1016,10 +908,10 @@ class TensorSliceBlockMapper {
           m_block_dim_sizes[NumDims - 1]);
       first_coeff_index += coords[NumDims - 1] * m_tensor_strides[NumDims - 1];
 
-      Index prev_dim = m_block_stride_order[NumDims - 1];
+      StorageIndex prev_dim = m_block_stride_order[NumDims - 1];
       strides[prev_dim] = 1;
       for (int i = NumDims - 2; i >= 0; --i) {
-        const Index curr_dim = m_block_stride_order[i];
+        const StorageIndex curr_dim = m_block_stride_order[i];
         strides[curr_dim] = strides[prev_dim] * sizes[prev_dim];
         prev_dim = curr_dim;
       }
@@ -1029,7 +921,7 @@ class TensorSliceBlockMapper {
                        data);
   }
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Index total_block_count() const {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE StorageIndex total_block_count() const {
     return m_total_block_count;
   }
 
@@ -1041,7 +933,7 @@ class TensorSliceBlockMapper {
   Dimensions m_block_dim_sizes;
   Dimensions m_block_stride_order;
   Dimensions m_block_strides;
-  Index m_total_block_count;
+  StorageIndex m_total_block_count;
 };
 
 }  // namespace internal
