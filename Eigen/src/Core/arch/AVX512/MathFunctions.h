@@ -258,7 +258,7 @@ pexp<Packet8d>(const Packet8d& _x) {
 template <>
 EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED Packet16f
 psqrt<Packet16f>(const Packet16f& _x) {
-  Packet16f half = pmul(_x, pset1<Packet16f>(.5f));
+  Packet16f neg_half = pmul(_x, pset1<Packet16f>(-.5f));
   __mmask16 denormal_mask = _mm512_kand(
       _mm512_cmp_ps_mask(_x, pset1<Packet16f>((std::numeric_limits<float>::min)()),
                         _CMP_LT_OQ),
@@ -267,7 +267,7 @@ psqrt<Packet16f>(const Packet16f& _x) {
   Packet16f x = _mm512_rsqrt14_ps(_x);
 
   // Do a single step of Newton's iteration.
-  x = pmul(x, psub(pset1<Packet16f>(1.5f), pmul(half, pmul(x,x))));
+  x = pmul(x, pmadd(neg_half, pmul(x, x), pset1<Packet16f>(1.5f)));
 
   // Flush results for denormals to zero.
   return _mm512_mask_blend_ps(denormal_mask, pmul(_x,x), _mm512_setzero_ps());
@@ -276,7 +276,7 @@ psqrt<Packet16f>(const Packet16f& _x) {
 template <>
 EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED Packet8d
 psqrt<Packet8d>(const Packet8d& _x) {
-  Packet8d half = pmul(_x, pset1<Packet8d>(.5f));
+  Packet8d neg_half = pmul(_x, pset1<Packet8d>(-.5f));
   __mmask16 denormal_mask = _mm512_kand(
       _mm512_cmp_pd_mask(_x, pset1<Packet8d>((std::numeric_limits<double>::min)()),
                         _CMP_LT_OQ),
@@ -285,10 +285,10 @@ psqrt<Packet8d>(const Packet8d& _x) {
   Packet8d x = _mm512_rsqrt14_pd(_x);
 
   // Do a single step of Newton's iteration.
-  x = pmul(x, psub(pset1<Packet8d>(1.5f), pmul(half, pmul(x,x))));
+  x = pmul(x, pmadd(neg_half, pmul(x, x), pset1<Packet8d>(1.5f)));
 
   // Do a second step of Newton's iteration.
-  x = pmul(x, psub(pset1<Packet8d>(1.5f), pmul(half, pmul(x,x))));
+  x = pmul(x, pmadd(neg_half, pmul(x, x), pset1<Packet8d>(1.5f)));
 
   return _mm512_mask_blend_pd(denormal_mask, pmul(_x,x), _mm512_setzero_pd());
 }
