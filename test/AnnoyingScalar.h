@@ -33,6 +33,9 @@ class AnnoyingScalar
     AnnoyingScalar(float _v)        { init(); *v = _v; }
     AnnoyingScalar(int _v)          { init(); *v = _v; }
     AnnoyingScalar(long _v)         { init(); *v = _v; }
+    #if EIGEN_HAS_CXX11
+    AnnoyingScalar(long long _v)    { init(); *v = _v; }
+    #endif
     AnnoyingScalar(const AnnoyingScalar& other) { init(); *v = *(other.v); }
     ~AnnoyingScalar() {
       if(v!=&data)
