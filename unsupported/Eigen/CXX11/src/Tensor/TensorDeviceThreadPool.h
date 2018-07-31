@@ -281,7 +281,7 @@ struct ThreadPoolDevice {
   ThreadPoolInterface* getPool() const { return pool_; }
 
   // Allocator accessor.
-  Allocator* getAllocator() const { return allocator_; }
+  Allocator* allocator() const { return allocator_; }
 
  private:
   ThreadPoolInterface* pool_;
