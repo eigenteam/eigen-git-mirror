@@ -112,6 +112,7 @@ struct TensorEvaluator<const TensorShufflingOp<Shuffle, ArgType>, Device>
   enum {
     IsAligned = false,
     PacketAccess = (internal::packet_traits<Scalar>::size > 1),
+    BlockAccess = false,
     Layout = TensorEvaluator<ArgType, Device>::Layout,
     CoordAccess = false,  // to be implemented
     RawAccess = false
@@ -240,6 +241,7 @@ struct TensorEvaluator<TensorShufflingOp<Shuffle, ArgType>, Device>
   enum {
     IsAligned = false,
     PacketAccess = (internal::packet_traits<Scalar>::size > 1),
+    BlockAccess = false,
     RawAccess = false
   };
 

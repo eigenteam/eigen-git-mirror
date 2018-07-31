@@ -98,6 +98,7 @@ struct TensorEvaluator<const TensorForcedEvalOp<ArgType>, Device>
   enum {
     IsAligned = true,
     PacketAccess = (PacketSize > 1),
+    BlockAccess = false,
     Layout = TensorEvaluator<ArgType, Device>::Layout,
     RawAccess = true
   };

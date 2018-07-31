@@ -146,6 +146,7 @@ struct TensorEvaluator<const TensorChippingOp<DimId, ArgType>, Device>
     // slice offsets.
     IsAligned = false,
     PacketAccess = TensorEvaluator<ArgType, Device>::PacketAccess,
+    BlockAccess = false,
     Layout = TensorEvaluator<ArgType, Device>::Layout,
     CoordAccess = false,  // to be implemented
     RawAccess = false
@@ -343,6 +344,7 @@ struct TensorEvaluator<TensorChippingOp<DimId, ArgType>, Device>
   enum {
     IsAligned = false,
     PacketAccess = TensorEvaluator<ArgType, Device>::PacketAccess,
+    BlockAccess = false,
     RawAccess = false
   };
 

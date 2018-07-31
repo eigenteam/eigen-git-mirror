@@ -412,6 +412,7 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType, MakePointer_>,
   enum {
     IsAligned = false,
     PacketAccess = Self::InputPacketAccess && Op::PacketAccess,
+    BlockAccess = false,
     Layout = TensorEvaluator<ArgType, Device>::Layout,
     CoordAccess = false,  // to be implemented
     RawAccess = false

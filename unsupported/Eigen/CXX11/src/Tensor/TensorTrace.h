@@ -95,6 +95,7 @@ struct TensorEvaluator<const TensorTraceOp<Dims, ArgType>, Device>
   enum {
     IsAligned = false,
     PacketAccess = TensorEvaluator<ArgType, Device>::PacketAccess,
+    BlockAccess = false,
     Layout = TensorEvaluator<ArgType, Device>::Layout,
     CoordAccess = false,
     RawAccess = false
@@ -110,7 +111,7 @@ struct TensorEvaluator<const TensorTraceOp<Dims, ArgType>, Device>
     for (int i = 0; i < NumInputDims; ++i) {
       m_reduced[i] = false;
     }
-    
+
     const Dims& op_dims = op.dims();
     for (int i = 0; i < NumReducedDims; ++i) {
       eigen_assert(op_dims[i] >= 0);
@@ -128,7 +129,7 @@ struct TensorEvaluator<const TensorTraceOp<Dims, ArgType>, Device>
 
     eigen_assert(num_distinct_reduce_dims == NumReducedDims);
 
-    // Compute the dimensions of the result. 
+    // Compute the dimensions of the result.
     const typename TensorEvaluator<ArgType, Device>::Dimensions& input_dims = m_impl.dimensions();
 
     int output_index = 0;
@@ -229,7 +230,7 @@ struct TensorEvaluator<const TensorTraceOp<Dims, ArgType>, Device>
         result += m_impl.coeff(cur_index);
         cur_index += index_stride;
     }
-      
+
     return result;
   }
 

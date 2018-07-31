@@ -177,7 +177,7 @@ static void test_cuda_product_reductions() {
 }
 
 
-void test_cxx11_tensor_complex()
+EIGEN_DECLARE_TEST(test_cxx11_tensor_complex)
 {
   CALL_SUBTEST(test_cuda_nullary());
   CALL_SUBTEST(test_cuda_sum_reductions());

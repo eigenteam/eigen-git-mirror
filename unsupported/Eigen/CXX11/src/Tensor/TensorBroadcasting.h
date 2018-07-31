@@ -110,6 +110,7 @@ struct TensorEvaluator<const TensorBroadcastingOp<Broadcast, ArgType>, Device>
   enum {
     IsAligned = true,
     PacketAccess = TensorEvaluator<ArgType, Device>::PacketAccess,
+    BlockAccess = false,
     Layout = TensorEvaluator<ArgType, Device>::Layout,
     RawAccess = false
   };
