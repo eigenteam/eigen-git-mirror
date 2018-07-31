@@ -284,7 +284,13 @@ struct TensorEvaluator<const TensorBroadcastingOp<Broadcast, ArgType>, Device>
 
     if (static_cast<int>(Layout) == static_cast<int>(ColMajor)) {
       if (isCopy) {
+        #ifdef EIGEN_GPU_COMPILE_PHASE
+        // See PR 437: on NVIDIA P100 and K20m we observed a x3-4 speed up by enforcing
+        // unaligned loads here. The reason is unclear though.
+        return m_impl.template packet<Unaligned>(index);
+        #else
         return m_impl.template packet<LoadMode>(index);
+        #endif
       } else if (oneByN && !nByOne) {
         return packetNByOne<LoadMode>(index);
       } else if (!oneByN && nByOne) {
@@ -296,7 +302,12 @@ struct TensorEvaluator<const TensorBroadcastingOp<Broadcast, ArgType>, Device>
       }
     } else {
       if (isCopy) {
+        #ifdef EIGEN_GPU_COMPILE_PHASE
+        // See above.
+        return m_impl.template packet<Unaligned>(index);
+        #else
         return m_impl.template packet<LoadMode>(index);
+        #endif
       } else if (oneByN && !nByOne) {
         return packetOneByN<LoadMode>(index);
       } else if (!oneByN && nByOne) {
