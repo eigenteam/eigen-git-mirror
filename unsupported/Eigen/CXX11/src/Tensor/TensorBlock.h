@@ -214,7 +214,7 @@ class TensorBlockIO {
         num_size_one_inner_dims, NumDims - num_size_one_inner_dims - 1);
     const StorageIndex block_dim_for_tensor_stride1_dim =
         NumDims == 0 ? 1 : tensor_to_block_dim_map[tensor_stride1_dim];
-    size_t block_inner_dim_size =
+    Index block_inner_dim_size =
         NumDims == 0 ? 1
                      : block.block_sizes()[block_dim_for_tensor_stride1_dim];
     for (int i = num_size_one_inner_dims + 1; i < NumDims; ++i) {
@@ -745,16 +745,15 @@ class TensorBlockMapper {
       if (block_shape == TensorBlockShapeType::kUniformAllDims) {
         // Tensor will not fit within 'min_target_size' budget: calculate tensor
         // block dimension sizes based on "square" dimension size target.
-        const size_t dim_size_target = static_cast<const size_t>(
+        const Index dim_size_target = static_cast<Index>(
             std::pow(static_cast<float>(min_target_size),
                      1.0 / static_cast<float>(block_dim_sizes.rank())));
-        for (size_t i = 0; i < block_dim_sizes.rank(); ++i) {
+        for (Index i = 0; i < block_dim_sizes.rank(); ++i) {
           // TODO(andydavis) Adjust the inner most 'block_dim_size' to make it
           // a multiple of the packet size. Note that reducing
           // 'block_dim_size' in this manner can increase the number of
           // blocks, and so will amplify any per-block overhead.
-          block_dim_sizes[i] = numext::mini(
-              dim_size_target, static_cast<size_t>(tensor_dims[i]));
+          block_dim_sizes[i] = numext::mini(dim_size_target, tensor_dims[i]);
         }
         // Add any un-allocated coefficients to inner dimension(s).
         StorageIndex total_size = block_dim_sizes.TotalSize();
@@ -789,9 +788,8 @@ class TensorBlockMapper {
       }
     }
 
-    eigen_assert(
-        block_dim_sizes.TotalSize() >=
-        numext::mini<size_t>(min_target_size, tensor_dims.TotalSize()));
+    eigen_assert(block_dim_sizes.TotalSize() >=
+                 numext::mini<Index>(min_target_size, tensor_dims.TotalSize()));
 
     return block_dim_sizes;
   }
