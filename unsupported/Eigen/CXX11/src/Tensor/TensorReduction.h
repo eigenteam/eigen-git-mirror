@@ -513,7 +513,7 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType, MakePointer_>,
          !RunningOnGPU))) {
       bool need_assign = false;
       if (!data) {
-        m_result = static_cast<CoeffReturnType*>(m_device.allocate(sizeof(CoeffReturnType)));
+        m_result = static_cast<CoeffReturnType*>(m_device.allocate_temp(sizeof(CoeffReturnType)));
         data = m_result;
         need_assign = true;
       }
@@ -525,7 +525,7 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType, MakePointer_>,
       const Index num_values_to_reduce = internal::array_prod(m_reducedDims);
       const Index num_coeffs_to_preserve = internal::array_prod(m_dimensions);
       if (!data) {
-        data = static_cast<CoeffReturnType*>(m_device.allocate(sizeof(CoeffReturnType) * num_coeffs_to_preserve));
+        data = static_cast<CoeffReturnType*>(m_device.allocate_temp(sizeof(CoeffReturnType) * num_coeffs_to_preserve));
         m_result = data;
       }
       Op reducer(m_reducer);
@@ -549,7 +549,7 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType, MakePointer_>,
         const Index num_coeffs_to_preserve = internal::array_prod(m_dimensions);
         if (!data) {
           if (num_coeffs_to_preserve < 1024 && num_values_to_reduce > num_coeffs_to_preserve && num_values_to_reduce > 128) {
-            data = static_cast<CoeffReturnType*>(m_device.allocate(sizeof(CoeffReturnType) * num_coeffs_to_preserve));
+            data = static_cast<CoeffReturnType*>(m_device.allocate_temp(sizeof(CoeffReturnType) * num_coeffs_to_preserve));
             m_result = data;
           }
           else {
@@ -559,7 +559,7 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType, MakePointer_>,
         Op reducer(m_reducer);
         if (internal::InnerReducer<Self, Op, Device>::run(*this, reducer, m_device, data, num_values_to_reduce, num_coeffs_to_preserve)) {
           if (m_result) {
-            m_device.deallocate(m_result);
+            m_device.deallocate_temp(m_result);
             m_result = NULL;
           }
           return true;
@@ -582,7 +582,7 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType, MakePointer_>,
         const Index num_coeffs_to_preserve = internal::array_prod(m_dimensions);
         if (!data) {
           if (num_coeffs_to_preserve < 1024 && num_values_to_reduce > num_coeffs_to_preserve && num_values_to_reduce > 32) {
-            data = static_cast<CoeffReturnType*>(m_device.allocate(sizeof(CoeffReturnType) * num_coeffs_to_preserve));
+            data = static_cast<CoeffReturnType*>(m_device.allocate_temp(sizeof(CoeffReturnType) * num_coeffs_to_preserve));
             m_result = data;
           }
           else {
@@ -592,7 +592,7 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType, MakePointer_>,
         Op reducer(m_reducer);
         if (internal::OuterReducer<Self, Op, Device>::run(*this, reducer, m_device, data, num_values_to_reduce, num_coeffs_to_preserve)) {
           if (m_result) {
-            m_device.deallocate(m_result);
+            m_device.deallocate_temp(m_result);
             m_result = NULL;
           }
           return true;
@@ -607,7 +607,7 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType, MakePointer_>,
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void cleanup() {
     m_impl.cleanup();
     if (m_result) {
-      m_device.deallocate(m_result);
+      m_device.deallocate_temp(m_result);
       m_result = NULL;
     }
   }

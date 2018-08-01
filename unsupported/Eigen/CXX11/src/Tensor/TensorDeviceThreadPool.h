@@ -105,6 +105,14 @@ struct ThreadPoolDevice {
     internal::aligned_free(buffer);
   }
 
+    EIGEN_STRONG_INLINE void* allocate_temp(size_t num_bytes) const {
+    return allocate(num_bytes);
+  }
+
+  EIGEN_STRONG_INLINE void deallocate_temp(void* buffer) const {
+    deallocate(buffer);
+  }
+
   EIGEN_STRONG_INLINE void memcpy(void* dst, const void* src, size_t n) const {
     ::memcpy(dst, src, n);
   }
