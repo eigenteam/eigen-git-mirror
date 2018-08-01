@@ -91,18 +91,31 @@ static EIGEN_STRONG_INLINE void wait_until_ready(SyncType* n) {
   }
 }
 
+// An abstract interface to a device specific memory allocator.
+class Allocator {
+ public:
+  virtual ~Allocator() {}
+  EIGEN_DEVICE_FUNC virtual void* allocate(size_t num_bytes) const = 0;
+  EIGEN_DEVICE_FUNC virtual void deallocate(void* buffer) const = 0;
+};
 
 // Build a thread pool device on top the an existing pool of threads.
 struct ThreadPoolDevice {
   // The ownership of the thread pool remains with the caller.
-  ThreadPoolDevice(ThreadPoolInterface* pool, int num_cores) : pool_(pool), num_threads_(num_cores) { }
+  ThreadPoolDevice(ThreadPoolInterface* pool, int num_cores, Allocator* allocator = nullptr)
+      : pool_(pool), num_threads_(num_cores), allocator_(allocator) { }
 
   EIGEN_STRONG_INLINE void* allocate(size_t num_bytes) const {
-    return internal::aligned_malloc(num_bytes);
+    return allocator_ ? allocator_->allocate(num_bytes)
+        : internal::aligned_malloc(num_bytes);
   }
 
   EIGEN_STRONG_INLINE void deallocate(void* buffer) const {
-    internal::aligned_free(buffer);
+    if (allocator_) {
+      allocator_->deallocate(buffer);
+    } else {
+      internal::aligned_free(buffer);
+    }
   }
 
     EIGEN_STRONG_INLINE void* allocate_temp(size_t num_bytes) const {
@@ -275,9 +288,13 @@ struct ThreadPoolDevice {
   // Thread pool accessor.
   ThreadPoolInterface* getPool() const { return pool_; }
 
+  // Allocator accessor.
+  Allocator* allocator() const { return allocator_; }
+
  private:
   ThreadPoolInterface* pool_;
   int num_threads_;
+  Allocator* allocator_;
 };
 
 
