@@ -1077,26 +1077,15 @@ namespace Eigen {
 #endif
 
 #ifdef EIGEN_HAS_VARIADIC_TEMPLATES
-// Provide a variadic version of assert which can take a parameter pack as its input
-// The eigen_assert macro used here might have been redefined to use other macros such as EIGEN_THROW, such as used in Eigen's test suite, therefore this needs to be defined after the other macros.
-// Note that this does not provide as nice a string to assert as a straight forward call to eigen_assert, so we add a message to the assert.
-#if defined(EIGEN_NO_DEBUG)
-#define eigen_variadic_assert(x)
-#else
+// The all function is used to enable a variadic version of eigen_assert which can take a parameter pack as its input.
 namespace Eigen {
 namespace internal {
-inline void variadic_assert(const char*) {}
-template<typename... Bools> inline void variadic_assert(const char* message, bool first, Bools ... others) {
-  eigen_assert(first && message);
-  variadic_assert(message, others...);
-  EIGEN_UNUSED_VARIABLE(first);
+bool all(){ return true; }
+template<typename T, typename ...Ts>
+bool all(T t, Ts ... ts){ return t && all(ts...); }
+
 }
 }
-}
-#define EIGEN_VARIADIC_ASSERT_MESSAGE(x) EIGEN_MAKESTRING(x) " in " __FILE__ ":" EIGEN_MAKESTRING(__LINE__)
-#define eigen_variadic_assert(x) \
-  do { Eigen::internal::variadic_assert(EIGEN_VARIADIC_ASSERT_MESSAGE(x), x); } while(false);
-#endif
 #endif
 
 
