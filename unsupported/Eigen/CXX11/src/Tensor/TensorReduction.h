@@ -483,10 +483,12 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType, MakePointer_>,
     RawAccess    = false
   };
 
-  using ScalarNoConst =  typename internal::remove_const<Scalar>::type;
+  typedef typename internal::remove_const<Scalar>::type ScalarNoConst;
 
-  using OutputTensorBlock = internal::TensorBlock<ScalarNoConst, Index, NumOutputDims, Layout>;
-  using InputTensorBlock = internal::TensorBlock<ScalarNoConst, Index, NumInputDims, Layout>;
+  typedef internal::TensorBlock<ScalarNoConst, Index, NumOutputDims, Layout>
+      OutputTensorBlock;
+  typedef internal::TensorBlock<ScalarNoConst, Index, NumInputDims, Layout>
+      InputTensorBlock;
 
   static const bool ReducingInnerMostDims = internal::are_inner_most_dims<Dims, NumInputDims, Layout>::value;
   static const bool PreservingInnerMostDims = internal::preserve_inner_most_dims<Dims, NumInputDims, Layout>::value;
@@ -901,9 +903,9 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType, MakePointer_>,
           new (&reducers[i]) BlockReducer(m_reducer);
         }
 
-        using TensorSliceBlockMapper =
-            internal::TensorSliceBlockMapper<ScalarNoConst, Index, NumInputDims,
-                                             Layout>;
+        typedef internal::TensorSliceBlockMapper<ScalarNoConst, Index,
+                                                 NumInputDims, Layout>
+            TensorSliceBlockMapper;
 
         // TODO(andydavis) Consider removing 'input_block_stride_order' if we
         // find that scattered reads are not worth supporting in

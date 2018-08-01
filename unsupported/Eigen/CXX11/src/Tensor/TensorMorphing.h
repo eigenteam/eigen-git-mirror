@@ -123,11 +123,15 @@ struct TensorEvaluator<const TensorReshapingOp<NewDimensions, ArgType>, Device>
     RawAccess    = TensorEvaluator<ArgType, Device>::RawAccess
   };
 
-  using ScalarNoConst = typename internal::remove_const<Scalar>::type;
+  typedef typename internal::remove_const<Scalar>::type ScalarNoConst;
 
-  using InputTensorBlock        = internal::TensorBlock<ScalarNoConst, Index, NumInputDims, Layout>;
-  using OutputTensorBlock       = internal::TensorBlock<ScalarNoConst, Index, NumOutputDims, Layout>;
-  using OutputTensorBlockReader = internal::TensorBlockReader<ScalarNoConst, Index, NumOutputDims, Layout>;
+  typedef internal::TensorBlock<ScalarNoConst, Index, NumInputDims, Layout>
+      InputTensorBlock;
+  typedef internal::TensorBlock<ScalarNoConst, Index, NumOutputDims, Layout>
+      OutputTensorBlock;
+  typedef internal::TensorBlockReader<ScalarNoConst, Index, NumOutputDims,
+                                      Layout>
+      OutputTensorBlockReader;
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
       : m_impl(op.expression(), device), m_dimensions(op.dimensions())
@@ -512,9 +516,10 @@ struct TensorEvaluator<const TensorSlicingOp<StartIndices, Sizes, ArgType>, Devi
     RawAccess    = false
   };
 
-  using ScalarNoConst = typename internal::remove_const<Scalar>::type;
+  typedef typename internal::remove_const<Scalar>::type ScalarNoConst;
 
-  using TensorBlock =  internal::TensorBlock<ScalarNoConst, Index, NumDims, Layout>;
+  typedef internal::TensorBlock<ScalarNoConst, Index, NumDims, Layout>
+      TensorBlock;
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
       : m_impl(op.expression(), device), m_device(device), m_dimensions(op.sizes()), m_offsets(op.startIndices())
@@ -787,9 +792,10 @@ struct TensorEvaluator<TensorSlicingOp<StartIndices, Sizes, ArgType>, Device>
     RawAccess    = (NumDims == 1) & TensorEvaluator<ArgType, Device>::RawAccess
   };
 
-  using ScalarNoConst = typename internal::remove_const<Scalar>::type;
+  typedef typename internal::remove_const<Scalar>::type ScalarNoConst;
 
-  using TensorBlock = internal::TensorBlock<ScalarNoConst, Index, NumDims, Layout>;
+  typedef internal::TensorBlock<ScalarNoConst, Index, NumDims, Layout>
+      TensorBlock;
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
     : Base(op, device)

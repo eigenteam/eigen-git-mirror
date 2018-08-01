@@ -115,16 +115,21 @@ struct TensorEvaluator<const TensorBroadcastingOp<Broadcast, ArgType>, Device>
     RawAccess    = false
   };
 
-  using ScalarNoConst = typename internal::remove_const<Scalar>::type;
+  typedef typename internal::remove_const<Scalar>::type ScalarNoConst;
 
   // Block based access to the XprType (input) tensor.
-  using TensorBlock                = internal::TensorBlock<ScalarNoConst, Index, NumDims, Layout>;
-  using TensorBlockReader          = internal::TensorBlockReader<ScalarNoConst, Index, NumDims, Layout>;
+  typedef internal::TensorBlock<ScalarNoConst, Index, NumDims, Layout>
+      TensorBlock;
+  typedef internal::TensorBlockReader<ScalarNoConst, Index, NumDims, Layout>
+      TensorBlockReader;
+
   // We do block based broadcasting using a trick with 2x tensor rank and 0
   // strides. See block method implementation for details.
-  using BroadcastDimensions        = DSizes<Index, 2 * NumDims>;
-  using BroadcastTensorBlock       = internal::TensorBlock<ScalarNoConst, Index, 2 * NumDims, Layout>;
-  using BroadcastTensorBlockReader = internal::TensorBlockReader<ScalarNoConst, Index, 2 * NumDims, Layout>;
+  typedef DSizes<Index, 2 * NumDims> BroadcastDimensions;
+  typedef internal::TensorBlock<ScalarNoConst, Index, 2 * NumDims, Layout>
+      BroadcastTensorBlock;
+  typedef internal::TensorBlockReader<ScalarNoConst, Index, 2 * NumDims, Layout>
+      BroadcastTensorBlockReader;
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op,
                                                         const Device& device)

@@ -36,7 +36,7 @@ template <typename Expression, typename Device, bool Vectorizable,
           bool Tileable>
 class TensorExecutor {
  public:
-  using StorageIndex = typename Expression::Index;
+  typedef typename Expression::Index StorageIndex;
 
   EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE void run(const Expression& expr,
@@ -60,7 +60,7 @@ template <typename Expression>
 class TensorExecutor<Expression, DefaultDevice, /*Vectorizable*/ true,
                      /*Tileable*/ false> {
  public:
-  using StorageIndex = typename Expression::Index;
+  typedef typename Expression::Index StorageIndex;
 
   EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE void run(const Expression& expr,
@@ -102,21 +102,22 @@ template <typename Expression, bool Vectorizable>
 class TensorExecutor<Expression, DefaultDevice, Vectorizable,
                      /*Tileable*/ true> {
  public:
-  using Scalar = typename traits<Expression>::Scalar;
-  using ScalarNoConst = typename remove_const<Scalar>::type;
+  typedef typename traits<Expression>::Scalar Scalar;
+  typedef typename remove_const<Scalar>::type ScalarNoConst;
 
-  using Evaluator = TensorEvaluator<Expression, DefaultDevice>;
-  using StorageIndex = typename traits<Expression>::Index;
+  typedef TensorEvaluator<Expression, DefaultDevice> Evaluator;
+  typedef typename traits<Expression>::Index StorageIndex;
 
   static const int NumDims = traits<Expression>::NumDimensions;
 
   EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE void run(const Expression& expr,
                          const DefaultDevice& device = DefaultDevice()) {
-    using TensorBlock =
-        TensorBlock<ScalarNoConst, StorageIndex, NumDims, Evaluator::Layout>;
-    using TensorBlockMapper = TensorBlockMapper<ScalarNoConst, StorageIndex,
-                                                NumDims, Evaluator::Layout>;
+    typedef TensorBlock<ScalarNoConst, StorageIndex, NumDims, Evaluator::Layout>
+        TensorBlock;
+    typedef TensorBlockMapper<ScalarNoConst, StorageIndex, NumDims,
+                              Evaluator::Layout>
+        TensorBlockMapper;
 
     Evaluator evaluator(expr, device);
     Index total_size = array_prod(evaluator.dimensions());
@@ -221,7 +222,7 @@ struct EvalRange<Evaluator, StorageIndex, /*Vectorizable*/ true> {
 template <typename Expression, bool Vectorizable, bool Tileable>
 class TensorExecutor<Expression, ThreadPoolDevice, Vectorizable, Tileable> {
  public:
-  using StorageIndex = typename Expression::Index;
+  typedef typename Expression::Index StorageIndex;
 
   static EIGEN_STRONG_INLINE void run(const Expression& expr,
                          const ThreadPoolDevice& device) {
@@ -249,20 +250,21 @@ class TensorExecutor<Expression, ThreadPoolDevice, Vectorizable, Tileable> {
 template <typename Expression, bool Vectorizable>
 class TensorExecutor<Expression, ThreadPoolDevice, Vectorizable, /*Tileable*/ true> {
  public:
-  using Scalar = typename traits<Expression>::Scalar;
-  using ScalarNoConst = typename remove_const<Scalar>::type;
+  typedef typename traits<Expression>::Scalar Scalar;
+  typedef typename remove_const<Scalar>::type ScalarNoConst;
 
-  using Evaluator = TensorEvaluator<Expression, ThreadPoolDevice>;
-  using StorageIndex = typename traits<Expression>::Index;
+  typedef TensorEvaluator<Expression, ThreadPoolDevice> Evaluator;
+  typedef typename traits<Expression>::Index StorageIndex;
 
   static const int NumDims = traits<Expression>::NumDimensions;
 
   static EIGEN_STRONG_INLINE void run(const Expression& expr,
                          const ThreadPoolDevice& device) {
-    using TensorBlock =
-        TensorBlock<ScalarNoConst, StorageIndex, NumDims, Evaluator::Layout>;
-    using TensorBlockMapper =
-        TensorBlockMapper<ScalarNoConst, StorageIndex, NumDims, Evaluator::Layout>;
+    typedef TensorBlock<ScalarNoConst, StorageIndex, NumDims, Evaluator::Layout>
+        TensorBlock;
+    typedef TensorBlockMapper<ScalarNoConst, StorageIndex, NumDims,
+                              Evaluator::Layout>
+        TensorBlockMapper;
 
     Evaluator evaluator(expr, device);
     StorageIndex total_size = array_prod(evaluator.dimensions());

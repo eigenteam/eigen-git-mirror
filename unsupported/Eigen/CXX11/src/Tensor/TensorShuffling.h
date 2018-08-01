@@ -119,10 +119,12 @@ struct TensorEvaluator<const TensorShufflingOp<Shuffle, ArgType>, Device>
     RawAccess    = false
   };
 
-  using ScalarNoConst = typename internal::remove_const<Scalar>::type;
+  typedef typename internal::remove_const<Scalar>::type ScalarNoConst;
 
-  using TensorBlock       = internal::TensorBlock<ScalarNoConst, Index, NumDims, Layout>;
-  using TensorBlockReader = internal::TensorBlockReader<ScalarNoConst, Index, NumDims, Layout>;
+  typedef internal::TensorBlock<ScalarNoConst, Index, NumDims, Layout>
+      TensorBlock;
+  typedef internal::TensorBlockReader<ScalarNoConst, Index, NumDims, Layout>
+      TensorBlockReader;
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op,
                                                         const Device& device)
@@ -417,10 +419,12 @@ struct TensorEvaluator<TensorShufflingOp<Shuffle, ArgType>, Device>
     RawAccess    = false
   };
 
-  using ScalarNoConst = typename internal::remove_const<Scalar>::type;
+  typedef typename internal::remove_const<Scalar>::type ScalarNoConst;
 
-  using TensorBlock       = internal::TensorBlock<ScalarNoConst, Index, NumDims, Layout>;
-  using TensorBlockWriter = internal::TensorBlockWriter<ScalarNoConst, Index, NumDims, Layout>;
+  typedef internal::TensorBlock<ScalarNoConst, Index, NumDims, Layout>
+      TensorBlock;
+  typedef internal::TensorBlockWriter<ScalarNoConst, Index, NumDims, Layout>
+      TensorBlockWriter;
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
       : Base(op, device)

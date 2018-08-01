@@ -252,7 +252,8 @@ struct TensorEvaluator<const TensorImagePatchOp<Rows, Cols, ArgType>, Device>
     RawAccess    = false
   };
 
-  using OutputTensorBlock = internal::TensorBlock<Scalar, Index, NumDims, Layout>;
+  typedef internal::TensorBlock<Scalar, Index, NumDims, Layout>
+      OutputTensorBlock;
 
 #ifdef __SYCL_DEVICE_ONLY__
     EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator( const XprType op, const Device& device)
@@ -557,8 +558,8 @@ struct TensorEvaluator<const TensorImagePatchOp<Rows, Cols, ArgType>, Device>
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void block(
       OutputTensorBlock* output_block) const {
-    using ImagePatchCopyOp = internal::ImagePatchCopyOp<Self, PacketAccess>;
-    using ImagePatchPaddingOp = internal::ImagePatchPaddingOp<Self>;
+    typedef internal::ImagePatchCopyOp<Self, PacketAccess> ImagePatchCopyOp;
+    typedef internal::ImagePatchPaddingOp<Self> ImagePatchPaddingOp;
 
     // Calculate loop limits and various input/output dim sizes.
     const DSizes<Index, NumDims>& block_sizes = output_block->block_sizes();
