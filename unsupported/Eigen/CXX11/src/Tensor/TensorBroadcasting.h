@@ -120,7 +120,7 @@ struct TensorEvaluator<const TensorBroadcastingOp<Broadcast, ArgType>, Device>
   // Block based access to the XprType (input) tensor.
   using TensorBlock                = internal::TensorBlock<ScalarNoConst, Index, NumDims, Layout>;
   using TensorBlockReader          = internal::TensorBlockReader<ScalarNoConst, Index, NumDims, Layout>;
-  // We do block based broadcasting using a a trick with 2x tensor rank and 0
+  // We do block based broadcasting using a trick with 2x tensor rank and 0
   // strides. See block method implementation for details.
   using BroadcastDimensions        = DSizes<Index, 2 * NumDims>;
   using BroadcastTensorBlock       = internal::TensorBlock<ScalarNoConst, Index, 2 * NumDims, Layout>;
@@ -589,8 +589,8 @@ struct TensorEvaluator<const TensorBroadcastingOp<Broadcast, ArgType>, Device>
       std::vector<internal::TensorOpResourceRequirements>* resources) const {
     // TODO(wuke): Targeting L1 size is 30% faster than targeting L{-1} on large
     // tensors. But this might need further tuning.
-    Index l1_cache_scalars = m_device.firstLevelCacheSize() / sizeof(Scalar);
-    Index block_total_size_max = numext::maxi(Index(1), l1_cache_scalars);
+    auto block_total_size_max = numext::maxi<Eigen::Index>(
+        1, m_device.firstLevelCacheSize() / sizeof(Scalar));
 
     resources->push_back(internal::TensorOpResourceRequirements(
         internal::TensorBlockShapeType::kSkewedInnerDims,

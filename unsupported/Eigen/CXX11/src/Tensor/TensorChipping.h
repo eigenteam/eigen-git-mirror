@@ -202,9 +202,6 @@ struct TensorEvaluator<const TensorChippingOp<DimId, ArgType>, Device>
           m_inputStrides[i] = m_inputStrides[i + 1] * input_dims[i + 1];
         }
       }
-
-      m_block_total_size_max =
-          numext::maxi<Index>(1, device.lastLevelCacheSize() / sizeof(Scalar));
     }
   }
 
@@ -290,9 +287,11 @@ struct TensorEvaluator<const TensorChippingOp<DimId, ArgType>, Device>
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void getResourceRequirements(
       std::vector<internal::TensorOpResourceRequirements>* resources) const {
+    auto block_total_size_max = numext::maxi<Eigen::Index>(
+        1, m_device.lastLevelCacheSize() / sizeof(Scalar));
     resources->push_back(internal::TensorOpResourceRequirements(
         internal::TensorBlockShapeType::kSkewedInnerDims,
-        m_block_total_size_max));
+        block_total_size_max));
     m_impl.getResourceRequirements(resources);
   }
 
@@ -370,13 +369,14 @@ struct TensorEvaluator<const TensorChippingOp<DimId, ArgType>, Device>
   {
     Index inputIndex;
     if ((static_cast<int>(Layout) == static_cast<int>(ColMajor) && m_dim.actualDim() == 0) ||
-  (static_cast<int>(Layout) == static_cast<int>(RowMajor) && m_dim.actualDim() == NumInputDims-1)) {
+        (static_cast<int>(Layout) == static_cast<int>(RowMajor) && m_dim.actualDim() == NumInputDims - 1)) {
       // m_stride is equal to 1, so let's avoid the integer division.
       eigen_assert(m_stride == 1);
       inputIndex = index * m_inputStride + m_inputOffset;
-    } else if ((static_cast<int>(Layout) == static_cast<int>(ColMajor) && m_dim.actualDim() == NumInputDims-1) ||
-         (static_cast<int>(Layout) == static_cast<int>(RowMajor) && m_dim.actualDim() == 0)) {
-      // m_stride is aways greater than index, so let's avoid the integer division.
+    } else if ((static_cast<int>(Layout) == static_cast<int>(ColMajor) && m_dim.actualDim() == NumInputDims - 1) ||
+               (static_cast<int>(Layout) == static_cast<int>(RowMajor) && m_dim.actualDim() == 0)) {
+      // m_stride is aways greater than index, so let's avoid the integer
+      // division.
       eigen_assert(m_stride > index);
       inputIndex = index + m_inputOffset;
     } else {
@@ -392,7 +392,6 @@ struct TensorEvaluator<const TensorChippingOp<DimId, ArgType>, Device>
   Index m_stride;
   Index m_inputOffset;
   Index m_inputStride;
-  Index m_block_total_size_max;
   DSizes<Index, NumInputDims> m_inputStrides;
   TensorEvaluator<ArgType, Device> m_impl;
   const internal::DimensionId<DimId> m_dim;

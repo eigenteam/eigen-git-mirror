@@ -124,8 +124,11 @@ struct TensorEvaluator<const TensorShufflingOp<Shuffle, ArgType>, Device>
   using TensorBlock       = internal::TensorBlock<ScalarNoConst, Index, NumDims, Layout>;
   using TensorBlockReader = internal::TensorBlockReader<ScalarNoConst, Index, NumDims, Layout>;
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
-      : m_impl(op.expression(), device), m_shuffle(op.shufflePermutation())
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op,
+                                                        const Device& device)
+      : m_device(device),
+        m_impl(op.expression(), device),
+        m_shuffle(op.shufflePermutation())
   {
     const typename TensorEvaluator<ArgType, Device>::Dimensions& input_dims = m_impl.dimensions();
     const Shuffle& shuffle = op.shufflePermutation();
@@ -162,9 +165,6 @@ struct TensorEvaluator<const TensorShufflingOp<Shuffle, ArgType>, Device>
     for (int i = 0; i < NumDims; ++i) {
       m_inputStrides[i] = m_unshuffledInputStrides[shuffle[i]];
     }
-
-    m_block_total_size_max =
-        numext::maxi<Index>(1, device.firstLevelCacheSize() / sizeof(Scalar));
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Dimensions& dimensions() const { return m_dimensions; }
@@ -226,9 +226,10 @@ struct TensorEvaluator<const TensorShufflingOp<Shuffle, ArgType>, Device>
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void getResourceRequirements(
       std::vector<internal::TensorOpResourceRequirements>* resources) const {
+    auto block_total_size_max = numext::maxi<Eigen::Index>(
+        1, m_device.firstLevelCacheSize() / sizeof(Scalar));
     resources->push_back(internal::TensorOpResourceRequirements(
-        internal::TensorBlockShapeType::kUniformAllDims,
-        m_block_total_size_max));
+        internal::TensorBlockShapeType::kUniformAllDims, block_total_size_max));
     m_impl.getResourceRequirements(resources);
   }
 
@@ -384,7 +385,8 @@ struct TensorEvaluator<const TensorShufflingOp<Shuffle, ArgType>, Device>
   array<internal::TensorIntDivisor<Index>, NumDims> m_fastOutputStrides;
   array<Index, NumDims> m_inputStrides;
   array<Index, NumDims> m_unshuffledInputStrides;
-  Index m_block_total_size_max;
+
+  const Device& m_device;
   TensorEvaluator<ArgType, Device> m_impl;
   /// required by sycl
   Shuffle m_shuffle;

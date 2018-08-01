@@ -560,9 +560,6 @@ struct TensorEvaluator<const TensorSlicingOp<StartIndices, Sizes, ArgType>, Devi
         m_fastOutputStrides[i] = internal::TensorIntDivisor<Index>(m_outputStrides[i]);
       }
     }
-
-    m_block_total_size_max =
-        numext::maxi<Index>(1, device.lastLevelCacheSize() / sizeof(Scalar));
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Dimensions& dimensions() const { return m_dimensions; }
@@ -672,9 +669,11 @@ struct TensorEvaluator<const TensorSlicingOp<StartIndices, Sizes, ArgType>, Devi
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void getResourceRequirements(
       std::vector<internal::TensorOpResourceRequirements>* resources) const {
+    auto block_total_size_max = numext::maxi<Eigen::Index>(
+        1, m_device.lastLevelCacheSize() / sizeof(Scalar));
     resources->push_back(internal::TensorOpResourceRequirements(
         internal::TensorBlockShapeType::kSkewedInnerDims,
-        m_block_total_size_max));
+        block_total_size_max));
     m_impl.getResourceRequirements(resources);
   }
 
@@ -761,7 +760,6 @@ struct TensorEvaluator<const TensorSlicingOp<StartIndices, Sizes, ArgType>, Devi
   Dimensions m_dimensions;
   bool m_is_identity;
   const StartIndices m_offsets;
-  Index m_block_total_size_max;
 };
 
 
@@ -1047,9 +1045,6 @@ struct TensorEvaluator<const TensorStridingSlicingOp<StartIndices, StopIndices, 
         m_fastOutputStrides[i] = internal::TensorIntDivisor<Index>(degenerate ? 1 : m_outputStrides[i]);
       }
     }
-    m_block_total_size_max = numext::maxi(static_cast<std::size_t>(1),
-                                          device.lastLevelCacheSize() /
-                                          sizeof(Scalar));
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Dimensions& dimensions() const { return m_dimensions; }
@@ -1128,7 +1123,6 @@ struct TensorEvaluator<const TensorStridingSlicingOp<StartIndices, StopIndices, 
   DSizes<Index, NumDims> m_dimensions;
   DSizes<Index, NumDims> m_offsets; // offset in a flattened shape
   const Strides m_strides;
-  std::size_t m_block_total_size_max;
   //use by sycl
   const StartIndices m_exprStartIndices;
   //use by sycl

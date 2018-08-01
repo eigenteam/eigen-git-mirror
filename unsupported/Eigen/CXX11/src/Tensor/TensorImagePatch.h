@@ -259,7 +259,7 @@ struct TensorEvaluator<const TensorImagePatchOp<Rows, Cols, ArgType>, Device>
   #else
     EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator( const XprType& op, const Device& device)
   #endif
-      : m_impl(op.expression(), device)
+      : m_device(device), m_impl(op.expression(), device)
 #ifdef EIGEN_USE_SYCL
       , m_op(op)
 #endif
@@ -404,9 +404,6 @@ struct TensorEvaluator<const TensorImagePatchOp<Rows, Cols, ArgType>, Device>
     } else {
       m_fastOutputDepth = internal::TensorIntDivisor<Index>(m_dimensions[NumDims-1]);
     }
-
-    m_block_total_size_max =
-        numext::maxi<Index>(1, device.lastLevelCacheSize() / sizeof(Scalar));
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Dimensions& dimensions() const { return m_dimensions; }
@@ -551,9 +548,11 @@ struct TensorEvaluator<const TensorImagePatchOp<Rows, Cols, ArgType>, Device>
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void getResourceRequirements(
       std::vector<internal::TensorOpResourceRequirements>* resources) const {
+    auto block_total_size_max = numext::maxi<Eigen::Index>(
+        1, m_device.lastLevelCacheSize() / sizeof(Scalar));
     resources->push_back(internal::TensorOpResourceRequirements(
         internal::TensorBlockShapeType::kSkewedInnerDims,
-        m_block_total_size_max));
+        block_total_size_max));
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void block(
@@ -743,8 +742,8 @@ struct TensorEvaluator<const TensorImagePatchOp<Rows, Cols, ArgType>, Device>
   internal::TensorIntDivisor<Index> m_fastOutputDepth;
 
   Scalar m_paddingValue;
-  Index m_block_total_size_max;
 
+  const Device& m_device;
   TensorEvaluator<ArgType, Device> m_impl;
   #ifdef EIGEN_USE_SYCL
   // Required for SYCL in order to construct the expression tree on the device

@@ -572,9 +572,6 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType, MakePointer_>,
             : (static_cast<int>(Layout) == static_cast<int>(ColMajor))
                   ? m_preservedStrides[0]
                   : m_preservedStrides[NumOutputDims - 1];
-
-    m_block_total_size_max =
-        numext::maxi<Index>(1, device.lastLevelCacheSize() / sizeof(Scalar));
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Dimensions& dimensions() const { return m_dimensions; }
@@ -771,9 +768,11 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType, MakePointer_>,
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void getResourceRequirements(
       std::vector<internal::TensorOpResourceRequirements>* resources) const {
+    auto block_total_size_max = numext::maxi<Eigen::Index>(
+        1, m_device.lastLevelCacheSize() / sizeof(Scalar));
     resources->push_back(internal::TensorOpResourceRequirements(
         internal::TensorBlockShapeType::kSkewedInnerDims,
-        m_block_total_size_max));
+        block_total_size_max));
     m_impl.getResourceRequirements(resources);
   }
 
@@ -1203,9 +1202,6 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType, MakePointer_>,
   // Size of the input dimensions that are reduced.
   // Indexed by reduced dimensions.
   array<Index, NumReducedDims> m_reducedDims;
-
-  // Block size for tiled (aka TensorBlock) evaluation.
-  Index m_block_total_size_max;
 
   // Evaluator for the input expression.
   TensorEvaluator<ArgType, Device> m_impl;
