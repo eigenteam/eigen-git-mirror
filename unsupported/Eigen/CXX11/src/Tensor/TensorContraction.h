@@ -239,7 +239,7 @@ struct TensorContractionEvaluatorBase
 
   enum {
     IsAligned = true,
-    PacketAccess = (internal::unpacket_traits<PacketReturnType>::size > 1),
+    PacketAccess = (PacketType<CoeffReturnType, Device>::size > 1),
     BlockAccess = false,
     Layout = TensorEvaluator<LeftArgType, Device>::Layout,
     CoordAccess = false,  // to be implemented
