@@ -1076,4 +1076,17 @@ namespace Eigen {
 #   endif
 #endif
 
+#ifdef EIGEN_HAS_VARIADIC_TEMPLATES
+// The all function is used to enable a variadic version of eigen_assert which can take a parameter pack as its input.
+namespace Eigen {
+namespace internal {
+bool all(){ return true; }
+template<typename T, typename ...Ts>
+bool all(T t, Ts ... ts){ return t && all(ts...); }
+
+}
+}
+#endif
+
+
 #endif // EIGEN_MACROS_H
