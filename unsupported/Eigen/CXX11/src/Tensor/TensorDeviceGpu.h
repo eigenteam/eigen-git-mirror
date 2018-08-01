@@ -159,13 +159,6 @@ class GpuStreamDevice : public StreamInterface {
     err = gpuFree(buffer);
     gpu_assert(err == gpuSuccess);
   }
-   EIGEN_STRONG_INLINE void* allocate_temp(size_t num_bytes) const {
-    return stream_->allocate(num_bytes);
-  }
-
-  EIGEN_STRONG_INLINE void deallocate_temp(void* buffer) const {
-    stream_->deallocate(buffer);
-  }
 
   virtual void* scratchpad() const {
     if (scratch_ == NULL) {
@@ -213,6 +206,15 @@ struct GpuDevice {
   EIGEN_STRONG_INLINE void deallocate(void* buffer) const {
     stream_->deallocate(buffer);
   }
+
+  EIGEN_STRONG_INLINE void* allocate_temp(size_t num_bytes) const {
+    return stream_->allocate(num_bytes);
+  }
+
+  EIGEN_STRONG_INLINE void deallocate_temp(void* buffer) const {
+    stream_->deallocate(buffer);
+  }
+
 
   EIGEN_STRONG_INLINE void* scratchpad() const {
     return stream_->scratchpad();
