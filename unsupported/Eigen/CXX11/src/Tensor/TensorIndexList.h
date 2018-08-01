@@ -75,10 +75,10 @@ template<DenseIndex n> struct NumTraits<type2index<n> >
     MulCost = 1
   };
 
-  EIGEN_DEVICE_FUNC static inline Real epsilon() { return 0; }
-  EIGEN_DEVICE_FUNC static inline Real dummy_precision() { return 0; }
-  EIGEN_DEVICE_FUNC static inline Real highest() { return n; }
-  EIGEN_DEVICE_FUNC static inline Real lowest() { return n; }
+  EIGEN_DEVICE_FUNC static EIGEN_STRONG_INLINE Real epsilon() { return 0; }
+  EIGEN_DEVICE_FUNC static EIGEN_STRONG_INLINE Real dummy_precision() { return 0; }
+  EIGEN_DEVICE_FUNC static EIGEN_STRONG_INLINE Real highest() { return n; }
+  EIGEN_DEVICE_FUNC static EIGEN_STRONG_INLINE Real lowest() { return n; }
 };
 
 namespace internal {

@@ -112,7 +112,7 @@ class Tensor : public TensorBase<Tensor<Scalar_, NumIndices_, Options_, IndexTyp
 
 #if EIGEN_HAS_VARIADIC_TEMPLATES
     template<typename... IndexTypes>
-    EIGEN_DEVICE_FUNC inline const Scalar& coeff(Index firstIndex, Index secondIndex, IndexTypes... otherIndices) const
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar& coeff(Index firstIndex, Index secondIndex, IndexTypes... otherIndices) const
     {
       // The number of indices used to access a tensor coefficient must be equal to the rank of the tensor.
       EIGEN_STATIC_ASSERT(sizeof...(otherIndices) + 2 == NumIndices, YOU_MADE_A_PROGRAMMING_MISTAKE)

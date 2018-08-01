@@ -41,7 +41,7 @@ template<typename Index, std::size_t NumIndices, std::size_t n, bool RowMajor>
 struct fixed_size_tensor_index_linearization_helper
 {
   template <typename Dimensions> EIGEN_DEVICE_FUNC
-  static inline Index run(array<Index, NumIndices> const& indices,
+  static EIGEN_STRONG_INLINE Index run(array<Index, NumIndices> const& indices,
                           const Dimensions& dimensions)
   {
     return array_get<RowMajor ? n - 1 : (NumIndices - n)>(indices) +
@@ -54,7 +54,7 @@ template<typename Index, std::size_t NumIndices, bool RowMajor>
 struct fixed_size_tensor_index_linearization_helper<Index, NumIndices, 0, RowMajor>
 {
   template <typename Dimensions> EIGEN_DEVICE_FUNC
-  static inline Index run(array<Index, NumIndices> const&, const Dimensions&)
+  static EIGEN_STRONG_INLINE Index run(array<Index, NumIndices> const&, const Dimensions&)
   {
     return 0;
   }
@@ -64,7 +64,7 @@ template<typename Index, std::size_t n>
 struct fixed_size_tensor_index_extraction_helper
 {
   template <typename Dimensions> EIGEN_DEVICE_FUNC
-  static inline Index run(const Index index,
+  static EIGEN_STRONG_INLINE Index run(const Index index,
                           const Dimensions& dimensions)
   {
     const Index mult = (index == n-1) ? 1 : 0;
@@ -77,7 +77,7 @@ template<typename Index>
 struct fixed_size_tensor_index_extraction_helper<Index, 0>
 {
   template <typename Dimensions> EIGEN_DEVICE_FUNC
-  static inline Index run(const Index,
+  static EIGEN_STRONG_INLINE Index run(const Index,
                           const Dimensions&)
   {
     return 0;
@@ -421,20 +421,20 @@ template <std::size_t n, std::size_t V1, std::size_t V2, std::size_t V3, std::si
 
 template <typename Dims1, typename Dims2, size_t n, size_t m>
 struct sizes_match_below_dim {
-  static EIGEN_DEVICE_FUNC  inline bool run(Dims1&, Dims2&) {
+  static EIGEN_DEVICE_FUNC  EIGEN_STRONG_INLINE bool run(Dims1&, Dims2&) {
     return false;
   }
 };
 template <typename Dims1, typename Dims2, size_t n>
 struct sizes_match_below_dim<Dims1, Dims2, n, n> {
-  static EIGEN_DEVICE_FUNC  inline bool run(Dims1& dims1, Dims2& dims2) {
+  static EIGEN_DEVICE_FUNC  EIGEN_STRONG_INLINE bool run(Dims1& dims1, Dims2& dims2) {
     return (array_get<n-1>(dims1) == array_get<n-1>(dims2)) &
         sizes_match_below_dim<Dims1, Dims2, n-1, n-1>::run(dims1, dims2);
   }
 };
 template <typename Dims1, typename Dims2>
 struct sizes_match_below_dim<Dims1, Dims2, 0, 0> {
-  static EIGEN_DEVICE_FUNC  inline bool run(Dims1&, Dims2&) {
+  static EIGEN_DEVICE_FUNC  EIGEN_STRONG_INLINE bool run(Dims1&, Dims2&) {
     return true;
   }
 };
