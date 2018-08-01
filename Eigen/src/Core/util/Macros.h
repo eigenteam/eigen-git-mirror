@@ -571,20 +571,19 @@
 
 // Does the compiler fully support const expressions? (as in c++14)
 #ifndef EIGEN_HAS_CONSTEXPR
-
   #if defined(EIGEN_CUDACC)
   // Const expressions are supported provided that c++11 is enabled and we're using either clang or nvcc 7.5 or above
-  #if EIGEN_MAX_CPP_VER>=14 && (__cplusplus > 199711L && (EIGEN_COMP_CLANG || EIGEN_CUDACC_VER >= 70500))
-    #define EIGEN_HAS_CONSTEXPR 1
-  #endif
+    #if EIGEN_MAX_CPP_VER>=14 && (__cplusplus > 199711L && (EIGEN_COMP_CLANG || EIGEN_CUDACC_VER >= 70500))
+      #define EIGEN_HAS_CONSTEXPR 1
+    #endif
   #elif EIGEN_MAX_CPP_VER>=14 && (__has_feature(cxx_relaxed_constexpr) || (defined(__cplusplus) && __cplusplus >= 201402L) || \
     (EIGEN_GNUC_AT_LEAST(4,8) && (__cplusplus > 199711L)) || \
     (EIGEN_COMP_CLANG >= 306 && (__cplusplus > 199711L)))
-  #define EIGEN_HAS_CONSTEXPR 1
+    #define EIGEN_HAS_CONSTEXPR 1
   #endif
 
   #ifndef EIGEN_HAS_CONSTEXPR
-  #define EIGEN_HAS_CONSTEXPR 0
+    #define EIGEN_HAS_CONSTEXPR 0
   #endif
 
 #endif // EIGEN_HAS_CONSTEXPR
@@ -643,9 +642,12 @@
     #ifdef __CUDACC_RELAXED_CONSTEXPR__
       #define EIGEN_CONSTEXPR_ARE_DEVICE_FUNC
     #endif
-  #elif defined(__clang__) && defined(__CUDA__)
-    // clang++ always considers constexpr functions as implicitly __host__ __device__
-    #define EIGEN_CONSTEXPR_ARE_DEVICE_FUNC
+    // See bug 1580: clang/CUDA fails to make the following calls
+    // to constexpr bool std::equal_to::operator() even when
+    // EIGEN_CONSTEXPR_ARE_DEVICE_FUNC is defined in c++14 only.
+    // #elif defined(__clang__) && defined(__CUDA__) && EIGEN_HAS_CONSTEXPR == 1
+    //   // clang++ always considers constexpr functions as implicitly __host__ __device__
+    //   #define EIGEN_CONSTEXPR_ARE_DEVICE_FUNC
   #endif
 #endif
 
