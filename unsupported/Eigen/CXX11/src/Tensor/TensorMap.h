@@ -150,6 +150,7 @@ template<typename PlainObjectType, int Options_, template <class> class MakePoin
     EIGEN_STRONG_INLINE const Scalar& operator()(Index firstIndex, Index secondIndex, IndexTypes... otherIndices) const
     {
       EIGEN_STATIC_ASSERT(sizeof...(otherIndices) + 2 == NumIndices, YOU_MADE_A_PROGRAMMING_MISTAKE)
+      eigen_variadic_assert((Eigen::NumTraits<Index>::highest() >= otherIndices)...);
       if (PlainObjectType::Options&RowMajor) {
         const Index index = m_dimensions.IndexOfRowMajor(array<Index, NumIndices>{{firstIndex, secondIndex, otherIndices...}});
         return m_data[index];
@@ -237,6 +238,7 @@ template<typename PlainObjectType, int Options_, template <class> class MakePoin
     EIGEN_STRONG_INLINE Scalar& operator()(Index firstIndex, Index secondIndex, IndexTypes... otherIndices)
     {
       static_assert(sizeof...(otherIndices) + 2 == NumIndices || NumIndices == Dynamic, "Number of indices used to access a tensor coefficient must be equal to the rank of the tensor.");
+      eigen_variadic_assert((Eigen::NumTraits<Index>::highest() >= otherIndices)...);
       const std::size_t NumDims = sizeof...(otherIndices) + 2;
       if (PlainObjectType::Options&RowMajor) {
         const Index index = m_dimensions.IndexOfRowMajor(array<Index, NumDims>{{firstIndex, secondIndex, otherIndices...}});
