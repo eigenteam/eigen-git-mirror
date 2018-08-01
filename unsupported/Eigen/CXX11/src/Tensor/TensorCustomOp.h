@@ -87,11 +87,11 @@ struct TensorEvaluator<const TensorCustomUnaryOp<CustomUnaryFunc, XprType>, Devi
   typedef typename internal::remove_const<typename ArgType::Scalar>::type Scalar;
   typedef typename internal::remove_const<typename XprType::CoeffReturnType>::type CoeffReturnType;
   typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
-  static const int PacketSize = internal::unpacket_traits<PacketReturnType>::size;
+  static const int PacketSize = PacketType<CoeffReturnType, Device>::size;
 
   enum {
     IsAligned = false,
-    PacketAccess = (internal::packet_traits<Scalar>::size > 1),
+    PacketAccess = (PacketType<CoeffReturnType, Device>::size > 1),
     BlockAccess = false,
     Layout = TensorEvaluator<XprType, Device>::Layout,
     CoordAccess = false,  // to be implemented
@@ -112,7 +112,7 @@ struct TensorEvaluator<const TensorCustomUnaryOp<CustomUnaryFunc, XprType>, Devi
       return false;
     } else {
       m_result = static_cast<CoeffReturnType*>(
-          m_device.allocate(dimensions().TotalSize() * sizeof(Scalar)));
+          m_device.allocate_temp(dimensions().TotalSize() * sizeof(Scalar)));
       evalTo(m_result);
       return true;
     }
@@ -120,7 +120,7 @@ struct TensorEvaluator<const TensorCustomUnaryOp<CustomUnaryFunc, XprType>, Devi
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void cleanup() {
     if (m_result != NULL) {
-      m_device.deallocate(m_result);
+      m_device.deallocate_temp(m_result);
       m_result = NULL;
     }
   }
@@ -249,11 +249,11 @@ struct TensorEvaluator<const TensorCustomBinaryOp<CustomBinaryFunc, LhsXprType, 
   typedef typename XprType::Scalar Scalar;
   typedef typename internal::remove_const<typename XprType::CoeffReturnType>::type CoeffReturnType;
   typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
-  static const int PacketSize = internal::unpacket_traits<PacketReturnType>::size;
+  static const int PacketSize = PacketType<CoeffReturnType, Device>::size;
 
   enum {
     IsAligned = false,
-    PacketAccess = (internal::packet_traits<Scalar>::size > 1),
+    PacketAccess = (PacketType<CoeffReturnType, Device>::size > 1),
     BlockAccess = false,
     Layout = TensorEvaluator<LhsXprType, Device>::Layout,
     CoordAccess = false,  // to be implemented
@@ -273,7 +273,7 @@ struct TensorEvaluator<const TensorCustomBinaryOp<CustomBinaryFunc, LhsXprType, 
       evalTo(data);
       return false;
     } else {
-      m_result = static_cast<Scalar *>(m_device.allocate(dimensions().TotalSize() * sizeof(Scalar)));
+      m_result = static_cast<Scalar *>(m_device.allocate_temp(dimensions().TotalSize() * sizeof(Scalar)));
       evalTo(m_result);
       return true;
     }
@@ -281,7 +281,7 @@ struct TensorEvaluator<const TensorCustomBinaryOp<CustomBinaryFunc, LhsXprType, 
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void cleanup() {
     if (m_result != NULL) {
-      m_device.deallocate(m_result);
+      m_device.deallocate_temp(m_result);
       m_result = NULL;
     }
   }

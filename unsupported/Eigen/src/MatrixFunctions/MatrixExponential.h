@@ -395,7 +395,6 @@ void matrix_exp_compute(const ArgType& arg, ResultType &result, false_type) // d
 template<typename Derived> struct MatrixExponentialReturnValue
 : public ReturnByValue<MatrixExponentialReturnValue<Derived> >
 {
-    typedef typename Derived::Index Index;
   public:
     /** \brief Constructor.
       *

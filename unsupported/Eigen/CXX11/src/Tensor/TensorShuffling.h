@@ -108,11 +108,11 @@ struct TensorEvaluator<const TensorShufflingOp<Shuffle, ArgType>, Device>
   typedef typename XprType::Scalar Scalar;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
   typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
-  static const int PacketSize = internal::unpacket_traits<PacketReturnType>::size;
+  static const int PacketSize = PacketType<CoeffReturnType, Device>::size;
 
   enum {
     IsAligned    = false,
-    PacketAccess = (internal::packet_traits<Scalar>::size > 1),
+    PacketAccess = (PacketType<CoeffReturnType, Device>::size > 1),
     BlockAccess  = TensorEvaluator<ArgType, Device>::BlockAccess,
     Layout       = TensorEvaluator<ArgType, Device>::Layout,
     CoordAccess  = false,  // to be implemented
@@ -405,11 +405,11 @@ struct TensorEvaluator<TensorShufflingOp<Shuffle, ArgType>, Device>
   typedef typename XprType::Scalar Scalar;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
   typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
-  static const int PacketSize = internal::unpacket_traits<PacketReturnType>::size;
+  static const int PacketSize = PacketType<CoeffReturnType, Device>::size;
 
   enum {
     IsAligned    = false,
-    PacketAccess = (internal::packet_traits<Scalar>::size > 1),
+    PacketAccess = (PacketType<CoeffReturnType, Device>::size > 1),
     BlockAccess  = TensorEvaluator<ArgType, Device>::BlockAccess,
     Layout       = TensorEvaluator<ArgType, Device>::Layout,
     RawAccess    = false

@@ -18,7 +18,7 @@ static void test_create_destroy_empty_pool()
   // Just create and destroy the pool. This will wind up and tear down worker
   // threads. Ensure there are no issues in that logic.
   for (int i = 0; i < 16; ++i) {
-    NonBlockingThreadPool tp(i);
+    ThreadPool tp(i);
   }
 }
 
@@ -27,7 +27,7 @@ static void test_parallelism(bool allow_spinning)
 {
   // Test we never-ever fail to match available tasks with idle threads.
   const int kThreads = 16;  // code below expects that this is a multiple of 4
-  NonBlockingThreadPool tp(kThreads, allow_spinning);
+  ThreadPool tp(kThreads, allow_spinning);
   VERIFY_IS_EQUAL(tp.NumThreads(), kThreads);
   VERIFY_IS_EQUAL(tp.CurrentThreadId(), -1);
   for (int iter = 0; iter < 100; ++iter) {
@@ -104,7 +104,7 @@ static void test_parallelism(bool allow_spinning)
 
 static void test_cancel()
 {
-  NonBlockingThreadPool tp(2);
+  ThreadPool tp(2);
 
   // Schedule a large number of closure that each sleeps for one second. This
   // will keep the thread pool busy for much longer than the default test timeout.

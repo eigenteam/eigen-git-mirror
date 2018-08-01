@@ -53,7 +53,7 @@ template <typename MatrixType>
 typename NumTraits<typename MatrixType::Scalar>::Real matrix_function_compute_mu(const MatrixType& A)
 {
   typedef typename plain_col_type<MatrixType>::type VectorType;
-  typename MatrixType::Index rows = A.rows();
+  Index rows = A.rows();
   const MatrixType N = MatrixType::Identity(rows, rows) - A;
   VectorType e = VectorType::Ones(rows);
   N.template triangularView<Upper>().solveInPlace(e);
@@ -65,7 +65,6 @@ MatrixType MatrixFunctionAtomic<MatrixType>::compute(const MatrixType& A)
 {
   // TODO: Use that A is upper triangular
   typedef typename NumTraits<Scalar>::Real RealScalar;
-  typedef typename MatrixType::Index Index;
   Index rows = A.rows();
   Scalar avgEival = A.trace() / Scalar(RealScalar(rows));
   MatrixType Ashifted = A - avgEival * MatrixType::Identity(rows, rows);
@@ -131,7 +130,6 @@ typename ListOfClusters::iterator matrix_function_find_cluster(Index key, ListOf
 template <typename EivalsType, typename Cluster>
 void matrix_function_partition_eigenvalues(const EivalsType& eivals, std::list<Cluster>& clusters)
 {
-  typedef typename EivalsType::Index Index;
   typedef typename EivalsType::RealScalar RealScalar;
   for (Index i=0; i<eivals.rows(); ++i) {
     // Find cluster containing i-th ei'val, adding a new cluster if necessary
@@ -179,7 +177,7 @@ void matrix_function_compute_block_start(const VectorType& clusterSize, VectorTy
 {
   blockStart.resize(clusterSize.rows());
   blockStart(0) = 0;
-  for (typename VectorType::Index i = 1; i < clusterSize.rows(); i++) {
+  for (Index i = 1; i < clusterSize.rows(); i++) {
     blockStart(i) = blockStart(i-1) + clusterSize(i-1);
   }
 }
@@ -188,7 +186,6 @@ void matrix_function_compute_block_start(const VectorType& clusterSize, VectorTy
 template <typename EivalsType, typename ListOfClusters, typename VectorType>
 void matrix_function_compute_map(const EivalsType& eivals, const ListOfClusters& clusters, VectorType& eivalToCluster)
 {
-  typedef typename EivalsType::Index Index;
   eivalToCluster.resize(eivals.rows());
   Index clusterIndex = 0;
   for (typename ListOfClusters::const_iterator cluster = clusters.begin(); cluster != clusters.end(); ++cluster) {
@@ -205,7 +202,6 @@ void matrix_function_compute_map(const EivalsType& eivals, const ListOfClusters&
 template <typename DynVectorType, typename VectorType>
 void matrix_function_compute_permutation(const DynVectorType& blockStart, const DynVectorType& eivalToCluster, VectorType& permutation)
 {
-  typedef typename VectorType::Index Index;
   DynVectorType indexNextEntry = blockStart;
   permutation.resize(eivalToCluster.rows());
   for (Index i = 0; i < eivalToCluster.rows(); i++) {
@@ -219,7 +215,6 @@ void matrix_function_compute_permutation(const DynVectorType& blockStart, const 
 template <typename VectorType, typename MatrixType>
 void matrix_function_permute_schur(VectorType& permutation, MatrixType& U, MatrixType& T)
 {
-  typedef typename VectorType::Index Index;
   for (Index i = 0; i < permutation.rows() - 1; i++) {
     Index j;
     for (j = i; j < permutation.rows(); j++) {
@@ -247,7 +242,7 @@ template <typename MatrixType, typename AtomicType, typename VectorType>
 void matrix_function_compute_block_atomic(const MatrixType& T, AtomicType& atomic, const VectorType& blockStart, const VectorType& clusterSize, MatrixType& fT)
 { 
   fT.setZero(T.rows(), T.cols());
-  for (typename VectorType::Index i = 0; i < clusterSize.rows(); ++i) {
+  for (Index i = 0; i < clusterSize.rows(); ++i) {
     fT.block(blockStart(i), blockStart(i), clusterSize(i), clusterSize(i))
       = atomic.compute(T.block(blockStart(i), blockStart(i), clusterSize(i), clusterSize(i)));
   }
@@ -285,7 +280,6 @@ MatrixType matrix_function_solve_triangular_sylvester(const MatrixType& A, const
   eigen_assert(C.rows() == A.rows());
   eigen_assert(C.cols() == B.rows());
 
-  typedef typename MatrixType::Index Index;
   typedef typename MatrixType::Scalar Scalar;
 
   Index m = A.rows();
@@ -330,11 +324,8 @@ void matrix_function_compute_above_diagonal(const MatrixType& T, const VectorTyp
 { 
   typedef internal::traits<MatrixType> Traits;
   typedef typename MatrixType::Scalar Scalar;
-  typedef typename MatrixType::Index Index;
-  static const int RowsAtCompileTime = Traits::RowsAtCompileTime;
-  static const int ColsAtCompileTime = Traits::ColsAtCompileTime;
   static const int Options = MatrixType::Options;
-  typedef Matrix<Scalar, Dynamic, Dynamic, Options, RowsAtCompileTime, ColsAtCompileTime> DynMatrixType;
+  typedef Matrix<Scalar, Dynamic, Dynamic, Options, Traits::RowsAtCompileTime, Traits::ColsAtCompileTime> DynMatrixType;
 
   for (Index k = 1; k < clusterSize.rows(); k++) {
     for (Index i = 0; i < clusterSize.rows() - k; i++) {
@@ -481,7 +472,6 @@ template<typename Derived> class MatrixFunctionReturnValue
 {
   public:
     typedef typename Derived::Scalar Scalar;
-    typedef typename Derived::Index Index;
     typedef typename internal::stem_function<Scalar>::type StemFunction;
 
   protected:
@@ -506,10 +496,8 @@ template<typename Derived> class MatrixFunctionReturnValue
       typedef typename internal::nested_eval<Derived, 10>::type NestedEvalType;
       typedef typename internal::remove_all<NestedEvalType>::type NestedEvalTypeClean;
       typedef internal::traits<NestedEvalTypeClean> Traits;
-      static const int RowsAtCompileTime = Traits::RowsAtCompileTime;
-      static const int ColsAtCompileTime = Traits::ColsAtCompileTime;
       typedef std::complex<typename NumTraits<Scalar>::Real> ComplexScalar;
-      typedef Matrix<ComplexScalar, Dynamic, Dynamic, 0, RowsAtCompileTime, ColsAtCompileTime> DynMatrixType;
+      typedef Matrix<ComplexScalar, Dynamic, Dynamic, 0, Traits::RowsAtCompileTime, Traits::ColsAtCompileTime> DynMatrixType;
 
       typedef internal::MatrixFunctionAtomic<DynMatrixType> AtomicType;
       AtomicType atomic(m_f);

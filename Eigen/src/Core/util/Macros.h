@@ -518,6 +518,8 @@
 #endif
 
 // Does the compiler support C99?
+// Need to include <cmath> to make sure _GLIBCXX_USE_C99 gets defined
+#include <cmath>
 #ifndef EIGEN_HAS_C99_MATH
 #if EIGEN_MAX_CPP_VER>=11 && \
     ((defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 199901))       \
@@ -1073,5 +1075,18 @@ namespace Eigen {
 #     define EIGEN_EXCEPTION_SPEC(X) throw(X)
 #   endif
 #endif
+
+#ifdef EIGEN_HAS_VARIADIC_TEMPLATES
+// The all function is used to enable a variadic version of eigen_assert which can take a parameter pack as its input.
+namespace Eigen {
+namespace internal {
+bool all(){ return true; }
+template<typename T, typename ...Ts>
+bool all(T t, Ts ... ts){ return t && all(ts...); }
+
+}
+}
+#endif
+
 
 #endif // EIGEN_MACROS_H

@@ -20,7 +20,7 @@ namespace internal {
 template <typename Scalar>
 struct scalar_mod_op {
   EIGEN_DEVICE_FUNC scalar_mod_op(const Scalar& divisor) : m_divisor(divisor) {}
-  EIGEN_DEVICE_FUNC inline Scalar operator() (const Scalar& a) const { return a % m_divisor; }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar operator() (const Scalar& a) const { return a % m_divisor; }
   const Scalar m_divisor;
 };
 template <typename Scalar>
@@ -34,7 +34,7 @@ struct functor_traits<scalar_mod_op<Scalar> >
 template <typename Scalar>
 struct scalar_mod2_op {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_mod2_op)
-  EIGEN_DEVICE_FUNC inline Scalar operator() (const Scalar& a, const Scalar& b) const { return a % b; }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar operator() (const Scalar& a, const Scalar& b) const { return a % b; }
 };
 template <typename Scalar>
 struct functor_traits<scalar_mod2_op<Scalar> >

@@ -39,7 +39,7 @@ class TensorExecutor {
   using StorageIndex = typename Expression::Index;
 
   EIGEN_DEVICE_FUNC
-  static inline void run(const Expression& expr,
+  static EIGEN_STRONG_INLINE void run(const Expression& expr,
                          const Device& device = Device()) {
     TensorEvaluator<Expression, Device> evaluator(expr, device);
     const bool needs_assign = evaluator.evalSubExprsIfNeeded(NULL);
@@ -63,7 +63,7 @@ class TensorExecutor<Expression, DefaultDevice, /*Vectorizable*/ true,
   using StorageIndex = typename Expression::Index;
 
   EIGEN_DEVICE_FUNC
-  static inline void run(const Expression& expr,
+  static EIGEN_STRONG_INLINE void run(const Expression& expr,
                          const DefaultDevice& device = DefaultDevice()) {
     TensorEvaluator<Expression, DefaultDevice> evaluator(expr, device);
     const bool needs_assign = evaluator.evalSubExprsIfNeeded(NULL);
@@ -111,7 +111,7 @@ class TensorExecutor<Expression, DefaultDevice, Vectorizable,
   static const int NumDims = traits<Expression>::NumDimensions;
 
   EIGEN_DEVICE_FUNC
-  static inline void run(const Expression& expr,
+  static EIGEN_STRONG_INLINE void run(const Expression& expr,
                          const DefaultDevice& device = DefaultDevice()) {
     using TensorBlock =
         TensorBlock<ScalarNoConst, StorageIndex, NumDims, Evaluator::Layout>;
@@ -223,7 +223,7 @@ class TensorExecutor<Expression, ThreadPoolDevice, Vectorizable, Tileable> {
  public:
   using StorageIndex = typename Expression::Index;
 
-  static inline void run(const Expression& expr,
+  static EIGEN_STRONG_INLINE void run(const Expression& expr,
                          const ThreadPoolDevice& device) {
     typedef TensorEvaluator<Expression, ThreadPoolDevice> Evaluator;
     typedef EvalRange<Evaluator, StorageIndex, Vectorizable> EvalRange;
@@ -257,7 +257,7 @@ class TensorExecutor<Expression, ThreadPoolDevice, Vectorizable, /*Tileable*/ tr
 
   static const int NumDims = traits<Expression>::NumDimensions;
 
-  static inline void run(const Expression& expr,
+  static EIGEN_STRONG_INLINE void run(const Expression& expr,
                          const ThreadPoolDevice& device) {
     using TensorBlock =
         TensorBlock<ScalarNoConst, StorageIndex, NumDims, Evaluator::Layout>;
@@ -376,7 +376,7 @@ EigenMetaKernel(Evaluator eval, StorageIndex size) {
 
 /*static*/
 template <typename Expression, bool Vectorizable, bool Tileable>
-inline void TensorExecutor<Expression, GpuDevice, Vectorizable, Tileable>::run(
+EIGEN_STRONG_INLINE void TensorExecutor<Expression, GpuDevice, Vectorizable, Tileable>::run(
     const Expression& expr, const GpuDevice& device) {
   TensorEvaluator<Expression, GpuDevice> evaluator(expr, device);
   const bool needs_assign = evaluator.evalSubExprsIfNeeded(NULL);
@@ -405,7 +405,7 @@ inline void TensorExecutor<Expression, GpuDevice, Vectorizable, Tileable>::run(
 template <typename Expression, bool Vectorizable>
 class TensorExecutor<Expression, SyclDevice, Vectorizable> {
 public:
-  static inline void run(const Expression &expr, const SyclDevice &device) {
+  static EIGEN_STRONG_INLINE void run(const Expression &expr, const SyclDevice &device) {
     // call TensorSYCL module
     TensorSycl::run(expr, device);
   }

@@ -177,9 +177,9 @@ struct NoOpOutputKernel {
    */
   template <typename Index, typename Scalar>
   EIGEN_ALWAYS_INLINE void operator()(
-      const OutputKernel::OutputMapper<Index, Scalar>& output_mapper,
-      const TensorContractionParams& params, Index i, Index j, Index num_rows,
-      Index num_cols) const {}
+      const OutputKernel::OutputMapper<Index, Scalar>& /*output_mapper*/,
+      const TensorContractionParams& /*params*/, Index /*i*/,
+      Index /*j*/, Index /*num_rows*/, Index /*num_cols*/) const {}
 };
 
 template<typename Indices, typename LhsXprType, typename RhsXprType, typename OutputKernelType = const NoOpOutputKernel>
@@ -239,7 +239,7 @@ struct TensorContractionEvaluatorBase
 
   enum {
     IsAligned = true,
-    PacketAccess = (internal::unpacket_traits<PacketReturnType>::size > 1),
+    PacketAccess = (PacketType<CoeffReturnType, Device>::size > 1),
     BlockAccess = false,
     Layout = TensorEvaluator<LeftArgType, Device>::Layout,
     CoordAccess = false,  // to be implemented
@@ -468,42 +468,58 @@ struct TensorContractionEvaluatorBase
     }
   }
 
-  EIGEN_DEVICE_FUNC void evalTo(Scalar* buffer) const {
-    if (this->m_lhs_inner_dim_contiguous) {
-      if (this->m_rhs_inner_dim_contiguous) {
-        if (this->m_rhs_inner_dim_reordered) {
-          static_cast<const Derived*>(this)->template evalProduct<true, true, true, Unaligned>(buffer);
-        }
-        else {
-          static_cast<const Derived*>(this)->template evalProduct<true, true, false, Unaligned>(buffer);
-        }
-      }
-      else {
-       if (this->m_rhs_inner_dim_reordered) {
-          static_cast<const Derived*>(this)->template evalProduct<true, false, true, Unaligned>(buffer);
-        }
-        else {
-          static_cast<const Derived*>(this)->template evalProduct<true, false, false, Unaligned>(buffer);
-        }
-      }
+#define TENSOR_CONTRACTION_DISPATCH(METHOD, ALIGNMENT, ARGS)   \
+    if (this->m_lhs_inner_dim_contiguous) { \
+      if (this->m_rhs_inner_dim_contiguous) { \
+        if (this->m_rhs_inner_dim_reordered) { \
+          METHOD<true, true, true, ALIGNMENT>ARGS;    \
+        } \
+        else { \
+          METHOD<true, true, false, ALIGNMENT>ARGS; \
+        } \
+      } \
+      else { \
+       if (this->m_rhs_inner_dim_reordered) { \
+          METHOD<true, false, true, ALIGNMENT>ARGS; \
+        } \
+        else { \
+          METHOD<true, false, false, ALIGNMENT>ARGS; \
+        } \
+      } \
+    } \
+    else { \
+      if (this->m_rhs_inner_dim_contiguous) { \
+        if (this->m_rhs_inner_dim_reordered) { \
+          METHOD<false, true, true, ALIGNMENT>ARGS; \
+        } \
+        else { \
+          METHOD<false, true, false, ALIGNMENT>ARGS; \
+        } \
+      } \
+      else { \
+       if (this->m_rhs_inner_dim_reordered) { \
+          METHOD<false, false, true, ALIGNMENT>ARGS; \
+        } \
+        else { \
+          METHOD<false, false, false, ALIGNMENT>ARGS; \
+        } \
+      } \
     }
-    else {
-      if (this->m_rhs_inner_dim_contiguous) {
-        if (this->m_rhs_inner_dim_reordered) {
-          static_cast<const Derived*>(this)->template evalProduct<false, true, true, Unaligned>(buffer);
-        }
-        else {
-          static_cast<const Derived*>(this)->template evalProduct<false, true, false, Unaligned>(buffer);
-        }
-      }
-      else {
-       if (this->m_rhs_inner_dim_reordered) {
-          static_cast<const Derived*>(this)->template evalProduct<false, false, true, Unaligned>(buffer);
-        }
-        else {
-          static_cast<const Derived*>(this)->template evalProduct<false, false, false, Unaligned>(buffer);
-        }
-      }
+
+  EIGEN_DEVICE_FUNC void evalTo(Scalar* buffer) const {
+   static_cast<const Derived*>(this)->template evalProduct<Unaligned>(buffer);
+  }
+
+  template <bool lhs_inner_dim_contiguous, bool rhs_inner_dim_contiguous,
+            bool rhs_inner_dim_reordered, int Alignment>
+  void evalProductSequential(Scalar* buffer) const {
+    if (this->m_j_size == 1) {
+      this->template evalGemv<lhs_inner_dim_contiguous,
+                              rhs_inner_dim_contiguous, rhs_inner_dim_reordered,
+                              Alignment>(buffer);
+    } else {
+      this->template evalGemm<lhs_inner_dim_contiguous, rhs_inner_dim_contiguous,
+                              rhs_inner_dim_reordered, Alignment>(buffer);
     }
   }
 
@@ -624,7 +640,7 @@ struct TensorContractionEvaluatorBase
     OutputMapper output(buffer, m);
 
     // Sizes of the blocks to load in cache. See the Goto paper for details.
-    internal::TensorContractionBlocking<LhsMapper, RhsMapper, Index, internal::ShardByCol> blocking(k, m, n, 1);
+    internal::TensorContractionBlocking<LhsScalar, RhsScalar, Index, internal::ShardByCol> blocking(k, m, n, 1);
     const Index kc = blocking.kc();
     const Index mc = numext::mini(m, blocking.mc());
     const Index nc = numext::mini(n, blocking.nc());
@@ -977,14 +993,9 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
   EIGEN_DEVICE_FUNC TensorEvaluator(const XprType& op, const Device& device) :
       Base(op, device) { }
 
-  template <bool lhs_inner_dim_contiguous, bool rhs_inner_dim_contiguous, bool rhs_inner_dim_reordered, int Alignment>
-  EIGEN_DEVICE_FUNC void evalProduct(Scalar* buffer) const {
-    if (this->m_j_size == 1) {
-      this->template evalGemv<lhs_inner_dim_contiguous, rhs_inner_dim_contiguous, rhs_inner_dim_reordered, Alignment>(buffer);
-      return;
-    }
-
-    this->template evalGemm<lhs_inner_dim_contiguous, rhs_inner_dim_contiguous, rhs_inner_dim_reordered, Alignment>(buffer);
+  template <int Alignment>
+  void evalProduct(Scalar* buffer) const {
+    TENSOR_CONTRACTION_DISPATCH(this->template evalProductSequential, Alignment, (buffer));
   }
 };
 

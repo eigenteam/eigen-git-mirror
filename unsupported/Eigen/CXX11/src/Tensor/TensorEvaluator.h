@@ -33,6 +33,7 @@ struct TensorEvaluator
   typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
   typedef typename Derived::Dimensions Dimensions;
   typedef Derived XprType;
+  static const int PacketSize =  PacketType<CoeffReturnType, Device>::size;
 
   // NumDimensions is -1 for variable dim tensors
   static const int NumCoords = internal::traits<Derived>::NumDimensions > 0 ?
@@ -40,7 +41,7 @@ struct TensorEvaluator
 
   enum {
     IsAligned = Derived::IsAligned,
-    PacketAccess = (internal::unpacket_traits<PacketReturnType>::size > 1),
+    PacketAccess = (PacketType<CoeffReturnType, Device>::size > 1),
     BlockAccess = internal::is_arithmetic<typename internal::remove_const<Scalar>::type>::value,
     Layout = Derived::Layout,
     CoordAccess = NumCoords > 0,
@@ -121,7 +122,7 @@ struct TensorEvaluator
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorOpCost costPerCoeff(bool vectorized) const {
     return TensorOpCost(sizeof(CoeffReturnType), 0, 0, vectorized,
-                        internal::unpacket_traits<PacketReturnType>::size);
+                        PacketType<CoeffReturnType, Device>::size);
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void getResourceRequirements(
@@ -188,10 +189,11 @@ struct TensorEvaluator<const Derived, Device>
   // NumDimensions is -1 for variable dim tensors
   static const int NumCoords = internal::traits<Derived>::NumDimensions > 0 ?
                                internal::traits<Derived>::NumDimensions : 0;
+  static const int PacketSize = PacketType<CoeffReturnType, Device>::size;
 
   enum {
     IsAligned = Derived::IsAligned,
-    PacketAccess = (internal::unpacket_traits<PacketReturnType>::size > 1),
+    PacketAccess = (PacketType<CoeffReturnType, Device>::size > 1),
     BlockAccess = internal::is_arithmetic<typename internal::remove_const<Scalar>::type>::value,
     Layout = Derived::Layout,
     CoordAccess = NumCoords > 0,
@@ -249,7 +251,7 @@ struct TensorEvaluator<const Derived, Device>
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorOpCost costPerCoeff(bool vectorized) const {
     return TensorOpCost(sizeof(CoeffReturnType), 0, 0, vectorized,
-                        internal::unpacket_traits<PacketReturnType>::size);
+                        PacketType<CoeffReturnType, Device>::size);
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void getResourceRequirements(
@@ -300,7 +302,7 @@ struct TensorEvaluator<const TensorCwiseNullaryOp<NullaryOp, ArgType>, Device>
   typedef typename XprType::Scalar Scalar;
   typedef typename internal::traits<XprType>::Scalar CoeffReturnType;
   typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
-  static const int PacketSize = internal::unpacket_traits<PacketReturnType>::size;
+  static const int PacketSize = PacketType<CoeffReturnType, Device>::size;
   typedef typename TensorEvaluator<ArgType, Device>::Dimensions Dimensions;
 
   EIGEN_DEVICE_FUNC const Dimensions& dimensions() const { return m_argImpl.dimensions(); }
@@ -322,7 +324,7 @@ struct TensorEvaluator<const TensorCwiseNullaryOp<NullaryOp, ArgType>, Device>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorOpCost
   costPerCoeff(bool vectorized) const {
     return TensorOpCost(sizeof(CoeffReturnType), 0, 0, vectorized,
-                        internal::unpacket_traits<PacketReturnType>::size);
+                        PacketType<CoeffReturnType, Device>::size);
   }
 
   EIGEN_DEVICE_FUNC  typename Eigen::internal::traits<XprType>::PointerType  data() const { return NULL; }
@@ -367,7 +369,7 @@ struct TensorEvaluator<const TensorCwiseUnaryOp<UnaryOp, ArgType>, Device>
   typedef typename XprType::Scalar Scalar;
   typedef typename internal::traits<XprType>::Scalar CoeffReturnType;
   typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
-  static const int PacketSize = internal::unpacket_traits<PacketReturnType>::size;
+  static const int PacketSize = PacketType<CoeffReturnType, Device>::size;
   typedef typename TensorEvaluator<ArgType, Device>::Dimensions Dimensions;
 
   EIGEN_DEVICE_FUNC const Dimensions& dimensions() const { return m_argImpl.dimensions(); }
@@ -445,7 +447,7 @@ struct TensorEvaluator<const TensorCwiseBinaryOp<BinaryOp, LeftArgType, RightArg
   typedef typename XprType::Scalar Scalar;
   typedef typename internal::traits<XprType>::Scalar CoeffReturnType;
   typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
-  static const int PacketSize = internal::unpacket_traits<PacketReturnType>::size;
+  static const int PacketSize = PacketType<CoeffReturnType, Device>::size;
   typedef typename TensorEvaluator<LeftArgType, Device>::Dimensions Dimensions;
 
   static const int NumDims = internal::array_size<
@@ -574,7 +576,7 @@ struct TensorEvaluator<const TensorCwiseTernaryOp<TernaryOp, Arg1Type, Arg2Type,
   typedef typename XprType::Scalar Scalar;
   typedef typename internal::traits<XprType>::Scalar CoeffReturnType;
   typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
-  static const int PacketSize = internal::unpacket_traits<PacketReturnType>::size;
+  static const int PacketSize = PacketType<CoeffReturnType, Device>::size;
   typedef typename TensorEvaluator<Arg1Type, Device>::Dimensions Dimensions;
 
   EIGEN_DEVICE_FUNC const Dimensions& dimensions() const
@@ -644,7 +646,7 @@ struct TensorEvaluator<const TensorSelectOp<IfArgType, ThenArgType, ElseArgType>
   enum {
     IsAligned = TensorEvaluator<ThenArgType, Device>::IsAligned & TensorEvaluator<ElseArgType, Device>::IsAligned,
     PacketAccess = TensorEvaluator<ThenArgType, Device>::PacketAccess & TensorEvaluator<ElseArgType, Device>::PacketAccess &
-                   internal::packet_traits<Scalar>::HasBlend,
+                    PacketType<Scalar, Device>::HasBlend,
     BlockAccess = false,
     Layout = TensorEvaluator<IfArgType, Device>::Layout,
     CoordAccess = false,  // to be implemented
@@ -665,7 +667,7 @@ struct TensorEvaluator<const TensorSelectOp<IfArgType, ThenArgType, ElseArgType>
   typedef typename XprType::Index Index;
   typedef typename internal::traits<XprType>::Scalar CoeffReturnType;
   typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
-  static const int PacketSize = internal::unpacket_traits<PacketReturnType>::size;
+  static const int PacketSize = PacketType<CoeffReturnType, Device>::size;
   typedef typename TensorEvaluator<IfArgType, Device>::Dimensions Dimensions;
 
   EIGEN_DEVICE_FUNC const Dimensions& dimensions() const

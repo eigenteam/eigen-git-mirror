@@ -179,6 +179,7 @@ using std::ptrdiff_t;
   #include "src/Core/arch/NEON/PacketMath.h"
   #include "src/Core/arch/NEON/MathFunctions.h"
   #include "src/Core/arch/NEON/Complex.h"
+  #include "src/Core/arch/NEON/TypeCasting.h"
 #elif defined EIGEN_VECTORIZE_ZVECTOR
   #include "src/Core/arch/ZVector/PacketMath.h"
   #include "src/Core/arch/ZVector/MathFunctions.h"
