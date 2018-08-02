@@ -68,7 +68,7 @@ template<typename MatrixType> void triangular_square(const MatrixType& m)
     while (numext::abs2(m1(i,i))<RealScalar(1e-1)) m1(i,i) = internal::random<Scalar>();
 
   Transpose<MatrixType> trm4(m4);
-  // test back and forward subsitution with a vector as the rhs
+  // test back and forward substitution with a vector as the rhs
   m3 = m1.template triangularView<Upper>();
   VERIFY(v2.isApprox(m3.adjoint() * (m1.adjoint().template triangularView<Lower>().solve(v2)), largerEps));
   m3 = m1.template triangularView<Lower>();

@@ -156,7 +156,7 @@ EIGEN_DECLARE_TEST(boostmultiprec)
   std::cout << "NumTraits<Real>::highest()         = " << NumTraits<Real>::highest() << std::endl;
   std::cout << "NumTraits<Real>::digits10()        = " << NumTraits<Real>::digits10() << std::endl;
 
-  // chekc stream output
+  // check stream output
   {
     Mat A(10,10);
     A.setRandom();

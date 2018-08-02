@@ -115,7 +115,7 @@ template<int Mode> struct transform_make_affine;
   * \end{array} \right) \f$
   *
   * Note that for a projective transformation the last row can be anything,
-  * and then the interpretation of different parts might be sightly different.
+  * and then the interpretation of different parts might be slightly different.
   *
   * However, unlike a plain matrix, the Transform class provides many features
   * simplifying both its assembly and usage. In particular, it can be composed
