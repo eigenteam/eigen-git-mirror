@@ -66,7 +66,7 @@ functions by defining EIGEN_HAS_C99_MATH=1.
    Automatic detection disabled if EIGEN_MAX_CPP_VER<11.
  - \b EIGEN_HAS_CXX11_MATH - controls the implementation of some functions such as round, logp1, isinf, isnan, etc.
    Automatic detection disabled if EIGEN_MAX_CPP_VER<11.
- - \b EIGEN_HAS_RVALUE_REFERENCES - defines whetehr rvalue references are supported
+ - \b EIGEN_HAS_RVALUE_REFERENCES - defines whether rvalue references are supported
    Automatic detection disabled if EIGEN_MAX_CPP_VER<11.
  - \b EIGEN_HAS_STD_RESULT_OF - defines whether std::result_of is supported
    Automatic detection disabled if EIGEN_MAX_CPP_VER<11.
