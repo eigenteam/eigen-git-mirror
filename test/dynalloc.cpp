@@ -15,6 +15,7 @@
 #define ALIGNMENT 1
 #endif
 
+typedef Matrix<float,16,1> Vector16f;
 typedef Matrix<float,8,1> Vector8f;
 
 void check_handmade_aligned_malloc()
@@ -70,7 +71,7 @@ struct MyStruct
 {
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   char dummychar;
-  Vector8f avec;
+  Vector16f avec;
 };
 
 class MyClassA
@@ -78,7 +79,7 @@ class MyClassA
   public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     char dummychar;
-    Vector8f avec;
+    Vector16f avec;
 };
 
 template<typename T> void check_dynaligned()
@@ -145,6 +146,7 @@ EIGEN_DECLARE_TEST(dynalloc)
     CALL_SUBTEST(check_dynaligned<Vector4d>() );
     CALL_SUBTEST(check_dynaligned<Vector4i>() );
     CALL_SUBTEST(check_dynaligned<Vector8f>() );
+    CALL_SUBTEST(check_dynaligned<Vector16f>() );
   }
 
   {
