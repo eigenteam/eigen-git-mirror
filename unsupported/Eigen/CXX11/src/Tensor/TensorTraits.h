@@ -59,6 +59,7 @@ struct traits<Tensor<Scalar_, NumIndices_, Options_, IndexType_> >
   template <typename T> struct MakePointer {
     typedef T* Type;
     typedef T& RefType;
+    typedef T ScalarType;
 
   };
   typedef typename MakePointer<Scalar>::Type PointerType;
@@ -80,6 +81,7 @@ struct traits<TensorFixedSize<Scalar_, Dimensions, Options_, IndexType_> >
   template <typename T> struct MakePointer {
     typedef T* Type;
     typedef T& RefType;
+    typedef T ScalarType;
 
   };
   typedef typename MakePointer<Scalar>::Type PointerType;
@@ -105,6 +107,8 @@ struct traits<TensorMap<PlainObjectType, Options_, MakePointer_> >
     typedef MakePointer_<T> MakePointerT;
     typedef typename MakePointerT::Type Type;
     typedef typename MakePointerT::RefType RefType;
+    typedef typename MakePointerT::ScalarType ScalarType;
+
 
   };
   typedef typename MakePointer<Scalar>::Type PointerType;
