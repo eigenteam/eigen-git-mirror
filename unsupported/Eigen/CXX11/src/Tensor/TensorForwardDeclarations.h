@@ -21,6 +21,7 @@ namespace Eigen {
 template<typename T> struct MakePointer {
   typedef T* Type;
   typedef T& RefType;
+  typedef T ScalarType;
 };
 
 namespace internal{
