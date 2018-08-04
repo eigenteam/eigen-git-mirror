@@ -701,7 +701,7 @@ template<typename Scalar> struct scalar_isnan_op {
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE result_type operator() (const Scalar& a) const {
 #if defined(__SYCL_DEVICE_ONLY__)
     return numext::isnan(a);
-#else  
+#else
     return (numext::isnan)(a);
 #endif
   }
@@ -815,13 +815,41 @@ struct scalar_sign_op<Scalar,true> {
 template<typename Scalar>
 struct functor_traits<scalar_sign_op<Scalar> >
 { enum {
-    Cost = 
+    Cost =
         NumTraits<Scalar>::IsComplex
         ? ( 8*NumTraits<Scalar>::MulCost  ) // roughly
         : ( 3*NumTraits<Scalar>::AddCost),
     PacketAccess = packet_traits<Scalar>::HasSign
   };
 };
+
+/** \internal
+  * \brief Template functor to compute the sigmoid of a scalar
+  * \sa class CwiseUnaryOp, ArrayBase::sigmoid()
+  */
+template <typename T>
+struct scalar_sigmoid_op {
+  EIGEN_EMPTY_STRUCT_CTOR(scalar_sigmoid_op)
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T operator()(const T& x) const {
+    const T one = T(1);
+    return one / (one + numext::exp(-x));
+  }
+
+  template <typename Packet> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+  Packet packetOp(const Packet& x) const {
+    const Packet one = pset1<Packet>(T(1));
+    return pdiv(one, padd(one, pexp(pnegate(x))));
+  }
+};
+template <typename T>
+struct functor_traits<scalar_sigmoid_op<T> > {
+  enum {
+    Cost = NumTraits<T>::AddCost * 2 + NumTraits<T>::MulCost * 6,
+    PacketAccess = packet_traits<T>::HasAdd && packet_traits<T>::HasDiv &&
+                   packet_traits<T>::HasNegate && packet_traits<T>::HasExp
+  };
+};
+
 
 } // end namespace internal
 

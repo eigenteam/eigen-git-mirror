@@ -21,6 +21,7 @@ typedef CwiseUnaryOp<internal::scalar_acos_op<Scalar>, const Derived> AcosReturn
 typedef CwiseUnaryOp<internal::scalar_asin_op<Scalar>, const Derived> AsinReturnType;
 typedef CwiseUnaryOp<internal::scalar_atan_op<Scalar>, const Derived> AtanReturnType;
 typedef CwiseUnaryOp<internal::scalar_tanh_op<Scalar>, const Derived> TanhReturnType;
+typedef CwiseUnaryOp<internal::scalar_sigmoid_op<Scalar>, const Derived> SigmoidReturnType;
 typedef CwiseUnaryOp<internal::scalar_sinh_op<Scalar>, const Derived> SinhReturnType;
 typedef CwiseUnaryOp<internal::scalar_cosh_op<Scalar>, const Derived> CoshReturnType;
 typedef CwiseUnaryOp<internal::scalar_square_op<Scalar>, const Derived> SquareReturnType;
@@ -333,6 +334,15 @@ inline const CoshReturnType
 cosh() const
 {
   return CoshReturnType(derived());
+}
+
+/** \returns an expression of the coefficient-wise sigmoid of *this.
+  */
+EIGEN_DEVICE_FUNC
+inline const SigmoidReturnType
+sigmoid() const
+{
+  return SigmoidReturnType(derived());
 }
 
 /** \returns an expression of the coefficient-wise inverse of *this.

@@ -66,6 +66,7 @@ namespace Eigen
   EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(sinh,scalar_sinh_op,hyperbolic sine,\sa ArrayBase::sinh)
   EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(cosh,scalar_cosh_op,hyperbolic cosine,\sa ArrayBase::cosh)
   EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(tanh,scalar_tanh_op,hyperbolic tangent,\sa ArrayBase::tanh)
+  EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(sigmoid,scalar_sigmoid_op,sigmoid function,\sa ArrayBase::sigmoid)
   EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(lgamma,scalar_lgamma_op,natural logarithm of the gamma function,\sa ArrayBase::lgamma)
   EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(digamma,scalar_digamma_op,derivative of lgamma,\sa ArrayBase::digamma)
   EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(erf,scalar_erf_op,error function,\sa ArrayBase::erf)
@@ -89,7 +90,7 @@ namespace Eigen
   EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(isinf,scalar_isinf_op,infinite value test,\sa Eigen::isnan DOXCOMMA Eigen::isfinite DOXCOMMA ArrayBase::isinf)
   EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(isfinite,scalar_isfinite_op,finite value test,\sa Eigen::isinf DOXCOMMA Eigen::isnan DOXCOMMA ArrayBase::isfinite)
   EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(sign,scalar_sign_op,sign (or 0),\sa ArrayBase::sign)
-  
+
   /** \returns an expression of the coefficient-wise power of \a x to the given constant \a exponent.
     *
     * \tparam ScalarExponent is the scalar type of \a exponent. It must be compatible with the scalar type of the given expression (\c Derived::Scalar).
@@ -124,21 +125,21 @@ namespace Eigen
     *
     * Example: \include Cwise_array_power_array.cpp
     * Output: \verbinclude Cwise_array_power_array.out
-    * 
+    *
     * \sa ArrayBase::pow()
     *
     * \relates ArrayBase
     */
   template<typename Derived,typename ExponentDerived>
   inline const Eigen::CwiseBinaryOp<Eigen::internal::scalar_pow_op<typename Derived::Scalar, typename ExponentDerived::Scalar>, const Derived, const ExponentDerived>
-  pow(const Eigen::ArrayBase<Derived>& x, const Eigen::ArrayBase<ExponentDerived>& exponents) 
+  pow(const Eigen::ArrayBase<Derived>& x, const Eigen::ArrayBase<ExponentDerived>& exponents)
   {
     return Eigen::CwiseBinaryOp<Eigen::internal::scalar_pow_op<typename Derived::Scalar, typename ExponentDerived::Scalar>, const Derived, const ExponentDerived>(
       x.derived(),
       exponents.derived()
     );
   }
-  
+
   /** \returns an expression of the coefficient-wise power of the scalar \a x to the given array of \a exponents.
     *
     * This function computes the coefficient-wise power between a scalar and an array of exponents.
@@ -147,7 +148,7 @@ namespace Eigen
     *
     * Example: \include Cwise_scalar_power_array.cpp
     * Output: \verbinclude Cwise_scalar_power_array.out
-    * 
+    *
     * \sa ArrayBase::pow()
     *
     * \relates ArrayBase
