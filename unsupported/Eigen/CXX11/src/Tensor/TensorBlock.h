@@ -747,7 +747,7 @@ class TensorBlockMapper {
         // block dimension sizes based on "square" dimension size target.
         const size_t dim_size_target = static_cast<const size_t>(
             std::pow(static_cast<float>(min_target_size),
-                     1.0 / static_cast<float>(block_dim_sizes.rank())));
+                     1.0f / static_cast<float>(block_dim_sizes.rank())));
         for (size_t i = 0; i < block_dim_sizes.rank(); ++i) {
           // TODO(andydavis) Adjust the inner most 'block_dim_size' to make it
           // a multiple of the packet size. Note that reducing
