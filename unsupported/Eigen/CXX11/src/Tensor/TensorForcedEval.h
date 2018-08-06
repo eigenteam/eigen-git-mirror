@@ -124,8 +124,8 @@ struct TensorEvaluator<const TensorForcedEvalOp<ArgType>, Device>
     }
     typedef TensorEvalToOp< const typename internal::remove_const<ArgType>::type > EvalTo;
     EvalTo evalToTmp(m_buffer, m_op);
-    const bool PacketAccess = internal::IsVectorizable<Device, const ArgType>::value;
-    internal::TensorExecutor<const EvalTo, typename internal::remove_const<Device>::type, PacketAccess>::run(evalToTmp, m_device);
+    const bool Vectorize = internal::IsVectorizable<Device, const ArgType>::value;
+    internal::TensorExecutor<const EvalTo, typename internal::remove_const<Device>::type, Vectorize>::run(evalToTmp, m_device);
     return true;
   }
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void cleanup() {
