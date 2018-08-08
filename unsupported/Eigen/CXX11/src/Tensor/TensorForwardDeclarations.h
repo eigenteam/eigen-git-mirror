@@ -21,6 +21,7 @@ namespace Eigen {
 template<typename T> struct MakePointer {
   typedef T* Type;
   typedef T& RefType;
+  typedef T ScalarType;
 };
 
 namespace internal{
@@ -97,7 +98,7 @@ template<typename XprType> class TensorForcedEvalOp;
 template<typename ExpressionType, typename DeviceType> class TensorDevice;
 template<typename Derived, typename Device> struct TensorEvaluator;
 
-class NoOpOutputKernel;
+struct NoOpOutputKernel;
 
 struct DefaultDevice;
 struct ThreadPoolDevice;

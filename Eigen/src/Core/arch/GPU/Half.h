@@ -83,7 +83,11 @@ struct __half_raw {
  #if defined(EIGEN_CUDACC_VER) && EIGEN_CUDACC_VER < 90000
 // In CUDA < 9.0, __half is the equivalent of CUDA 9's __half_raw
  typedef __half __half_raw;
- #endif
+ #endif // defined(EIGEN_HAS_CUDA_FP16)
+
+#elif defined(EIGEN_USE_SYCL) && defined(__SYCL_DEVICE_ONLY__)
+typedef cl::sycl::half __half_raw;
+
 #endif
 
 EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC __half_raw raw_uint16_to_half(unsigned short x);
@@ -200,6 +204,7 @@ struct half : public half_impl::half_base {
     x = other.x;
     return *this;
   }
+
 };
 
 } // end namespace Eigen

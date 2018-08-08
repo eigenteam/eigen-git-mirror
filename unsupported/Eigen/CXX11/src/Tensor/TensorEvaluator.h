@@ -126,7 +126,7 @@ struct TensorEvaluator
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void getResourceRequirements(
-      std::vector<internal::TensorOpResourceRequirements>* resources) const {}
+      std::vector<internal::TensorOpResourceRequirements>*) const {}
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void block(TensorBlock* block) const {
     assert(m_data != NULL);
@@ -255,7 +255,7 @@ struct TensorEvaluator<const Derived, Device>
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void getResourceRequirements(
-      std::vector<internal::TensorOpResourceRequirements>* resources) const {}
+      std::vector<internal::TensorOpResourceRequirements>*) const {}
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void block(TensorBlock* block) const {
     assert(m_data != NULL);

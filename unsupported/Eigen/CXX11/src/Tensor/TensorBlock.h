@@ -89,7 +89,7 @@ EIGEN_STRONG_INLINE void MergeResourceRequirements(
   // policy if block shapes/sizes conflict).
   *block_shape = resources[0].block_shape;
   *block_total_size = resources[0].block_total_size;
-  for (int i = 1; i < resources.size(); ++i) {
+  for (std::vector<TensorOpResourceRequirements>::size_type i = 1; i < resources.size(); ++i) {
     if (resources[i].block_shape == TensorBlockShapeType::kSkewedInnerDims &&
         *block_shape != TensorBlockShapeType::kSkewedInnerDims) {
       *block_shape = TensorBlockShapeType::kSkewedInnerDims;

@@ -273,11 +273,11 @@ struct TensorEvaluator<const TensorTraceOp<Dims, ArgType>, Device>
 
   Dimensions m_dimensions;
   TensorEvaluator<ArgType, Device> m_impl;
+  // Initialize the size of the trace dimension
+  Index m_traceDim;
   const Device& m_device;
   array<bool, NumInputDims> m_reduced;
   array<Index, NumReducedDims> m_reducedDims;
-  // Initialize the size of the trace dimension
-  Index m_traceDim;
   array<Index, NumOutputDims> m_outputStrides;
   array<Index, NumReducedDims> m_reducedStrides;
   array<Index, NumOutputDims> m_preservedStrides;
