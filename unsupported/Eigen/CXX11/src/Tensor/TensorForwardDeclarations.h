@@ -89,8 +89,8 @@ template<typename LeftXprType, typename RightXprType> class TensorAssignOp;
 template<typename Op, typename XprType> class TensorScanOp;
 template<typename Dims, typename XprType> class TensorTraceOp;
 
-template<typename CustomUnaryFunc, typename XprType> class TensorCustomUnaryOp;
-template<typename CustomBinaryFunc, typename LhsXprType, typename RhsXprType> class TensorCustomBinaryOp;
+template<typename CustomUnaryFunc, typename XprType, template <class> class MakePointer_ = MakePointer> class TensorCustomUnaryOp;
+template<typename CustomBinaryFunc, typename LhsXprType, typename RhsXprType, template <class> class MakePointer_ = MakePointer> class TensorCustomBinaryOp;
 
 template<typename XprType, template <class> class MakePointer_ = MakePointer> class TensorEvalToOp;
 template<typename XprType> class TensorForcedEvalOp;

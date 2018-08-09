@@ -20,8 +20,8 @@ namespace Eigen {
   *
   */
 namespace internal {
-template<typename CustomUnaryFunc, typename XprType>
-struct traits<TensorCustomUnaryOp<CustomUnaryFunc, XprType> >
+template<typename CustomUnaryFunc, typename XprType, template <class> class MakePointer_>
+struct traits<TensorCustomUnaryOp<CustomUnaryFunc, XprType, MakePointer_> >
 {
   typedef typename XprType::Scalar Scalar;
   typedef typename XprType::StorageKind StorageKind;
@@ -30,27 +30,35 @@ struct traits<TensorCustomUnaryOp<CustomUnaryFunc, XprType> >
   typedef typename remove_reference<Nested>::type _Nested;
   static const int NumDimensions = traits<XprType>::NumDimensions;
   static const int Layout = traits<XprType>::Layout;
-  typedef typename traits<XprType>::PointerType PointerType;
+
+   template <class T> struct MakePointer {
+    // Intermediate typedef to workaround MSVC issue.
+    typedef MakePointer_<T> MakePointerT;
+    typedef typename MakePointerT::Type Type;
+    typedef typename MakePointerT::RefType RefType;
+    typedef typename MakePointerT::ScalarType ScalarType;
+  };
+  typedef typename MakePointer<typename internal::remove_const<typename XprType::CoeffReturnType>::type>::Type PointerType;
 };
 
-template<typename CustomUnaryFunc, typename XprType>
-struct eval<TensorCustomUnaryOp<CustomUnaryFunc, XprType>, Eigen::Dense>
+template<typename CustomUnaryFunc, typename XprType, template <class> class MakePointer_>
+struct eval<TensorCustomUnaryOp<CustomUnaryFunc, XprType, MakePointer_>, Eigen::Dense>
 {
-  typedef const TensorCustomUnaryOp<CustomUnaryFunc, XprType>& type;
+  typedef const TensorCustomUnaryOp<CustomUnaryFunc, XprType, MakePointer_>& type;
 };
 
-template<typename CustomUnaryFunc, typename XprType>
-struct nested<TensorCustomUnaryOp<CustomUnaryFunc, XprType> >
+template<typename CustomUnaryFunc, typename XprType, template <class> class MakePointer_>
+struct nested<TensorCustomUnaryOp<CustomUnaryFunc, XprType, MakePointer_> >
 {
-  typedef TensorCustomUnaryOp<CustomUnaryFunc, XprType> type;
+  typedef TensorCustomUnaryOp<CustomUnaryFunc, XprType, MakePointer_> type;
 };
 
 }  // end namespace internal
 
 
 
-template<typename CustomUnaryFunc, typename XprType>
-class TensorCustomUnaryOp : public TensorBase<TensorCustomUnaryOp<CustomUnaryFunc, XprType>, ReadOnlyAccessors>
+template<typename CustomUnaryFunc, typename XprType, template <class> class MakePointer_>
+class TensorCustomUnaryOp : public TensorBase<TensorCustomUnaryOp<CustomUnaryFunc, XprType, MakePointer_>, ReadOnlyAccessors>
 {
   public:
   typedef typename internal::traits<TensorCustomUnaryOp>::Scalar Scalar;
@@ -77,10 +85,10 @@ class TensorCustomUnaryOp : public TensorBase<TensorCustomUnaryOp<CustomUnaryFun
 
 
 // Eval as rvalue
-template<typename CustomUnaryFunc, typename XprType, typename Device>
-struct TensorEvaluator<const TensorCustomUnaryOp<CustomUnaryFunc, XprType>, Device>
+template<typename CustomUnaryFunc, typename XprType, template <class> class MakePointer_, typename Device>
+struct TensorEvaluator<const TensorCustomUnaryOp<CustomUnaryFunc, XprType, MakePointer_>, Device>
 {
-  typedef TensorCustomUnaryOp<CustomUnaryFunc, XprType> ArgType;
+  typedef TensorCustomUnaryOp<CustomUnaryFunc, XprType, MakePointer_> ArgType;
   typedef typename internal::traits<ArgType>::Index Index;
   static const int NumDims = internal::traits<ArgType>::NumDimensions;
   typedef DSizes<Index, NumDims> Dimensions;
@@ -88,7 +96,7 @@ struct TensorEvaluator<const TensorCustomUnaryOp<CustomUnaryFunc, XprType>, Devi
   typedef typename internal::remove_const<typename XprType::CoeffReturnType>::type CoeffReturnType;
   typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
   static const int PacketSize = PacketType<CoeffReturnType, Device>::size;
-  typedef typename internal::remove_all<typename Eigen::internal::traits<XprType>::PointerType>::type * PointerType;
+  typedef typename Eigen::internal::traits<ArgType>::PointerType PointerType;
 
   enum {
     IsAligned = false,
@@ -112,7 +120,7 @@ struct TensorEvaluator<const TensorCustomUnaryOp<CustomUnaryFunc, XprType>, Devi
       evalTo(data);
       return false;
     } else {
-      m_result = static_cast<CoeffReturnType*>(
+      m_result = static_cast<PointerType>(
           m_device.allocate_temp(dimensions().TotalSize() * sizeof(Scalar)));
       evalTo(m_result);
       return true;
@@ -168,8 +176,8 @@ struct TensorEvaluator<const TensorCustomUnaryOp<CustomUnaryFunc, XprType>, Devi
   *
   */
 namespace internal {
-template<typename CustomBinaryFunc, typename LhsXprType, typename RhsXprType>
-struct traits<TensorCustomBinaryOp<CustomBinaryFunc, LhsXprType, RhsXprType> >
+template<typename CustomBinaryFunc, typename LhsXprType, typename RhsXprType, template <class> class MakePointer_>
+struct traits<TensorCustomBinaryOp<CustomBinaryFunc, LhsXprType, RhsXprType, MakePointer_> >
 {
   typedef typename internal::promote_storage_type<typename LhsXprType::Scalar,
                                                   typename RhsXprType::Scalar>::ret Scalar;
@@ -185,28 +193,35 @@ struct traits<TensorCustomBinaryOp<CustomBinaryFunc, LhsXprType, RhsXprType> >
   typedef typename remove_reference<RhsNested>::type _RhsNested;
   static const int NumDimensions = traits<LhsXprType>::NumDimensions;
   static const int Layout = traits<LhsXprType>::Layout;
-  typedef typename conditional<Pointer_type_promotion<typename LhsXprType::Scalar, Scalar>::val,
-                                typename traits<LhsXprType>::PointerType, typename traits<RhsXprType>::PointerType>::type PointerType;
+
+ template <class T> struct MakePointer {
+    // Intermediate typedef to workaround MSVC issue.
+    typedef MakePointer_<T> MakePointerT;
+    typedef typename MakePointerT::Type Type;
+    typedef typename MakePointerT::RefType RefType;
+    typedef typename MakePointerT::ScalarType ScalarType;
+  };
+  typedef typename MakePointer<CoeffReturnType>::Type PointerType;
 };
 
-template<typename CustomBinaryFunc, typename LhsXprType, typename RhsXprType>
-struct eval<TensorCustomBinaryOp<CustomBinaryFunc, LhsXprType, RhsXprType>, Eigen::Dense>
+template<typename CustomBinaryFunc, typename LhsXprType, typename RhsXprType, template <class> class MakePointer_>
+struct eval<TensorCustomBinaryOp<CustomBinaryFunc, LhsXprType, RhsXprType, MakePointer_>, Eigen::Dense>
 {
   typedef const TensorCustomBinaryOp<CustomBinaryFunc, LhsXprType, RhsXprType>& type;
 };
 
-template<typename CustomBinaryFunc, typename LhsXprType, typename RhsXprType>
-struct nested<TensorCustomBinaryOp<CustomBinaryFunc, LhsXprType, RhsXprType> >
+template<typename CustomBinaryFunc, typename LhsXprType, typename RhsXprType, template <class> class MakePointer_>
+struct nested<TensorCustomBinaryOp<CustomBinaryFunc, LhsXprType, RhsXprType, MakePointer_> >
 {
-  typedef TensorCustomBinaryOp<CustomBinaryFunc, LhsXprType, RhsXprType> type;
+  typedef TensorCustomBinaryOp<CustomBinaryFunc, LhsXprType, RhsXprType, MakePointer_> type;
 };
 
 }  // end namespace internal
 
 
 
-template<typename CustomBinaryFunc, typename LhsXprType, typename RhsXprType>
-class TensorCustomBinaryOp : public TensorBase<TensorCustomBinaryOp<CustomBinaryFunc, LhsXprType, RhsXprType>, ReadOnlyAccessors>
+template<typename CustomBinaryFunc, typename LhsXprType, typename RhsXprType,template <class> class MakePointer_>
+class TensorCustomBinaryOp : public TensorBase<TensorCustomBinaryOp<CustomBinaryFunc, LhsXprType, RhsXprType, MakePointer_>, ReadOnlyAccessors>
 {
   public:
   typedef typename internal::traits<TensorCustomBinaryOp>::Scalar Scalar;
@@ -239,10 +254,10 @@ class TensorCustomBinaryOp : public TensorBase<TensorCustomBinaryOp<CustomBinary
 
 
 // Eval as rvalue
-template<typename CustomBinaryFunc, typename LhsXprType, typename RhsXprType, typename Device>
-struct TensorEvaluator<const TensorCustomBinaryOp<CustomBinaryFunc, LhsXprType, RhsXprType>, Device>
+template<typename CustomBinaryFunc, typename LhsXprType, typename RhsXprType, template <class> class MakePointer_, typename Device>
+struct TensorEvaluator<const TensorCustomBinaryOp<CustomBinaryFunc, LhsXprType, RhsXprType, MakePointer_>, Device>
 {
-  typedef TensorCustomBinaryOp<CustomBinaryFunc, LhsXprType, RhsXprType> XprType;
+  typedef TensorCustomBinaryOp<CustomBinaryFunc, LhsXprType, RhsXprType, MakePointer_> XprType;
   typedef typename internal::traits<XprType>::Index Index;
   static const int NumDims = internal::traits<XprType>::NumDimensions;
   typedef DSizes<Index, NumDims> Dimensions;
@@ -250,7 +265,7 @@ struct TensorEvaluator<const TensorCustomBinaryOp<CustomBinaryFunc, LhsXprType, 
   typedef typename internal::remove_const<typename XprType::CoeffReturnType>::type CoeffReturnType;
   typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
   static const int PacketSize = PacketType<CoeffReturnType, Device>::size;
-  typedef typename internal::remove_all<typename Eigen::internal::traits<XprType>::PointerType>::type * PointerType;
+  typedef typename Eigen::internal::traits<XprType>::PointerType PointerType;
 
   enum {
     IsAligned = false,
