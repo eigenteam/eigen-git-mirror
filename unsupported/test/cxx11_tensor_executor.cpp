@@ -317,7 +317,7 @@ static void test_execute_reshape(Device d)
 
   DSizes<Index, ReshapedDims> reshaped_dims;
   reshaped_dims[shuffle[0]] = dims[0] * dims[1];
-  for (int i = 2; i < NumDims; ++i) reshaped_dims[shuffle[i]] = dims[i];
+  for (int i = 1; i < ReshapedDims; ++i) reshaped_dims[shuffle[i]] = dims[i + 1];
 
   Tensor<T, ReshapedDims, Options, Index> golden = src.reshape(reshaped_dims);
 

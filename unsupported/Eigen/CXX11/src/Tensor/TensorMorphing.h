@@ -520,6 +520,7 @@ struct TensorEvaluator<const TensorSlicingOp<StartIndices, Sizes, ArgType>, Devi
 
   typedef internal::TensorBlock<ScalarNoConst, Index, NumDims, Layout>
       TensorBlock;
+  typedef typename TensorBlock::Dimensions TensorBlockDimensions;
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
       : m_impl(op.expression(), device), m_device(device), m_dimensions(op.sizes()), m_offsets(op.startIndices())
@@ -687,7 +688,7 @@ struct TensorEvaluator<const TensorSlicingOp<StartIndices, Sizes, ArgType>, Devi
     TensorBlock input_block(srcCoeff(output_block->first_coeff_index()),
                             output_block->block_sizes(),
                             output_block->block_strides(),
-                            Dimensions(m_inputStrides),
+                            TensorBlockDimensions(m_inputStrides),
                             output_block->data());
     m_impl.block(&input_block);
   }
@@ -796,6 +797,7 @@ struct TensorEvaluator<TensorSlicingOp<StartIndices, Sizes, ArgType>, Device>
 
   typedef internal::TensorBlock<ScalarNoConst, Index, NumDims, Layout>
       TensorBlock;
+  typedef typename TensorBlock::Dimensions TensorBlockDimensions;
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
     : Base(op, device)
@@ -862,12 +864,10 @@ struct TensorEvaluator<TensorSlicingOp<StartIndices, Sizes, ArgType>, Device>
       const TensorBlock& block) {
     this->m_impl.writeBlock(TensorBlock(
         this->srcCoeff(block.first_coeff_index()), block.block_sizes(),
-        block.block_strides(), Dimensions(this->m_inputStrides),
+        block.block_strides(), TensorBlockDimensions(this->m_inputStrides),
         const_cast<ScalarNoConst*>(block.data())));
   }
 };
-
-
 
 namespace internal {
 template<typename StartIndices, typename StopIndices, typename Strides, typename XprType>
