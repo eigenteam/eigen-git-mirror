@@ -111,16 +111,17 @@ struct TensorEvaluator<const TensorReshapingOp<NewDimensions, ArgType>, Device>
   static const int NumInputDims  = internal::array_size<typename TensorEvaluator<ArgType, Device>::Dimensions>::value;
 
   enum {
-    IsAligned    = TensorEvaluator<ArgType, Device>::IsAligned,
-    PacketAccess = TensorEvaluator<ArgType, Device>::PacketAccess,
+    IsAligned         = TensorEvaluator<ArgType, Device>::IsAligned,
+    PacketAccess      = TensorEvaluator<ArgType, Device>::PacketAccess,
     // TODO(andydavis, wuke) Enable BlockAccess for the general case when the
     // performance issue with block-based reshape is resolved.
-    BlockAccess  = TensorEvaluator<ArgType, Device>::BlockAccess &&
-                   TensorEvaluator<ArgType, Device>::RawAccess &&
-                   NumInputDims > 0 && NumOutputDims > 0,
-    Layout       = TensorEvaluator<ArgType, Device>::Layout,
-    CoordAccess  = false,  // to be implemented
-    RawAccess    = TensorEvaluator<ArgType, Device>::RawAccess
+    BlockAccess       = TensorEvaluator<ArgType, Device>::BlockAccess &&
+                        TensorEvaluator<ArgType, Device>::RawAccess &&
+                        NumInputDims > 0 && NumOutputDims > 0,
+    PreferBlockAccess = true,
+    Layout            = TensorEvaluator<ArgType, Device>::Layout,
+    CoordAccess       = false,  // to be implemented
+    RawAccess         = TensorEvaluator<ArgType, Device>::RawAccess
   };
 
   typedef typename internal::remove_const<Scalar>::type ScalarNoConst;
@@ -349,6 +350,7 @@ template<typename NewDimensions, typename ArgType, typename Device>
     IsAligned = TensorEvaluator<ArgType, Device>::IsAligned,
     PacketAccess = TensorEvaluator<ArgType, Device>::PacketAccess,
     BlockAccess = false,
+    PreferBlockAccess = false,
     Layout = TensorEvaluator<ArgType, Device>::Layout,
     CoordAccess = false,  // to be implemented
     RawAccess = TensorEvaluator<ArgType, Device>::RawAccess
@@ -508,12 +510,13 @@ struct TensorEvaluator<const TensorSlicingOp<StartIndices, Sizes, ArgType>, Devi
   enum {
     // Alignment can't be guaranteed at compile time since it depends on the
     // slice offsets and sizes.
-    IsAligned    = /*TensorEvaluator<ArgType, Device>::IsAligned*/false,
-    PacketAccess = TensorEvaluator<ArgType, Device>::PacketAccess,
-    BlockAccess  = TensorEvaluator<ArgType, Device>::BlockAccess,
-    Layout       = TensorEvaluator<ArgType, Device>::Layout,
-    CoordAccess  = false,
-    RawAccess    = false
+    IsAligned         = false,
+    PacketAccess      = TensorEvaluator<ArgType, Device>::PacketAccess,
+    BlockAccess       = TensorEvaluator<ArgType, Device>::BlockAccess,
+    PreferBlockAccess = true,
+    Layout            = TensorEvaluator<ArgType, Device>::Layout,
+    CoordAccess       = false,
+    RawAccess         = false
   };
 
   typedef typename internal::remove_const<Scalar>::type ScalarNoConst;
@@ -785,12 +788,13 @@ struct TensorEvaluator<TensorSlicingOp<StartIndices, Sizes, ArgType>, Device>
   typedef Sizes Dimensions;
 
   enum {
-    IsAligned    = /*TensorEvaluator<ArgType, Device>::IsAligned*/false,
-    PacketAccess = TensorEvaluator<ArgType, Device>::PacketAccess,
-    BlockAccess  = TensorEvaluator<ArgType, Device>::BlockAccess,
-    Layout       = TensorEvaluator<ArgType, Device>::Layout,
-    CoordAccess  = false,
-    RawAccess    = (NumDims == 1) & TensorEvaluator<ArgType, Device>::RawAccess
+    IsAligned         = false,
+    PacketAccess      = TensorEvaluator<ArgType, Device>::PacketAccess,
+    BlockAccess       = TensorEvaluator<ArgType, Device>::BlockAccess,
+    PreferBlockAccess = true,
+    Layout            = TensorEvaluator<ArgType, Device>::Layout,
+    CoordAccess       = false,
+    RawAccess         = (NumDims == 1) & TensorEvaluator<ArgType, Device>::RawAccess
   };
 
   typedef typename internal::remove_const<Scalar>::type ScalarNoConst;
@@ -972,6 +976,7 @@ struct TensorEvaluator<const TensorStridingSlicingOp<StartIndices, StopIndices, 
     IsAligned = false,
     PacketAccess = false,
     BlockAccess = false,
+    PreferBlockAccess = false,
     Layout = TensorEvaluator<ArgType, Device>::Layout,
     RawAccess = false
   };
@@ -1148,6 +1153,7 @@ struct TensorEvaluator<TensorStridingSlicingOp<StartIndices, StopIndices, Stride
     IsAligned = false,
     PacketAccess = false,
     BlockAccess = false,
+    PreferBlockAccess = false,
     Layout = TensorEvaluator<ArgType, Device>::Layout,
     CoordAccess = TensorEvaluator<ArgType, Device>::CoordAccess,
     RawAccess = false

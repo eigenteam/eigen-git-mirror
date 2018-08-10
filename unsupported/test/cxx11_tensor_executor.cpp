@@ -31,6 +31,33 @@ static array<Index, NumDims> RandomDims(int min_dim = 1, int max_dim = 20) {
 
 template <typename T, int NumDims, typename Device, bool Vectorizable,
           bool Tileable, int Layout>
+static void test_execute_unary_expr(Device d) {
+  static constexpr int Options = 0 | Layout;
+
+  // Pick a large enough tensor size to bypass small tensor block evaluation
+  // optimization.
+  auto dims = RandomDims<NumDims>(50 / NumDims, 100 / NumDims);
+
+  Tensor<T, NumDims, Options, Index> src(dims);
+  Tensor<T, NumDims, Options, Index> dst(dims);
+
+  src.setRandom();
+  const auto expr = src.square();
+
+  using Assign = TensorAssignOp<decltype(dst), const decltype(expr)>;
+  using Executor =
+      internal::TensorExecutor<const Assign, Device, Vectorizable, Tileable>;
+
+  Executor::run(Assign(dst, expr), d);
+
+  for (Index i = 0; i < dst.dimensions().TotalSize(); ++i) {
+    T square = src.coeff(i) * src.coeff(i);
+    VERIFY_IS_EQUAL(square, dst.coeff(i));
+  }
+}
+
+template <typename T, int NumDims, typename Device, bool Vectorizable,
+          bool Tileable, int Layout>
 static void test_execute_binary_expr(Device d)
 {
   static constexpr int Options = 0 | Layout;
@@ -444,6 +471,10 @@ EIGEN_DECLARE_TEST(cxx11_tensor_executor) {
   const auto num_threads = internal::random<int>(1, 24);
   Eigen::ThreadPool tp(num_threads);
   Eigen::ThreadPoolDevice tp_device(&tp, num_threads);
+
+  CALL_SUBTEST_COMBINATIONS(test_execute_unary_expr, float, 3);
+  CALL_SUBTEST_COMBINATIONS(test_execute_unary_expr, float, 4);
+  CALL_SUBTEST_COMBINATIONS(test_execute_unary_expr, float, 5);
 
   CALL_SUBTEST_COMBINATIONS(test_execute_binary_expr, float, 3);
   CALL_SUBTEST_COMBINATIONS(test_execute_binary_expr, float, 4);

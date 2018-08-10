@@ -244,12 +244,13 @@ struct TensorEvaluator<const TensorImagePatchOp<Rows, Cols, ArgType>, Device>
   static const int PacketSize = PacketType<CoeffReturnType, Device>::size;
 
   enum {
-    IsAligned    = false,
-    PacketAccess = TensorEvaluator<ArgType, Device>::PacketAccess,
-    BlockAccess  = true,
-    Layout       = TensorEvaluator<ArgType, Device>::Layout,
-    CoordAccess  = false,
-    RawAccess    = false
+    IsAligned         = false,
+    PacketAccess      = TensorEvaluator<ArgType, Device>::PacketAccess,
+    BlockAccess       = true,
+    PreferBlockAccess = true,
+    Layout            = TensorEvaluator<ArgType, Device>::Layout,
+    CoordAccess       = false,
+    RawAccess         = false
   };
 
   typedef internal::TensorBlock<Scalar, Index, NumDims, Layout>

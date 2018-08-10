@@ -475,12 +475,13 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType, MakePointer_>,
   static const int PacketSize = PacketType<CoeffReturnType, Device>::size;
 
   enum {
-    IsAligned    = false,
-    PacketAccess = Self::InputPacketAccess && Op::PacketAccess,
-    BlockAccess  = TensorEvaluator<ArgType, Device>::BlockAccess,
-    Layout       = TensorEvaluator<ArgType, Device>::Layout,
-    CoordAccess  = false,  // to be implemented
-    RawAccess    = false
+    IsAligned         = false,
+    PacketAccess      = Self::InputPacketAccess && Op::PacketAccess,
+    BlockAccess       = TensorEvaluator<ArgType, Device>::BlockAccess,
+    PreferBlockAccess = true,
+    Layout            = TensorEvaluator<ArgType, Device>::Layout,
+    CoordAccess       = false,  // to be implemented
+    RawAccess         = false
   };
 
   typedef typename internal::remove_const<Scalar>::type ScalarNoConst;

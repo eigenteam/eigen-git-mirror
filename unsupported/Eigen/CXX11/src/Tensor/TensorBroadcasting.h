@@ -108,11 +108,12 @@ struct TensorEvaluator<const TensorBroadcastingOp<Broadcast, ArgType>, Device>
   bool isCopy= false, nByOne = false, oneByN = false;
 
   enum {
-    IsAligned    = true,
-    PacketAccess = TensorEvaluator<ArgType, Device>::PacketAccess,
-    BlockAccess  = TensorEvaluator<ArgType, Device>::BlockAccess,
-    Layout       = TensorEvaluator<ArgType, Device>::Layout,
-    RawAccess    = false
+    IsAligned         = true,
+    PacketAccess      = TensorEvaluator<ArgType, Device>::PacketAccess,
+    BlockAccess       = TensorEvaluator<ArgType, Device>::BlockAccess,
+    PreferBlockAccess = true,
+    Layout            = TensorEvaluator<ArgType, Device>::Layout,
+    RawAccess         = false
   };
 
   typedef typename internal::remove_const<Scalar>::type ScalarNoConst;

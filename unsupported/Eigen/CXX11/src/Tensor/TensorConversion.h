@@ -196,6 +196,7 @@ struct TensorEvaluator<const TensorConversionOp<TargetType, ArgType>, Device>
     IsAligned = false,
     PacketAccess = true,
     BlockAccess = false,
+    PreferBlockAccess = false,
     Layout = TensorEvaluator<ArgType, Device>::Layout,
     RawAccess = false
   };

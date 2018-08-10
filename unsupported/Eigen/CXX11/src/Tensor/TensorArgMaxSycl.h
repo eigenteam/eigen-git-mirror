@@ -109,6 +109,7 @@ struct TensorEvaluator<const TensorTupleReducerDeviceOp<StrideDims, ArgType>, Sy
     IsAligned =  false,
     PacketAccess = false,
     BlockAccess = false,
+    PreferBlockAccess = false,
     Layout = TensorEvaluator<ArgType, SyclKernelDevice>::Layout,
     CoordAccess = false,
     RawAccess = false

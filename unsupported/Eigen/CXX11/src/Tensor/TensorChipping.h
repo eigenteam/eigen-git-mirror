@@ -144,12 +144,13 @@ struct TensorEvaluator<const TensorChippingOp<DimId, ArgType>, Device>
   enum {
     // Alignment can't be guaranteed at compile time since it depends on the
     // slice offsets.
-    IsAligned    = false,
-    PacketAccess = TensorEvaluator<ArgType, Device>::PacketAccess,
-    BlockAccess  = TensorEvaluator<ArgType, Device>::BlockAccess,
-    Layout       = TensorEvaluator<ArgType, Device>::Layout,
-    CoordAccess  = false,  // to be implemented
-    RawAccess    = false
+    IsAligned         = false,
+    PacketAccess      = TensorEvaluator<ArgType, Device>::PacketAccess,
+    BlockAccess       = TensorEvaluator<ArgType, Device>::BlockAccess,
+    PreferBlockAccess = true,
+    Layout            = TensorEvaluator<ArgType, Device>::Layout,
+    CoordAccess       = false,  // to be implemented
+    RawAccess         = false
   };
 
   typedef typename internal::remove_const<Scalar>::type ScalarNoConst;

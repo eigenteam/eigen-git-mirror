@@ -111,12 +111,13 @@ struct TensorEvaluator<const TensorShufflingOp<Shuffle, ArgType>, Device>
   static const int PacketSize = PacketType<CoeffReturnType, Device>::size;
 
   enum {
-    IsAligned    = false,
-    PacketAccess = (PacketType<CoeffReturnType, Device>::size > 1),
-    BlockAccess  = TensorEvaluator<ArgType, Device>::BlockAccess,
-    Layout       = TensorEvaluator<ArgType, Device>::Layout,
-    CoordAccess  = false,  // to be implemented
-    RawAccess    = false
+    IsAligned         = false,
+    PacketAccess      = (PacketType<CoeffReturnType, Device>::size > 1),
+    BlockAccess       = TensorEvaluator<ArgType, Device>::BlockAccess,
+    PreferBlockAccess = true,
+    Layout            = TensorEvaluator<ArgType, Device>::Layout,
+    CoordAccess       = false,  // to be implemented
+    RawAccess         = false
   };
 
   typedef typename internal::remove_const<Scalar>::type ScalarNoConst;
@@ -412,11 +413,12 @@ struct TensorEvaluator<TensorShufflingOp<Shuffle, ArgType>, Device>
   static const int PacketSize = PacketType<CoeffReturnType, Device>::size;
 
   enum {
-    IsAligned    = false,
-    PacketAccess = (PacketType<CoeffReturnType, Device>::size > 1),
-    BlockAccess  = TensorEvaluator<ArgType, Device>::BlockAccess,
-    Layout       = TensorEvaluator<ArgType, Device>::Layout,
-    RawAccess    = false
+    IsAligned         = false,
+    PacketAccess      = (PacketType<CoeffReturnType, Device>::size > 1),
+    BlockAccess       = TensorEvaluator<ArgType, Device>::BlockAccess,
+    PreferBlockAccess = true,
+    Layout            = TensorEvaluator<ArgType, Device>::Layout,
+    RawAccess         = false
   };
 
   typedef typename internal::remove_const<Scalar>::type ScalarNoConst;

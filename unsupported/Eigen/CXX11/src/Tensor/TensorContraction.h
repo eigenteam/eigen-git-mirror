@@ -241,6 +241,7 @@ struct TensorContractionEvaluatorBase
     IsAligned = true,
     PacketAccess = (PacketType<CoeffReturnType, Device>::size > 1),
     BlockAccess = false,
+    PreferBlockAccess = false,
     Layout = TensorEvaluator<LeftArgType, Device>::Layout,
     CoordAccess = false,  // to be implemented
     RawAccess = true
