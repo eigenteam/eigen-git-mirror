@@ -60,7 +60,7 @@ struct cond<RowMajor> {
  *  - kSkewedInnerDims: 100 blocks of size 100x1 (or 1x100 depending on a column
  *                      or row major layout)
  */
-enum class TensorBlockShapeType {
+enum TensorBlockShapeType {
   kUniformAllDims,
   kSkewedInnerDims,
 };

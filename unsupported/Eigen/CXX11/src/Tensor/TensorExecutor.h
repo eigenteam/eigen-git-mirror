@@ -113,12 +113,9 @@ class TensorExecutor<Expression, DefaultDevice, Vectorizable,
   EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE void run(const Expression& expr,
                          const DefaultDevice& device = DefaultDevice()) {
-    typedef TensorBlock<ScalarNoConst, StorageIndex, NumDims, Evaluator::Layout>
-        TensorBlock;
+    typedef TensorBlock<ScalarNoConst, StorageIndex, NumDims, Evaluator::Layout> TensorBlock;
+    typedef TensorBlockMapper<ScalarNoConst, StorageIndex, NumDims, Evaluator::Layout> TensorBlockMapper;
     typedef typename TensorBlock::Dimensions TensorBlockDimensions;
-    typedef TensorBlockMapper<ScalarNoConst, StorageIndex, NumDims,
-                              Evaluator::Layout>
-        TensorBlockMapper;
 
     Evaluator evaluator(expr, device);
     Index total_size = array_prod(evaluator.dimensions());
@@ -262,11 +259,8 @@ class TensorExecutor<Expression, ThreadPoolDevice, Vectorizable, /*Tileable*/ tr
 
   static EIGEN_STRONG_INLINE void run(const Expression& expr,
                          const ThreadPoolDevice& device) {
-    typedef TensorBlock<ScalarNoConst, StorageIndex, NumDims, Evaluator::Layout>
-        TensorBlock;
-    typedef TensorBlockMapper<ScalarNoConst, StorageIndex, NumDims,
-                              Evaluator::Layout>
-        TensorBlockMapper;
+    typedef TensorBlock<ScalarNoConst, StorageIndex, NumDims, Evaluator::Layout> TensorBlock;
+    typedef TensorBlockMapper<ScalarNoConst, StorageIndex, NumDims, Evaluator::Layout> TensorBlockMapper;
 
     Evaluator evaluator(expr, device);
     StorageIndex total_size = array_prod(evaluator.dimensions());

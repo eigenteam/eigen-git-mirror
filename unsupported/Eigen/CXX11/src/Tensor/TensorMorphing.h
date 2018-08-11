@@ -521,8 +521,7 @@ struct TensorEvaluator<const TensorSlicingOp<StartIndices, Sizes, ArgType>, Devi
 
   typedef typename internal::remove_const<Scalar>::type ScalarNoConst;
 
-  typedef internal::TensorBlock<ScalarNoConst, Index, NumDims, Layout>
-      TensorBlock;
+  typedef internal::TensorBlock<ScalarNoConst, Index, NumDims, Layout> TensorBlock;
   typedef typename TensorBlock::Dimensions TensorBlockDimensions;
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
@@ -799,8 +798,7 @@ struct TensorEvaluator<TensorSlicingOp<StartIndices, Sizes, ArgType>, Device>
 
   typedef typename internal::remove_const<Scalar>::type ScalarNoConst;
 
-  typedef internal::TensorBlock<ScalarNoConst, Index, NumDims, Layout>
-      TensorBlock;
+  typedef internal::TensorBlock<ScalarNoConst, Index, NumDims, Layout> TensorBlock;
   typedef typename TensorBlock::Dimensions TensorBlockDimensions;
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
