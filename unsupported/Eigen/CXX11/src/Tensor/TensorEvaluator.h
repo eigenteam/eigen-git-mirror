@@ -357,7 +357,7 @@ struct TensorEvaluator<const TensorCwiseUnaryOp<UnaryOp, ArgType>, Device>
     IsAligned          = TensorEvaluator<ArgType, Device>::IsAligned,
     PacketAccess       = TensorEvaluator<ArgType, Device>::PacketAccess &
                          internal::functor_traits<UnaryOp>::PacketAccess,
-    BlockAccess        = TensorEvaluator<ArgType, Device>::PacketAccess,
+    BlockAccess        = TensorEvaluator<ArgType, Device>::BlockAccess,
     PreferBlockAccess  = TensorEvaluator<ArgType, Device>::PreferBlockAccess,
     Layout             = TensorEvaluator<ArgType, Device>::Layout,
     CoordAccess        = false,  // to be implemented
