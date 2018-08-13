@@ -257,7 +257,6 @@ class TensorExecutor<Expression, ThreadPoolDevice, Vectorizable, /*Tileable*/ tr
 
   static EIGEN_STRONG_INLINE void run(const Expression& expr,
                          const ThreadPoolDevice& device) {
-    typedef TensorBlock<ScalarNoConst, StorageIndex, NumDims, Evaluator::Layout> TensorBlock;
     typedef TensorBlockMapper<ScalarNoConst, StorageIndex, NumDims, Evaluator::Layout> TensorBlockMapper;
 
     Evaluator evaluator(expr, device);
