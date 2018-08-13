@@ -824,12 +824,12 @@ struct functor_traits<scalar_sign_op<Scalar> >
 };
 
 /** \internal
-  * \brief Template functor to compute the sigmoid of a scalar
-  * \sa class CwiseUnaryOp, ArrayBase::sigmoid()
+  * \brief Template functor to compute the logistic function of a scalar
+  * \sa class CwiseUnaryOp, ArrayBase::logistic()
   */
 template <typename T>
-struct scalar_sigmoid_op {
-  EIGEN_EMPTY_STRUCT_CTOR(scalar_sigmoid_op)
+struct scalar_logistic_op {
+  EIGEN_EMPTY_STRUCT_CTOR(scalar_logistic_op)
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T operator()(const T& x) const {
     const T one = T(1);
     return one / (one + numext::exp(-x));
@@ -842,7 +842,7 @@ struct scalar_sigmoid_op {
   }
 };
 template <typename T>
-struct functor_traits<scalar_sigmoid_op<T> > {
+struct functor_traits<scalar_logistic_op<T> > {
   enum {
     Cost = NumTraits<T>::AddCost * 2 + NumTraits<T>::MulCost * 6,
     PacketAccess = packet_traits<T>::HasAdd && packet_traits<T>::HasDiv &&
