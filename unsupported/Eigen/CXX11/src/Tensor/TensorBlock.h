@@ -60,7 +60,7 @@ struct cond<RowMajor> {
  *  - kSkewedInnerDims: 100 blocks of size 100x1 (or 1x100 depending on a column
  *                      or row major layout)
  */
-enum class TensorBlockShapeType {
+enum TensorBlockShapeType {
   kUniformAllDims,
   kSkewedInnerDims,
 };
@@ -152,11 +152,11 @@ struct TensorBlockCopyOp {
     const Scalar* src_base = &src_data[src_index];
     Scalar* dst_base = &dst_data[dst_index];
 
-    using Src = const Eigen::Array<Scalar, Dynamic, 1>;
-    using Dst = Eigen::Array<Scalar, Dynamic, 1>;
+    typedef const Eigen::Array<Scalar, Dynamic, 1> Src;
+    typedef Eigen::Array<Scalar, Dynamic, 1> Dst;
 
-    using SrcMap = Eigen::Map<Src, 0, InnerStride<>>;
-    using DstMap = Eigen::Map<Dst, 0, InnerStride<>>;
+    typedef Eigen::Map<Src, 0, InnerStride<>> SrcMap;
+    typedef Eigen::Map<Dst, 0, InnerStride<>> DstMap;
 
     const SrcMap src(src_base, num_coeff_to_copy, InnerStride<>(src_stride));
     DstMap dst(dst_base, num_coeff_to_copy, InnerStride<>(dst_stride));
@@ -401,13 +401,13 @@ struct TensorBlockCwiseBinaryOp {
       const StorageIndex left_stride, const LeftScalar* left_data,
       const StorageIndex right_index, const StorageIndex right_stride,
       const RightScalar* right_data) {
-    using Lhs = const Eigen::Array<LeftScalar, Dynamic, 1>;
-    using Rhs = const Eigen::Array<RightScalar, Dynamic, 1>;
-    using Out = Eigen::Array<OutputScalar, Dynamic, 1>;
+    typedef const Eigen::Array<LeftScalar, Dynamic, 1> Lhs;
+    typedef const Eigen::Array<RightScalar, Dynamic, 1> Rhs;
+    typedef Eigen::Array<OutputScalar, Dynamic, 1> Out;
 
-    using LhsMap = Eigen::Map<Lhs, 0, InnerStride<>>;
-    using RhsMap = Eigen::Map<Rhs, 0, InnerStride<>>;
-    using OutMap = Eigen::Map<Out, 0, InnerStride<>>;
+    typedef Eigen::Map<Lhs, 0, InnerStride<>> LhsMap;
+    typedef Eigen::Map<Rhs, 0, InnerStride<>> RhsMap;
+    typedef Eigen::Map<Out, 0, InnerStride<>> OutMap;
 
     const LeftScalar* lhs_base = &left_data[left_index];
     const RightScalar* rhs_base = &right_data[right_index];
