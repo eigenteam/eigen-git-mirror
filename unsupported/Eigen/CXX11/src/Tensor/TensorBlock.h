@@ -155,8 +155,8 @@ struct TensorBlockCopyOp {
     typedef const Eigen::Array<Scalar, Dynamic, 1> Src;
     typedef Eigen::Array<Scalar, Dynamic, 1> Dst;
 
-    typedef Eigen::Map<Src, 0, InnerStride<>> SrcMap;
-    typedef Eigen::Map<Dst, 0, InnerStride<>> DstMap;
+    typedef Eigen::Map<Src, 0, InnerStride<> > SrcMap;
+    typedef Eigen::Map<Dst, 0, InnerStride<> > DstMap;
 
     const SrcMap src(src_base, num_coeff_to_copy, InnerStride<>(src_stride));
     DstMap dst(dst_base, num_coeff_to_copy, InnerStride<>(dst_stride));
@@ -405,9 +405,9 @@ struct TensorBlockCwiseBinaryOp {
     typedef const Eigen::Array<RightScalar, Dynamic, 1> Rhs;
     typedef Eigen::Array<OutputScalar, Dynamic, 1> Out;
 
-    typedef Eigen::Map<Lhs, 0, InnerStride<>> LhsMap;
-    typedef Eigen::Map<Rhs, 0, InnerStride<>> RhsMap;
-    typedef Eigen::Map<Out, 0, InnerStride<>> OutMap;
+    typedef Eigen::Map<Lhs, 0, InnerStride<> > LhsMap;
+    typedef Eigen::Map<Rhs, 0, InnerStride<> > RhsMap;
+    typedef Eigen::Map<Out, 0, InnerStride<> > OutMap;
 
     const LeftScalar* lhs_base = &left_data[left_index];
     const RightScalar* rhs_base = &right_data[right_index];
