@@ -187,7 +187,7 @@ struct TensorEvaluator<const TensorAssignOp<LeftArgType, RightArgType>, Device>
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void evalBlock(TensorBlock* block) {
     if (TensorEvaluator<LeftArgType, Device>::RawAccess &&
-        m_leftImpl.data() != nullptr) {
+        m_leftImpl.data() != NULL) {
       TensorBlock left_block(block->first_coeff_index(), block->block_sizes(),
                              block->tensor_strides(), block->tensor_strides(),
                              m_leftImpl.data() + block->first_coeff_index());

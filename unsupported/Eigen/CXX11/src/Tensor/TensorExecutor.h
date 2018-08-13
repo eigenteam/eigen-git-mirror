@@ -227,7 +227,7 @@ class TensorExecutor<Expression, ThreadPoolDevice, Vectorizable, Tileable> {
     typedef EvalRange<Evaluator, StorageIndex, Vectorizable> EvalRange;
 
     Evaluator evaluator(expr, device);
-    const bool needs_assign = evaluator.evalSubExprsIfNeeded(nullptr);
+    const bool needs_assign = evaluator.evalSubExprsIfNeeded(NULL);
     if (needs_assign) {
       const StorageIndex PacketSize =
           Vectorizable
@@ -271,7 +271,7 @@ class TensorExecutor<Expression, ThreadPoolDevice, Vectorizable, /*Tileable*/ tr
       return;
     }
 
-    const bool needs_assign = evaluator.evalSubExprsIfNeeded(nullptr);
+    const bool needs_assign = evaluator.evalSubExprsIfNeeded(NULL);
     if (needs_assign) {
       TensorBlockShapeType block_shape = TensorBlockShapeType::kSkewedInnerDims;
       Index block_total_size = 0;
