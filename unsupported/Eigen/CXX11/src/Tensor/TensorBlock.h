@@ -501,7 +501,7 @@ struct TensorBlockCwiseBinaryIO {
       if (size == 1) {
         continue;
       }
-      auto& state = block_iter_state[num_squeezed_dims];
+      BlockIteratorState& state = block_iter_state[num_squeezed_dims];
       state.output_stride = block_strides[dim];
       state.left_stride = left_strides[dim];
       state.right_stride = right_strides[dim];
@@ -523,7 +523,7 @@ struct TensorBlockCwiseBinaryIO {
                                     right_stride, right_data);
       // Update index.
       for (int j = 0; j < num_squeezed_dims; ++j) {
-        auto& state = block_iter_state[j];
+        BlockIteratorState& state = block_iter_state[j];
         if (++state.count < state.size) {
           output_index += state.output_stride;
           left_index += state.left_stride;
