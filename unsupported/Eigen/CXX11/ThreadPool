@@ -44,6 +44,14 @@
 #include <thread>
 #include <functional>
 #include <memory>
+#ifndef EIGEN_THREAD_LOCAL
+// There are non-parenthesized calls to "max" in the  <unordered_map> header,
+// which trigger a check in test/main.h causing compilation to fail.
+// We work around the check here by removing the check for max in
+// the case where we have to emulate thread_local.
+#undef max
+#include <unordered_map>
+#endif
 
 #include "src/util/CXX11Meta.h"
 #include "src/util/MaxSizeVector.h"
@@ -55,6 +63,7 @@
 #include "src/ThreadPool/RunQueue.h"
 #include "src/ThreadPool/ThreadPoolInterface.h"
 #include "src/ThreadPool/ThreadEnvironment.h"
+#include "src/ThreadPool/Barrier.h"
 #include "src/ThreadPool/NonBlockingThreadPool.h"
 
 #endif
@@ -62,4 +71,3 @@
 #include <Eigen/src/Core/util/ReenableStupidWarnings.h>
 
 #endif // EIGEN_CXX11_THREADPOOL_MODULE
-
