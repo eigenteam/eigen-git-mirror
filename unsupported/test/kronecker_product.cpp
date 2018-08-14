@@ -9,6 +9,9 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+
+#include "main.h"
+
 #ifdef EIGEN_TEST_PART_1
 
 #include "sparse.h"
@@ -95,7 +98,7 @@ EIGEN_DECLARE_TEST(kronecker_product)
   SM_a.insert(1,0) = DM_a.coeffRef(1,0) = -0.9076572187376921;
   SM_a.insert(1,1) = DM_a.coeffRef(1,1) =  0.6469156566545853;
   SM_a.insert(1,2) = DM_a.coeffRef(1,2) = -0.3658010398782789;
- 
+
   MatrixXd             DM_b(3,2);
   SparseMatrix<double> SM_b(3,2);
   SM_b.insert(0,0) = DM_b.coeffRef(0,0) =  0.9004440976767099;
@@ -165,7 +168,7 @@ EIGEN_DECLARE_TEST(kronecker_product)
   SM_a.insert(0,3) = -0.2;
   SM_a.insert(2,4) =  0.3;
   SM_a.finalize();
-  
+
   SM_b.insert(0,0) =  0.4;
   SM_b.insert(2,1) = -0.5;
   SM_b.finalize();
@@ -183,7 +186,7 @@ EIGEN_DECLARE_TEST(kronecker_product)
   DM_b2.resize(4,8);
   DM_ab2 = kroneckerProduct(DM_a2,DM_b2);
   CALL_SUBTEST(check_dimension(DM_ab2,10*4,9*8));
-  
+
   for(int i = 0; i < g_repeat; i++)
   {
     double density = Eigen::internal::random<double>(0.01,0.5);
@@ -196,35 +199,35 @@ EIGEN_DECLARE_TEST(kronecker_product)
     MatrixXf dA(ra,ca), dB(rb,cb), dC;
     initSparse(density, dA, sA);
     initSparse(density, dB, sB);
-    
+
     sC = kroneckerProduct(sA,sB);
     dC = kroneckerProduct(dA,dB);
     VERIFY_IS_APPROX(MatrixXf(sC),dC);
-    
+
     sC = kroneckerProduct(sA.transpose(),sB);
     dC = kroneckerProduct(dA.transpose(),dB);
     VERIFY_IS_APPROX(MatrixXf(sC),dC);
-    
+
     sC = kroneckerProduct(sA.transpose(),sB.transpose());
     dC = kroneckerProduct(dA.transpose(),dB.transpose());
     VERIFY_IS_APPROX(MatrixXf(sC),dC);
-    
+
     sC = kroneckerProduct(sA,sB.transpose());
     dC = kroneckerProduct(dA,dB.transpose());
     VERIFY_IS_APPROX(MatrixXf(sC),dC);
-    
+
     sC2 = kroneckerProduct(sA,sB);
     dC = kroneckerProduct(dA,dB);
     VERIFY_IS_APPROX(MatrixXf(sC2),dC);
-    
+
     sC2 = kroneckerProduct(dA,sB);
     dC = kroneckerProduct(dA,dB);
     VERIFY_IS_APPROX(MatrixXf(sC2),dC);
-    
+
     sC2 = kroneckerProduct(sA,dB);
     dC = kroneckerProduct(dA,dB);
     VERIFY_IS_APPROX(MatrixXf(sC2),dC);
-    
+
     sC2 = kroneckerProduct(2*sA,sB);
     dC = kroneckerProduct(2*dA,dB);
     VERIFY_IS_APPROX(MatrixXf(sC2),dC);
@@ -236,8 +239,6 @@ EIGEN_DECLARE_TEST(kronecker_product)
 #ifdef EIGEN_TEST_PART_2
 
 // simply check that for a dense kronecker product, sparse module is not needed
-
-#include "main.h"
 #include <Eigen/KroneckerProduct>
 
 EIGEN_DECLARE_TEST(kronecker_product)
