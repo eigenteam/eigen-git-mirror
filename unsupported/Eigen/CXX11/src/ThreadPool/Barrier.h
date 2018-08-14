@@ -20,9 +20,7 @@ class Barrier {
   Barrier(unsigned int count) : state_(count << 1), notified_(false) {
     eigen_assert(((count << 1) >> 1) == count);
   }
-  ~Barrier() {
-    eigen_assert((state_>>1) == 0);
-  }
+  ~Barrier() { eigen_plain_assert((state_ >> 1) == 0); }
 
   void Notify() {
     unsigned int v = state_.fetch_sub(2, std::memory_order_acq_rel) - 2;
@@ -52,14 +50,13 @@ class Barrier {
   bool notified_;
 };
 
-
 // Notification is an object that allows a user to to wait for another
 // thread to signal a notification that an event has occurred.
 //
 // Multiple threads can wait on the same Notification object,
 // but only one caller must call Notify() on the object.
 struct Notification : Barrier {
-  Notification() : Barrier(1) {};
+  Notification() : Barrier(1){};
 };
 
 }  // namespace Eigen

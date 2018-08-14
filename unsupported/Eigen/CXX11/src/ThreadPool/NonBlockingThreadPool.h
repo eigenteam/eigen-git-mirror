@@ -90,8 +90,8 @@ class ThreadPoolTempl : public Eigen::ThreadPoolInterface {
     }
 
     // Join threads explicitly to avoid destruction order issues.
-    for (size_t i = 0; i < num_threads_; i++) delete threads_[i];
-    for (size_t i = 0; i < num_threads_; i++) delete queues_[i];
+    for (int i = 0; i < num_threads_; i++) delete threads_[i];
+    for (int i = 0; i < num_threads_; i++) delete queues_[i];
 #ifndef EIGEN_THREAD_LOCAL
     for (auto it : per_thread_map_) delete it.second;
 #endif
@@ -298,7 +298,7 @@ class ThreadPoolTempl : public Eigen::ThreadPoolInterface {
     // If we are shutting down and all worker threads blocked without work,
     // that's we are done.
     blocked_++;
-    if (done_ && blocked_ == num_threads_) {
+    if (done_ && blocked_ == static_cast<unsigned>(num_threads_)) {
       ec_.CancelWait(waiter);
       // Almost done, but need to re-check queues.
       // Consider that all queues are empty and all worker threads are preempted
