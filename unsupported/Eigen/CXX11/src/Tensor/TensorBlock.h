@@ -155,8 +155,8 @@ struct TensorBlockCopyOp {
     typedef const Eigen::Array<Scalar, Dynamic, 1> Src;
     typedef Eigen::Array<Scalar, Dynamic, 1> Dst;
 
-    typedef Eigen::Map<Src, 0, InnerStride<>> SrcMap;
-    typedef Eigen::Map<Dst, 0, InnerStride<>> DstMap;
+    typedef Eigen::Map<Src, 0, InnerStride<> > SrcMap;
+    typedef Eigen::Map<Dst, 0, InnerStride<> > DstMap;
 
     const SrcMap src(src_base, num_coeff_to_copy, InnerStride<>(src_stride));
     DstMap dst(dst_base, num_coeff_to_copy, InnerStride<>(dst_stride));
@@ -405,9 +405,9 @@ struct TensorBlockCwiseBinaryOp {
     typedef const Eigen::Array<RightScalar, Dynamic, 1> Rhs;
     typedef Eigen::Array<OutputScalar, Dynamic, 1> Out;
 
-    typedef Eigen::Map<Lhs, 0, InnerStride<>> LhsMap;
-    typedef Eigen::Map<Rhs, 0, InnerStride<>> RhsMap;
-    typedef Eigen::Map<Out, 0, InnerStride<>> OutMap;
+    typedef Eigen::Map<Lhs, 0, InnerStride<> > LhsMap;
+    typedef Eigen::Map<Rhs, 0, InnerStride<> > RhsMap;
+    typedef Eigen::Map<Out, 0, InnerStride<> > OutMap;
 
     const LeftScalar* lhs_base = &left_data[left_index];
     const RightScalar* rhs_base = &right_data[right_index];
@@ -501,7 +501,7 @@ struct TensorBlockCwiseBinaryIO {
       if (size == 1) {
         continue;
       }
-      auto& state = block_iter_state[num_squeezed_dims];
+      BlockIteratorState& state = block_iter_state[num_squeezed_dims];
       state.output_stride = block_strides[dim];
       state.left_stride = left_strides[dim];
       state.right_stride = right_strides[dim];
@@ -523,7 +523,7 @@ struct TensorBlockCwiseBinaryIO {
                                     right_stride, right_data);
       // Update index.
       for (int j = 0; j < num_squeezed_dims; ++j) {
-        auto& state = block_iter_state[j];
+        BlockIteratorState& state = block_iter_state[j];
         if (++state.count < state.size) {
           output_index += state.output_stride;
           left_index += state.left_stride;

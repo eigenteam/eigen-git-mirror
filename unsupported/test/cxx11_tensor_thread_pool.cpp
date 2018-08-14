@@ -428,7 +428,7 @@ void test_threadpool_allocate(TestAllocator* allocator)
     void* ptr = device.allocate(512);
     device.deallocate(ptr);
   }
-  VERIFY(allocator != nullptr);
+  VERIFY(allocator != NULL);
   VERIFY_IS_EQUAL(allocator->alloc_count(), num_allocs);
   VERIFY_IS_EQUAL(allocator->dealloc_count(), num_allocs);
 }
@@ -460,7 +460,7 @@ EIGEN_DECLARE_TEST(cxx11_tensor_thread_pool)
   CALL_SUBTEST_6(test_multithread_random());
 
   TestAllocator test_allocator;
-  CALL_SUBTEST_6(test_multithread_shuffle<ColMajor>(nullptr));
+  CALL_SUBTEST_6(test_multithread_shuffle<ColMajor>(NULL));
   CALL_SUBTEST_6(test_multithread_shuffle<RowMajor>(&test_allocator));
   CALL_SUBTEST_6(test_threadpool_allocate(&test_allocator));
 }

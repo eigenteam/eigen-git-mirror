@@ -102,7 +102,7 @@ class Allocator {
 // Build a thread pool device on top the an existing pool of threads.
 struct ThreadPoolDevice {
   // The ownership of the thread pool remains with the caller.
-  ThreadPoolDevice(ThreadPoolInterface* pool, int num_cores, Allocator* allocator = nullptr)
+  ThreadPoolDevice(ThreadPoolInterface* pool, int num_cores, Allocator* allocator = NULL)
       : pool_(pool), num_threads_(num_cores), allocator_(allocator) { }
 
   EIGEN_STRONG_INLINE void* allocate(size_t num_bytes) const {
@@ -282,7 +282,7 @@ struct ThreadPoolDevice {
   // Convenience wrapper for parallelFor that does not align blocks.
   void parallelFor(Index n, const TensorOpCost& cost,
                    std::function<void(Index, Index)> f) const {
-    parallelFor(n, cost, nullptr, std::move(f));
+    parallelFor(n, cost, NULL, std::move(f));
   }
 
   // Thread pool accessor.
