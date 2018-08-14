@@ -73,7 +73,7 @@ struct TensorOpResourceRequirements {
   // expression tree (like reductions) to communicate resources
   // requirements based on local state (like the total number of reductions
   // to be computed).
-  TensorOpResourceRequirements(internal::TensorBlockShapeType shape,
+  TensorOpResourceRequirements(TensorBlockShapeType shape,
                                const Index size)
       : block_shape(shape), block_total_size(size) {}
 };
@@ -90,9 +90,9 @@ EIGEN_STRONG_INLINE void MergeResourceRequirements(
   *block_shape = resources[0].block_shape;
   *block_total_size = resources[0].block_total_size;
   for (std::vector<TensorOpResourceRequirements>::size_type i = 1; i < resources.size(); ++i) {
-    if (resources[i].block_shape == TensorBlockShapeType::kSkewedInnerDims &&
-        *block_shape != TensorBlockShapeType::kSkewedInnerDims) {
-      *block_shape = TensorBlockShapeType::kSkewedInnerDims;
+    if (resources[i].block_shape == kSkewedInnerDims &&
+        *block_shape ! kSkewedInnerDims) {
+      *block_shape = kSkewedInnerDims;
     }
     *block_total_size =
         numext::maxi(*block_total_size, resources[i].block_total_size);
@@ -178,9 +178,9 @@ template <typename Scalar, typename StorageIndex, int NumDims, int Layout,
           bool BlockRead>
 class TensorBlockIO {
  public:
-  typedef typename internal::TensorBlock<Scalar, StorageIndex, NumDims, Layout>
+  typedef typename TensorBlock<Scalar, StorageIndex, NumDims, Layout>
       TensorBlock;
-  typedef typename internal::TensorBlockCopyOp<Scalar, StorageIndex>
+  typedef typename TensorBlockCopyOp<Scalar, StorageIndex>
       TensorBlockCopyOp;
 
  protected:
@@ -320,7 +320,7 @@ template <typename Scalar, typename StorageIndex, int NumDims, int Layout>
 class TensorBlockReader : public TensorBlockIO<Scalar, StorageIndex, NumDims,
                                                Layout, /*BlockRead=*/true> {
  public:
-  typedef typename internal::TensorBlock<Scalar, StorageIndex, NumDims, Layout>
+  typedef typename TensorBlock<Scalar, StorageIndex, NumDims, Layout>
       TensorBlock;
   typedef TensorBlockIO<Scalar, StorageIndex, NumDims, Layout, /*BlockRead=*/true>
       Base;
@@ -357,7 +357,7 @@ template <typename Scalar, typename StorageIndex, int NumDims, int Layout>
 class TensorBlockWriter : public TensorBlockIO<Scalar, StorageIndex, NumDims,
                                                Layout, /*BlockRead=*/false> {
  public:
-  typedef typename internal::TensorBlock<Scalar, StorageIndex, NumDims, Layout>
+  typedef typename TensorBlock<Scalar, StorageIndex, NumDims, Layout>
       TensorBlock;
   typedef TensorBlockIO<Scalar, StorageIndex, NumDims, Layout, /*BlockRead=*/false>
       Base;
@@ -434,7 +434,7 @@ struct TensorBlockCwiseBinaryOp {
 template <typename BinaryFunctor, typename StorageIndex, typename OutputScalar,
           int NumDims, int Layout>
 struct TensorBlockCwiseBinaryIO {
-  typedef typename internal::TensorBlock<OutputScalar, StorageIndex, NumDims,
+  typedef typename TensorBlock<OutputScalar, StorageIndex, NumDims,
                                          Layout>::Dimensions Dimensions;
 
   struct BlockIteratorState {
@@ -627,7 +627,7 @@ struct TensorBlockView {
 template <typename Scalar, typename StorageIndex, int NumDims, int Layout>
 class TensorBlockMapper {
  public:
-  typedef typename internal::TensorBlock<Scalar, StorageIndex, NumDims, Layout>
+  typedef typename TensorBlock<Scalar, StorageIndex, NumDims, Layout>
       TensorBlock;
   typedef DSizes<StorageIndex, NumDims> Dimensions;
 
@@ -742,7 +742,7 @@ class TensorBlockMapper {
         block_dim_sizes[i] = 1;
       }
     } else if (block_dim_sizes.TotalSize() > min_target_size) {
-      if (block_shape == TensorBlockShapeType::kUniformAllDims) {
+      if (block_shape == kUniformAllDims) {
         // Tensor will not fit within 'min_target_size' budget: calculate tensor
         // block dimension sizes based on "square" dimension size target.
         const size_t dim_size_target = static_cast<const size_t>(
@@ -773,7 +773,7 @@ class TensorBlockMapper {
             total_size = total_size_other_dims * block_dim_sizes[dim];
           }
         }
-      } else if (block_shape == TensorBlockShapeType::kSkewedInnerDims) {
+      } else if (block_shape == kSkewedInnerDims) {
         StorageIndex coeff_to_allocate = min_target_size;
         for (int i = 0; i < NumDims; ++i) {
           const int dim = cond<Layout>()(i, NumDims - i - 1);
@@ -818,7 +818,7 @@ class TensorBlockMapper {
 template <typename Scalar, typename StorageIndex, int NumDims, int Layout>
 class TensorSliceBlockMapper {
  public:
-  typedef typename internal::TensorBlock<Scalar, StorageIndex, NumDims, Layout>
+  typedef typename TensorBlock<Scalar, StorageIndex, NumDims, Layout>
       TensorBlock;
   typedef DSizes<StorageIndex, NumDims> Dimensions;
 

@@ -155,7 +155,7 @@ struct TensorContractionParams {
 // See expected implementation in NoOpOutputKernel.
 struct OutputKernel {
   template <typename Index, typename Scalar>
-  using OutputMapper = internal::blas_data_mapper<Scalar, Index, ColMajor>;
+  typedef internal::blas_data_mapper<Scalar, Index, ColMajor> OutputMapper;
 };
 
 // Output kernel that does absolutely nothing.
