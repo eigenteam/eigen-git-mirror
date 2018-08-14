@@ -10,8 +10,6 @@
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 
-#include "main.h"
-
 #ifdef EIGEN_TEST_PART_1
 
 #include "sparse.h"
@@ -239,6 +237,7 @@ EIGEN_DECLARE_TEST(kronecker_product)
 #ifdef EIGEN_TEST_PART_2
 
 // simply check that for a dense kronecker product, sparse module is not needed
+#include "main.h"
 #include <Eigen/KroneckerProduct>
 
 EIGEN_DECLARE_TEST(kronecker_product)
