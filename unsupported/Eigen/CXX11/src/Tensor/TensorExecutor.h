@@ -132,7 +132,7 @@ class TensorExecutor<Expression, DefaultDevice, Vectorizable,
     if (needs_assign) {
       // Size tensor blocks to fit in cache (or requested target block size).
       Index block_total_size = numext::mini(cache_size, total_size);
-      TensorBlockShapeType block_shape = TensorBlockShapeType::kSkewedInnerDims;
+      TensorBlockShapeType block_shape = kSkewedInnerDims;
       // Query expression tree for desired block size/shape.
       std::vector<TensorOpResourceRequirements> resources;
       evaluator.getResourceRequirements(&resources);
@@ -272,7 +272,7 @@ class TensorExecutor<Expression, ThreadPoolDevice, Vectorizable, /*Tileable*/ tr
 
     const bool needs_assign = evaluator.evalSubExprsIfNeeded(NULL);
     if (needs_assign) {
-      TensorBlockShapeType block_shape = TensorBlockShapeType::kSkewedInnerDims;
+      TensorBlockShapeType block_shape = kSkewedInnerDims;
       Index block_total_size = 0;
       // Query expression tree for desired block size/shape.
       std::vector<internal::TensorOpResourceRequirements> resources;
