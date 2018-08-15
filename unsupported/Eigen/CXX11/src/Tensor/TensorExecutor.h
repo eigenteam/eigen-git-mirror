@@ -229,10 +229,6 @@ class TensorExecutor<Expression, ThreadPoolDevice, Vectorizable, Tileable> {
     Evaluator evaluator(expr, device);
     const bool needs_assign = evaluator.evalSubExprsIfNeeded(NULL);
     if (needs_assign) {
-      const StorageIndex PacketSize =
-          Vectorizable
-              ? unpacket_traits<typename Evaluator::PacketReturnType>::size
-              : 1;
       const StorageIndex size = array_prod(evaluator.dimensions());
       device.parallelFor(size, evaluator.costPerCoeff(Vectorizable),
                          EvalRange::alignBlockSize,
