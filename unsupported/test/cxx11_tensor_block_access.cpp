@@ -157,9 +157,8 @@ static void UpdateCoeffSet(
 
 template <typename T, int NumDims, int Layout>
 static void test_block_mapper_maps_every_element() {
-  using TensorBlock = internal::TensorBlock<T, Index, NumDims, Layout>;
-  using TensorBlockMapper =
-      internal::TensorBlockMapper<T, Index, NumDims, Layout>;
+  typedef internal::TensorBlock<T, Index, NumDims, Layout> TensorBlock;
+  typedef internal::TensorBlockMapper<T, Index, NumDims, Layout> TensorBlockMapper;
 
   DSizes<Index, NumDims> dims = RandomDims<NumDims>();
 
@@ -186,9 +185,8 @@ static void test_block_mapper_maps_every_element() {
 
 template <typename T, int NumDims, int Layout>
 static void test_slice_block_mapper_maps_every_element() {
-  using TensorBlock = internal::TensorBlock<T, Index, NumDims, Layout>;
-  using TensorSliceBlockMapper =
-      internal::TensorSliceBlockMapper<T, Index, NumDims, Layout>;
+  typedef internal::TensorBlock<T, Index, NumDims, Layout> TensorBlock;
+  typedef internal::TensorSliceBlockMapper<T, Index, NumDims, Layout> TensorSliceBlockMapper;
 
   DSizes<Index, NumDims> tensor_dims = RandomDims<NumDims>();
   DSizes<Index, NumDims> tensor_slice_offsets = RandomDims<NumDims>();
@@ -773,9 +771,8 @@ static void test_uniform_block_shape()
 template <int Layout>
 static void test_skewed_inner_dim_block_shape()
 {
-  using T = int;
-  typedef internal::TensorBlock<T, Index, 5, Layout> TensorBlock;
-  typedef internal::TensorBlockMapper<T, Index, 5, Layout> TensorBlockMapper;
+  typedef internal::TensorBlock<int, Index, 5, Layout> TensorBlock;
+  typedef internal::TensorBlockMapper<int, Index, 5, Layout> TensorBlockMapper;
 
   // Test shape 'SkewedInnerDims' with partial allocation to inner-most dim.
   if (Layout == ColMajor) {
