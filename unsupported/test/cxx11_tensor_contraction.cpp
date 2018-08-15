@@ -514,7 +514,7 @@ static void test_const_inputs()
 struct SqrtOutputKernel {
   template <typename Index, typename Scalar>
   EIGEN_ALWAYS_INLINE void operator()(
-      const OutputKernel::OutputMapper<Index, Scalar>& output_mapper,
+      const internal::blas_data_mapper<Scalar, Index, ColMajor>& output_mapper,
       const TensorContractionParams&, Index, Index, Index num_rows,
       Index num_cols) const {
     for (int i = 0; i < num_rows; ++i) {
