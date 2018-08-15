@@ -471,7 +471,7 @@ static void test_tensor_product()
   mat1.setRandom();
   mat2.setRandom();
 
-  Tensor<float, 4, DataLayout> result = mat1.contract(mat2, Eigen::array<DimPair, 0>{{}});
+  Tensor<float, 4, DataLayout> result = mat1.contract(mat2, Eigen::array<DimPair, 0>{});
 
   VERIFY_IS_EQUAL(result.dimension(0), 2);
   VERIFY_IS_EQUAL(result.dimension(1), 3);
@@ -514,7 +514,7 @@ static void test_const_inputs()
 struct SqrtOutputKernel {
   template <typename Index, typename Scalar>
   EIGEN_ALWAYS_INLINE void operator()(
-      const OutputKernel::OutputMapper<Index, Scalar>& output_mapper,
+      const internal::blas_data_mapper<Scalar, Index, ColMajor>& output_mapper,
       const TensorContractionParams&, Index, Index, Index num_rows,
       Index num_cols) const {
     for (int i = 0; i < num_rows; ++i) {
@@ -553,7 +553,7 @@ static void test_large_contraction_with_output_kernel() {
 
   m_result = m_left * m_right;
 
-  for (size_t i = 0; i < t_result.dimensions().TotalSize(); i++) {
+  for (std::ptrdiff_t i = 0; i < t_result.dimensions().TotalSize(); i++) {
     VERIFY(&t_result.data()[i] != &m_result.data()[i]);
     VERIFY_IS_APPROX(t_result.data()[i], std::sqrt(m_result.data()[i]));
   }

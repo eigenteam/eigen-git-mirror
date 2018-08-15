@@ -152,13 +152,7 @@ struct TensorContractionParams {
 //   1. Elementwise Relu transformation following Conv2D.
 //   2. AddBias to the Conv2D output channels dimension.
 //
-// See expected implementation in NoOpOutputKernel.
-struct OutputKernel {
-  template <typename Index, typename Scalar>
-  using OutputMapper = internal::blas_data_mapper<Scalar, Index, ColMajor>;
-};
-
-// Output kernel that does absolutely nothing.
+// The NoOpOutputKernel implements an output kernel that does absolutely nothing.
 struct NoOpOutputKernel {
   /**
    * Tensor contraction evaluator calls this kernel after finishing each block
@@ -177,7 +171,7 @@ struct NoOpOutputKernel {
    */
   template <typename Index, typename Scalar>
   EIGEN_ALWAYS_INLINE void operator()(
-      const OutputKernel::OutputMapper<Index, Scalar>& /*output_mapper*/,
+      const internal::blas_data_mapper<Scalar, Index, ColMajor>& /*output_mapper*/,
       const TensorContractionParams& /*params*/, Index /*i*/,
       Index /*j*/, Index /*num_rows*/, Index /*num_cols*/) const {}
 };

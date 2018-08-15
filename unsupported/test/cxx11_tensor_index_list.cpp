@@ -170,7 +170,6 @@ static void test_type2indexpair_list()
   typedef Eigen::IndexPairList<Eigen::type2indexpair<0,10>, Eigen::IndexPair<DenseIndex>, Eigen::type2indexpair<2,12>> Dims2_b;
   typedef Eigen::IndexPairList<Eigen::IndexPair<DenseIndex>, Eigen::type2indexpair<1,11>, Eigen::IndexPair<DenseIndex>> Dims2_c;
 
-  Dims0 d0;
   Dims2_a d2_a;
 
   Dims2_b d2_b;
