@@ -660,7 +660,7 @@ struct TensorContractionEvaluatorBase
 
           // call gebp (matrix kernel)
           // The parameters here are copied from Eigen's GEMM implementation
-          const auto output_mapper = output.getSubMapper(i2, j2);
+          const OutputMapper output_mapper = output.getSubMapper(i2, j2);
           gebp(output_mapper, blockA, blockB, actual_mc, actual_kc, actual_nc,
                Scalar(1), -1, -1, 0, 0);
 
