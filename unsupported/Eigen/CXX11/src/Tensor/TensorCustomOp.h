@@ -31,7 +31,6 @@ struct traits<TensorCustomUnaryOp<CustomUnaryFunc, XprType> >
   static const int NumDimensions = traits<XprType>::NumDimensions;
   static const int Layout = traits<XprType>::Layout;
   typedef typename traits<XprType>::PointerType PointerType;
-
 };
 
 template<typename CustomUnaryFunc, typename XprType>
@@ -188,7 +187,6 @@ struct traits<TensorCustomBinaryOp<CustomBinaryFunc, LhsXprType, RhsXprType> >
   static const int Layout = traits<LhsXprType>::Layout;
   typedef typename conditional<Pointer_type_promotion<typename LhsXprType::Scalar, Scalar>::val,
                                 typename traits<LhsXprType>::PointerType, typename traits<RhsXprType>::PointerType>::type PointerType;
-
 };
 
 template<typename CustomBinaryFunc, typename LhsXprType, typename RhsXprType>
