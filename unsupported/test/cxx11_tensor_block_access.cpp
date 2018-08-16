@@ -104,7 +104,7 @@ static void test_block_mapper_sanity()
   VERIFY_IS_EQUAL(uniform_block_mapper.block_dims_total_size(), 100);
 
   // 10x10 blocks
-  auto uniform_b0 = uniform_block_mapper.GetBlockForIndex(0, NULL);
+  typename TensorBlockMapper::Block uniform_b0 = uniform_block_mapper.GetBlockForIndex(0, NULL);
   VERIFY_IS_EQUAL(uniform_b0.block_sizes().at(0), 10);
   VERIFY_IS_EQUAL(uniform_b0.block_sizes().at(1), 10);
   // Depending on a layout we stride by cols rows.
@@ -122,7 +122,7 @@ static void test_block_mapper_sanity()
   VERIFY_IS_EQUAL(skewed_block_mapper.block_dims_total_size(), 100);
 
   // 1x100 (100x1) rows/cols depending on a tensor layout.
-  auto skewed_b0 = skewed_block_mapper.GetBlockForIndex(0, NULL);
+  typename TensorBlockMapper::Block skewed_b0 = skewed_block_mapper.GetBlockForIndex(0, NULL);
   VERIFY_IS_EQUAL(skewed_b0.block_sizes().at(0), choose(Layout, 100, 1));
   VERIFY_IS_EQUAL(skewed_b0.block_sizes().at(1), choose(Layout, 1, 100));
   // Depending on a layout we stride by cols rows.
@@ -203,7 +203,7 @@ static void test_slice_block_mapper_maps_every_element() {
   // Keep track of elements indices available via block access.
   std::set<Index> coeff_set;
 
-  auto total_coeffs = static_cast<int>(tensor_slice_extents.TotalSize());
+  int total_coeffs = static_cast<int>(tensor_slice_extents.TotalSize());
 
   // Pick a random dimension sizes for the tensor blocks.
   DSizes<Index, NumDims> block_sizes;
@@ -237,7 +237,7 @@ static void test_block_io_copy_data_from_source_to_target() {
       TensorBlockWriter;
 
   DSizes<Index, NumDims> input_tensor_dims = RandomDims<NumDims>();
-  const auto input_tensor_size = input_tensor_dims.TotalSize();
+  const Index input_tensor_size = input_tensor_dims.TotalSize();
 
   T* input_data = GenerateRandomData<T>(input_tensor_size);
   T* output_data = new T[input_tensor_size];
@@ -316,7 +316,7 @@ static void test_block_io_copy_using_reordered_dimensions() {
       TensorBlockWriter;
 
   DSizes<Index, NumDims> input_tensor_dims = RandomDims<NumDims>();
-  const auto input_tensor_size = input_tensor_dims.TotalSize();
+  const Index input_tensor_size = input_tensor_dims.TotalSize();
 
   // Create a random input tensor.
   T* input_data = GenerateRandomData<T>(input_tensor_size);
@@ -339,8 +339,8 @@ static void test_block_io_copy_using_reordered_dimensions() {
   TensorBlockMapper block_mapper(output_tensor_dims, RandomShape(),
                                  RandomTargetSize(input_tensor_dims));
 
-  auto* block_data = new T[block_mapper.block_dims_total_size()];
-  auto* output_data = new T[input_tensor_size];
+  T* block_data = new T[block_mapper.block_dims_total_size()];
+  T* output_data = new T[input_tensor_size];
 
   array<Index, NumDims> input_tensor_strides =
       ComputeStrides<Layout, NumDims>(input_tensor_dims);
@@ -382,8 +382,8 @@ static void test_block_io_zero_stride()
   input_tensor_dims[0] = 1;
   input_tensor_dims[2] = 1;
   input_tensor_dims[4] = 1;
-  const auto input_tensor_size = input_tensor_dims.TotalSize();
-  auto* input_data = GenerateRandomData<float>(input_tensor_size);
+  const Index input_tensor_size = input_tensor_dims.TotalSize();
+  float* input_data = GenerateRandomData<float>(input_tensor_size);
 
   DSizes<Index, 5> output_tensor_dims = rnd_dims;
 
@@ -424,7 +424,7 @@ static void test_block_io_zero_stride()
   };
 
   {
-    auto* output_data = new float[output_tensor_dims.TotalSize()];
+    float* output_data = new float[output_tensor_dims.TotalSize()];
     TensorBlock read_block(0, output_tensor_dims, output_tensor_strides,
                            input_tensor_strides_with_zeros, output_data);
     TensorBlockReader::Run(&read_block, input_data);
@@ -433,7 +433,7 @@ static void test_block_io_zero_stride()
   }
 
   {
-    auto* output_data = new float[output_tensor_dims.TotalSize()];
+    float* output_data = new float[output_tensor_dims.TotalSize()];
     TensorBlock write_block(0, output_tensor_dims,
                             input_tensor_strides_with_zeros,
                             output_tensor_strides, input_data);
@@ -456,14 +456,14 @@ static void test_block_io_squeeze_ones() {
   // Total size > 1.
   {
     DSizes<Index, 5> block_sizes(1, 2, 1, 2, 1);
-    const auto total_size = block_sizes.TotalSize();
+    const Index total_size = block_sizes.TotalSize();
 
     // Create a random input tensor.
-    auto* input_data = GenerateRandomData<float>(total_size);
+    float* input_data = GenerateRandomData<float>(total_size);
     DSizes<Index, 5> strides(ComputeStrides<Layout, 5>(block_sizes));
 
     {
-      auto* output_data = new float[block_sizes.TotalSize()];
+      float* output_data = new float[block_sizes.TotalSize()];
       TensorBlock read_block(0, block_sizes, strides, strides, output_data);
       TensorBlockReader::Run(&read_block, input_data);
       for (int i = 0; i < total_size; ++i) {
@@ -473,7 +473,7 @@ static void test_block_io_squeeze_ones() {
     }
 
     {
-      auto* output_data = new float[block_sizes.TotalSize()];
+      float* output_data = new float[block_sizes.TotalSize()];
       TensorBlock write_block(0, block_sizes, strides, strides, input_data);
       TensorBlockWriter::Run(write_block, output_data);
       for (int i = 0; i < total_size; ++i) {
@@ -486,14 +486,14 @@ static void test_block_io_squeeze_ones() {
   // Total size == 1.
   {
     DSizes<Index, 5> block_sizes(1, 1, 1, 1, 1);
-    const auto total_size = block_sizes.TotalSize();
+    const Index total_size = block_sizes.TotalSize();
 
     // Create a random input tensor.
-    auto* input_data = GenerateRandomData<float>(total_size);
+    float* input_data = GenerateRandomData<float>(total_size);
     DSizes<Index, 5> strides(ComputeStrides<Layout, 5>(block_sizes));
 
     {
-      auto* output_data = new float[block_sizes.TotalSize()];
+      float* output_data = new float[block_sizes.TotalSize()];
       TensorBlock read_block(0, block_sizes, strides, strides, output_data);
       TensorBlockReader::Run(&read_block, input_data);
       for (int i = 0; i < total_size; ++i) {
@@ -503,7 +503,7 @@ static void test_block_io_squeeze_ones() {
     }
 
     {
-      auto* output_data = new float[block_sizes.TotalSize()];
+      float* output_data = new float[block_sizes.TotalSize()];
       TensorBlock write_block(0, block_sizes, strides, strides, input_data);
       TensorBlockWriter::Run(write_block, output_data);
       for (int i = 0; i < total_size; ++i) {
@@ -524,7 +524,7 @@ static void test_block_cwise_binary_io_basic() {
   DSizes<Index, NumDims> block_sizes = RandomDims<NumDims>();
   DSizes<Index, NumDims> strides(ComputeStrides<Layout, NumDims>(block_sizes));
 
-  const auto total_size = block_sizes.TotalSize();
+  const Index total_size = block_sizes.TotalSize();
 
   // Create a random input tensors.
   T* left_data = GenerateRandomData<T>(total_size);
@@ -553,13 +553,13 @@ static void test_block_cwise_binary_io_squeeze_ones() {
   DSizes<Index, 5> block_sizes(1, 2, 1, 3, 1);
   DSizes<Index, 5> strides(ComputeStrides<Layout, 5>(block_sizes));
 
-  const auto total_size = block_sizes.TotalSize();
+  const Index total_size = block_sizes.TotalSize();
 
   // Create a random input tensors.
-  auto* left_data = GenerateRandomData<float>(total_size);
-  auto* right_data = GenerateRandomData<float>(total_size);
+  float* left_data = GenerateRandomData<float>(total_size);
+  float* right_data = GenerateRandomData<float>(total_size);
 
-  auto* output_data = new float[total_size];
+  float* output_data = new float[total_size];
   BinaryFunctor functor;
   TensorBlockCwiseBinaryIO::Run(functor, block_sizes, strides, output_data,
                                 strides, left_data, strides, right_data);
@@ -600,14 +600,14 @@ static void test_block_cwise_binary_io_zero_strides() {
   right_strides[3] = 0;
 
   // Generate random data.
-  auto* left_data = GenerateRandomData<float>(left_sizes.TotalSize());
-  auto* right_data = GenerateRandomData<float>(right_sizes.TotalSize());
+  float* left_data = GenerateRandomData<float>(left_sizes.TotalSize());
+  float* right_data = GenerateRandomData<float>(right_sizes.TotalSize());
 
   DSizes<Index, 5> output_sizes = rnd_dims;
   DSizes<Index, 5> output_strides(ComputeStrides<Layout, 5>(output_sizes));
 
-  const auto output_total_size = output_sizes.TotalSize();
-  auto* output_data = new float[output_total_size];
+  const Index output_total_size = output_sizes.TotalSize();
+  float* output_data = new float[output_total_size];
 
   BinaryFunctor functor;
   TensorBlockCwiseBinaryIO::Run(functor, output_sizes, output_strides,
