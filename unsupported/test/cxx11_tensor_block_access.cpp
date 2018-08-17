@@ -11,7 +11,6 @@
 #include "main.h"
 
 #include <algorithm>
-#include <random>
 #include <set>
 
 #include <Eigen/CXX11/Tensor>
@@ -49,8 +48,8 @@ static DSizes<Index, NumDims> RandomDims() {
 
 /** Dummy data type to test TensorBlock copy ops. */
 struct Data {
-  Data() : Data(0) {}
-  explicit Data(int v) { value = v; }
+  Data() : value(0) {}
+  explicit Data(int v) : value(v) { }
   int value;
 };
 
@@ -324,7 +323,7 @@ static void test_block_io_copy_using_reordered_dimensions() {
   // Create a random dimension re-ordering/shuffle.
   std::vector<Index> shuffle;
   for (int i = 0; i < NumDims; ++i) shuffle.push_back(i);
-  std::shuffle(shuffle.begin(), shuffle.end(), std::mt19937());
+  std::random_shuffle(shuffle.begin(), shuffle.end());
 
   DSizes<Index, NumDims> output_tensor_dims;
   array<Index, NumDims> input_to_output_dim_map;
