@@ -84,7 +84,6 @@ bool JacobiRotation<Scalar>::makeJacobi(const RealScalar& x, const Scalar& y, co
 {
   using std::sqrt;
   using std::abs;
-  typedef typename NumTraits<Scalar>::Real RealScalar;
   RealScalar deno = RealScalar(2)*abs(y);
   if(deno < (std::numeric_limits<RealScalar>::min)())
   {
