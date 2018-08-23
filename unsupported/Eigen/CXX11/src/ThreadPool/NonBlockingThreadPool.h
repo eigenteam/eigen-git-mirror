@@ -153,6 +153,10 @@ class ThreadPoolTempl : public Eigen::ThreadPoolInterface {
     ThreadPoolTempl* pool;  // Parent pool, or null for normal threads.
     uint64_t rand;          // Random generator state.
     int thread_id;          // Worker thread index in pool.
+#ifndef EIGEN_THREAD_LOCAL
+    // Prevent false sharing.
+    char pad_[128];
+#endif
   };
 
   Environment env_;
