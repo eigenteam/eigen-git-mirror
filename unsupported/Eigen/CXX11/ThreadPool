@@ -49,7 +49,9 @@
 // which trigger a check in test/main.h causing compilation to fail.
 // We work around the check here by removing the check for max in
 // the case where we have to emulate thread_local.
+#ifdef max
 #undef max
+#endif
 #include <unordered_map>
 #endif
 
