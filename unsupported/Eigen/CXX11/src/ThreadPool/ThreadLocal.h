@@ -12,10 +12,10 @@
 
 #undef EIGEN_THREAD_LOCAL
 
-#if EIGEN_MAX_CPP_VER>=11 && (__has_feature(cxx_thread_local))
-  #define EIGEN_THREAD_LOCAL static thread_local
-#elif (EIGEN_COMP_GNUC && EIGEN_GNUC_AT_MOST(4, 7)) || EIGEN_COMP_CLANG
-  #define EIGEN_THREAD_LOCAL static __thread
+#if EIGEN_MAX_CPP_VER >= 11 &&                         \
+    ((EIGEN_COMP_GNUC && EIGEN_GNUC_AT_LEAST(4, 8)) || \
+     __has_feature(cxx_thread_local))
+#define EIGEN_THREAD_LOCAL static thread_local
 #endif
 
 // Disable TLS for Apple and Android builds with older toolchains.
