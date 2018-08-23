@@ -58,9 +58,6 @@ class ThreadPoolTempl : public Eigen::ThreadPoolInterface {
       }
     }
     queues_.resize(num_threads_);
-    for (int i = 0; i < num_threads_; i++) {
-      queues_.push_back(new Queue());
-    }
 #ifndef EIGEN_THREAD_LOCAL
     init_barrier_.reset(new Barrier(num_threads_));
 #endif
@@ -93,9 +90,6 @@ class ThreadPoolTempl : public Eigen::ThreadPoolInterface {
     // Join threads explicitly to avoid destruction order issues.
     threads_.resize(0);
     queues_.resize(0);
-#ifndef EIGEN_THREAD_LOCAL
-    for (auto it : per_thread_map_) delete it.second;
-#endif
   }
 
   void Schedule(std::function<void()> fn) {
@@ -176,21 +170,19 @@ class ThreadPoolTempl : public Eigen::ThreadPoolInterface {
 #ifndef EIGEN_THREAD_LOCAL
   std::unique_ptr<Barrier> init_barrier_;
   std::mutex mu;  // Protects per_thread_map_.
-  std::unordered_map<uint64_t, PerThread*> per_thread_map_;
+  std::unordered_map<uint64_t, std::unique_ptr<PerThread>> per_thread_map_;
 #endif
 
   // Main worker thread loop.
   void WorkerLoop(int thread_id) {
 #ifndef EIGEN_THREAD_LOCAL
-    PerThread* pt = new PerThread();
     mu.lock();
-    per_thread_map_[GlobalThreadIdHash()] = pt;
+    eigen_assert(per_thread_map_.emplace(GlobalThreadIdHash(), new PerThread()).second);
     mu.unlock();
     init_barrier_->Notify();
     init_barrier_->Wait();
-#else
-    PerThread* pt = GetPerThread();
 #endif
+    PerThread* pt = GetPerThread();
     pt->pool = this;
     pt->rand = GlobalThreadIdHash();
     pt->thread_id = thread_id;
@@ -355,7 +347,7 @@ class ThreadPoolTempl : public Eigen::ThreadPoolInterface {
     if (it == per_thread_map_.end()) {
       return &dummy;
     } else {
-      return it->second;
+      return it->second.get();
     }
 #else
     EIGEN_THREAD_LOCAL PerThread per_thread_;
