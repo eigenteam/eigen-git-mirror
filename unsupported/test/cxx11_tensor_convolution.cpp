@@ -25,7 +25,7 @@ static void test_evals()
 
   Tensor<float, 2, DataLayout> result(2,3);
   result.setZero();
-  Eigen::array<Tensor<float, 2>::Index, 1> dims3{{0}};
+  Eigen::array<Tensor<float, 2>::Index, 1> dims3{0};
 
   typedef TensorEvaluator<decltype(input.convolve(kernel, dims3)), DefaultDevice> Evaluator;
   Evaluator eval(input.convolve(kernel, dims3), DefaultDevice());

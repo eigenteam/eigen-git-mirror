@@ -24,6 +24,14 @@ template<typename T> struct MakePointer {
   typedef T ScalarType;
 };
 
+// The PointerType class is a container of the device specefic pointer
+// used for refering to a Pointer on TensorEvaluator class. While the TensorExpression
+// is a device-agnostic type and need MakePointer class for type conversion,
+// the TensorEvaluator calss can be specialized for a device, hence it is possible
+// to construct different types of temproray storage memory in TensorEvaluator
+// for different devices by specializing the following PointerType class.
+template<typename T, typename Device> struct PointerType : MakePointer<T>{};
+
 namespace internal{
 template<typename A, typename B> struct Pointer_type_promotion {
   static const bool val=false;
