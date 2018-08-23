@@ -180,8 +180,9 @@ class ThreadPoolTempl : public Eigen::ThreadPoolInterface {
   // Main worker thread loop.
   void WorkerLoop(int thread_id) {
 #ifndef EIGEN_THREAD_LOCAL
+    std::unique_ptr<PerThread> new_pt(new PerThread());
     per_thread_map_mutex_.lock();
-    eigen_assert(per_thread_map_.emplace(GlobalThreadIdHash(), new PerThread()).second);
+    eigen_assert(per_thread_map_.emplace(GlobalThreadIdHash(), std::move(new_pt)).second);
     per_thread_map_mutex_.unlock();
     init_barrier_->Notify();
     init_barrier_->Wait();
