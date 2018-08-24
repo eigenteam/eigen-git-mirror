@@ -58,7 +58,7 @@ class EventCount {
 
   ~EventCount() {
     // Ensure there are no waiters.
-    eigen_assert((state_.load() & (kStackMask | kWaiterMask)) == kStackMask);
+    eigen_plain_assert((state_.load() & (kStackMask | kWaiterMask)) == kStackMask);
   }
 
   // Prewait prepares for waiting.
@@ -169,7 +169,8 @@ class EventCount {
 
   class Waiter {
     friend class EventCount;
-    // Align to 128 byte boundary to prevent false sharing with other Waiter objects in the same vector.
+    // Align to 128 byte boundary to prevent false sharing with other Waiter
+    // objects in the same vector.
     EIGEN_ALIGN_TO_BOUNDARY(128) std::atomic<Waiter*> next;
     std::mutex mu;
     std::condition_variable cv;
