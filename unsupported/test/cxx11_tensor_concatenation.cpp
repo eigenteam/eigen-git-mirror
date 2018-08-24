@@ -56,7 +56,7 @@ static void test_static_dimension_failure()
   // either the code should change to 
   //  Tensor<int, 2>::Dimensions{{2, 3}}
   // or Tensor<int, 2>::Dimensions{Tensor<int, 2>::Dimensions{{2, 3}}}
-      .concatenate(right.reshape(Tensor<int, 2>::Dimensions{{2, 3}}), 0);
+      .concatenate(right.reshape(Tensor<int, 2>::Dimensions{{{2, 3}}}), 0);
 }
 
 template<int DataLayout>
