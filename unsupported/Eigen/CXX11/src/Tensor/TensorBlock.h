@@ -212,11 +212,11 @@ class TensorBlockIO {
         num_size_one_inner_dims, NumDims - num_size_one_inner_dims - 1);
     const StorageIndex block_dim_for_tensor_stride1_dim =
         NumDims == 0 ? 1 : tensor_to_block_dim_map[tensor_stride1_dim];
-    size_t block_inner_dim_size =
+    StorageIndex block_inner_dim_size =
         NumDims == 0 ? 1
                      : block.block_sizes()[block_dim_for_tensor_stride1_dim];
-    for (int i = num_size_one_inner_dims + 1; i < NumDims; ++i) {
-      const int dim = cond<Layout>()(i, NumDims - i - 1);
+    for (Index i = num_size_one_inner_dims + 1; i < NumDims; ++i) {
+      const Index dim = cond<Layout>()(i, NumDims - i - 1);
       const StorageIndex block_stride =
           block.block_strides()[tensor_to_block_dim_map[dim]];
       if (block_inner_dim_size == block_stride &&
@@ -258,8 +258,8 @@ class TensorBlockIO {
 
     // Initialize block iterator state. Squeeze away any dimension of size 1.
     int num_squeezed_dims = 0;
-    for (int i = num_size_one_inner_dims; i < NumDims - 1; ++i) {
-      const int dim = cond<Layout>()(i + 1, NumDims - i - 2);
+    for (Index i = num_size_one_inner_dims; i < NumDims - 1; ++i) {
+      const Index dim = cond<Layout>()(i + 1, NumDims - i - 2);
       const StorageIndex size = block.block_sizes()[tensor_to_block_dim_map[dim]];
       if (size == 1) {
         continue;
@@ -626,7 +626,7 @@ class TensorBlockMapper {
                     const TensorBlockShapeType block_shape,
                     Index min_target_size)
       : m_dimensions(dims),
-        m_block_dim_sizes(BlockDimensions(dims, block_shape, min_target_size)) {
+        m_block_dim_sizes(BlockDimensions(dims, block_shape, internal::convert_index<StorageIndex>(min_target_size))) {
     // Calculate block counts by dimension and total block count.
     DSizes<StorageIndex, NumDims> block_count;
     for (Index i = 0; i < block_count.rank(); ++i) {
@@ -717,8 +717,8 @@ class TensorBlockMapper {
  private:
   static Dimensions BlockDimensions(const Dimensions& tensor_dims,
                                     const TensorBlockShapeType block_shape,
-                                    Index min_target_size) {
-    min_target_size = numext::maxi<Index>(1, min_target_size);
+                                    StorageIndex min_target_size) {
+    min_target_size = numext::maxi<StorageIndex>(1, min_target_size);
 
     // If tensor fully fits into the target size, we'll treat it a single block.
     Dimensions block_dim_sizes = tensor_dims;
@@ -735,16 +735,15 @@ class TensorBlockMapper {
       if (block_shape == kUniformAllDims) {
         // Tensor will not fit within 'min_target_size' budget: calculate tensor
         // block dimension sizes based on "square" dimension size target.
-        const size_t dim_size_target = static_cast<const size_t>(
+        const StorageIndex dim_size_target = internal::convert_index<StorageIndex>(
             std::pow(static_cast<float>(min_target_size),
                      1.0f / static_cast<float>(block_dim_sizes.rank())));
-        for (size_t i = 0; i < block_dim_sizes.rank(); ++i) {
+        for (Index i = 0; i < block_dim_sizes.rank(); ++i) {
           // TODO(andydavis) Adjust the inner most 'block_dim_size' to make it
           // a multiple of the packet size. Note that reducing
           // 'block_dim_size' in this manner can increase the number of
           // blocks, and so will amplify any per-block overhead.
-          block_dim_sizes[i] = numext::mini(
-              dim_size_target, static_cast<size_t>(tensor_dims[i]));
+          block_dim_sizes[i] = numext::mini(dim_size_target, tensor_dims[i]);
         }
         // Add any un-allocated coefficients to inner dimension(s).
         StorageIndex total_size = block_dim_sizes.TotalSize();
@@ -781,7 +780,7 @@ class TensorBlockMapper {
 
     eigen_assert(
         block_dim_sizes.TotalSize() >=
-        numext::mini<size_t>(min_target_size, tensor_dims.TotalSize()));
+        numext::mini<Index>(min_target_size, tensor_dims.TotalSize()));
 
     return block_dim_sizes;
   }
@@ -824,7 +823,7 @@ class TensorSliceBlockMapper {
         m_total_block_count(1) {
     // Calculate block counts by dimension and total block count.
     DSizes<StorageIndex, NumDims> block_count;
-    for (size_t i = 0; i < block_count.rank(); ++i) {
+    for (Index i = 0; i < block_count.rank(); ++i) {
       block_count[i] = divup(m_tensor_slice_extents[i], m_block_dim_sizes[i]);
     }
     m_total_block_count = array_prod(block_count);

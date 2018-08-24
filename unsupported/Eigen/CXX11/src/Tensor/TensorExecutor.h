@@ -256,8 +256,8 @@ class TensorExecutor<Expression, ThreadPoolDevice, Vectorizable, /*Tileable*/ tr
     typedef TensorBlockMapper<ScalarNoConst, StorageIndex, NumDims, Evaluator::Layout> TensorBlockMapper;
 
     Evaluator evaluator(expr, device);
-    StorageIndex total_size = array_prod(evaluator.dimensions());
-    StorageIndex cache_size = device.firstLevelCacheSize() / sizeof(Scalar);
+    Index total_size = array_prod(evaluator.dimensions());
+    Index cache_size = device.firstLevelCacheSize() / sizeof(Scalar);
     if (total_size < cache_size) {
       // TODO(andydavis) Reduce block management overhead for small tensors.
       internal::TensorExecutor<Expression, ThreadPoolDevice, Vectorizable,

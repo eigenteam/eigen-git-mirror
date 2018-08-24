@@ -300,7 +300,7 @@ static void test_multithread_contraction_with_output_kernel() {
 
   m_result = m_left * m_right;
 
-  for (size_t i = 0; i < t_result.dimensions().TotalSize(); i++) {
+  for (Index i = 0; i < t_result.dimensions().TotalSize(); i++) {
     VERIFY(&t_result.data()[i] != &m_result.data()[i]);
     VERIFY_IS_APPROX(t_result.data()[i], std::sqrt(m_result.data()[i]));
   }
