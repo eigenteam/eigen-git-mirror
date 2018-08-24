@@ -347,7 +347,7 @@ struct TensorContractionEvaluatorBase
     // dimensions and right non-contracting dimensions.
     m_lhs_inner_dim_contiguous = true;
     int dim_idx = 0;
-    unsigned int nocontract_idx = 0;
+    Index nocontract_idx = 0;
 
     for (int i = 0; i < LDims; i++) {
       // find if we are contracting on index i of left tensor

@@ -336,7 +336,7 @@ struct TensorEvaluator<const TensorSlicingOp<StartIndices, Sizes, ArgType>, Devi
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
       : m_impl(op.expression(), device), m_device(device), m_dimensions(op.sizes()), m_offsets(op.startIndices())
   {
-    for (std::size_t i = 0; i < internal::array_size<Dimensions>::value; ++i) {
+    for (Index i = 0; i < internal::array_size<Dimensions>::value; ++i) {
       eigen_assert(m_impl.dimensions()[i] >= op.sizes()[i] + op.startIndices()[i]);
     }
 
@@ -739,7 +739,7 @@ struct TensorEvaluator<const TensorStridingSlicingOp<StartIndices, StopIndices, 
   {
     // Handle degenerate intervals by gracefully clamping and allowing m_dimensions to be zero
     DSizes<Index,NumDims> startIndicesClamped, stopIndicesClamped;
-    for (size_t i = 0; i < internal::array_size<Dimensions>::value; ++i) {
+    for (Index i = 0; i < internal::array_size<Dimensions>::value; ++i) {
       eigen_assert(m_strides[i] != 0 && "0 stride is invalid");
       if(m_strides[i]>0){
         startIndicesClamped[i] = clamp(op.startIndices()[i], 0, m_impl.dimensions()[i]);
