@@ -138,8 +138,8 @@ template <typename T, int Layout, int NumDims>
 static void UpdateCoeffSet(
     const internal::TensorBlock<T, Index, NumDims, Layout>& block,
     Index first_coeff_index, int dim_index, std::set<Index>* visited_coeffs) {
-  const DSizes<Index, NumDims> block_sizes = block.block_sizes();
-  const DSizes<Index, NumDims> tensor_strides = block.tensor_strides();
+  const DSizes<Index, NumDims>& block_sizes = block.block_sizes();
+  const DSizes<Index, NumDims>& tensor_strides = block.tensor_strides();
 
   for (int i = 0; i < block_sizes[dim_index]; ++i) {
     if (tensor_strides[dim_index] == 1) {
