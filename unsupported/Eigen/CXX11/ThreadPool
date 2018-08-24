@@ -44,6 +44,10 @@
 #include <thread>
 #include <functional>
 #include <memory>
+#include "src/util/CXX11Meta.h"
+#include "src/util/MaxSizeVector.h"
+
+#include "src/ThreadPool/ThreadLocal.h"
 #ifndef EIGEN_THREAD_LOCAL
 // There are non-parenthesized calls to "max" in the  <unordered_map> header,
 // which trigger a check in test/main.h causing compilation to fail.
@@ -54,11 +58,6 @@
 #endif
 #include <unordered_map>
 #endif
-
-#include "src/util/CXX11Meta.h"
-#include "src/util/MaxSizeVector.h"
-
-#include "src/ThreadPool/ThreadLocal.h"
 #include "src/ThreadPool/ThreadYield.h"
 #include "src/ThreadPool/ThreadCancel.h"
 #include "src/ThreadPool/EventCount.h"
