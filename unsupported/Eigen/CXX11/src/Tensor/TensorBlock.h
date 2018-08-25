@@ -62,7 +62,7 @@ struct cond<RowMajor> {
  */
 enum TensorBlockShapeType {
   kUniformAllDims,
-  kSkewedInnerDims,
+  kSkewedInnerDims
 };
 
 struct TensorOpResourceRequirements {
