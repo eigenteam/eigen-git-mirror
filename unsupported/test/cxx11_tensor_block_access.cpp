@@ -367,6 +367,40 @@ static void test_block_io_copy_using_reordered_dimensions() {
   delete[] output_data;
 }
 
+template<typename Scalar, typename StorageIndex, int Dim>
+class EqualityChecker
+{
+    const Scalar* input_data;
+    const DSizes<StorageIndex, Dim> &input_dims, &input_strides, &output_dims, &output_strides;
+    void check_recursive(const Scalar* input, const Scalar* output, int depth=0) const
+    {
+        if(depth==Dim)
+        {
+            VERIFY_IS_EQUAL(*input, *output);
+            return;
+        }
+
+        for(int i=0; i<output_dims[depth]; ++i)
+        {
+            check_recursive(input + i % input_dims[depth] * input_strides[depth], output + i*output_strides[depth], depth+1);
+        }
+    }
+public:
+    EqualityChecker(const Scalar* input_data_,
+            const DSizes<StorageIndex, Dim> &input_dims_, const DSizes<StorageIndex, Dim> &input_strides_,
+            const DSizes<StorageIndex, Dim> &output_dims_, const DSizes<StorageIndex, Dim> &output_strides_)
+        : input_data(input_data_)
+        , input_dims(input_dims_), input_strides(input_strides_)
+        , output_dims(output_dims_), output_strides(output_strides_)
+        {}
+
+    void operator()(const Scalar* output_data) const
+    {
+        check_recursive(input_data, output_data);
+    }
+};
+
+
 template <int Layout>
 static void test_block_io_zero_stride()
 {
@@ -398,30 +432,7 @@ static void test_block_io_zero_stride()
   input_tensor_strides_with_zeros[4] = 0;
 
   // Verify that data was correctly read/written from/into the block.
-  const auto verify_is_equal = [&](const float* output_data) {
-    for (int i = 0; i < output_tensor_dims[0]; ++i) {
-      for (int j = 0; j < output_tensor_dims[1]; ++j) {
-        for (int k = 0; k < output_tensor_dims[2]; ++k) {
-          for (int l = 0; l < output_tensor_dims[3]; ++l) {
-            for (int m = 0; m < output_tensor_dims[4]; ++m) {
-              const Index output_offset =
-                  i * output_tensor_strides[0] + j * output_tensor_strides[1] +
-                  k * output_tensor_strides[2] + l * output_tensor_strides[3] +
-                  m * output_tensor_strides[4];
-              const Index input_offset =
-                  i % input_tensor_dims[0] * input_tensor_strides[0] +
-                  j % input_tensor_dims[1] * input_tensor_strides[1] +
-                  k % input_tensor_dims[2] * input_tensor_strides[2] +
-                  l % input_tensor_dims[3] * input_tensor_strides[3] +
-                  m % input_tensor_dims[4] * input_tensor_strides[4];
-              VERIFY_IS_EQUAL(output_data[output_offset],
-                              input_data[input_offset]);
-            }
-          }
-        }
-      }
-    }
-  };
+  const EqualityChecker<float, Index, 5> verify_is_equal(input_data, input_tensor_dims, input_tensor_strides, output_tensor_dims, output_tensor_strides);
 
   {
     float* output_data = new float[output_tensor_dims.TotalSize()];
