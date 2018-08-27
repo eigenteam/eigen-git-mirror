@@ -290,6 +290,8 @@ template<typename PlainObjectType> void check_const_correctness(const PlainObjec
 
 // Regression for bug 1573
 struct MovableClass {
+  // The following line is a workaround for gcc 4.7 and 4.8 (see bug 1573 comments).
+  static_assert(std::is_nothrow_move_constructible<Quaternionf>::value,"");
   MovableClass() = default;
   MovableClass(const MovableClass&) = default;
   MovableClass(MovableClass&&) noexcept = default;
