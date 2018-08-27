@@ -125,7 +125,7 @@ inline void on_temporary_creation(long int size) {
     if(nb_temporaries!=(N)) { std::cerr << "nb_temporaries == " << nb_temporaries << "\n"; }\
     VERIFY( (#XPR) && nb_temporaries==(N) ); \
   }
-  
+
 #endif
 
 #include "split_test_helper.h"
@@ -328,7 +328,7 @@ namespace Eigen
   #define VERIFY_RAISES_STATIC_ASSERT(a) \
     std::cout << "Can't VERIFY_RAISES_STATIC_ASSERT( " #a " ) with exceptions disabled\n";
 #endif
-    
+
   #if !defined(__CUDACC__) && !defined(__HIPCC__) && !defined(__SYCL_DEVICE_ONLY__)
   #define EIGEN_USE_CUSTOM_ASSERT
   #endif

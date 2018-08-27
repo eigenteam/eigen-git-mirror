@@ -255,7 +255,7 @@ void test_multithread_contraction_agrees_with_singlethread() {
 struct SqrtOutputKernel {
   template <typename Index, typename Scalar>
   EIGEN_ALWAYS_INLINE void operator()(
-      const OutputKernel::OutputMapper<Index, Scalar>& output_mapper,
+      const internal::blas_data_mapper<Scalar, Index, ColMajor>& output_mapper,
       const TensorContractionParams&, Index, Index, Index num_rows,
       Index num_cols) const {
     for (int i = 0; i < num_rows; ++i) {
@@ -300,7 +300,7 @@ static void test_multithread_contraction_with_output_kernel() {
 
   m_result = m_left * m_right;
 
-  for (size_t i = 0; i < t_result.dimensions().TotalSize(); i++) {
+  for (Index i = 0; i < t_result.dimensions().TotalSize(); i++) {
     VERIFY(&t_result.data()[i] != &m_result.data()[i]);
     VERIFY_IS_APPROX(t_result.data()[i], std::sqrt(m_result.data()[i]));
   }
@@ -428,7 +428,7 @@ void test_threadpool_allocate(TestAllocator* allocator)
     void* ptr = device.allocate(512);
     device.deallocate(ptr);
   }
-  VERIFY(allocator != nullptr);
+  VERIFY(allocator != NULL);
   VERIFY_IS_EQUAL(allocator->alloc_count(), num_allocs);
   VERIFY_IS_EQUAL(allocator->dealloc_count(), num_allocs);
 }
@@ -460,7 +460,7 @@ EIGEN_DECLARE_TEST(cxx11_tensor_thread_pool)
   CALL_SUBTEST_6(test_multithread_random());
 
   TestAllocator test_allocator;
-  CALL_SUBTEST_6(test_multithread_shuffle<ColMajor>(nullptr));
+  CALL_SUBTEST_6(test_multithread_shuffle<ColMajor>(NULL));
   CALL_SUBTEST_6(test_multithread_shuffle<RowMajor>(&test_allocator));
   CALL_SUBTEST_6(test_threadpool_allocate(&test_allocator));
 }

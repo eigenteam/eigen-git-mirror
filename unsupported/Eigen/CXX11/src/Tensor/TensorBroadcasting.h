@@ -105,7 +105,7 @@ struct TensorEvaluator<const TensorBroadcastingOp<Broadcast, ArgType>, Device>
   typedef typename XprType::CoeffReturnType CoeffReturnType;
   typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
   static const int PacketSize = PacketType<CoeffReturnType, Device>::size;
-  bool isCopy= false, nByOne = false, oneByN = false;
+  bool isCopy, nByOne, oneByN;
 
   enum {
     IsAligned         = true,
@@ -134,9 +134,10 @@ struct TensorEvaluator<const TensorBroadcastingOp<Broadcast, ArgType>, Device>
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op,
                                                         const Device& device)
-      : m_device(device),
-        m_broadcast(op.broadcast()),
-        m_impl(op.expression(), device) {
+      : isCopy(false), nByOne(false), oneByN(false),
+        m_device(device), m_broadcast(op.broadcast()), m_impl(op.expression(), device)
+  {
+
     // The broadcasting op doesn't change the rank of the tensor. One can't broadcast a scalar
     // and store the result in a scalar. Instead one should reshape the scalar into a a N-D
     // tensor with N >= 1 of 1 element first and then broadcast.

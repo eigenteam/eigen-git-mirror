@@ -84,7 +84,7 @@ template<DenseIndex n> struct NumTraits<type2index<n> >
 namespace internal {
 template <typename T>
 EIGEN_DEVICE_FUNC void update_value(T& val, DenseIndex new_val) {
-  val = new_val;
+  val = internal::convert_index<T>(new_val);
 }
 template <DenseIndex n>
 EIGEN_DEVICE_FUNC void update_value(type2index<n>& val, DenseIndex new_val) {

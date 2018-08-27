@@ -12,56 +12,6 @@
 
 namespace Eigen {
 
-// Barrier is an object that allows one or more threads to wait until
-// Notify has been called a specified number of times.
-class Barrier {
- public:
-  Barrier(unsigned int count) : state_(count << 1), notified_(false) {
-    eigen_assert(((count << 1) >> 1) == count);
-  }
-  ~Barrier() {
-    eigen_assert((state_>>1) == 0);
-  }
-
-  void Notify() {
-    unsigned int v = state_.fetch_sub(2, std::memory_order_acq_rel) - 2;
-    if (v != 1) {
-      eigen_assert(((v + 2) & ~1) != 0);
-      return;  // either count has not dropped to 0, or waiter is not waiting
-    }
-    std::unique_lock<std::mutex> l(mu_);
-    eigen_assert(!notified_);
-    notified_ = true;
-    cv_.notify_all();
-  }
-
-  void Wait() {
-    unsigned int v = state_.fetch_or(1, std::memory_order_acq_rel);
-    if ((v >> 1) == 0) return;
-    std::unique_lock<std::mutex> l(mu_);
-    while (!notified_) {
-      cv_.wait(l);
-    }
-  }
-
- private:
-  std::mutex mu_;
-  std::condition_variable cv_;
-  std::atomic<unsigned int> state_;  // low bit is waiter flag
-  bool notified_;
-};
-
-
-// Notification is an object that allows a user to to wait for another
-// thread to signal a notification that an event has occurred.
-//
-// Multiple threads can wait on the same Notification object,
-// but only one caller must call Notify() on the object.
-struct Notification : Barrier {
-  Notification() : Barrier(1) {};
-};
-
-
 // Runs an arbitrary function and then calls Notify() on the passed in
 // Notification.
 template <typename Function, typename... Args> struct FunctionWrapperWithNotification
@@ -102,7 +52,7 @@ class Allocator {
 // Build a thread pool device on top the an existing pool of threads.
 struct ThreadPoolDevice {
   // The ownership of the thread pool remains with the caller.
-  ThreadPoolDevice(ThreadPoolInterface* pool, int num_cores, Allocator* allocator = nullptr)
+  ThreadPoolDevice(ThreadPoolInterface* pool, int num_cores, Allocator* allocator = NULL)
       : pool_(pool), num_threads_(num_cores), allocator_(allocator) { }
 
   EIGEN_STRONG_INLINE void* allocate(size_t num_bytes) const {
@@ -282,7 +232,7 @@ struct ThreadPoolDevice {
   // Convenience wrapper for parallelFor that does not align blocks.
   void parallelFor(Index n, const TensorOpCost& cost,
                    std::function<void(Index, Index)> f) const {
-    parallelFor(n, cost, nullptr, std::move(f));
+    parallelFor(n, cost, NULL, std::move(f));
   }
 
   // Thread pool accessor.

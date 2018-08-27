@@ -133,7 +133,7 @@ class TensorExecutor<Expression, DefaultDevice, Vectorizable,
     if (needs_assign) {
       // Size tensor blocks to fit in cache (or requested target block size).
       Index block_total_size = numext::mini(cache_size, total_size);
-      TensorBlockShapeType block_shape = TensorBlockShapeType::kSkewedInnerDims;
+      TensorBlockShapeType block_shape = kSkewedInnerDims;
       // Query expression tree for desired block size/shape.
       std::vector<TensorOpResourceRequirements> resources;
       evaluator.getResourceRequirements(&resources);
@@ -229,12 +229,8 @@ class TensorExecutor<Expression, ThreadPoolDevice, Vectorizable, Tileable> {
     typedef EvalRange<Evaluator, StorageIndex, Vectorizable> EvalRange;
 
     Evaluator evaluator(expr, device);
-    const bool needs_assign = evaluator.evalSubExprsIfNeeded(nullptr);
+    const bool needs_assign = evaluator.evalSubExprsIfNeeded(NULL);
     if (needs_assign) {
-      const StorageIndex PacketSize =
-          Vectorizable
-              ? unpacket_traits<typename Evaluator::PacketReturnType>::size
-              : 1;
       const StorageIndex size = array_prod(evaluator.dimensions());
       device.parallelFor(size, evaluator.costPerCoeff(Vectorizable),
                          EvalRange::alignBlockSize,
@@ -259,12 +255,11 @@ class TensorExecutor<Expression, ThreadPoolDevice, Vectorizable, /*Tileable*/ tr
 
   static EIGEN_STRONG_INLINE void run(const Expression& expr,
                          const ThreadPoolDevice& device) {
-    typedef TensorBlock<ScalarNoConst, StorageIndex, NumDims, Evaluator::Layout> TensorBlock;
     typedef TensorBlockMapper<ScalarNoConst, StorageIndex, NumDims, Evaluator::Layout> TensorBlockMapper;
 
     Evaluator evaluator(expr, device);
-    StorageIndex total_size = array_prod(evaluator.dimensions());
-    StorageIndex cache_size = device.firstLevelCacheSize() / sizeof(Scalar);
+    Index total_size = array_prod(evaluator.dimensions());
+    Index cache_size = device.firstLevelCacheSize() / sizeof(Scalar);
     if (total_size < cache_size) {
       // TODO(andydavis) Reduce block management overhead for small tensors.
       internal::TensorExecutor<Expression, ThreadPoolDevice, Vectorizable,
@@ -273,9 +268,9 @@ class TensorExecutor<Expression, ThreadPoolDevice, Vectorizable, /*Tileable*/ tr
       return;
     }
 
-    const bool needs_assign = evaluator.evalSubExprsIfNeeded(nullptr);
+    const bool needs_assign = evaluator.evalSubExprsIfNeeded(NULL);
     if (needs_assign) {
-      TensorBlockShapeType block_shape = TensorBlockShapeType::kSkewedInnerDims;
+      TensorBlockShapeType block_shape = kSkewedInnerDims;
       Index block_total_size = 0;
       // Query expression tree for desired block size/shape.
       std::vector<internal::TensorOpResourceRequirements> resources;
