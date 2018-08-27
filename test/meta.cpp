@@ -102,7 +102,13 @@ EIGEN_DECLARE_TEST(meta)
   }
 
   STATIC_CHECK(( !internal::is_convertible<MyInterface, MyImpl>::value ));
+  #if (!EIGEN_COMP_GNUC_STRICT) || (EIGEN_GNUC_AT_LEAST(4,8))
+  // GCC prior to 4.8 fails to compile this test:
+  // error: cannot allocate an object of abstract type 'MyInterface'
+  // In other word, it does not obey SFINAE.
+  // Nevertheless, we don't really care about supporting abstract type as scalar type!
   STATIC_CHECK(( !internal::is_convertible<MyImpl, MyInterface>::value ));
+  #endif
   STATIC_CHECK((  internal::is_convertible<MyImpl, const MyInterface&>::value ));
   {
     int i;
