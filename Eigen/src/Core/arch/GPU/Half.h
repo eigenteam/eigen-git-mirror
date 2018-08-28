@@ -399,7 +399,7 @@ EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC __half_raw raw_uint16_to_half(unsigned sho
   return h;
 }
 
-union FP32 {
+union float32_bits {
   unsigned int u;
   float f;
 };
@@ -416,11 +416,11 @@ EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC __half_raw float_to_half_rtne(float ff) {
   return h;
 
 #else
-  FP32 f; f.f = ff;
+  float32_bits f; f.f = ff;
 
-  const FP32 f32infty = { 255 << 23 };
-  const FP32 f16max = { (127 + 16) << 23 };
-  const FP32 denorm_magic = { ((127 - 15) + (23 - 10) + 1) << 23 };
+  const float32_bits f32infty = { 255 << 23 };
+  const float32_bits f16max = { (127 + 16) << 23 };
+  const float32_bits denorm_magic = { ((127 - 15) + (23 - 10) + 1) << 23 };
   unsigned int sign_mask = 0x80000000u;
   __half_raw o;
   o.x = static_cast<unsigned short>(0x0u);
@@ -470,9 +470,9 @@ EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC float half_to_float(__half_raw h) {
   return _cvtsh_ss(h.x);
 
 #else
-  const FP32 magic = { 113 << 23 };
+  const float32_bits magic = { 113 << 23 };
   const unsigned int shifted_exp = 0x7c00 << 13; // exponent mask after shift
-  FP32 o;
+  float32_bits o;
 
   o.u = (h.x & 0x7fff) << 13;             // exponent/mantissa bits
   unsigned int exp = shifted_exp & o.u;   // just the exponent
