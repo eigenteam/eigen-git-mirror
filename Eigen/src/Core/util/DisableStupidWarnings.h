@@ -80,4 +80,12 @@
   #pragma diag_suppress 2737
 #endif
 
+#else
+// warnings already disabled:
+# ifndef EIGEN_WARNINGS_DISABLED_2
+#  define EIGEN_WARNINGS_DISABLED_2
+# elif defined(EIGEN_INTERNAL_DEBUGGING)
+#  error "Do not include \"DisableStupidWarnings.h\" recursively more than twice!"
+# endif
+
 #endif // not EIGEN_WARNINGS_DISABLED
