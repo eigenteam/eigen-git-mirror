@@ -29,7 +29,7 @@
 // type Eigen::half (inheriting from CUDA's __half struct) with
 // operator overloads such that it behaves basically as an arithmetic
 // type. It will be quite slow on CPUs (so it is recommended to stay
-// in fp32 for CPUs, except for simple parameter conversions, I/O
+// in float32_bits for CPUs, except for simple parameter conversions, I/O
 // to disk and the likes), but fast on GPUs.
 
 
@@ -204,7 +204,7 @@ namespace half_impl {
 #if defined(EIGEN_HAS_CUDA_FP16) && defined(EIGEN_CUDA_ARCH) && EIGEN_CUDA_ARCH >= 530
 
 // Intrinsics for native fp16 support. Note that on current hardware,
-// these are no faster than fp32 arithmetic (you need to use the half2
+// these are no faster than float32_bits arithmetic (you need to use the half2
 // versions to get the ALU speed increased), but you do save the
 // conversion steps back and forth.
 
@@ -263,7 +263,7 @@ EIGEN_STRONG_INLINE __device__ bool operator >= (const half& a, const half& b) {
 #else  // Emulate support for half floats
 
 // Definitions for CPUs and older CUDA, mostly working through conversion
-// to/from fp32.
+// to/from float32_bits.
 
 EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC half operator + (const half& a, const half& b) {
   return half(float(a) + float(b));
@@ -336,7 +336,7 @@ EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC __half_raw raw_uint16_to_half(unsigned sho
   return h;
 }
 
-union FP32 {
+union float32_bits {
   unsigned int u;
   float f;
 };
@@ -352,11 +352,11 @@ EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC __half_raw float_to_half_rtne(float ff) {
   return h;
 
 #else
-  FP32 f; f.f = ff;
+  float32_bits f; f.f = ff;
 
-  const FP32 f32infty = { 255 << 23 };
-  const FP32 f16max = { (127 + 16) << 23 };
-  const FP32 denorm_magic = { ((127 - 15) + (23 - 10) + 1) << 23 };
+  const float32_bits f32infty = { 255 << 23 };
+  const float32_bits f16max = { (127 + 16) << 23 };
+  const float32_bits denorm_magic = { ((127 - 15) + (23 - 10) + 1) << 23 };
   unsigned int sign_mask = 0x80000000u;
   __half_raw o;
   o.x = static_cast<unsigned short>(0x0u);
@@ -405,9 +405,9 @@ EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC float half_to_float(__half_raw h) {
   return _cvtsh_ss(h.x);
 
 #else
-  const FP32 magic = { 113 << 23 };
+  const float32_bits magic = { 113 << 23 };
   const unsigned int shifted_exp = 0x7c00 << 13; // exponent mask after shift
-  FP32 o;
+  float32_bits o;
 
   o.u = (h.x & 0x7fff) << 13;             // exponent/mantissa bits
   unsigned int exp = shifted_exp & o.u;   // just the exponent
