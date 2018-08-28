@@ -97,6 +97,18 @@ template<> struct is_arithmetic<unsigned int>  { enum { value = true }; };
 template<> struct is_arithmetic<signed long>   { enum { value = true }; };
 template<> struct is_arithmetic<unsigned long> { enum { value = true }; };
 
+template<typename T> struct is_integral        { enum { value = false }; };
+template<> struct is_integral<bool>            { enum { value = true }; };
+template<> struct is_integral<char>            { enum { value = true }; };
+template<> struct is_integral<signed char>     { enum { value = true }; };
+template<> struct is_integral<unsigned char>   { enum { value = true }; };
+template<> struct is_integral<signed short>    { enum { value = true }; };
+template<> struct is_integral<unsigned short>  { enum { value = true }; };
+template<> struct is_integral<signed int>      { enum { value = true }; };
+template<> struct is_integral<unsigned int>    { enum { value = true }; };
+template<> struct is_integral<signed long>     { enum { value = true }; };
+template<> struct is_integral<unsigned long>   { enum { value = true }; };
+
 #if EIGEN_HAS_CXX11
 using std::make_unsigned;
 #else
