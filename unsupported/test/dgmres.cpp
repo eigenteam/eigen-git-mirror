@@ -9,7 +9,7 @@
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #include "../../test/sparse_solver.h"
-#include <Eigen/src/IterativeSolvers/DGMRES.h>
+#include <unsupported/Eigen/IterativeSolvers>
 
 template<typename T> void test_dgmres_T()
 {

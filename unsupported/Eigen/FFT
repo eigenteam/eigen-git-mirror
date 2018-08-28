@@ -68,6 +68,8 @@
   */
  
 
+#include "../../Eigen/src/Core/util/DisableStupidWarnings.h"
+
 #ifdef EIGEN_FFTW_DEFAULT
 // FFTW: faster, GPL -- incompatible with Eigen in LGPL form, bigger code size
 #  include <fftw3.h>
@@ -415,5 +417,8 @@ void fft_inv_proxy<T_SrcMat,T_FftIfc>::evalTo(T_DestMat& dst) const
 }
 
 }
+
+#include "../../Eigen/src/Core/util/ReenableStupidWarnings.h"
+
 #endif
 /* vim: set filetype=cpp et sw=2 ts=2 ai: */

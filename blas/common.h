@@ -10,6 +10,14 @@
 #ifndef EIGEN_BLAS_COMMON_H
 #define EIGEN_BLAS_COMMON_H
 
+#ifdef __GNUC__
+# if __GNUC__<5
+// GCC < 5.0 does not like the global Scalar typedef
+// we just keep shadow-warnings disabled permanently
+#  define EIGEN_PERMANENTLY_DISABLE_STUPID_WARNINGS
+# endif
+#endif
+
 #include "../Eigen/Core"
 #include "../Eigen/Jacobi"
 
