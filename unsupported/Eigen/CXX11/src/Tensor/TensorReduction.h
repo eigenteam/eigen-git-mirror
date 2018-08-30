@@ -14,7 +14,7 @@
 // clang is incompatible with the CUDA syntax wrt making a kernel a class friend,
 // so we'll use a macro to make clang happy.
 #ifndef KERNEL_FRIEND
-#if defined(__clang__) && defined(__CUDA__)
+#if defined(__clang__) && (defined(__CUDA__) || defined(__HIP__))
 #define KERNEL_FRIEND friend __global__
 #else
 #define KERNEL_FRIEND friend
