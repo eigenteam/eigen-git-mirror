@@ -194,7 +194,7 @@ template <std::ptrdiff_t V1=0, std::ptrdiff_t V2=0, std::ptrdiff_t V3=0, std::pt
   }
 #endif
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE DenseIndex operator[] (const int index) const {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Index operator[] (const Index index) const {
     switch (index) {
       case 0:
         return internal::get<0, Base>::value;
@@ -208,7 +208,7 @@ template <std::ptrdiff_t V1=0, std::ptrdiff_t V2=0, std::ptrdiff_t V3=0, std::pt
         return internal::get<4, Base>::value;
       default:
         eigen_assert(false && "index overflow");
-        return static_cast<DenseIndex>(-1);
+        return static_cast<Index>(-1);
     }
   }
 
