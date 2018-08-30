@@ -62,7 +62,7 @@ namespace std {
     : deque_base(first, last, a) {} \
     deque(const deque& c) : deque_base(c) {}  \
     explicit deque(size_type num, const value_type& val = value_type()) : deque_base(num, val) {} \
-    deque(iterator start, iterator end) : deque_base(start, end) {}  \
+    deque(iterator start_, iterator end_) : deque_base(start_, end_) {}  \
     deque& operator=(const deque& x) {  \
       deque_base::operator=(x);  \
       return *this;  \
