@@ -234,12 +234,13 @@ struct matrix_exp_computeUV<MatrixType, float>
 template <typename MatrixType>
 struct matrix_exp_computeUV<MatrixType, double>
 {
+  typedef typename NumTraits<typename traits<MatrixType>::Scalar>::Real RealScalar;
   template <typename ArgType>
   static void run(const ArgType& arg, MatrixType& U, MatrixType& V, int& squarings)
   {
     using std::frexp;
     using std::pow;
-    const double l1norm = arg.cwiseAbs().colwise().sum().maxCoeff();
+    const RealScalar l1norm = arg.cwiseAbs().colwise().sum().maxCoeff();
     squarings = 0;
     if (l1norm < 1.495585217958292e-002) {
       matrix_exp_pade3(arg, U, V);
@@ -250,10 +251,10 @@ struct matrix_exp_computeUV<MatrixType, double>
     } else if (l1norm < 2.097847961257068e+000) {
       matrix_exp_pade9(arg, U, V);
     } else {
-      const double maxnorm = 5.371920351148152;
+      const RealScalar maxnorm = 5.371920351148152;
       frexp(l1norm / maxnorm, &squarings);
       if (squarings < 0) squarings = 0;
-      MatrixType A = arg.unaryExpr(MatrixExponentialScalingOp<double>(squarings));
+      MatrixType A = arg.unaryExpr(MatrixExponentialScalingOp<RealScalar>(squarings));
       matrix_exp_pade13(A, U, V);
     }
   }
