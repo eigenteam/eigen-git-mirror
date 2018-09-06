@@ -1178,7 +1178,7 @@ EIGEN_STRONG_INLINE double predux_min<Packet2d>(const Packet2d& a) {
   return v[0];
 #else
   double a0 = a[0], a1 = a[1];
-  return ((std::isnan)(a0) || a0 < a1) ? a0 : a1;
+  return ((numext::isnan)(a0) || a0 < a1) ? a0 : a1;
 #endif
 }
 
@@ -1193,7 +1193,7 @@ EIGEN_STRONG_INLINE double predux_max<Packet2d>(const Packet2d& a) {
   return v[0];
 #else
   double a0 = a[0], a1 = a[1];
-  return ((std::isnan)(a0) || a0 > a1) ? a0 : a1;
+  return ((numext::isnan)(a0) || a0 > a1) ? a0 : a1;
 #endif
 }
 
