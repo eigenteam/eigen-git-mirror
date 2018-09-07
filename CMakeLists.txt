@@ -431,8 +431,17 @@ add_subdirectory(Eigen)
 
 add_subdirectory(doc EXCLUDE_FROM_ALL)
 
-option(BUILD_TESTING "Enable creation of Eigen tests." ON)
-if(BUILD_TESTING)
+# Setting the variable EIGEN_BUILD_TESTING allows to enable/disable
+# the tests independently of the BUILD_TESTING option.
+if(NOT DEFINED EIGEN_BUILD_TESTING)
+  option(BUILD_TESTING "Enable creation of Eigen tests." ON)
+endif()
+if("x${EIGEN_BUILD_TESTING}" STREQUAL "x")
+  # If EIGEN_BUILD_TESTING is not already set, it is set with
+  # the value of BUILD_TESTING
+  set(EIGEN_BUILD_TESTING ${BUILD_TESTING})
+endif()
+if(EIGEN_BUILD_TESTING)
   include(EigenConfigureTesting)
 
   if(EIGEN_LEAVE_TEST_IN_ALL_TARGET)
@@ -482,7 +491,7 @@ endif(NOT WIN32)
 
 configure_file(scripts/cdashtesting.cmake.in cdashtesting.cmake @ONLY)
 
-if(BUILD_TESTING)
+if(EIGEN_BUILD_TESTING)
   ei_testing_print_summary()
 endif()
 
