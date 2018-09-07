@@ -173,15 +173,14 @@ namespace Eigen
     EIGEN_EULER_ANGLES_CLASS_STATIC_ASSERT((unsigned)BetaAxisAbs != (unsigned)GammaAxisAbs,
       BETA_AXIS_CANT_BE_EQUAL_TO_GAMMA_AXIS);
 
-    enum
-    {
+    static const int
       // I, J, K are the pivot indexes permutation for the rotation matrix, that match this Euler system. 
       // They are used in this class converters.
       // They are always different from each other, and their possible values are: 0, 1, or 2.
       I = AlphaAxisAbs - 1,
       J = (AlphaAxisAbs - 1 + 1 + IsOdd)%3,
       K = (AlphaAxisAbs - 1 + 2 - IsOdd)%3
-    };
+    ;
     
     // TODO: Get @mat parameter in form that avoids double evaluation.
     template <typename Derived>
