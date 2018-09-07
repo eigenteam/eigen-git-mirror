@@ -36,7 +36,6 @@ void jacobisvd(const MatrixType& a = MatrixType(), bool pickrandom = true)
 template<typename MatrixType> void jacobisvd_verify_assert(const MatrixType& m)
 {
   svd_verify_assert<JacobiSVD<MatrixType> >(m);
-  typedef typename MatrixType::Index Index;
   Index rows = m.rows();
   Index cols = m.cols();
 

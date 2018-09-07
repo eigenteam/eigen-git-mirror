@@ -11,7 +11,6 @@
 using namespace std;
 template<typename MatrixType> void diagonalmatrices(const MatrixType& m)
 {
-  typedef typename MatrixType::Index Index;
   typedef typename MatrixType::Scalar Scalar;
   enum { Rows = MatrixType::RowsAtCompileTime, Cols = MatrixType::ColsAtCompileTime };
   typedef Matrix<Scalar, Rows, 1> VectorType;

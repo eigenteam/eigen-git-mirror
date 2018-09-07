@@ -18,7 +18,6 @@
 
 template<typename MatrixType> void signed_integer_type_tests(const MatrixType& m)
 {
-  typedef typename MatrixType::Index Index;
   typedef typename MatrixType::Scalar Scalar;
 
   enum { is_signed = (Scalar(-1) > Scalar(0)) ? 0 : 1 };
@@ -49,7 +48,6 @@ template<typename MatrixType> void signed_integer_type_tests(const MatrixType& m
 
 template<typename MatrixType> void integer_type_tests(const MatrixType& m)
 {
-  typedef typename MatrixType::Index Index;
   typedef typename MatrixType::Scalar Scalar;
 
   VERIFY(NumTraits<Scalar>::IsInteger);

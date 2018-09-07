@@ -17,7 +17,6 @@
 
 template<typename VectorType> void map_class_vector(const VectorType& m)
 {
-  typedef typename VectorType::Index Index;
   typedef typename VectorType::Scalar Scalar;
 
   Index size = m.size();
@@ -51,7 +50,6 @@ template<typename VectorType> void map_class_vector(const VectorType& m)
 
 template<typename MatrixType> void map_class_matrix(const MatrixType& m)
 {
-  typedef typename MatrixType::Index Index;
   typedef typename MatrixType::Scalar Scalar;
 
   Index rows = m.rows(), cols = m.cols(), size = rows*cols;
@@ -122,7 +120,6 @@ template<typename MatrixType> void map_class_matrix(const MatrixType& m)
 
 template<typename VectorType> void map_static_methods(const VectorType& m)
 {
-  typedef typename VectorType::Index Index;
   typedef typename VectorType::Scalar Scalar;
 
   Index size = m.size();
@@ -164,7 +161,6 @@ template<typename Scalar>
 void map_not_aligned_on_scalar()
 {
   typedef Matrix<Scalar,Dynamic,Dynamic> MatrixType;
-  typedef typename MatrixType::Index Index;
   Index size = 11;
   Scalar* array1 = internal::aligned_new<Scalar>((size+1)*(size+1)+1);
   Scalar* array2 = reinterpret_cast<Scalar*>(sizeof(Scalar)/2+std::size_t(array1));

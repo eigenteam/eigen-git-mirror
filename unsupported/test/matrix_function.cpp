@@ -25,7 +25,6 @@ inline bool test_isApprox_abs(const Type1& a, const Type2& b)
 template<typename MatrixType>
 MatrixType randomMatrixWithRealEivals(const typename MatrixType::Index size)
 {
-  typedef typename MatrixType::Index Index;
   typedef typename MatrixType::Scalar Scalar;
   typedef typename MatrixType::RealScalar RealScalar;
   MatrixType diag = MatrixType::Zero(size, size);

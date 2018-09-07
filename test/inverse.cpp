@@ -14,7 +14,6 @@
 template<typename MatrixType> void inverse(const MatrixType& m)
 {
   using std::abs;
-  typedef typename MatrixType::Index Index;
   /* this test covers the following files:
      Inverse.h
   */

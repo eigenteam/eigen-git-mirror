@@ -14,7 +14,6 @@
 using namespace std;
 template<typename MatrixType> void permutationmatrices(const MatrixType& m)
 {
-  typedef typename MatrixType::Index Index;
   typedef typename MatrixType::Scalar Scalar;
   enum { Rows = MatrixType::RowsAtCompileTime, Cols = MatrixType::ColsAtCompileTime,
          Options = MatrixType::Options };

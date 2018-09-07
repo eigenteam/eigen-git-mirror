@@ -11,7 +11,6 @@
 
 template<typename MatrixType> void diagonal(const MatrixType& m)
 {
-  typedef typename MatrixType::Index Index;
   typedef typename MatrixType::Scalar Scalar;
 
   Index rows = m.rows();
