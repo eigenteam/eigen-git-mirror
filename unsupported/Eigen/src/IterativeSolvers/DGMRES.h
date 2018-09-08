@@ -392,7 +392,6 @@ inline typename DGMRES<_MatrixType, _Preconditioner>::ComplexVector DGMRES<_Matr
 template< typename _MatrixType, typename _Preconditioner>
 inline typename DGMRES<_MatrixType, _Preconditioner>::ComplexVector DGMRES<_MatrixType, _Preconditioner>::schurValues(const RealSchur<DenseMatrix>& schurofH) const
 {
-  typedef typename MatrixType::Index Index;
   const DenseMatrix& T = schurofH.matrixT();
   Index it = T.rows();
   ComplexVector eig(it);
