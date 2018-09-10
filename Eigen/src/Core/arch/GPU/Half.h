@@ -60,7 +60,7 @@ struct __half_raw {
  #if defined(EIGEN_HAS_OLD_HIP_FP16)
 // Make a __half_raw definition that is
 // ++ compatible with that of Eigen and
-// ++ add a implcit conversion to the native __half of the old HIP implementation.
+// ++ add an implicit conversion to the native __half of the old HIP implementation.
 //
 // Keeping ".x" as "unsigned short" keeps the interface the same between the Eigen and HIP implementation.
 //

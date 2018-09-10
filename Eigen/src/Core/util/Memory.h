@@ -177,7 +177,7 @@ EIGEN_DEVICE_FUNC inline void* aligned_malloc(std::size_t size)
     #endif
 
     #if EIGEN_DEFAULT_ALIGN_BYTES==16
-    eigen_assert((size<16 || (std::size_t(result)%16)==0) && "System's malloc returned an unaligned pointer. Compile with EIGEN_MALLOC_ALREADY_ALIGNED=0 to fallback to handmade alignd memory allocator.");
+    eigen_assert((size<16 || (std::size_t(result)%16)==0) && "System's malloc returned an unaligned pointer. Compile with EIGEN_MALLOC_ALREADY_ALIGNED=0 to fallback to handmade aligned memory allocator.");
     #endif
   #else
     result = handmade_aligned_malloc(size);
