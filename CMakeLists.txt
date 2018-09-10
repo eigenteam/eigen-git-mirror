@@ -14,17 +14,22 @@ endif()
 set(Eigen_SOURCE_DIR ${Eigen3_SOURCE_DIR})
 set(Eigen_BINARY_DIR ${Eigen3_BINARY_DIR})
 
-# guard against bad build-type strings
-
-if (NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE "Release")
+# Set a default build type if none was specified
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+  message(STATUS "Setting build type to 'Release' as none was specified.")
+  set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build." FORCE)
+  # Set the possible values of build type for cmake-gui
+  set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
 endif()
 
-string(TOLOWER "${CMAKE_BUILD_TYPE}" cmake_build_type_tolower)
-if(    NOT cmake_build_type_tolower STREQUAL "debug"
-   AND NOT cmake_build_type_tolower STREQUAL "release"
-   AND NOT cmake_build_type_tolower STREQUAL "relwithdebinfo")
-  message(FATAL_ERROR "Unknown build type \"${CMAKE_BUILD_TYPE}\". Allowed values are Debug, Release, RelWithDebInfo (case-insensitive).")
+# guard against bad build-type strings
+if(NOT CMAKE_CONFIGURATION_TYPES)
+  string(TOLOWER "${CMAKE_BUILD_TYPE}" cmake_build_type_tolower)
+  if(    NOT cmake_build_type_tolower STREQUAL "debug"
+     AND NOT cmake_build_type_tolower STREQUAL "release"
+     AND NOT cmake_build_type_tolower STREQUAL "relwithdebinfo")
+    message(FATAL_ERROR "Unknown build type \"${CMAKE_BUILD_TYPE}\". Allowed values are Debug, Release, RelWithDebInfo (case-insensitive).")
+  endif()
 endif()
 
 
