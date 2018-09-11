@@ -20,7 +20,7 @@ namespace internal {
 /** \internal
   * Evaluator of a product expression.
   * Since products require special treatments to handle all possible cases,
-  * we simply deffer the evaluation logic to a product_evaluator class
+  * we simply defer the evaluation logic to a product_evaluator class
   * which offers more partial specialization possibilities.
   * 
   * \sa class product_evaluator
@@ -128,7 +128,7 @@ protected:
   PlainObject m_result;
 };
 
-// The following three shortcuts are enabled only if the scalar types match excatly.
+// The following three shortcuts are enabled only if the scalar types match exactly.
 // TODO: we could enable them for different scalar types when the product is not vectorized.
 
 // Dense = Product

@@ -134,8 +134,8 @@ template<typename MatrixType> void integer_type_tests(const MatrixType& m)
 template<int>
 void integer_types_extra()
 {
-  VERIFY_IS_EQUAL(internal::scalar_div_cost<int>::value, 8);
-  VERIFY_IS_EQUAL(internal::scalar_div_cost<unsigned int>::value, 8);
+  VERIFY_IS_EQUAL(int(internal::scalar_div_cost<int>::value), 8);
+  VERIFY_IS_EQUAL(int(internal::scalar_div_cost<unsigned int>::value), 8);
   if(sizeof(long)>sizeof(int)) {
     VERIFY(int(internal::scalar_div_cost<long>::value) > int(internal::scalar_div_cost<int>::value));
     VERIFY(int(internal::scalar_div_cost<unsigned long>::value) > int(internal::scalar_div_cost<int>::value));

@@ -73,13 +73,13 @@ template<typename Scalar> class JacobiRotation
     bool makeJacobi(const RealScalar& x, const Scalar& y, const RealScalar& z);
 
     EIGEN_DEVICE_FUNC
-    void makeGivens(const Scalar& p, const Scalar& q, Scalar* z=0);
+    void makeGivens(const Scalar& p, const Scalar& q, Scalar* r=0);
 
   protected:
     EIGEN_DEVICE_FUNC
-    void makeGivens(const Scalar& p, const Scalar& q, Scalar* z, internal::true_type);
+    void makeGivens(const Scalar& p, const Scalar& q, Scalar* r, internal::true_type);
     EIGEN_DEVICE_FUNC
-    void makeGivens(const Scalar& p, const Scalar& q, Scalar* z, internal::false_type);
+    void makeGivens(const Scalar& p, const Scalar& q, Scalar* r, internal::false_type);
 
     Scalar m_c, m_s;
 };
@@ -145,7 +145,7 @@ inline bool JacobiRotation<Scalar>::makeJacobi(const MatrixBase<Derived>& m, Ind
   * \f$ V = \left ( \begin{array}{c} p \\ q \end{array} \right )\f$ yields:
   * \f$ G^* V = \left ( \begin{array}{c} r \\ 0 \end{array} \right )\f$.
   *
-  * The value of \a z is returned if \a z is not null (the default is null).
+  * The value of \a r is returned if \a r is not null (the default is null).
   * Also note that G is built such that the cosine is always real.
   *
   * Example: \include Jacobi_makeGivens.cpp
@@ -159,9 +159,9 @@ inline bool JacobiRotation<Scalar>::makeJacobi(const MatrixBase<Derived>& m, Ind
   */
 template<typename Scalar>
 EIGEN_DEVICE_FUNC
-void JacobiRotation<Scalar>::makeGivens(const Scalar& p, const Scalar& q, Scalar* z)
+void JacobiRotation<Scalar>::makeGivens(const Scalar& p, const Scalar& q, Scalar* r)
 {
-  makeGivens(p, q, z, typename internal::conditional<NumTraits<Scalar>::IsComplex, internal::true_type, internal::false_type>::type());
+  makeGivens(p, q, r, typename internal::conditional<NumTraits<Scalar>::IsComplex, internal::true_type, internal::false_type>::type());
 }
 
 

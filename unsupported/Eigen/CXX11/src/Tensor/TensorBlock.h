@@ -79,7 +79,7 @@ struct TensorOpResourceRequirements {
 };
 
 // Tries to merge multiple resource requirements.
-EIGEN_STRONG_INLINE void MergeResourceRequirements(
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void MergeResourceRequirements(
     const std::vector<TensorOpResourceRequirements>& resources,
     TensorBlockShapeType* block_shape, Index* block_total_size) {
   if (resources.empty()) {

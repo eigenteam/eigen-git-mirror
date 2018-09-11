@@ -26,9 +26,9 @@
 #include <utility>
 #endif
 
-#include <Eigen/src/Core/util/DisableStupidWarnings.h>
-
 #include "../SpecialFunctions"
+
+#include <Eigen/src/Core/util/DisableStupidWarnings.h>
 #include "src/util/CXX11Meta.h"
 #include "src/util/MaxSizeVector.h"
 

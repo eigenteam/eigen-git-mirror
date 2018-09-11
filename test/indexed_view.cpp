@@ -77,6 +77,9 @@ is_same_seq_type(const T1& a, const T2& b)
 
 #define VERIFY_EQ_INT(A,B) VERIFY_IS_APPROX(int(A),int(B))
 
+// C++03 does not allow local or unnamed enums as index
+enum DummyEnum { XX=0, YY=1 };
+
 void check_indexed_view()
 {
   using Eigen::placeholders::all;
@@ -375,9 +378,16 @@ void check_indexed_view()
   }
 
   // Check compilation of enums as index type:
+  a(XX) = 1;
+  A(XX,YY) = 1;
+  // Anonymous enums only work with C++11
+#if EIGEN_HAS_CXX11
   enum { X=0, Y=1 };
   a(X) = 1;
   A(X,Y) = 1;
+  A(XX,Y) = 1;
+  A(X,YY) = 1;
+#endif
 
   // Check compilation of varying integer types as index types:
   Index i = n/2;

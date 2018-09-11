@@ -9,8 +9,12 @@
 
 #include "main.h"
 
+// GCC<=4.8 has spurious shadow warnings, because `ptr` re-appears inside template instantiations
+// workaround: put these in an anonymous namespace
+namespace {
 float *ptr;
 const float *const_ptr;
+}
 
 template<typename PlainObjectType,
          bool IsDynamicSize = PlainObjectType::SizeAtCompileTime == Dynamic,
