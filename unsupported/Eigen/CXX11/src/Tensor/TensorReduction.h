@@ -165,7 +165,9 @@ struct GenericDimReducer<-1, Self, Op> {
   }
 };
 
-template <typename Self, typename Op, bool Vectorizable = (Self::InputPacketAccess & Op::PacketAccess)>
+template <typename Self, typename Op, bool Vectorizable = (Self::InputPacketAccess && Self::ReducerTraits::PacketAccess),
+          bool UseTreeReduction = (!Self::ReducerTraits::IsStateful &&
+                                   !Self::ReducerTraits::IsExactlyAssociative)>
 struct InnerMostDimReducer {
   static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE typename Self::CoeffReturnType reduce(const Self& self, typename Self::Index firstIndex, typename Self::Index numValuesToReduce, Op& reducer) {
     typename Self::CoeffReturnType accum = reducer.initialize();
@@ -177,23 +179,88 @@ struct InnerMostDimReducer {
 };
 
 template <typename Self, typename Op>
-struct InnerMostDimReducer<Self, Op, true> {
+struct InnerMostDimReducer<Self, Op, true, false> {
   static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE typename Self::CoeffReturnType reduce(const Self& self, typename Self::Index firstIndex, typename Self::Index numValuesToReduce, Op& reducer) {
-    const int packetSize = internal::unpacket_traits<typename Self::PacketReturnType>::size;
+    const typename Self::Index packetSize = internal::unpacket_traits<typename Self::PacketReturnType>::size;
     const typename Self::Index VectorizedSize = (numValuesToReduce / packetSize) * packetSize;
-    typename Self::PacketReturnType p = reducer.template initializePacket<typename Self::PacketReturnType>();
+    typename Self::PacketReturnType paccum = reducer.template initializePacket<typename Self::PacketReturnType>();
     for (typename Self::Index j = 0; j < VectorizedSize; j += packetSize) {
-      reducer.reducePacket(self.m_impl.template packet<Unaligned>(firstIndex + j), &p);
+      reducer.reducePacket(self.m_impl.template packet<Unaligned>(firstIndex + j), &paccum);
     }
     typename Self::CoeffReturnType accum = reducer.initialize();
     for (typename Self::Index j = VectorizedSize; j < numValuesToReduce; ++j) {
       reducer.reduce(self.m_impl.coeff(firstIndex + j), &accum);
     }
-    return reducer.finalizeBoth(accum, p);
+    return reducer.finalizeBoth(accum, paccum);
   }
 };
 
-template <int DimIndex, typename Self, typename Op, bool vectorizable = (Self::InputPacketAccess & Op::PacketAccess)>
+static const int kLeafSize = 1024;
+
+template <typename Self, typename Op>
+struct InnerMostDimReducer<Self, Op, false, true> {
+  static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE typename Self::CoeffReturnType
+  reduce(const Self& self, typename Self::Index firstIndex,
+         typename Self::Index numValuesToReduce, Op& reducer) {
+    typename Self::CoeffReturnType accum = reducer.initialize();
+    if (numValuesToReduce > kLeafSize) {
+      const typename Self::Index half = numValuesToReduce / 2;
+      reducer.reduce(reduce(self, firstIndex, half, reducer), &accum);
+      reducer.reduce(
+          reduce(self, firstIndex + half, numValuesToReduce - half, reducer),
+          &accum);
+    } else {
+      for (typename Self::Index j = 0; j < numValuesToReduce; ++j) {
+        reducer.reduce(self.m_impl.coeff(firstIndex + j), &accum);
+      }
+    }
+    return reducer.finalize(accum);
+  }
+};
+
+#if !defined(EIGEN_USE_GPU) || !defined(__CUDACC__)
+template <typename Self, typename Op>
+struct InnerMostDimReducer<Self, Op, true, true> {
+  static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE typename Self::CoeffReturnType
+  reduce(const Self& self, typename Self::Index firstIndex,
+         typename Self::Index numValuesToReduce, Op& reducer) {
+    const typename Self::Index packetSize =
+        internal::unpacket_traits<typename Self::PacketReturnType>::size;
+    typename Self::CoeffReturnType accum = reducer.initialize();
+    if (numValuesToReduce > packetSize * kLeafSize) {
+      // Make sure the split point is aligned on a packet boundary.
+      const typename Self::Index split =
+          packetSize *
+          divup(firstIndex + divup(numValuesToReduce, typename Self::Index(2)),
+                packetSize);
+      const typename Self::Index num_left =
+          numext::mini(split - firstIndex, numValuesToReduce);
+      reducer.reduce(reduce(self, firstIndex, num_left, reducer), &accum);
+      if (num_left < numValuesToReduce) {
+        reducer.reduce(
+            reduce(self, split, numValuesToReduce - num_left, reducer), &accum);
+      }
+      return reducer.finalize(accum);
+    } else {
+      const typename Self::Index VectorizedSize =
+          (numValuesToReduce / packetSize) * packetSize;
+      typename Self::PacketReturnType paccum =
+          reducer.template initializePacket<typename Self::PacketReturnType>();
+      for (typename Self::Index j = 0; j < VectorizedSize; j += packetSize) {
+        reducer.reducePacket(
+            self.m_impl.template packet<Unaligned>(firstIndex + j), &paccum);
+      }
+      for (typename Self::Index j = VectorizedSize; j < numValuesToReduce;
+           ++j) {
+        reducer.reduce(self.m_impl.coeff(firstIndex + j), &accum);
+      }
+      return reducer.finalizeBoth(accum, paccum);
+    }
+  }
+};
+#endif
+
+template <int DimIndex, typename Self, typename Op, bool vectorizable = (Self::InputPacketAccess && Self::ReducerTraits::PacketAccess)>
 struct InnerMostDimPreserver {
   static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void reduce(const Self&, typename Self::Index, Op&, typename Self::PacketReturnType*) {
     eigen_assert(false && "should never be called");
@@ -228,7 +295,7 @@ struct InnerMostDimPreserver<-1, Self, Op, true> {
 };
 
 // Default full reducer
-template <typename Self, typename Op, typename Device, bool Vectorizable = (Self::InputPacketAccess & Op::PacketAccess)>
+template <typename Self, typename Op, typename Device, bool Vectorizable = (Self::InputPacketAccess && Self::ReducerTraits::PacketAccess)>
 struct FullReducer {
   static const bool HasOptimizedImplementation = false;
 
@@ -242,7 +309,7 @@ struct FullReducer {
 #ifdef EIGEN_USE_THREADS
 // Multithreaded full reducers
 template <typename Self, typename Op,
-          bool Vectorizable = (Self::InputPacketAccess & Op::PacketAccess)>
+          bool Vectorizable = (Self::InputPacketAccess && Self::ReducerTraits::PacketAccess)>
 struct FullReducerShard {
   static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void run(const Self& self, typename Self::Index firstIndex,
                   typename Self::Index numValuesToReduce, Op& reducer,
@@ -255,8 +322,8 @@ struct FullReducerShard {
 // Multithreaded full reducer
 template <typename Self, typename Op, bool Vectorizable>
 struct FullReducer<Self, Op, ThreadPoolDevice, Vectorizable> {
-  static const bool HasOptimizedImplementation = !Op::IsStateful;
-  static const int PacketSize =
+  static const bool HasOptimizedImplementation = !Self::ReducerTraits::IsStateful;
+  static const Index PacketSize =
       unpacket_traits<typename Self::PacketReturnType>::size;
 
   // launch one reducer per thread and accumulate the result.
@@ -394,6 +461,7 @@ class TensorReductionOp : public TensorBase<TensorReductionOp<Op, Dims, XprType,
 template<typename Op, typename Dims, typename ArgType, template <class> class MakePointer_, typename Device>
 struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType, MakePointer_>, Device>
 {
+  typedef internal::reducer_traits<Op, Device> ReducerTraits;
   typedef TensorReductionOp<Op, Dims, ArgType, MakePointer_> XprType;
   typedef typename XprType::Index Index;
   typedef ArgType ChildType;
@@ -407,11 +475,11 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType, MakePointer_>,
   static const bool InputPacketAccess = TensorEvaluator<ArgType, Device>::PacketAccess;
   typedef typename internal::remove_const<typename XprType::CoeffReturnType>::type CoeffReturnType;
   typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
-  static const int PacketSize = PacketType<CoeffReturnType, Device>::size;
+  static const Index PacketSize = PacketType<CoeffReturnType, Device>::size;
 
   enum {
     IsAligned = false,
-    PacketAccess = Self::InputPacketAccess && Op::PacketAccess,
+    PacketAccess = Self::InputPacketAccess && ReducerTraits::PacketAccess,
     BlockAccess = false,
     Layout = TensorEvaluator<ArgType, Device>::Layout,
     CoordAccess = false,  // to be implemented
@@ -696,7 +764,7 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType, MakePointer_>,
 
   private:
   template <int, typename, typename> friend struct internal::GenericDimReducer;
-  template <typename, typename, bool> friend struct internal::InnerMostDimReducer;
+  template <typename, typename, bool, bool> friend struct internal::InnerMostDimReducer;
   template <int, typename, typename, bool> friend struct internal::InnerMostDimPreserver;
   template <typename S, typename O, typename D, bool V> friend struct internal::FullReducer;
 #ifdef EIGEN_USE_THREADS

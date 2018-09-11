@@ -376,12 +376,12 @@ struct FullReducer<Self, Op, GpuDevice, Vectorizable> {
   // so reduce the scope of the optimized version of the code to the simple cases
   // of doubles, floats and half floats
 #ifdef EIGEN_HAS_GPU_FP16
-  static const bool HasOptimizedImplementation = !Op::IsStateful &&
+  static const bool HasOptimizedImplementation = !Self::ReducerTraits::IsStateful &&
       (internal::is_same<typename Self::CoeffReturnType, float>::value ||
        internal::is_same<typename Self::CoeffReturnType, double>::value ||
        (internal::is_same<typename Self::CoeffReturnType, Eigen::half>::value && reducer_traits<Op, GpuDevice>::PacketAccess));
 #else // EIGEN_HAS_GPU_FP16
-  static const bool HasOptimizedImplementation = !Op::IsStateful &&
+  static const bool HasOptimizedImplementation = !Self::ReducerTraits::IsStateful &&
                                                 (internal::is_same<typename Self::CoeffReturnType, float>::value ||
                                                  internal::is_same<typename Self::CoeffReturnType, double>::value);
 #endif // EIGEN_HAS_GPU_FP16
@@ -697,12 +697,12 @@ struct InnerReducer<Self, Op, GpuDevice> {
   // so reduce the scope of the optimized version of the code to the simple case
   // of floats and half floats.
 #ifdef EIGEN_HAS_GPU_FP16
-  static const bool HasOptimizedImplementation = !Op::IsStateful &&
+  static const bool HasOptimizedImplementation = !Self::ReducerTraits::IsStateful &&
       (internal::is_same<typename Self::CoeffReturnType, float>::value ||
        internal::is_same<typename Self::CoeffReturnType, double>::value ||
        (internal::is_same<typename Self::CoeffReturnType, Eigen::half>::value && reducer_traits<Op, GpuDevice>::PacketAccess));
 #else // EIGEN_HAS_GPU_FP16
-  static const bool HasOptimizedImplementation = !Op::IsStateful &&
+  static const bool HasOptimizedImplementation = !Self::ReducerTraits::IsStateful &&
                                                  (internal::is_same<typename Self::CoeffReturnType, float>::value ||
                                                   internal::is_same<typename Self::CoeffReturnType, double>::value);
 #endif // EIGEN_HAS_GPU_FP16
@@ -759,7 +759,7 @@ struct OuterReducer<Self, Op, GpuDevice> {
   // Unfortunately nvidia doesn't support well exotic types such as complex,
   // so reduce the scope of the optimized version of the code to the simple case
   // of floats.
-  static const bool HasOptimizedImplementation = !Op::IsStateful &&
+  static const bool HasOptimizedImplementation = !Self::ReducerTraits::IsStateful &&
                                                  (internal::is_same<typename Self::CoeffReturnType, float>::value ||
                                                   internal::is_same<typename Self::CoeffReturnType, double>::value);
   template <typename Device, typename OutputType>
