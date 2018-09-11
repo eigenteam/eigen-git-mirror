@@ -100,7 +100,7 @@ template<typename _MatrixType, int _UpLo> class LLT
       compute(matrix.derived());
     }
 
-    /** \brief Constructs a LDLT factorization from a given matrix
+    /** \brief Constructs a LLT factorization from a given matrix
       *
       * This overloaded constructor is provided for \link InplaceDecomposition inplace decomposition \endlink when
       * \c MatrixType is a Eigen::Ref.
@@ -200,7 +200,7 @@ template<typename _MatrixType, int _UpLo> class LLT
     inline Index cols() const { return m_matrix.cols(); }
 
     template<typename VectorType>
-    LLT rankUpdate(const VectorType& vec, const RealScalar& sigma = 1);
+    LLT & rankUpdate(const VectorType& vec, const RealScalar& sigma = 1);
 
     #ifndef EIGEN_PARSED_BY_DOXYGEN
     template<typename RhsType, typename DstType>
@@ -458,7 +458,7 @@ LLT<MatrixType,_UpLo>& LLT<MatrixType,_UpLo>::compute(const EigenBase<InputType>
   */
 template<typename _MatrixType, int _UpLo>
 template<typename VectorType>
-LLT<_MatrixType,_UpLo> LLT<_MatrixType,_UpLo>::rankUpdate(const VectorType& v, const RealScalar& sigma)
+LLT<_MatrixType,_UpLo> & LLT<_MatrixType,_UpLo>::rankUpdate(const VectorType& v, const RealScalar& sigma)
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(VectorType);
   eigen_assert(v.size()==m_matrix.cols());
