@@ -100,7 +100,7 @@ template<typename _MatrixType, int _UpLo> class LLT
       compute(matrix.derived());
     }
 
-    /** \brief Constructs a LDLT factorization from a given matrix
+    /** \brief Constructs a LLT factorization from a given matrix
       *
       * This overloaded constructor is provided for \link InplaceDecomposition inplace decomposition \endlink when
       * \c MatrixType is a Eigen::Ref.
