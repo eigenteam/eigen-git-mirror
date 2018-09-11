@@ -596,12 +596,11 @@ struct TensorEvaluator<const TensorBroadcastingOp<Broadcast, ArgType>, Device>
       std::vector<internal::TensorOpResourceRequirements>* resources) const {
     // TODO(wuke): Targeting L1 size is 30% faster than targeting L{-1} on large
     // tensors. But this might need further tuning.
-    auto block_total_size_max = numext::maxi<Eigen::Index>(
+    Eigen::Index block_total_size_max = numext::maxi<Eigen::Index>(
         1, m_device.firstLevelCacheSize() / sizeof(Scalar));
 
     resources->push_back(internal::TensorOpResourceRequirements(
-        internal::TensorBlockShapeType::kSkewedInnerDims,
-        block_total_size_max));
+        internal::kSkewedInnerDims, block_total_size_max));
 
     m_impl.getResourceRequirements(resources);
   }
@@ -617,8 +616,8 @@ struct TensorEvaluator<const TensorBroadcastingOp<Broadcast, ArgType>, Device>
     // equal to m_dimensions for inner dims, a smaller than m_dimensions[i] size
     // for the first outer dim, and 1 for other outer dims. This is guaranteed
     // by MergeResourceRequirements() in TensorBlock.h.
-    const auto& output_block_sizes = output_block->block_sizes();
-    const auto& output_block_strides = output_block->block_strides();
+    const Dimensions& output_block_sizes = output_block->block_sizes();
+    const Dimensions& output_block_strides = output_block->block_strides();
 
     // Find where outer dims start.
     int outer_dim_start = 0;
@@ -642,7 +641,7 @@ struct TensorEvaluator<const TensorBroadcastingOp<Broadcast, ArgType>, Device>
       return;
     }
 
-    const auto& input_dims = m_impl.dimensions();
+    const Dimensions& input_dims = m_impl.dimensions();
 
     // Pre-fill input_block_sizes, broadcast_block_sizes,
     // broadcast_block_strides, and broadcast_tensor_strides. Later on we will

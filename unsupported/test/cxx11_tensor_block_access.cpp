@@ -535,7 +535,7 @@ static void test_block_cwise_unary_io_basic() {
   DSizes<Index, NumDims> block_sizes = RandomDims<NumDims>();
   DSizes<Index, NumDims> strides(ComputeStrides<Layout, NumDims>(block_sizes));
 
-  const auto total_size = block_sizes.TotalSize();
+  const Index total_size = block_sizes.TotalSize();
 
   // Create a random input tensors.
   T* input_data = GenerateRandomData<T>(total_size);
@@ -562,12 +562,12 @@ static void test_block_cwise_unary_io_squeeze_ones() {
   DSizes<Index, 5> block_sizes(1, 2, 1, 3, 1);
   DSizes<Index, 5> strides(ComputeStrides<Layout, 5>(block_sizes));
 
-  const auto total_size = block_sizes.TotalSize();
+  const Index total_size = block_sizes.TotalSize();
 
   // Create a random input tensors.
-  auto* input_data = GenerateRandomData<float>(total_size);
+  float* input_data = GenerateRandomData<float>(total_size);
 
-  auto* output_data = new float[total_size];
+  float* output_data = new float[total_size];
   UnaryFunctor functor;
   TensorBlockCwiseUnaryIO::Run(functor, block_sizes, strides, output_data,
                                strides, input_data);
@@ -599,13 +599,13 @@ static void test_block_cwise_unary_io_zero_strides() {
   input_strides[4] = 0;
 
   // Generate random data.
-  auto* input_data = GenerateRandomData<float>(input_sizes.TotalSize());
+  float* input_data = GenerateRandomData<float>(input_sizes.TotalSize());
 
   DSizes<Index, 5> output_sizes = rnd_dims;
   DSizes<Index, 5> output_strides(ComputeStrides<Layout, 5>(output_sizes));
 
-  const auto output_total_size = output_sizes.TotalSize();
-  auto* output_data = new float[output_total_size];
+  const Index output_total_size = output_sizes.TotalSize();
+  float* output_data = new float[output_total_size];
 
   UnaryFunctor functor;
   TensorBlockCwiseUnaryIO::Run(functor, output_sizes, output_strides,

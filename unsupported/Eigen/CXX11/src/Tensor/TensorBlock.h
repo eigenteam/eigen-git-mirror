@@ -396,8 +396,8 @@ struct TensorBlockCwiseUnaryOp {
     typedef const Eigen::Array<InputScalar, Dynamic, 1> Input;
     typedef Eigen::Array<OutputScalar, Dynamic, 1> Output;
 
-    typedef Eigen::Map<Input, 0, InnerStride<>> InputMap;
-    typedef Eigen::Map<Output, 0, InnerStride<>> OutputMap;
+    typedef Eigen::Map<Input, 0, InnerStride<> > InputMap;
+    typedef Eigen::Map<Output, 0, InnerStride<> > OutputMap;
 
     const InputScalar* input_base = &input_data[input_index];
     OutputScalar* output_base = &output_data[output_index];
@@ -502,7 +502,7 @@ struct TensorBlockCwiseUnaryIO {
                                    input_stride, input_data);
       // Update index.
       for (int j = 0; j < num_squeezed_dims; ++j) {
-        auto& state = block_iter_state[j];
+        BlockIteratorState& state = block_iter_state[j];
         if (++state.count < state.size) {
           output_index += state.output_stride;
           input_index += state.input_stride;

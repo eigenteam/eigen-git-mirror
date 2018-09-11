@@ -771,11 +771,10 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType, MakePointer_>,
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void getResourceRequirements(
       std::vector<internal::TensorOpResourceRequirements>* resources) const {
-    auto block_total_size_max = numext::maxi<Eigen::Index>(
+    Eigen::Index block_total_size_max = numext::maxi<Eigen::Index>(
         1, m_device.lastLevelCacheSize() / sizeof(Scalar));
     resources->push_back(internal::TensorOpResourceRequirements(
-        internal::TensorBlockShapeType::kSkewedInnerDims,
-        block_total_size_max));
+        internal::kSkewedInnerDims, block_total_size_max));
     m_impl.getResourceRequirements(resources);
   }
 
