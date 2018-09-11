@@ -158,7 +158,8 @@ template <typename T, typename Device>
 struct reducer_traits<MeanReducer<T>, Device> {
   enum {
     Cost = NumTraits<T>::AddCost,
-    PacketAccess = PacketType<T, Device>::HasAdd && !NumTraits<T>::IsInteger,
+    PacketAccess = PacketType<T, Device>::HasAdd &&
+                   PacketType<T, Device>::HasDiv && !NumTraits<T>::IsInteger,
     IsStateful = true,
     IsExactlyAssociative = NumTraits<T>::IsInteger
   };
