@@ -286,7 +286,7 @@ template <typename T, int NumDims, typename Device, bool Vectorizable,
           bool Tileable, int Layout>
 static void test_execute_reduction(Device d)
 {
-  static_assert(NumDims >= 2);
+  static_assert(NumDims >= 2, "NumDims must be greater or equal than 2");
 
   static constexpr int ReducedDims = NumDims - 2;
   static constexpr int Options = 0 | Layout;
@@ -328,7 +328,7 @@ template <typename T, int NumDims, typename Device, bool Vectorizable,
     bool Tileable, int Layout>
 static void test_execute_reshape(Device d)
 {
-  static_assert(NumDims >= 2);
+  static_assert(NumDims >= 2, "NumDims must be greater or equal than 2");
 
   static constexpr int ReshapedDims = NumDims - 1;
   static constexpr int Options = 0 | Layout;
@@ -368,7 +368,7 @@ template <typename T, int NumDims, typename Device, bool Vectorizable,
           bool Tileable, int Layout>
 static void test_execute_slice_rvalue(Device d)
 {
-  static_assert(NumDims >= 2);
+  static_assert(NumDims >= 2, "NumDims must be greater or equal than 2");
   static constexpr int Options = 0 | Layout;
 
   auto dims = RandomDims<NumDims>(5, 10);
@@ -408,7 +408,7 @@ template <typename T, int NumDims, typename Device, bool Vectorizable,
     bool Tileable, int Layout>
 static void test_execute_slice_lvalue(Device d)
 {
-  static_assert(NumDims >= 2);
+  static_assert(NumDims >= 2, "NumDims must be greater or equal than 2");
   static constexpr int Options = 0 | Layout;
 
   auto dims = RandomDims<NumDims>(5, 10);
