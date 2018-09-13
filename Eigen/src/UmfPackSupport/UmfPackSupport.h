@@ -613,7 +613,6 @@ bool UmfPackLU<MatrixType>::_solve_impl(const MatrixBase<BDerived> &b, MatrixBas
   eigen_assert((XDerived::Flags&RowMajorBit)==0 && "UmfPackLU backend does not support non col-major result yet");
   eigen_assert(b.derived().data() != x.derived().data() && " Umfpack does not support inplace solve");
 
-  StorageIndex errorCode;
   Scalar* x_ptr = 0;
   Matrix<Scalar,Dynamic,1> x_tmp;
   if(x.innerStride()!=1)
@@ -625,7 +624,7 @@ bool UmfPackLU<MatrixType>::_solve_impl(const MatrixBase<BDerived> &b, MatrixBas
   {
     if(x.innerStride()==1)
       x_ptr = &x.col(j).coeffRef(0);
-      errorCode = umfpack_solve(UMFPACK_A,
+    StorageIndex errorCode = umfpack_solve(UMFPACK_A,
                                 mp_matrix.outerIndexPtr(), mp_matrix.innerIndexPtr(), mp_matrix.valuePtr(),
                                 x_ptr, &b.const_cast_derived().col(j).coeffRef(0),
                                 m_numeric, m_control.data(), m_umfpackInfo.data());
