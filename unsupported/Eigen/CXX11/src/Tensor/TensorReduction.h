@@ -1140,7 +1140,6 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType, MakePointer_>,
       const Index max_coeff_count,
       const DSizes<Index, NumInputDims>& input_slice_sizes,
       DSizes<Index, NumInputDims>* target_input_block_sizes) const {
-    typedef typename internal::packet_traits<Scalar>::type Packet;
     typedef internal::BlockReducer<Self, Op> BlockReducer;
     // TODO(andydavis) Compute reducer overhead correctly for the case where
     // we are preserving the inner most dimension, and a single reducer
@@ -1168,7 +1167,6 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType, MakePointer_>,
       } else if (!first_preserved_dim_allocated) {
         // TODO(andydavis) Include output block size in this L1 working set
         // calculation.
-        const Index allocated = max_coeff_count - coeff_to_allocate;
         const Index alloc_size = numext::maxi(
             static_cast<Index>(1), coeff_to_allocate / reducer_overhead);
         (*target_input_block_sizes)[dim] =
