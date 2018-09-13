@@ -1205,7 +1205,6 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType, MakePointer_>,
       const Index max_coeff_count,
       const DSizes<Index, NumInputDims>& input_slice_sizes,
       DSizes<Index, NumInputDims>* target_input_block_sizes) const {
-    typedef typename internal::packet_traits<Scalar>::type Packet;
     typedef internal::BlockReducer<Self, Op> BlockReducer;
     // TODO(andydavis) Compute reducer overhead correctly for the case where
     // we are preserving the inner most dimension, and a single reducer

@@ -27,7 +27,7 @@ static array<Index, NumDims> RandomDims(int min_dim = 1, int max_dim = 20) {
     dims[i] = internal::random<int>(min_dim, max_dim);
   }
   return dims;
-};
+}
 
 template <typename T, int NumDims, typename Device, bool Vectorizable,
           bool Tileable, int Layout>
@@ -117,7 +117,7 @@ static void test_execute_broadcasting(Device d)
   for (Index i = 0; i < dst.dimensions().TotalSize(); ++i) {
     VERIFY_IS_EQUAL(dst.coeff(i), golden.coeff(i));
   }
-};
+}
 
 template <typename T, int NumDims, typename Device, bool Vectorizable,
           bool Tileable, int Layout>
@@ -155,7 +155,7 @@ static void test_execute_chipping_rvalue(Device d) {
   TEST_CHIPPING(5)
 
 #undef TEST_CHIPPING
-};
+}
 
 template <typename T, int NumDims, typename Device, bool Vectorizable,
     bool Tileable, int Layout>
@@ -207,7 +207,7 @@ static void test_execute_chipping_lvalue(Device d) {
   TEST_CHIPPING(5)
 
 #undef TEST_CHIPPING
-};
+}
 
 template <typename T, int NumDims, typename Device, bool Vectorizable,
           bool Tileable, int Layout>
