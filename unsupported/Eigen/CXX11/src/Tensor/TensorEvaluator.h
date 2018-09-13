@@ -43,6 +43,7 @@ struct TensorEvaluator
     IsAligned = Derived::IsAligned,
     PacketAccess = (PacketType<CoeffReturnType, Device>::size > 1),
     BlockAccess = internal::is_arithmetic<typename internal::remove_const<Scalar>::type>::value,
+    PreferBlockAccess = false,
     Layout = Derived::Layout,
     CoordAccess = NumCoords > 0,
     RawAccess = true
@@ -195,6 +196,7 @@ struct TensorEvaluator<const Derived, Device>
     IsAligned = Derived::IsAligned,
     PacketAccess = (PacketType<CoeffReturnType, Device>::size > 1),
     BlockAccess = internal::is_arithmetic<typename internal::remove_const<Scalar>::type>::value,
+    PreferBlockAccess = false,
     Layout = Derived::Layout,
     CoordAccess = NumCoords > 0,
     RawAccess = true
@@ -288,6 +290,7 @@ struct TensorEvaluator<const TensorCwiseNullaryOp<NullaryOp, ArgType>, Device>
     IsAligned = true,
     PacketAccess = internal::functor_traits<NullaryOp>::PacketAccess,
     BlockAccess = false,
+    PreferBlockAccess = false,
     Layout = TensorEvaluator<ArgType, Device>::Layout,
     CoordAccess = false,  // to be implemented
     RawAccess = false
@@ -351,26 +354,33 @@ struct TensorEvaluator<const TensorCwiseUnaryOp<UnaryOp, ArgType>, Device>
   typedef TensorCwiseUnaryOp<UnaryOp, ArgType> XprType;
 
   enum {
-    IsAligned = TensorEvaluator<ArgType, Device>::IsAligned,
-    PacketAccess = TensorEvaluator<ArgType, Device>::PacketAccess &
-                   internal::functor_traits<UnaryOp>::PacketAccess,
-    BlockAccess = false,
-    Layout = TensorEvaluator<ArgType, Device>::Layout,
-    CoordAccess = false,  // to be implemented
-    RawAccess = false
+    IsAligned          = TensorEvaluator<ArgType, Device>::IsAligned,
+    PacketAccess       = TensorEvaluator<ArgType, Device>::PacketAccess &
+                         internal::functor_traits<UnaryOp>::PacketAccess,
+    BlockAccess        = TensorEvaluator<ArgType, Device>::BlockAccess,
+    PreferBlockAccess  = TensorEvaluator<ArgType, Device>::PreferBlockAccess,
+    Layout             = TensorEvaluator<ArgType, Device>::Layout,
+    CoordAccess        = false,  // to be implemented
+    RawAccess          = false
   };
 
   EIGEN_DEVICE_FUNC TensorEvaluator(const XprType& op, const Device& device)
-    : m_functor(op.functor()),
+    : m_device(device),
+      m_functor(op.functor()),
       m_argImpl(op.nestedExpression(), device)
   { }
 
   typedef typename XprType::Index Index;
   typedef typename XprType::Scalar Scalar;
+  typedef typename internal::remove_const<Scalar>::type ScalarNoConst;
   typedef typename internal::traits<XprType>::Scalar CoeffReturnType;
   typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
   static const int PacketSize = PacketType<CoeffReturnType, Device>::size;
   typedef typename TensorEvaluator<ArgType, Device>::Dimensions Dimensions;
+
+  static const int NumDims = internal::array_size<Dimensions>::value;
+  typedef internal::TensorBlock<ScalarNoConst, Index, NumDims, Layout>
+      TensorBlock;
 
   EIGEN_DEVICE_FUNC const Dimensions& dimensions() const { return m_argImpl.dimensions(); }
 
@@ -399,6 +409,29 @@ struct TensorEvaluator<const TensorCwiseUnaryOp<UnaryOp, ArgType>, Device>
         TensorOpCost(0, 0, functor_cost, vectorized, PacketSize);
   }
 
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void getResourceRequirements(
+      std::vector<internal::TensorOpResourceRequirements>* resources) const {
+    m_argImpl.getResourceRequirements(resources);
+  }
+
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void block(
+      TensorBlock* output_block) const {
+    if (NumDims <= 0) {
+      output_block->data()[0] = coeff(0);
+      return;
+    }
+    internal::TensorBlockView<ArgType, Device> arg_block(m_device, m_argImpl,
+                                                         *output_block);
+    internal::TensorBlockCwiseUnaryIO<UnaryOp, Index, ScalarNoConst, NumDims,
+                                      Layout>::Run(m_functor,
+                                                   output_block->block_sizes(),
+                                                   output_block
+                                                       ->block_strides(),
+                                                   output_block->data(),
+                                                   arg_block.block_strides(),
+                                                   arg_block.data());
+  }
+
   EIGEN_DEVICE_FUNC typename Eigen::internal::traits<XprType>::PointerType data() const { return NULL; }
 
   /// required by sycl in order to extract the accessor
@@ -408,6 +441,7 @@ struct TensorEvaluator<const TensorCwiseUnaryOp<UnaryOp, ArgType>, Device>
 
 
  private:
+  const Device& m_device;
   const UnaryOp m_functor;
   TensorEvaluator<ArgType, Device> m_argImpl;
 };
@@ -421,16 +455,18 @@ struct TensorEvaluator<const TensorCwiseBinaryOp<BinaryOp, LeftArgType, RightArg
   typedef TensorCwiseBinaryOp<BinaryOp, LeftArgType, RightArgType> XprType;
 
   enum {
-    IsAligned    = TensorEvaluator<LeftArgType, Device>::IsAligned &
-                   TensorEvaluator<RightArgType, Device>::IsAligned,
-    PacketAccess = TensorEvaluator<LeftArgType, Device>::PacketAccess &
-                   TensorEvaluator<RightArgType, Device>::PacketAccess &
-                   internal::functor_traits<BinaryOp>::PacketAccess,
-    BlockAccess  = TensorEvaluator<LeftArgType, Device>::BlockAccess &
-                   TensorEvaluator<RightArgType, Device>::BlockAccess,
-    Layout       = TensorEvaluator<LeftArgType, Device>::Layout,
-    CoordAccess  = false,  // to be implemented
-    RawAccess    = false
+    IsAligned         = TensorEvaluator<LeftArgType, Device>::IsAligned &
+                        TensorEvaluator<RightArgType, Device>::IsAligned,
+    PacketAccess      = TensorEvaluator<LeftArgType, Device>::PacketAccess &
+                        TensorEvaluator<RightArgType, Device>::PacketAccess &
+                        internal::functor_traits<BinaryOp>::PacketAccess,
+    BlockAccess       = TensorEvaluator<LeftArgType, Device>::BlockAccess &
+                        TensorEvaluator<RightArgType, Device>::BlockAccess,
+    PreferBlockAccess = TensorEvaluator<LeftArgType, Device>::PreferBlockAccess |
+                        TensorEvaluator<RightArgType, Device>::PreferBlockAccess,
+    Layout            = TensorEvaluator<LeftArgType, Device>::Layout,
+    CoordAccess       = false,  // to be implemented
+    RawAccess         = false
   };
 
   EIGEN_DEVICE_FUNC TensorEvaluator(const XprType& op, const Device& device)
@@ -501,7 +537,7 @@ struct TensorEvaluator<const TensorCwiseBinaryOp<BinaryOp, LeftArgType, RightArg
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void block(
       TensorBlock* output_block) const {
     if (NumDims <= 0) {
-      output_block->data()[0] = coeff(0);
+      output_block->data()[0] = coeff(Index(0));
       return;
     }
     internal::TensorBlockView<LeftArgType, Device> left_block(
@@ -543,6 +579,7 @@ struct TensorEvaluator<const TensorCwiseTernaryOp<TernaryOp, Arg1Type, Arg2Type,
     PacketAccess = TensorEvaluator<Arg1Type, Device>::PacketAccess & TensorEvaluator<Arg2Type, Device>::PacketAccess & TensorEvaluator<Arg3Type, Device>::PacketAccess &
                    internal::functor_traits<TernaryOp>::PacketAccess,
     BlockAccess = false,
+    PreferBlockAccess = false,
     Layout = TensorEvaluator<Arg1Type, Device>::Layout,
     CoordAccess = false,  // to be implemented
     RawAccess = false
@@ -648,6 +685,7 @@ struct TensorEvaluator<const TensorSelectOp<IfArgType, ThenArgType, ElseArgType>
     PacketAccess = TensorEvaluator<ThenArgType, Device>::PacketAccess & TensorEvaluator<ElseArgType, Device>::PacketAccess &
                     PacketType<Scalar, Device>::HasBlend,
     BlockAccess = false,
+    PreferBlockAccess = false,
     Layout = TensorEvaluator<IfArgType, Device>::Layout,
     CoordAccess = false,  // to be implemented
     RawAccess = false

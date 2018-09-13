@@ -526,6 +526,114 @@ static void test_block_io_squeeze_ones() {
 }
 
 template <typename T, int NumDims, int Layout>
+static void test_block_cwise_unary_io_basic() {
+  typedef internal::scalar_square_op<T> UnaryFunctor;
+  typedef internal::TensorBlockCwiseUnaryIO<UnaryFunctor, Index, T, NumDims,
+                                            Layout>
+      TensorBlockCwiseUnaryIO;
+
+  DSizes<Index, NumDims> block_sizes = RandomDims<NumDims>();
+  DSizes<Index, NumDims> strides(ComputeStrides<Layout, NumDims>(block_sizes));
+
+  const Index total_size = block_sizes.TotalSize();
+
+  // Create a random input tensors.
+  T* input_data = GenerateRandomData<T>(total_size);
+
+  T* output_data = new T[total_size];
+  UnaryFunctor functor;
+  TensorBlockCwiseUnaryIO::Run(functor, block_sizes, strides, output_data,
+                               strides, input_data);
+  for (int i = 0; i < total_size; ++i) {
+    VERIFY_IS_EQUAL(output_data[i], functor(input_data[i]));
+  }
+
+  delete[] input_data;
+  delete[] output_data;
+}
+
+template <int Layout>
+static void test_block_cwise_unary_io_squeeze_ones() {
+  typedef internal::scalar_square_op<float> UnaryFunctor;
+  typedef internal::TensorBlockCwiseUnaryIO<UnaryFunctor, Index, float, 5,
+                                            Layout>
+      TensorBlockCwiseUnaryIO;
+
+  DSizes<Index, 5> block_sizes(1, 2, 1, 3, 1);
+  DSizes<Index, 5> strides(ComputeStrides<Layout, 5>(block_sizes));
+
+  const Index total_size = block_sizes.TotalSize();
+
+  // Create a random input tensors.
+  float* input_data = GenerateRandomData<float>(total_size);
+
+  float* output_data = new float[total_size];
+  UnaryFunctor functor;
+  TensorBlockCwiseUnaryIO::Run(functor, block_sizes, strides, output_data,
+                               strides, input_data);
+  for (int i = 0; i < total_size; ++i) {
+    VERIFY_IS_EQUAL(output_data[i], functor(input_data[i]));
+  }
+
+  delete[] input_data;
+  delete[] output_data;
+}
+
+template <int Layout>
+static void test_block_cwise_unary_io_zero_strides() {
+  typedef internal::scalar_square_op<float> UnaryFunctor;
+  typedef internal::TensorBlockCwiseUnaryIO<UnaryFunctor, Index, float, 5,
+                                            Layout>
+      TensorBlockCwiseUnaryIO;
+
+  DSizes<Index, 5> rnd_dims = RandomDims<5>();
+
+  DSizes<Index, 5> input_sizes = rnd_dims;
+  input_sizes[0] = 1;
+  input_sizes[2] = 1;
+  input_sizes[4] = 1;
+
+  DSizes<Index, 5> input_strides(ComputeStrides<Layout, 5>(input_sizes));
+  input_strides[0] = 0;
+  input_strides[2] = 0;
+  input_strides[4] = 0;
+
+  // Generate random data.
+  float* input_data = GenerateRandomData<float>(input_sizes.TotalSize());
+
+  DSizes<Index, 5> output_sizes = rnd_dims;
+  DSizes<Index, 5> output_strides(ComputeStrides<Layout, 5>(output_sizes));
+
+  const Index output_total_size = output_sizes.TotalSize();
+  float* output_data = new float[output_total_size];
+
+  UnaryFunctor functor;
+  TensorBlockCwiseUnaryIO::Run(functor, output_sizes, output_strides,
+                               output_data, input_strides, input_data);
+  for (int i = 0; i < rnd_dims[0]; ++i) {
+    for (int j = 0; j < rnd_dims[1]; ++j) {
+      for (int k = 0; k < rnd_dims[2]; ++k) {
+        for (int l = 0; l < rnd_dims[3]; ++l) {
+          for (int m = 0; m < rnd_dims[4]; ++m) {
+            Index output_index = i * output_strides[0] + j * output_strides[1] +
+                                 k * output_strides[2] + l * output_strides[3] +
+                                 m * output_strides[4];
+            Index input_index = i * input_strides[0] + j * input_strides[1] +
+                                k * input_strides[2] + l * input_strides[3] +
+                                m * input_strides[4];
+            VERIFY_IS_EQUAL(output_data[output_index],
+                            functor(input_data[input_index]));
+          }
+        }
+      }
+    }
+  }
+
+  delete[] input_data;
+  delete[] output_data;
+}
+
+template <typename T, int NumDims, int Layout>
 static void test_block_cwise_binary_io_basic() {
   typedef internal::scalar_sum_op<T> BinaryFunctor;
   typedef internal::TensorBlockCwiseBinaryIO<BinaryFunctor, Index, T, NumDims,
@@ -986,6 +1094,9 @@ EIGEN_DECLARE_TEST(cxx11_tensor_block_access) {
   TEST_LAYOUTS_AND_DIMS(Data, test_block_io_copy_using_reordered_dimensions);
   TEST_LAYOUTS(test_block_io_zero_stride);
   TEST_LAYOUTS(test_block_io_squeeze_ones);
+  TEST_LAYOUTS_AND_DIMS(float, test_block_cwise_unary_io_basic);
+  TEST_LAYOUTS(test_block_cwise_unary_io_squeeze_ones);
+  TEST_LAYOUTS(test_block_cwise_unary_io_zero_strides);
   TEST_LAYOUTS_AND_DIMS(float, test_block_cwise_binary_io_basic);
   TEST_LAYOUTS(test_block_cwise_binary_io_squeeze_ones);
   TEST_LAYOUTS(test_block_cwise_binary_io_zero_strides);

@@ -140,7 +140,11 @@ struct IsVectorizable<GpuDevice, Expression> {
 
 template <typename Device, typename Expression>
 struct IsTileable {
-  static const bool value = TensorEvaluator<Expression, Device>::BlockAccess;
+  // Check that block evaluation is supported and it's a preferred option (at
+  // least one sub-expression has much faster block evaluation, e.g.
+  // broadcasting).
+  static const bool value = TensorEvaluator<Expression, Device>::BlockAccess &&
+                            TensorEvaluator<Expression, Device>::PreferBlockAccess;
 };
 
 template <typename Expression, typename Device,

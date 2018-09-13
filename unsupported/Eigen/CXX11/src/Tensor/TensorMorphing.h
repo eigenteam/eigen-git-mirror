@@ -102,14 +102,37 @@ struct TensorEvaluator<const TensorReshapingOp<NewDimensions, ArgType>, Device>
   typedef TensorReshapingOp<NewDimensions, ArgType> XprType;
   typedef NewDimensions Dimensions;
 
+  typedef typename XprType::Index Index;
+  typedef typename XprType::Scalar Scalar;
+  typedef typename XprType::CoeffReturnType CoeffReturnType;
+  typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
+
+  static const int NumOutputDims = internal::array_size<Dimensions>::value;
+  static const int NumInputDims  = internal::array_size<typename TensorEvaluator<ArgType, Device>::Dimensions>::value;
+
   enum {
-    IsAligned = TensorEvaluator<ArgType, Device>::IsAligned,
-    PacketAccess = TensorEvaluator<ArgType, Device>::PacketAccess,
-    BlockAccess = false,
-    Layout = TensorEvaluator<ArgType, Device>::Layout,
-    CoordAccess = false,  // to be implemented
-    RawAccess = TensorEvaluator<ArgType, Device>::RawAccess
+    IsAligned         = TensorEvaluator<ArgType, Device>::IsAligned,
+    PacketAccess      = TensorEvaluator<ArgType, Device>::PacketAccess,
+    // TODO(andydavis, wuke) Enable BlockAccess for the general case when the
+    // performance issue with block-based reshape is resolved.
+    BlockAccess       = TensorEvaluator<ArgType, Device>::BlockAccess &&
+                        TensorEvaluator<ArgType, Device>::RawAccess &&
+                        NumInputDims > 0 && NumOutputDims > 0,
+    PreferBlockAccess = true,
+    Layout            = TensorEvaluator<ArgType, Device>::Layout,
+    CoordAccess       = false,  // to be implemented
+    RawAccess         = TensorEvaluator<ArgType, Device>::RawAccess
   };
+
+  typedef typename internal::remove_const<Scalar>::type ScalarNoConst;
+
+  typedef internal::TensorBlock<ScalarNoConst, Index, NumInputDims, Layout>
+      InputTensorBlock;
+  typedef internal::TensorBlock<ScalarNoConst, Index, NumOutputDims, Layout>
+      OutputTensorBlock;
+  typedef internal::TensorBlockReader<ScalarNoConst, Index, NumOutputDims,
+                                      Layout>
+      OutputTensorBlockReader;
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
       : m_impl(op.expression(), device), m_dimensions(op.dimensions())
@@ -117,12 +140,31 @@ struct TensorEvaluator<const TensorReshapingOp<NewDimensions, ArgType>, Device>
     // The total size of the reshaped tensor must be equal to the total size
     // of the input tensor.
     eigen_assert(internal::array_prod(m_impl.dimensions()) == internal::array_prod(op.dimensions()));
-  }
 
-  typedef typename XprType::Index Index;
-  typedef typename XprType::Scalar Scalar;
-  typedef typename XprType::CoeffReturnType CoeffReturnType;
-  typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
+    if (BlockAccess) {
+      const typename TensorEvaluator<ArgType, Device>::Dimensions& input_dims =
+          m_impl.dimensions();
+      if (static_cast<int>(Layout) == static_cast<int>(ColMajor)) {
+        m_outputStrides[0] = 1;
+        for (int i = 1; i < NumOutputDims; ++i) {
+          m_outputStrides[i] = m_outputStrides[i - 1] * m_dimensions[i - 1];
+        }
+        m_inputStrides[0] = 1;
+        for (int i = 1; i < NumInputDims; ++i) {
+          m_inputStrides[i] = m_inputStrides[i - 1] * input_dims[i - 1];
+        }
+      } else {
+        m_outputStrides[NumOutputDims - 1] = 1;
+        for (int i = NumOutputDims - 2; i >= 0; --i) {
+          m_outputStrides[i] = m_outputStrides[i + 1] * m_dimensions[i + 1];
+        }
+        m_inputStrides[NumInputDims - 1] = 1;
+        for (int i = NumInputDims - 2; i >= 0; --i) {
+          m_inputStrides[i] = m_inputStrides[i + 1] * input_dims[i + 1];
+        }
+      }
+    }
+  }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Dimensions& dimensions() const { return m_dimensions; }
 
@@ -148,6 +190,140 @@ struct TensorEvaluator<const TensorReshapingOp<NewDimensions, ArgType>, Device>
     return m_impl.costPerCoeff(vectorized);
   }
 
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void getResourceRequirements(
+      std::vector<internal::TensorOpResourceRequirements>* resources) const {
+    m_impl.getResourceRequirements(resources);
+  }
+
+  // TODO(andydavis) Reduce the overhead of this function.
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void block(
+      OutputTensorBlock* output_block) const {
+    if (m_impl.data() != NULL) {
+      OutputTensorBlockReader::Run(output_block, m_impl.data());
+      return;
+    }
+
+    // Calculate output block unit-stride inner dimension length.
+    const DSizes<Index, NumOutputDims>& output_block_sizes =
+        output_block->block_sizes();
+    Index output_inner_dim_size = 1;
+    Index output_outer_dim_start = NumOutputDims;
+    for (Index i = 0; i < NumOutputDims; ++i) {
+      const Index dim = static_cast<int>(Layout) == static_cast<int>(ColMajor)
+                        ? i : NumOutputDims - i - 1;
+      output_inner_dim_size *= output_block_sizes[dim];
+      if (output_block_sizes[dim] < m_dimensions[dim]) {
+        output_outer_dim_start = i + 1;
+        break;
+      }
+    }
+
+    // Initialize output block iterator state.
+    struct BlockIteratorState {
+      Index stride;
+      Index span;
+      Index size;
+      Index count;
+    };
+    array<BlockIteratorState, NumOutputDims> block_iter_state;
+
+    for (Index i = 0; i < NumOutputDims; ++i) {
+      const Index dim = static_cast<int>(Layout) == static_cast<int>(ColMajor)
+                        ? i : NumOutputDims - i - 1;
+      block_iter_state[i].size = output_block_sizes[dim];
+      block_iter_state[i].stride = m_outputStrides[dim];
+      block_iter_state[i].span =
+          block_iter_state[i].stride * (block_iter_state[i].size - 1);
+      block_iter_state[i].count = 0;
+    }
+
+    const Index output_outer_dim_size = output_block_sizes.TotalSize() /
+        output_inner_dim_size;
+    const typename TensorEvaluator<ArgType, Device>::Dimensions& input_dims =
+        m_impl.dimensions();
+
+    Index index = output_block->first_coeff_index();
+    for (Index outer_idx = 0; outer_idx < output_outer_dim_size; ++outer_idx) {
+      Index inner_idx = 0;
+      while (inner_idx < output_inner_dim_size) {
+        // Calculate input coords based on 'index'.
+        array<Index, NumInputDims> input_coords;
+        Index idx = index;
+        if (static_cast<int>(Layout) == static_cast<int>(ColMajor)) {
+          for (int i = NumInputDims - 1; i > 0; --i) {
+            input_coords[i] = idx / m_inputStrides[i];
+            idx -= input_coords[i] * m_inputStrides[i];
+          }
+          input_coords[0] = idx;
+        } else {
+          for (int i = 0; i < NumInputDims - 1; ++i) {
+            input_coords[i] = idx / m_inputStrides[i];
+            idx -= input_coords[i] * m_inputStrides[i];
+          }
+          input_coords[NumInputDims - 1] = idx;
+        }
+
+        // Calculate target input block shape, using at most
+        // 'output_inner_dim_size' coefficients along the input block's inner
+        // dimensions.
+        DSizes<Index, NumInputDims> input_block_sizes;
+        Index num_to_allocate = output_inner_dim_size - inner_idx;
+        for (Index i = 0; i < NumInputDims; ++i) {
+          const Index dim =
+              static_cast<int>(Layout) == static_cast<int>(ColMajor)
+              ? i : NumInputDims - i - 1;
+          input_block_sizes[dim] = numext::mini(
+              num_to_allocate, (static_cast<Index>(input_dims[dim]) -
+                  input_coords[dim]));
+          if (input_coords[dim] == 0) {
+            num_to_allocate /= input_block_sizes[dim];
+          } else {
+            num_to_allocate = 1;
+          }
+        }
+
+        // Calculate input block strides.
+        DSizes<Index, NumInputDims> input_block_strides;
+        if (static_cast<int>(Layout) == static_cast<int>(ColMajor)) {
+          input_block_strides[0] = 1;
+          for (int i = 1; i < NumInputDims; ++i) {
+            input_block_strides[i] = input_block_strides[i - 1] *
+                input_block_sizes[i - 1];
+          }
+        } else {
+          input_block_strides[NumInputDims - 1] = 1;
+          for (int i = NumInputDims - 2; i >= 0; --i) {
+            input_block_strides[i] = input_block_strides[i + 1] *
+                input_block_sizes[i + 1];
+          }
+        }
+
+        // Instantiate and read input block from input tensor.
+        InputTensorBlock input_block(index, input_block_sizes,
+                                     input_block_strides, m_inputStrides,
+                                     output_block->data() + outer_idx *
+                                         output_inner_dim_size + inner_idx);
+
+        m_impl.block(&input_block);
+
+        const Index input_block_total_size = input_block_sizes.TotalSize();
+        index += input_block_total_size;
+        inner_idx += input_block_total_size;
+      }
+      eigen_assert(inner_idx == output_inner_dim_size);
+      index -= output_inner_dim_size;
+      // Update index.
+      for (Index i = output_outer_dim_start; i < NumOutputDims; ++i) {
+        if (++block_iter_state[i].count < block_iter_state[i].size) {
+          index += block_iter_state[i].stride;
+          break;
+        }
+        block_iter_state[i].count = 0;
+        index -= block_iter_state[i].span;
+      }
+    }
+  }
+
   EIGEN_DEVICE_FUNC typename Eigen::internal::traits<XprType>::PointerType data() const { return const_cast<Scalar*>(m_impl.data()); }
 
   EIGEN_DEVICE_FUNC const TensorEvaluator<ArgType, Device>& impl() const { return m_impl; }
@@ -155,6 +331,8 @@ struct TensorEvaluator<const TensorReshapingOp<NewDimensions, ArgType>, Device>
  protected:
   TensorEvaluator<ArgType, Device> m_impl;
   NewDimensions m_dimensions;
+  DSizes<Index, NumOutputDims> m_outputStrides;
+  DSizes<Index, NumInputDims> m_inputStrides;
 };
 
 
@@ -172,6 +350,7 @@ template<typename NewDimensions, typename ArgType, typename Device>
     IsAligned = TensorEvaluator<ArgType, Device>::IsAligned,
     PacketAccess = TensorEvaluator<ArgType, Device>::PacketAccess,
     BlockAccess = false,
+    PreferBlockAccess = false,
     Layout = TensorEvaluator<ArgType, Device>::Layout,
     CoordAccess = false,  // to be implemented
     RawAccess = TensorEvaluator<ArgType, Device>::RawAccess
@@ -322,22 +501,44 @@ struct TensorEvaluator<const TensorSlicingOp<StartIndices, Sizes, ArgType>, Devi
   typedef TensorSlicingOp<StartIndices, Sizes, ArgType> XprType;
   static const int NumDims = internal::array_size<Sizes>::value;
 
+  typedef typename XprType::Index Index;
+  typedef typename XprType::Scalar Scalar;
+  typedef typename XprType::CoeffReturnType CoeffReturnType;
+  typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
+  typedef Sizes Dimensions;
+
   enum {
     // Alignment can't be guaranteed at compile time since it depends on the
     // slice offsets and sizes.
-    IsAligned = /*TensorEvaluator<ArgType, Device>::IsAligned*/false,
-    PacketAccess = TensorEvaluator<ArgType, Device>::PacketAccess,
-    BlockAccess = false,
-    Layout = TensorEvaluator<ArgType, Device>::Layout,
-    CoordAccess = false,
-    RawAccess = false
+    IsAligned         = false,
+    PacketAccess      = TensorEvaluator<ArgType, Device>::PacketAccess,
+    BlockAccess       = TensorEvaluator<ArgType, Device>::BlockAccess,
+    PreferBlockAccess = true,
+    Layout            = TensorEvaluator<ArgType, Device>::Layout,
+    CoordAccess       = false,
+    RawAccess         = false
   };
+
+  typedef typename internal::remove_const<Scalar>::type ScalarNoConst;
+
+  typedef internal::TensorBlock<ScalarNoConst, Index, NumDims, Layout> TensorBlock;
+  typedef typename TensorBlock::Dimensions TensorBlockDimensions;
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
       : m_impl(op.expression(), device), m_device(device), m_dimensions(op.sizes()), m_offsets(op.startIndices())
   {
     for (Index i = 0; i < internal::array_size<Dimensions>::value; ++i) {
       eigen_assert(m_impl.dimensions()[i] >= op.sizes()[i] + op.startIndices()[i]);
+    }
+
+    m_is_identity = true;
+    for (int i = 0; i < internal::array_size<Dimensions>::value; ++i) {
+      eigen_assert(m_impl.dimensions()[i] >=
+                   op.sizes()[i] + op.startIndices()[i]);
+      if (m_impl.dimensions()[i] != op.sizes()[i] ||
+          op.startIndices()[i] != 0) {
+        m_is_identity = false;
+      }
     }
 
     const typename TensorEvaluator<ArgType, Device>::Dimensions& input_dims = m_impl.dimensions();
@@ -368,12 +569,6 @@ struct TensorEvaluator<const TensorSlicingOp<StartIndices, Sizes, ArgType>, Devi
       }
     }
   }
-
-  typedef typename XprType::Index Index;
-  typedef typename XprType::Scalar Scalar;
-  typedef typename XprType::CoeffReturnType CoeffReturnType;
-  typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
-  typedef Sizes Dimensions;
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Dimensions& dimensions() const { return m_dimensions; }
 
@@ -417,7 +612,11 @@ struct TensorEvaluator<const TensorSlicingOp<StartIndices, Sizes, ArgType>, Devi
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE CoeffReturnType coeff(Index index) const
   {
-    return m_impl.coeff(srcCoeff(index));
+    if (m_is_identity) {
+      return m_impl.coeff(index);
+    } else {
+      return m_impl.coeff(srcCoeff(index));
+    }
   }
 
   template<int LoadMode>
@@ -426,6 +625,10 @@ struct TensorEvaluator<const TensorSlicingOp<StartIndices, Sizes, ArgType>, Devi
     const int packetSize = PacketType<CoeffReturnType, Device>::size;
     EIGEN_STATIC_ASSERT((packetSize > 1), YOU_MADE_A_PROGRAMMING_MISTAKE)
     eigen_assert(index+packetSize-1 < internal::array_prod(dimensions()));
+
+    if (m_is_identity) {
+      return m_impl.template packet<LoadMode>(index);
+    }
 
     Index inputIndices[] = {0, 0};
     Index indices[] = {index, index + packetSize - 1};
@@ -469,9 +672,27 @@ struct TensorEvaluator<const TensorSlicingOp<StartIndices, Sizes, ArgType>, Devi
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorOpCost costPerCoeff(bool vectorized) const {
-    return m_impl.costPerCoeff(vectorized) + TensorOpCost(0, 0, NumDims);
+    return m_impl.costPerCoeff(vectorized) + TensorOpCost(0, 0, m_is_identity ? 1 : NumDims);
   }
 
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void getResourceRequirements(
+      std::vector<internal::TensorOpResourceRequirements>* resources) const {
+    Eigen::Index block_total_size_max = numext::maxi<Eigen::Index>(
+        1, m_device.lastLevelCacheSize() / sizeof(Scalar));
+    resources->push_back(internal::TensorOpResourceRequirements(
+        internal::kSkewedInnerDims, block_total_size_max));
+    m_impl.getResourceRequirements(resources);
+  }
+
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void block(
+      TensorBlock* output_block) const {
+    TensorBlock input_block(srcCoeff(output_block->first_coeff_index()),
+                            output_block->block_sizes(),
+                            output_block->block_strides(),
+                            TensorBlockDimensions(m_inputStrides),
+                            output_block->data());
+    m_impl.block(&input_block);
+  }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE typename Eigen::internal::traits<XprType>::PointerType data() const {
     Scalar* result = m_impl.data();
@@ -544,6 +765,7 @@ struct TensorEvaluator<const TensorSlicingOp<StartIndices, Sizes, ArgType>, Devi
   TensorEvaluator<ArgType, Device> m_impl;
   const Device& m_device;
   Dimensions m_dimensions;
+  bool m_is_identity;
   const StartIndices m_offsets;
 };
 
@@ -557,33 +779,48 @@ struct TensorEvaluator<TensorSlicingOp<StartIndices, Sizes, ArgType>, Device>
   typedef TensorSlicingOp<StartIndices, Sizes, ArgType> XprType;
   static const int NumDims = internal::array_size<Sizes>::value;
 
-  enum {
-    IsAligned = /*TensorEvaluator<ArgType, Device>::IsAligned*/false,
-    PacketAccess = TensorEvaluator<ArgType, Device>::PacketAccess,
-    BlockAccess = false,
-    Layout = TensorEvaluator<ArgType, Device>::Layout,
-    CoordAccess = false,
-    RawAccess = (NumDims == 1) & TensorEvaluator<ArgType, Device>::RawAccess
-  };
-
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
-    : Base(op, device)
-    { }
-
   typedef typename XprType::Index Index;
   typedef typename XprType::Scalar Scalar;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
   typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
   typedef Sizes Dimensions;
 
+  enum {
+    IsAligned         = false,
+    PacketAccess      = TensorEvaluator<ArgType, Device>::PacketAccess,
+    BlockAccess       = TensorEvaluator<ArgType, Device>::BlockAccess,
+    PreferBlockAccess = true,
+    Layout            = TensorEvaluator<ArgType, Device>::Layout,
+    CoordAccess       = false,
+    RawAccess         = (NumDims == 1) & TensorEvaluator<ArgType, Device>::RawAccess
+  };
+
+  typedef typename internal::remove_const<Scalar>::type ScalarNoConst;
+
+  typedef internal::TensorBlock<ScalarNoConst, Index, NumDims, Layout> TensorBlock;
+  typedef typename TensorBlock::Dimensions TensorBlockDimensions;
+
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
+    : Base(op, device)
+    { }
+
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE CoeffReturnType& coeffRef(Index index)
   {
-    return this->m_impl.coeffRef(this->srcCoeff(index));
+    if (this->m_is_identity) {
+      return this->m_impl.coeffRef(index);
+    } else {
+      return this->m_impl.coeffRef(this->srcCoeff(index));
+    }
   }
 
   template <int StoreMode> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
   void writePacket(Index index, const PacketReturnType& x)
   {
+    if (this->m_is_identity) {
+      this->m_impl.template writePacket<StoreMode>(index, x);
+      return;
+    }
+
     const int packetSize = PacketType<CoeffReturnType, Device>::size;
     Index inputIndices[] = {0, 0};
     Index indices[] = {index, index + packetSize - 1};
@@ -623,9 +860,15 @@ struct TensorEvaluator<TensorSlicingOp<StartIndices, Sizes, ArgType>, Device>
       }
     }
   }
+
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void writeBlock(
+      const TensorBlock& block) {
+    this->m_impl.writeBlock(TensorBlock(
+        this->srcCoeff(block.first_coeff_index()), block.block_sizes(),
+        block.block_strides(), TensorBlockDimensions(this->m_inputStrides),
+        const_cast<ScalarNoConst*>(block.data())));
+  }
 };
-
-
 
 namespace internal {
 template<typename StartIndices, typename StopIndices, typename Strides, typename XprType>
@@ -730,6 +973,7 @@ struct TensorEvaluator<const TensorStridingSlicingOp<StartIndices, StopIndices, 
     IsAligned = false,
     PacketAccess = false,
     BlockAccess = false,
+    PreferBlockAccess = false,
     Layout = TensorEvaluator<ArgType, Device>::Layout,
     RawAccess = false
   };
@@ -739,7 +983,13 @@ struct TensorEvaluator<const TensorStridingSlicingOp<StartIndices, StopIndices, 
   {
     // Handle degenerate intervals by gracefully clamping and allowing m_dimensions to be zero
     DSizes<Index,NumDims> startIndicesClamped, stopIndicesClamped;
+    m_is_identity = true;
     for (Index i = 0; i < internal::array_size<Dimensions>::value; ++i) {
+      if (m_strides[i] != 1 || op.startIndices()[i] != 0 ||
+          op.stopIndices()[i] != (m_impl.dimensions()[i] - 1)) {
+        m_is_identity = false;
+      }
+
       eigen_assert(m_strides[i] != 0 && "0 stride is invalid");
       if(m_strides[i]>0){
         startIndicesClamped[i] = clamp(op.startIndices()[i], 0, m_impl.dimensions()[i]);
@@ -803,9 +1053,6 @@ struct TensorEvaluator<const TensorStridingSlicingOp<StartIndices, StopIndices, 
         m_fastOutputStrides[i] = internal::TensorIntDivisor<Index>(degenerate ? 1 : m_outputStrides[i]);
       }
     }
-    m_block_total_size_max = numext::maxi(static_cast<std::size_t>(1),
-                                          device.lastLevelCacheSize() /
-                                          sizeof(Scalar));
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Dimensions& dimensions() const { return m_dimensions; }
@@ -822,11 +1069,15 @@ struct TensorEvaluator<const TensorStridingSlicingOp<StartIndices, StopIndices, 
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE CoeffReturnType coeff(Index index) const
   {
-    return m_impl.coeff(srcCoeff(index));
+    if (m_is_identity) {
+      return m_impl.coeff(index);
+    } else {
+      return m_impl.coeff(srcCoeff(index));
+    }
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorOpCost costPerCoeff(bool vectorized) const {
-    return m_impl.costPerCoeff(vectorized) + TensorOpCost(0, 0, NumDims);
+    return m_impl.costPerCoeff(vectorized) + TensorOpCost(0, 0, m_is_identity ? 1 : NumDims);
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE typename Eigen::internal::traits<XprType>::PointerType data() const {
@@ -873,13 +1124,13 @@ struct TensorEvaluator<const TensorStridingSlicingOp<StartIndices, StopIndices, 
   array<Index, NumDims> m_outputStrides;
   array<internal::TensorIntDivisor<Index>, NumDims> m_fastOutputStrides;
   array<Index, NumDims> m_inputStrides;
+  bool m_is_identity;
   TensorEvaluator<ArgType, Device> m_impl;
   const Device& m_device;
   DSizes<Index, NumDims> m_startIndices; // clamped startIndices
   DSizes<Index, NumDims> m_dimensions;
   DSizes<Index, NumDims> m_offsets; // offset in a flattened shape
   const Strides m_strides;
-  std::size_t m_block_total_size_max;
   //use by sycl
   const StartIndices m_exprStartIndices;
   //use by sycl
@@ -899,6 +1150,7 @@ struct TensorEvaluator<TensorStridingSlicingOp<StartIndices, StopIndices, Stride
     IsAligned = false,
     PacketAccess = false,
     BlockAccess = false,
+    PreferBlockAccess = false,
     Layout = TensorEvaluator<ArgType, Device>::Layout,
     CoordAccess = TensorEvaluator<ArgType, Device>::CoordAccess,
     RawAccess = false
@@ -916,7 +1168,11 @@ struct TensorEvaluator<TensorStridingSlicingOp<StartIndices, StopIndices, Stride
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE CoeffReturnType& coeffRef(Index index)
   {
-    return this->m_impl.coeffRef(this->srcCoeff(index));
+    if (this->m_is_identity) {
+      return this->m_impl.coeffRef(index);
+    } else {
+      return this->m_impl.coeffRef(this->srcCoeff(index));
+    }
   }
 };
 
