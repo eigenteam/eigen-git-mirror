@@ -218,7 +218,6 @@ struct InnerMostDimReducer<Self, Op, false, true> {
   }
 };
 
-#if !defined(EIGEN_USE_GPU) || !defined(__CUDACC__)
 template <typename Self, typename Op>
 struct InnerMostDimReducer<Self, Op, true, true> {
   static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE typename Self::CoeffReturnType
@@ -258,7 +257,6 @@ struct InnerMostDimReducer<Self, Op, true, true> {
     }
   }
 };
-#endif
 
 template <int DimIndex, typename Self, typename Op, bool vectorizable = (Self::InputPacketAccess && Self::ReducerTraits::PacketAccess)>
 struct InnerMostDimPreserver {
