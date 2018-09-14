@@ -96,11 +96,12 @@ inline void throw_std_bad_alloc()
 /** \internal Like malloc, but the returned pointer is guaranteed to be 16-byte aligned.
   * Fast, but wastes 16 additional bytes of memory. Does not throw any exception.
   */
-inline void* handmade_aligned_malloc(std::size_t size)
+inline void* handmade_aligned_malloc(std::size_t size, std::size_t alignment = EIGEN_DEFAULT_ALIGN_BYTES)
 {
-  void *original = std::malloc(size+EIGEN_DEFAULT_ALIGN_BYTES);
+  eigen_assert(alignment >= sizeof(void*) && (alignment & -alignment) == alignment && "Alignment must be at least sizeof(void*) and a power of 2");
+  void *original = std::malloc(size+alignment);
   if (original == 0) return 0;
-  void *aligned = reinterpret_cast<void*>((reinterpret_cast<std::size_t>(original) & ~(std::size_t(EIGEN_DEFAULT_ALIGN_BYTES-1))) + EIGEN_DEFAULT_ALIGN_BYTES);
+  void *aligned = reinterpret_cast<void*>((reinterpret_cast<std::size_t>(original) & ~(std::size_t(alignment-1))) + alignment);
   *(reinterpret_cast<void**>(aligned) - 1) = original;
   return aligned;
 }
