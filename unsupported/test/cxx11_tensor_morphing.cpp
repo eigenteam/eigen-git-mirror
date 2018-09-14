@@ -41,6 +41,28 @@ static void test_simple_reshape()
   }
 }
 
+template <typename>
+static void test_static_reshape() {
+#if defined(EIGEN_HAS_INDEX_LIST)
+  using Eigen::type2index;
+
+  Tensor<float, 5> tensor(2, 3, 1, 7, 1);
+  tensor.setRandom();
+
+  // New dimensions: [2, 3, 7]
+  Eigen::IndexList<type2index<2>, type2index<3>, type2index<7>> dim;
+  Tensor<float, 3> reshaped = tensor.reshape(dim);
+
+  for (int i = 0; i < 2; ++i) {
+    for (int j = 0; j < 3; ++j) {
+      for (int k = 0; k < 7; ++k) {
+        VERIFY_IS_EQUAL(tensor(i, j, 0, k, 0), reshaped(i, j, k));
+      }
+    }
+  }
+#endif
+}
+
 template<typename>
 static void test_reshape_in_expr() {
   MatrixXf m1(2,3*5*7*11);
@@ -462,6 +484,7 @@ static void test_composition()
 EIGEN_DECLARE_TEST(cxx11_tensor_morphing)
 {
   CALL_SUBTEST_1(test_simple_reshape<void>());
+  CALL_SUBTEST_1(test_static_reshape<void>());
   CALL_SUBTEST_1(test_reshape_in_expr<void>());
   CALL_SUBTEST_1(test_reshape_as_lvalue<void>());
 

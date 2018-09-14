@@ -641,7 +641,7 @@ struct TensorEvaluator<const TensorBroadcastingOp<Broadcast, ArgType>, Device>
       return;
     }
 
-    const Dimensions& input_dims = m_impl.dimensions();
+    const Dimensions& input_dims = Dimensions(m_impl.dimensions());
 
     // Pre-fill input_block_sizes, broadcast_block_sizes,
     // broadcast_block_strides, and broadcast_tensor_strides. Later on we will

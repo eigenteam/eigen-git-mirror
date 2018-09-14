@@ -290,6 +290,16 @@ struct DSizes : array<DenseIndex, NumDims> {
     }
   }
 
+#ifdef EIGEN_HAS_INDEX_LIST
+  EIGEN_DEVICE_FUNC
+  template <typename FirstType, typename... OtherTypes>
+  DSizes(const Eigen::IndexList<FirstType, OtherTypes...>& dimensions) {
+    for (int i = 0; i < dimensions.count; ++i) {
+      (*this)[i] = dimensions[i];
+    }
+  }
+#endif
+
 #ifndef EIGEN_EMULATE_CXX11_META_H
   template <typename std::ptrdiff_t... Indices>
   EIGEN_DEVICE_FUNC DSizes(const Sizes<Indices...>& a) {
