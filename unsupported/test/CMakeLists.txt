@@ -142,6 +142,7 @@ ei_add_test(cxx11_tensor_sugar)
 ei_add_test(cxx11_tensor_roundings)
 ei_add_test(cxx11_tensor_layout_swap)
 ei_add_test(cxx11_tensor_io)
+ei_add_test(cxx11_maxsizevector)
 endif()
 
 if(EIGEN_TEST_CXX11)
