@@ -29,12 +29,13 @@ namespace Eigen {
   */
 template <typename T>
 class MaxSizeVector {
+  static const size_t alignment = EIGEN_PLAIN_ENUM_MAX(EIGEN_ALIGNOF(T), sizeof(void*));
  public:
   // Construct a new MaxSizeVector, reserve n elements.
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
   explicit MaxSizeVector(size_t n)
       : reserve_(n), size_(0),
-        data_(static_cast<T*>(internal::aligned_malloc(n * sizeof(T)))) {
+        data_(static_cast<T*>(internal::handmade_aligned_malloc(n * sizeof(T), alignment))) {
   }
 
   // Construct a new MaxSizeVector, reserve and resize to n.
@@ -42,7 +43,7 @@ class MaxSizeVector {
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
   MaxSizeVector(size_t n, const T& init)
       : reserve_(n), size_(n),
-        data_(static_cast<T*>(internal::aligned_malloc(n * sizeof(T)))) {
+        data_(static_cast<T*>(internal::handmade_aligned_malloc(n * sizeof(T), alignment))) {
     size_t i = 0;
     EIGEN_TRY
     {
@@ -52,7 +53,7 @@ class MaxSizeVector {
     {
       // Construction failed, destruct in reverse order:
       for(; (i+1) > 0; --i) { data_[i-1].~T(); }
-      internal::aligned_free(data_);
+      internal::handmade_aligned_free(data_);
       EIGEN_THROW;
     }
   }
@@ -62,7 +63,7 @@ class MaxSizeVector {
     for (size_t i = size_; i > 0; --i) {
       data_[i-1].~T();
     }
-    internal::aligned_free(data_);
+    internal::handmade_aligned_free(data_);
   }
 
   void resize(size_t n) {
