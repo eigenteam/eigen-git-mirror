@@ -282,8 +282,9 @@ class TensorExecutor<Expression, ThreadPoolDevice, Vectorizable, /*Tileable*/ tr
       TensorOpCost cost = evaluator.costPerCoeff(Vectorizable);
       double taskSize = TensorCostModel<ThreadPoolDevice>::taskSize(1, cost);
       size_t block_size = static_cast<size_t>(1.0 / taskSize);
-      TensorBlockMapper block_mapper(evaluator.dimensions(), block_shape,
-                                     block_size);
+      TensorBlockMapper block_mapper(
+          typename TensorBlockMapper::Dimensions(evaluator.dimensions()),
+          block_shape, block_size);
       block_size = block_mapper.block_dims_total_size();
       const size_t aligned_blocksize =
           EIGEN_MAX_ALIGN_BYTES *
