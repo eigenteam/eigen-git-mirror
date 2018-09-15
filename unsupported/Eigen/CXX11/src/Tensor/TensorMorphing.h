@@ -695,7 +695,7 @@ struct TensorEvaluator<const TensorSlicingOp<StartIndices, Sizes, ArgType>, Devi
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE typename Eigen::internal::traits<XprType>::PointerType data() const {
-    Scalar* result = m_impl.data();
+    Scalar* result = const_cast<Scalar*>(m_impl.data());
     if (result) {
       Index offset = 0;
       if (static_cast<int>(Layout) == static_cast<int>(ColMajor)) {
