@@ -13,13 +13,6 @@
 
 namespace Eigen {
 
-/** \namespace Eigen::placeholders
-  * \ingroup Core_Module
-  *
-  * Namespace containing symbolic placeholder and identifiers
-  */
-namespace placeholders {
-
 namespace internal {
 struct symbolic_last_tag {};
 }
@@ -44,26 +37,25 @@ struct symbolic_last_tag {};
   */
 static const symbolic::SymbolExpr<internal::symbolic_last_tag> last;
 
-/** \var end
+/** \var lastp1
   * \ingroup Core_Module
   *
-  * Can be used as a parameter to Eigen::seq and Eigen::seqN functions to symbolically reference the last+1 element/row/columns
-  * of the underlying vector or matrix once passed to DenseBase::operator()(const RowIndices&, const ColIndices&).
+  * Can be used as a parameter to Eigen::seq and Eigen::seqN functions to symbolically
+  * reference the last+1 element/row/columns of the underlying vector or matrix once
+  * passed to DenseBase::operator()(const RowIndices&, const ColIndices&).
   *
   * This symbolic placeholder support standard arithmetic operation.
-  * It is essentially an alias to last+1
+  * It is essentially an alias to last+fix<1>.
   *
   * \sa last
   */
 #ifdef EIGEN_PARSED_BY_DOXYGEN
-static const auto end = last+1;
+static const auto lastp1 = last+fix<1>;
 #else
 // Using a FixedExpr<1> expression is important here to make sure the compiler
 // can fully optimize the computation starting indices with zero overhead.
-static const symbolic::AddExpr<symbolic::SymbolExpr<internal::symbolic_last_tag>,symbolic::ValueExpr<Eigen::internal::FixedInt<1> > > end(last+fix<1>());
+static const symbolic::AddExpr<symbolic::SymbolExpr<internal::symbolic_last_tag>,symbolic::ValueExpr<Eigen::internal::FixedInt<1> > > lastp1(last+fix<1>());
 #endif
-
-} // end namespace placeholders
 
 namespace internal {
 
@@ -76,7 +68,7 @@ FixedInt<N> eval_expr_given_size(FixedInt<N> x, Index /*size*/)   { return x; }
 template<typename Derived>
 Index eval_expr_given_size(const symbolic::BaseExpr<Derived> &x, Index size)
 {
-  return x.derived().eval(placeholders::last=size-1);
+  return x.derived().eval(last=size-1);
 }
 
 // Extract increment/step at compile time
@@ -172,15 +164,11 @@ template<int Size> struct get_compile_time_incr<AllRange<Size> > {
 } // end namespace internal
 
 
-namespace placeholders {
-
 /** \var all
   * \ingroup Core_Module
   * Can be used as a parameter to DenseBase::operator()(const RowIndices&, const ColIndices&) to index all rows or columns
   */
 static const Eigen::internal::all_t all;
-
-}
 
 } // end namespace Eigen
 

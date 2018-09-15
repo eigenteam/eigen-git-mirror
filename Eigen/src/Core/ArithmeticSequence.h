@@ -329,9 +329,9 @@ seq(const symbolic::BaseExpr<FirstTypeDerived> &f, const symbolic::BaseExpr<Last
   * \sa lastN(SizeType), seqN(FirstType,SizeType), seq(FirstType,LastType,IncrType) */
 template<typename SizeType,typename IncrType>
 auto lastN(SizeType size, IncrType incr)
--> decltype(seqN(Eigen::placeholders::last-(size-fix<1>())*incr, size, incr))
+-> decltype(seqN(Eigen::last-(size-fix<1>())*incr, size, incr))
 {
-  return seqN(Eigen::placeholders::last-(size-fix<1>())*incr, size, incr);
+  return seqN(Eigen::last-(size-fix<1>())*incr, size, incr);
 }
 
 /** \cpp11
@@ -342,9 +342,9 @@ auto lastN(SizeType size, IncrType incr)
   * \sa lastN(SizeType,IncrType, seqN(FirstType,SizeType), seq(FirstType,LastType) */
 template<typename SizeType>
 auto lastN(SizeType size)
--> decltype(seqN(Eigen::placeholders::last+fix<1>()-size, size))
+-> decltype(seqN(Eigen::last+fix<1>()-size, size))
 {
-  return seqN(Eigen::placeholders::last+fix<1>()-size, size);
+  return seqN(Eigen::last+fix<1>()-size, size);
 }
 #endif
 
