@@ -291,8 +291,8 @@ struct DSizes : array<DenseIndex, NumDims> {
   }
 
 #ifdef EIGEN_HAS_INDEX_LIST
-  EIGEN_DEVICE_FUNC
   template <typename FirstType, typename... OtherTypes>
+  EIGEN_DEVICE_FUNC
   DSizes(const Eigen::IndexList<FirstType, OtherTypes...>& dimensions) {
     for (int i = 0; i < dimensions.count; ++i) {
       (*this)[i] = dimensions[i];
