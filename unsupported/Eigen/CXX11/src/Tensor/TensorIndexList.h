@@ -351,9 +351,9 @@ struct IndexPairList : internal::IndexTuple<FirstType, OtherTypes...> {
 namespace internal {
 
 template<typename FirstType, typename... OtherTypes>
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE size_t array_prod(const IndexList<FirstType, OtherTypes...>& sizes) {
-  size_t result = 1;
-  for (int i = 0; i < array_size<IndexList<FirstType, OtherTypes...> >::value; ++i) {
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE DenseIndex array_prod(const IndexList<FirstType, OtherTypes...>& sizes) {
+  DenseIndex result = 1;
+  for (size_t i = 0; i < array_size<IndexList<FirstType, OtherTypes...> >::value; ++i) {
     result *= sizes[i];
   }
   return result;
