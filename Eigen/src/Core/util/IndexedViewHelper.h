@@ -42,7 +42,7 @@ struct symbolic_last_tag {};
   *
   * \sa end
   */
-static const Symbolic::SymbolExpr<internal::symbolic_last_tag> last;
+static const symbolic::SymbolExpr<internal::symbolic_last_tag> last;
 
 /** \var end
   * \ingroup Core_Module
@@ -60,7 +60,7 @@ static const auto end = last+1;
 #else
 // Using a FixedExpr<1> expression is important here to make sure the compiler
 // can fully optimize the computation starting indices with zero overhead.
-static const Symbolic::AddExpr<Symbolic::SymbolExpr<internal::symbolic_last_tag>,Symbolic::ValueExpr<Eigen::internal::FixedInt<1> > > end(last+fix<1>());
+static const symbolic::AddExpr<symbolic::SymbolExpr<internal::symbolic_last_tag>,symbolic::ValueExpr<Eigen::internal::FixedInt<1> > > end(last+fix<1>());
 #endif
 
 } // end namespace placeholders
@@ -74,7 +74,7 @@ template<int N>
 FixedInt<N> eval_expr_given_size(FixedInt<N> x, Index /*size*/)   { return x; }
 
 template<typename Derived>
-Index eval_expr_given_size(const Symbolic::BaseExpr<Derived> &x, Index size)
+Index eval_expr_given_size(const symbolic::BaseExpr<Derived> &x, Index size)
 {
   return x.derived().eval(placeholders::last=size-1);
 }
@@ -127,13 +127,13 @@ struct IndexedViewCompatibleType<T,XprSize,typename internal::enable_if<internal
 };
 
 template<typename T, int XprSize>
-struct IndexedViewCompatibleType<T, XprSize, typename enable_if<Symbolic::is_symbolic<T>::value>::type> {
+struct IndexedViewCompatibleType<T, XprSize, typename enable_if<symbolic::is_symbolic<T>::value>::type> {
   typedef SingleRange type;
 };
 
 
 template<typename T>
-typename enable_if<Symbolic::is_symbolic<T>::value,SingleRange>::type
+typename enable_if<symbolic::is_symbolic<T>::value,SingleRange>::type
 makeIndexedViewCompatible(const T& id, Index size, SpecializedType) {
   return eval_expr_given_size(id,size);
 }

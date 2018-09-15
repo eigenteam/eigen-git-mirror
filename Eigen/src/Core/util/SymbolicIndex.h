@@ -12,7 +12,7 @@
 
 namespace Eigen {
 
-/** \namespace Eigen::Symbolic
+/** \namespace Eigen::symbolic
   * \ingroup Core_Module
   *
   * This namespace defines a set of classes and functions to build and evaluate symbolic expressions of scalar type Index.
@@ -20,9 +20,9 @@ namespace Eigen {
   *
   * \code
   * // First step, defines symbols:
-  * struct x_tag {};  static const Symbolic::SymbolExpr<x_tag> x;
-  * struct y_tag {};  static const Symbolic::SymbolExpr<y_tag> y;
-  * struct z_tag {};  static const Symbolic::SymbolExpr<z_tag> z;
+  * struct x_tag {};  static const symbolic::SymbolExpr<x_tag> x;
+  * struct y_tag {};  static const symbolic::SymbolExpr<y_tag> y;
+  * struct z_tag {};  static const symbolic::SymbolExpr<z_tag> z;
   *
   * // Defines an expression:
   * auto expr = (x+3)/y+z;
@@ -38,7 +38,7 @@ namespace Eigen {
   * It is currently only used internally to define and manipulate the placeholders::last and placeholders::end symbols in Eigen::seq and Eigen::seqN.
   *
   */
-namespace Symbolic {
+namespace symbolic {
 
 template<typename Tag> class Symbol;
 template<typename Arg0> class NegateExpr;
@@ -286,7 +286,7 @@ protected:
   Arg1 m_arg1;
 };
 
-} // end namespace Symbolic
+} // end namespace symbolic
 
 } // end namespace Eigen
 

@@ -161,7 +161,7 @@ operator()(const Indices& indices) EIGEN_INDEXED_VIEW_METHOD_CONST
 
 template<typename Indices>
 typename internal::enable_if<
-  (internal::get_compile_time_incr<typename IvcType<Indices>::type>::value==1) && (!internal::is_valid_index_type<Indices>::value) && (!Symbolic::is_symbolic<Indices>::value),
+  (internal::get_compile_time_incr<typename IvcType<Indices>::type>::value==1) && (!internal::is_valid_index_type<Indices>::value) && (!symbolic::is_symbolic<Indices>::value),
   VectorBlock<EIGEN_INDEXED_VIEW_METHOD_CONST Derived,internal::array_size<Indices>::value> >::type
 operator()(const Indices& indices) EIGEN_INDEXED_VIEW_METHOD_CONST
 {
@@ -172,7 +172,7 @@ operator()(const Indices& indices) EIGEN_INDEXED_VIEW_METHOD_CONST
 }
 
 template<typename IndexType>
-typename internal::enable_if<Symbolic::is_symbolic<IndexType>::value, CoeffReturnType >::type
+typename internal::enable_if<symbolic::is_symbolic<IndexType>::value, CoeffReturnType >::type
 operator()(const IndexType& id) EIGEN_INDEXED_VIEW_METHOD_CONST
 {
   return Base::operator()(internal::eval_expr_given_size(id,size()));

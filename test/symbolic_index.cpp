@@ -60,12 +60,12 @@ bool is_same_symb(const T1& a, const T2& b, Index size)
 
 template<typename T>
 void check_is_symbolic(const T&) {
-  STATIC_CHECK(( Symbolic::is_symbolic<T>::value ))
+  STATIC_CHECK(( symbolic::is_symbolic<T>::value ))
 }
 
 template<typename T>
 void check_isnot_symbolic(const T&) {
-  STATIC_CHECK(( !Symbolic::is_symbolic<T>::value ))
+  STATIC_CHECK(( !symbolic::is_symbolic<T>::value ))
 }
 
 #define VERIFY_EQ_INT(A,B) VERIFY_IS_APPROX(int(A),int(B))
@@ -104,9 +104,9 @@ void check_symbolic_index()
 
 #if EIGEN_HAS_CXX14
   {
-    struct x_tag {};  static const Symbolic::SymbolExpr<x_tag> x;
-    struct y_tag {};  static const Symbolic::SymbolExpr<y_tag> y;
-    struct z_tag {};  static const Symbolic::SymbolExpr<z_tag> z;
+    struct x_tag {};  static const symbolic::SymbolExpr<x_tag> x;
+    struct y_tag {};  static const symbolic::SymbolExpr<y_tag> y;
+    struct z_tag {};  static const symbolic::SymbolExpr<z_tag> z;
 
     VERIFY_IS_APPROX( int(((x+3)/y+z).eval(x=6,y=3,z=-13)), (6+3)/3+(-13) );
   }
