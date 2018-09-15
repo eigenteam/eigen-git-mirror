@@ -976,7 +976,8 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType, MakePointer_>,
         // find that scattered reads are not worth supporting in
         // TensorSliceBlockMapper.
         TensorSliceBlockMapper block_mapper(
-            input_tensor_dims, tensor_slice_offsets, tensor_slice_extents,
+            typename TensorSliceBlockMapper::Dimensions(input_tensor_dims),
+            tensor_slice_offsets, tensor_slice_extents,
             target_input_block_sizes, DimensionList<Index, NumInputDims>());
 
         const Index num_outputs_to_update =
@@ -1232,7 +1233,6 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType, MakePointer_>,
       } else if (!first_preserved_dim_allocated) {
         // TODO(andydavis) Include output block size in this L1 working set
         // calculation.
-        const Index allocated = max_coeff_count - coeff_to_allocate;
         const Index alloc_size = numext::maxi(
             static_cast<Index>(1), coeff_to_allocate / reducer_overhead);
         (*target_input_block_sizes)[dim] =
