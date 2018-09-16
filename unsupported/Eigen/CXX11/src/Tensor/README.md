@@ -1250,7 +1250,7 @@ dd a comment to this line
     =>
     a
     1 2 3
-    6 5 4
+    4 5 6
 
     b
     1  3  6
