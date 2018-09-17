@@ -25,7 +25,7 @@
 #ifndef EIGEN_ARPACKGENERALIZEDSELFADJOINTEIGENSOLVER_H
 #define EIGEN_ARPACKGENERALIZEDSELFADJOINTEIGENSOLVER_H
 
-#include <Eigen/Dense>
+#include "../../../../Eigen/Dense"
 
 namespace Eigen { 
 

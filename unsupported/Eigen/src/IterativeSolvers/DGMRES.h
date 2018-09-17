@@ -10,7 +10,7 @@
 #ifndef EIGEN_DGMRES_H
 #define EIGEN_DGMRES_H
 
-#include <Eigen/Eigenvalues>
+#include "../../../../Eigen/Eigenvalues"
 
 namespace Eigen { 
   

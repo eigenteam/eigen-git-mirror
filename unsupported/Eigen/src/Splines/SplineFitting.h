@@ -17,8 +17,8 @@
 
 #include "SplineFwd.h"
 
-#include <Eigen/LU>
-#include <Eigen/QR>
+#include "../../../../Eigen/LU"
+#include "../../../../Eigen/QR"
 
 namespace Eigen
 {

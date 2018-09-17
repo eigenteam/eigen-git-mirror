@@ -10,7 +10,7 @@
 #ifndef EIGEN_OPENGL_MODULE
 #define EIGEN_OPENGL_MODULE
 
-#include <Eigen/Geometry>
+#include "../../Eigen/Geometry"
 
 #if defined(__APPLE_CC__)
   #include <OpenGL/gl.h>

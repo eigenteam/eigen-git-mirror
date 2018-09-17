@@ -10,7 +10,7 @@
 #ifndef EIGEN_ITERATIVE_SOLVERS_MODULE_H
 #define EIGEN_ITERATIVE_SOLVERS_MODULE_H
 
-#include <Eigen/Sparse>
+#include "../../Eigen/Sparse"
 #include "../../Eigen/Jacobi"
 #include "../../Eigen/Householder"
 

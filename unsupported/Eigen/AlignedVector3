@@ -10,7 +10,7 @@
 #ifndef EIGEN_ALIGNED_VECTOR3
 #define EIGEN_ALIGNED_VECTOR3
 
-#include <Eigen/Geometry>
+#include "../../Eigen/Geometry"
 
 #include "../../Eigen/src/Core/util/DisableStupidWarnings.h"
 

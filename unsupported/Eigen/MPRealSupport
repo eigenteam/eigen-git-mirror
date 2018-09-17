@@ -12,7 +12,7 @@
 #ifndef EIGEN_MPREALSUPPORT_MODULE_H
 #define EIGEN_MPREALSUPPORT_MODULE_H
 
-#include <Eigen/Core>
+#include "../../Eigen/Core"
 #include <mpreal.h>
 
 namespace Eigen {
