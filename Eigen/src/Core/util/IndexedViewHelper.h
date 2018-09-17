@@ -28,14 +28,14 @@ struct symbolic_last_tag {};
   * A typical usage example would be:
   * \code
   * using namespace Eigen;
-  * using Eigen::placeholders::last;
+  * using Eigen::last;
   * VectorXd v(n);
   * v(seq(2,last-2)).setOnes();
   * \endcode
   *
   * \sa end
   */
-static const symbolic::SymbolExpr<internal::symbolic_last_tag> last;
+static const symbolic::SymbolExpr<internal::symbolic_last_tag> last; // PLEASE use Eigen::last   instead of Eigen::placeholders::last
 
 /** \var lastp1
   * \ingroup Core_Module
@@ -168,7 +168,18 @@ template<int Size> struct get_compile_time_incr<AllRange<Size> > {
   * \ingroup Core_Module
   * Can be used as a parameter to DenseBase::operator()(const RowIndices&, const ColIndices&) to index all rows or columns
   */
-static const Eigen::internal::all_t all;
+static const Eigen::internal::all_t all; // PLEASE use Eigen::all instead of Eigen::placeholders::all
+
+
+namespace placeholders {
+  typedef symbolic::SymbolExpr<internal::symbolic_last_tag> last_t;
+  typedef symbolic::AddExpr<symbolic::SymbolExpr<internal::symbolic_last_tag>,symbolic::ValueExpr<Eigen::internal::FixedInt<1> > > end_t;
+  typedef Eigen::internal::all_t all_t;
+
+  EIGEN_DEPRECATED static const all_t  all  = Eigen::all;    // PLEASE use Eigen::all    instead of Eigen::placeholders::all
+  EIGEN_DEPRECATED static const last_t last = Eigen::last;   // PLEASE use Eigen::last   instead of Eigen::placeholders::last
+  EIGEN_DEPRECATED static const end_t  end  = Eigen::lastp1; // PLEASE use Eigen::lastp1 instead of Eigen::placeholders::end
+}
 
 } // end namespace Eigen
 
