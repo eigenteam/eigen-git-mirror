@@ -121,6 +121,7 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
         : m_eivec(),
           m_eivalues(),
           m_subdiag(),
+          m_info(InvalidInput),
           m_isInitialized(false)
     { }
 
