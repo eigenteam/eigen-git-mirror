@@ -50,7 +50,7 @@ static void test_static_dimension_failure()
       .reshape(Tensor<int, 3>::Dimensions(2, 3, 1))
       .concatenate(right, 0);
   Tensor<int, 2, DataLayout> alternative = left
-   // Clang compiler break with {{{}}} with an ambigous error on copy constructor
+   // Clang compiler break with {{{}}} with an ambiguous error on copy constructor
   // the variadic DSize constructor added for #ifndef EIGEN_EMULATE_CXX11_META_H.
   // Solution:
   // either the code should change to 

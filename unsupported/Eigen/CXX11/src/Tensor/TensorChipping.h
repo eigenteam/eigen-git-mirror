@@ -244,7 +244,7 @@ struct TensorEvaluator<const TensorChippingOp<DimId, ArgType>, Device>
       return rslt;
     } else if ((static_cast<int>(Layout) == static_cast<int>(ColMajor) && m_dim.actualDim() == NumInputDims - 1) ||
          (static_cast<int>(Layout) == static_cast<int>(RowMajor) && m_dim.actualDim() == 0)) {
-      // m_stride is aways greater than index, so let's avoid the integer division.
+      // m_stride is always greater than index, so let's avoid the integer division.
       eigen_assert(m_stride > index);
       return m_impl.template packet<LoadMode>(index + m_inputOffset);
     } else {
@@ -377,7 +377,7 @@ struct TensorEvaluator<const TensorChippingOp<DimId, ArgType>, Device>
       inputIndex = index * m_inputStride + m_inputOffset;
     } else if ((static_cast<int>(Layout) == static_cast<int>(ColMajor) && m_dim.actualDim() == NumInputDims - 1) ||
                (static_cast<int>(Layout) == static_cast<int>(RowMajor) && m_dim.actualDim() == 0)) {
-      // m_stride is aways greater than index, so let's avoid the integer
+      // m_stride is always greater than index, so let's avoid the integer
       // division.
       eigen_assert(m_stride > index);
       inputIndex = index + m_inputOffset;
@@ -462,7 +462,7 @@ struct TensorEvaluator<TensorChippingOp<DimId, ArgType>, Device>
       }
     } else if ((static_cast<int>(this->Layout) == static_cast<int>(ColMajor) && this->m_dim.actualDim() == NumInputDims-1) ||
          (static_cast<int>(this->Layout) == static_cast<int>(RowMajor) && this->m_dim.actualDim() == 0)) {
-      // m_stride is aways greater than index, so let's avoid the integer division.
+      // m_stride is always greater than index, so let's avoid the integer division.
       eigen_assert(this->m_stride > index);
       this->m_impl.template writePacket<StoreMode>(index + this->m_inputOffset, x);
     } else {

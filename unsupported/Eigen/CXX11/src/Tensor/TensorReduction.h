@@ -965,7 +965,7 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType, MakePointer_>,
           }
         }
 
-        // Intialize output coefficient reducers.
+        // Initialize output coefficient reducers.
         for (int i = 0; i < num_reducers; ++i) {
           new (&reducers[i]) BlockReducer(m_reducer);
         }

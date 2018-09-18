@@ -12,7 +12,7 @@
 
 // This header file container defines fo gpu* macros which will resolve to
 // their equivalent hip* or cuda* versions depending on the compiler in use
-// A separte header (included at the end of this file) will undefine all 
+// A separate header (included at the end of this file) will undefine all 
 #include "TensorGpuHipCudaDefines.h"
 
 namespace Eigen {
