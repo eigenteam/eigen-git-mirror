@@ -771,7 +771,7 @@ struct OuterReducer<Self, Op, GpuDevice> {
     // terminate called after throwing an instance of 'std::runtime_error'
     //   what():  No device code available for function: _ZN5Eigen8internal20OuterReductionKernelIL...
     //
-    // dont know why this happens (and why is it a runtime error instead of a compile time errror)
+    // don't know why this happens (and why is it a runtime error instead of a compile time error)
     //
     // this will be fixed by HIP PR#457
     EIGEN_DEVICE_FUNC

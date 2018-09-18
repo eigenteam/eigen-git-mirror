@@ -433,7 +433,7 @@ static void test_execute_slice_lvalue(Device d)
   Tensor<T, NumDims, Options, Index> slice(slice_size);
   slice.setRandom();
 
-  // Asign a slice using default executor.
+  // Assign a slice using default executor.
   Tensor<T, NumDims, Options, Index> golden = src;
   golden.slice(slice_start, slice_size) = slice;
 

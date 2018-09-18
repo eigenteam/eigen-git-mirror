@@ -134,7 +134,7 @@ EIGEN_DONT_INLINE typename T::Scalar pblueNorm(const T& v)
     iexp  = - ((iemax+it)/2);
     s2m   = std::pow(ibeta,iexp);   // scaling factor for upper range
 
-    overfl  = rbig*s2m;          // overfow boundary for abig
+    overfl  = rbig*s2m;          // overflow boundary for abig
     eps     = std::pow(ibeta, 1-it);
     relerr  = std::sqrt(eps);      // tolerance for neglecting asml
     abig    = 1.0/eps - 1.0;
