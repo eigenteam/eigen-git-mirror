@@ -116,10 +116,63 @@ static void test_cancel()
   tp.Cancel();
 }
 
+static void test_pool_partitions() {
+  const int kThreads = 2;
+  ThreadPool tp(kThreads);
+
+  // Assign each thread to its own partition, so that stealing other work only
+  // occurs globally when a thread is idle.
+  std::vector<std::pair<unsigned, unsigned>> steal_partitions(kThreads);
+  for (int i = 0; i < kThreads; ++i) {
+    steal_partitions[i] = std::make_pair(i, i + 1);
+  }
+  tp.SetStealPartitions(steal_partitions);
+
+  std::atomic<int> running(0);
+  std::atomic<int> done(0);
+  std::atomic<int> phase(0);
+
+  // Schedule kThreads tasks and ensure that they all are running.
+  for (int i = 0; i < kThreads; ++i) {
+    tp.Schedule([&]() {
+      const int thread_id = tp.CurrentThreadId();
+      VERIFY_GE(thread_id, 0);
+      VERIFY_LE(thread_id, kThreads - 1);
+      ++running;
+      while (phase < 1) {
+      }
+      ++done;
+    });
+  }
+  while (running != kThreads) {
+  }
+  // Schedule each closure to only run on thread 'i' and verify that it does.
+  for (int i = 0; i < kThreads; ++i) {
+    tp.ScheduleWithHint(
+        [&, i]() {
+          ++running;
+          const int thread_id = tp.CurrentThreadId();
+          VERIFY_IS_EQUAL(thread_id, i);
+          while (phase < 2) {
+          }
+          ++done;
+        },
+        i, i + 1);
+  }
+  running = 0;
+  phase = 1;
+  while (running != kThreads) {
+  }
+  running = 0;
+  phase = 2;
+}
+
+
 EIGEN_DECLARE_TEST(cxx11_non_blocking_thread_pool)
 {
   CALL_SUBTEST(test_create_destroy_empty_pool());
   CALL_SUBTEST(test_parallelism(true));
   CALL_SUBTEST(test_parallelism(false));
   CALL_SUBTEST(test_cancel());
+  CALL_SUBTEST(test_pool_partitions());
 }
