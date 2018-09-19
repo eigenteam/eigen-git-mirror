@@ -85,7 +85,7 @@ class ThreadPoolTempl : public Eigen::ThreadPoolInterface {
   }
 
   void SetStealPartitions(const std::vector<std::pair<unsigned, unsigned>>& partitions) {
-    eigen_assert(static_cast<int>(partitions.size()) == num_threads_);
+    eigen_assert(partitions.size() == static_cast<std::size_t>(num_threads_));
 
     // Pass this information to each thread queue.
     for (int i = 0; i < num_threads_; i++) {
