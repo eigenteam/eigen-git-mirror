@@ -61,9 +61,11 @@ static void test_rank_zero()
 }
 
 static void test_index_type_promotion() {
-#ifdef EIGEN_HAS_CXX11
   Eigen::DSizes<int, 3> src0(1, 2, 3);
-  Eigen::array<int, 3> src1 = {4, 5, 6};
+  Eigen::array<int, 3> src1;
+  src1[0] = 4;
+  src1[1] = 5;
+  src1[2] = 6;
 
   Eigen::DSizes<long, 3> dst0(src0);
   Eigen::DSizes<long, 3> dst1(src1);
@@ -74,7 +76,6 @@ static void test_index_type_promotion() {
   VERIFY_IS_EQUAL(dst1[0], 4L);
   VERIFY_IS_EQUAL(dst1[1], 5L);
   VERIFY_IS_EQUAL(dst1[2], 6L);
-#endif  // EIGEN_HAS_CXX11
 }
 
 EIGEN_DECLARE_TEST(cxx11_tensor_dimension)

@@ -477,6 +477,18 @@ class Tensor : public TensorBase<Tensor<Scalar_, NumIndices_, Options_, IndexTyp
       // Nothing to do: rank 0 tensors have fixed size
     }
 
+#ifdef EIGEN_HAS_INDEX_LIST
+    template <typename FirstType, typename... OtherTypes>
+    EIGEN_DEVICE_FUNC
+    void resize(const Eigen::IndexList<FirstType, OtherTypes...>& dimensions) {
+      array<Index, NumIndices> dims;
+      for (int i = 0; i < NumIndices; ++i) {
+        dims[i] = static_cast<Index>(dimensions[i]);
+      }
+      resize(dims);
+    }
+#endif
+
     /** Custom Dimension */
 #ifdef EIGEN_HAS_SFINAE
     template<typename CustomDimension,
