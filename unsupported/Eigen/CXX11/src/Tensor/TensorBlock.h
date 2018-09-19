@@ -188,7 +188,7 @@ class TensorBlockIO {
     StorageIndex input_span;
     StorageIndex output_span;
     StorageIndex size;
-    StorageIndex count;
+    StorageIndex count = 0;
   };
 
   static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void Copy(
@@ -257,7 +257,7 @@ class TensorBlockIO {
     array<BlockIteratorState, at_least_1_dim> block_iter_state;
 
     // Initialize block iterator state. Squeeze away any dimension of size 1.
-    int num_squeezed_dims = 0;
+    Index num_squeezed_dims = 0;
     for (Index i = num_size_one_inner_dims; i < NumDims - 1; ++i) {
       const Index dim = cond<Layout>()(i + 1, NumDims - i - 2);
       const StorageIndex size = block.block_sizes()[tensor_to_block_dim_map[dim]];
@@ -280,7 +280,6 @@ class TensorBlockIO {
       block_iter_state[num_squeezed_dims].output_span =
           block_iter_state[num_squeezed_dims].output_stride *
           (block_iter_state[num_squeezed_dims].size - 1);
-      block_iter_state[num_squeezed_dims].count = 0;
       ++num_squeezed_dims;
     }
 

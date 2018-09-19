@@ -884,11 +884,11 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType, MakePointer_>,
     const Index first_preserved_dim_input_index =
         m_output_to_input_dim_map[first_preserved_dim_output_index];
     const bool inner_most_dim_preserved =
-        first_preserved_dim_input_index ==
-            (static_cast<int>(Layout) == static_cast<int>(ColMajor)
-                 ? 0
-                 : NumInputDims - 1) |
-        PreservingInnerMostDims;
+        PreservingInnerMostDims ||
+        (first_preserved_dim_input_index ==
+         (static_cast<int>(Layout) == static_cast<int>(ColMajor)
+              ? 0
+              : NumInputDims - 1));
 
     // Calculate output block inner/outer dimension sizes.
     const Index output_block_inner_dim_size =
