@@ -265,11 +265,6 @@ static const auto fix(int val);
 
 #endif // EIGEN_PARSED_BY_DOXYGEN
 
-const int AutoOrderValue = 2;
-const internal::FixedInt<ColMajor>        ColOrder;
-const internal::FixedInt<RowMajor>        RowOrder;
-const internal::FixedInt<AutoOrderValue>  AutoOrder;
-
 } // end namespace Eigen
 
 #endif // EIGEN_INTEGRAL_CONSTANT_H

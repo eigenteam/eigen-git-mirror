@@ -62,7 +62,7 @@ struct traits<Reshaped<XprType, Rows, Cols, Order> > : traits<XprType>
                          : (ColsAtCompileTime == 1 && RowsAtCompileTime != 1) ? ColMajor
                          : XpxStorageOrder,
     HasSameStorageOrderAsXprType = (ReshapedStorageOrder == XpxStorageOrder),
-    InnerSize = (ReshapedStorageOrder==RowMajor) ? int(ColsAtCompileTime) : int(RowsAtCompileTime),
+    InnerSize = (ReshapedStorageOrder==int(RowMajor)) ? int(ColsAtCompileTime) : int(RowsAtCompileTime),
     InnerStrideAtCompileTime = HasSameStorageOrderAsXprType
                              ? int(inner_stride_at_compile_time<XprType>::ret)
                              : Dynamic,
@@ -78,7 +78,7 @@ struct traits<Reshaped<XprType, Rows, Cols, Order> > : traits<XprType>
     //MaskAlignedBit = ((OuterStrideAtCompileTime!=Dynamic) && (((OuterStrideAtCompileTime * int(sizeof(Scalar))) % 16) == 0)) ? AlignedBit : 0,
     FlagsLinearAccessBit = (RowsAtCompileTime == 1 || ColsAtCompileTime == 1) ? LinearAccessBit : 0,
     FlagsLvalueBit = is_lvalue<XprType>::value ? LvalueBit : 0,
-    FlagsRowMajorBit = (ReshapedStorageOrder==RowMajor) ? RowMajorBit : 0,
+    FlagsRowMajorBit = (ReshapedStorageOrder==int(RowMajor)) ? RowMajorBit : 0,
     FlagsDirectAccessBit = HasDirectAccess ? DirectAccessBit : 0,
     Flags0 = traits<XprType>::Flags & ( (HereditaryBits & ~RowMajorBit) | MaskPacketAccessBit),
 
@@ -284,7 +284,7 @@ struct evaluator<Reshaped<ArgType, Rows, Cols, Order> >
 //     OuterStrideAtCompileTime = Dynamic,
 
     FlagsLinearAccessBit = (traits<XprType>::RowsAtCompileTime == 1 || traits<XprType>::ColsAtCompileTime == 1 || HasDirectAccess) ? LinearAccessBit : 0,
-    FlagsRowMajorBit = (traits<XprType>::ReshapedStorageOrder==RowMajor) ? RowMajorBit : 0,
+    FlagsRowMajorBit = (traits<XprType>::ReshapedStorageOrder==int(RowMajor)) ? RowMajorBit : 0,
     FlagsDirectAccessBit =  HasDirectAccess ? DirectAccessBit : 0,
     Flags0 = evaluator<ArgType>::Flags & (HereditaryBits & ~RowMajorBit),
     Flags = Flags0 | FlagsLinearAccessBit | FlagsRowMajorBit | FlagsDirectAccessBit,

@@ -14,6 +14,7 @@
 namespace Eigen {
 
 enum AutoSize_t   { AutoSize };
+const int AutoOrder = 2;
 
 namespace internal {
 

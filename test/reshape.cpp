@@ -17,8 +17,8 @@ is_same_eq(const T1& a, const T2& b)
   return (a.array() == b.array()).all();
 }
 
-template <typename MatType,typename OrderType>
-void check_auto_reshape4x4(MatType m,OrderType order)
+template <int Order,typename MatType>
+void check_auto_reshape4x4(MatType m)
 {
   internal::VariableAndFixedInt<MatType::SizeAtCompileTime==Dynamic?-1: 1>  v1( 1);
   internal::VariableAndFixedInt<MatType::SizeAtCompileTime==Dynamic?-1: 2>  v2( 2);
@@ -26,27 +26,27 @@ void check_auto_reshape4x4(MatType m,OrderType order)
   internal::VariableAndFixedInt<MatType::SizeAtCompileTime==Dynamic?-1: 8>  v8( 8);
   internal::VariableAndFixedInt<MatType::SizeAtCompileTime==Dynamic?-1:16> v16(16);
 
-  VERIFY(is_same_eq(m.reshaped( 1,       AutoSize, order), m.reshaped( 1, 16, order)));
-  VERIFY(is_same_eq(m.reshaped(AutoSize, 16,       order), m.reshaped( 1, 16, order)));
-  VERIFY(is_same_eq(m.reshaped( 2,       AutoSize, order), m.reshaped( 2,  8, order)));
-  VERIFY(is_same_eq(m.reshaped(AutoSize, 8,        order), m.reshaped( 2,  8, order)));
-  VERIFY(is_same_eq(m.reshaped( 4,       AutoSize, order), m.reshaped( 4,  4, order)));
-  VERIFY(is_same_eq(m.reshaped(AutoSize, 4,        order), m.reshaped( 4,  4, order)));
-  VERIFY(is_same_eq(m.reshaped( 8,       AutoSize, order), m.reshaped( 8,  2, order)));
-  VERIFY(is_same_eq(m.reshaped(AutoSize, 2,        order), m.reshaped( 8,  2, order)));
-  VERIFY(is_same_eq(m.reshaped(16,       AutoSize, order), m.reshaped(16,  1, order)));
-  VERIFY(is_same_eq(m.reshaped(AutoSize, 1,       order),  m.reshaped(16,  1, order)));
+  VERIFY(is_same_eq(m.template reshaped<Order>( 1,       AutoSize), m.template reshaped<Order>( 1, 16)));
+  VERIFY(is_same_eq(m.template reshaped<Order>(AutoSize, 16      ), m.template reshaped<Order>( 1, 16)));
+  VERIFY(is_same_eq(m.template reshaped<Order>( 2,       AutoSize), m.template reshaped<Order>( 2,  8)));
+  VERIFY(is_same_eq(m.template reshaped<Order>(AutoSize, 8       ), m.template reshaped<Order>( 2,  8)));
+  VERIFY(is_same_eq(m.template reshaped<Order>( 4,       AutoSize), m.template reshaped<Order>( 4,  4)));
+  VERIFY(is_same_eq(m.template reshaped<Order>(AutoSize, 4       ), m.template reshaped<Order>( 4,  4)));
+  VERIFY(is_same_eq(m.template reshaped<Order>( 8,       AutoSize), m.template reshaped<Order>( 8,  2)));
+  VERIFY(is_same_eq(m.template reshaped<Order>(AutoSize, 2       ), m.template reshaped<Order>( 8,  2)));
+  VERIFY(is_same_eq(m.template reshaped<Order>(16,       AutoSize), m.template reshaped<Order>(16,  1)));
+  VERIFY(is_same_eq(m.template reshaped<Order>(AutoSize, 1       ), m.template reshaped<Order>(16,  1)));
 
-  VERIFY(is_same_eq(m.reshaped(fix< 1>,   AutoSize, order),  m.reshaped(fix< 1>, v16,     order)));
-  VERIFY(is_same_eq(m.reshaped(AutoSize,  fix<16>,  order),  m.reshaped( v1,     fix<16>, order)));
-  VERIFY(is_same_eq(m.reshaped(fix< 2>,   AutoSize, order),  m.reshaped(fix< 2>, v8,      order)));
-  VERIFY(is_same_eq(m.reshaped(AutoSize,  fix< 8>,  order),  m.reshaped( v2,     fix< 8>, order)));
-  VERIFY(is_same_eq(m.reshaped(fix< 4>,   AutoSize, order),  m.reshaped(fix< 4>, v4,      order)));
-  VERIFY(is_same_eq(m.reshaped(AutoSize,  fix< 4>,  order),  m.reshaped( v4,     fix< 4>, order)));
-  VERIFY(is_same_eq(m.reshaped(fix< 8>,   AutoSize, order),  m.reshaped(fix< 8>, v2,      order)));
-  VERIFY(is_same_eq(m.reshaped(AutoSize,  fix< 2>,  order),  m.reshaped( v8,     fix< 2>, order)));
-  VERIFY(is_same_eq(m.reshaped(fix<16>,   AutoSize, order),  m.reshaped(fix<16>, v1,      order)));
-  VERIFY(is_same_eq(m.reshaped(AutoSize,  fix< 1>,  order),  m.reshaped(v16,     fix< 1>, order)));
+  VERIFY(is_same_eq(m.template reshaped<Order>(fix< 1>,   AutoSize),  m.template reshaped<Order>(fix< 1>, v16    )));
+  VERIFY(is_same_eq(m.template reshaped<Order>(AutoSize,  fix<16> ),  m.template reshaped<Order>( v1,     fix<16>)));
+  VERIFY(is_same_eq(m.template reshaped<Order>(fix< 2>,   AutoSize),  m.template reshaped<Order>(fix< 2>, v8     )));
+  VERIFY(is_same_eq(m.template reshaped<Order>(AutoSize,  fix< 8> ),  m.template reshaped<Order>( v2,     fix< 8>)));
+  VERIFY(is_same_eq(m.template reshaped<Order>(fix< 4>,   AutoSize),  m.template reshaped<Order>(fix< 4>, v4     )));
+  VERIFY(is_same_eq(m.template reshaped<Order>(AutoSize,  fix< 4> ),  m.template reshaped<Order>( v4,     fix< 4>)));
+  VERIFY(is_same_eq(m.template reshaped<Order>(fix< 8>,   AutoSize),  m.template reshaped<Order>(fix< 8>, v2     )));
+  VERIFY(is_same_eq(m.template reshaped<Order>(AutoSize,  fix< 2> ),  m.template reshaped<Order>( v8,     fix< 2>)));
+  VERIFY(is_same_eq(m.template reshaped<Order>(fix<16>,   AutoSize),  m.template reshaped<Order>(fix<16>, v1     )));
+  VERIFY(is_same_eq(m.template reshaped<Order>(AutoSize,  fix< 1> ),  m.template reshaped<Order>(v16,     fix< 1>)));
 }
 
 // just test a 4x4 matrix, enumerate all combination manually
@@ -117,12 +117,12 @@ void reshape4x4(MatType m)
   VERIFY(is_same_eq(m.reshaped(fix<16>,   AutoSize),  m.reshaped(fix<16>, v1)));
   VERIFY(is_same_eq(m.reshaped(AutoSize,  fix< 1>),   m.reshaped(v16,     fix< 1>)));
 
-  check_auto_reshape4x4(m,ColOrder);
-  check_auto_reshape4x4(m,RowOrder);
-  check_auto_reshape4x4(m,AutoOrder);
-  check_auto_reshape4x4(m.transpose(),ColOrder);
-  check_auto_reshape4x4(m.transpose(),RowOrder);
-  check_auto_reshape4x4(m.transpose(),AutoOrder);
+  check_auto_reshape4x4<ColMajor> (m);
+  check_auto_reshape4x4<RowMajor> (m);
+  check_auto_reshape4x4<AutoOrder>(m);
+  check_auto_reshape4x4<ColMajor> (m.transpose());
+  check_auto_reshape4x4<ColMajor> (m.transpose());
+  check_auto_reshape4x4<AutoOrder>(m.transpose());
 
   VERIFY_IS_EQUAL(m.reshaped( 1, 16).data(), m.data());
   VERIFY_IS_EQUAL(m.reshaped( 1, 16).innerStride(), 1);
@@ -133,20 +133,20 @@ void reshape4x4(MatType m)
 
   if((MatType::Flags&RowMajorBit)==0)
   {
-    VERIFY_IS_EQUAL(m.reshaped(2,8,ColOrder),m.reshaped(2,8));
-    VERIFY_IS_EQUAL(m.reshaped(2,8,ColOrder),m.reshaped(2,8,AutoOrder));
-    VERIFY_IS_EQUAL(m.transpose().reshaped(2,8,RowOrder),m.transpose().reshaped(2,8,AutoOrder));
+    VERIFY_IS_EQUAL(m.template reshaped<ColMajor>(2,8),m.reshaped(2,8));
+    VERIFY_IS_EQUAL(m.template reshaped<ColMajor>(2,8),m.template reshaped<AutoOrder>(2,8));
+    VERIFY_IS_EQUAL(m.transpose().template reshaped<RowMajor>(2,8),m.transpose().template reshaped<AutoOrder>(2,8));
   }
   else
   {
-    VERIFY_IS_EQUAL(m.reshaped(2,8,ColOrder),m.reshaped(2,8));
-    VERIFY_IS_EQUAL(m.reshaped(2,8,RowOrder),m.reshaped(2,8,AutoOrder));
-    VERIFY_IS_EQUAL(m.transpose().reshaped(2,8,ColOrder),m.transpose().reshaped(2,8,AutoOrder));
-    VERIFY_IS_EQUAL(m.transpose().reshaped(2,8),m.transpose().reshaped(2,8,AutoOrder));
+    VERIFY_IS_EQUAL(m.template reshaped<ColMajor>(2,8),m.reshaped(2,8));
+    VERIFY_IS_EQUAL(m.template reshaped<RowMajor>(2,8),m.template reshaped<AutoOrder>(2,8));
+    VERIFY_IS_EQUAL(m.transpose().template reshaped<ColMajor>(2,8),m.transpose().template reshaped<AutoOrder>(2,8));
+    VERIFY_IS_EQUAL(m.transpose().reshaped(2,8),m.transpose().template reshaped<AutoOrder>(2,8));
   }
 
-  MatrixXi m28r1 = m.reshaped(2,8,RowOrder);
-  MatrixXi m28r2 = m.transpose().reshaped(8,2,ColOrder).transpose();
+  MatrixXi m28r1 = m.template reshaped<RowMajor>(2,8);
+  MatrixXi m28r2 = m.transpose().template reshaped<ColMajor>(8,2).transpose();
   VERIFY_IS_EQUAL( m28r1, m28r2);
 
   using placeholders::all;
@@ -158,7 +158,7 @@ void reshape4x4(MatType m)
   VERIFY_IS_EQUAL(m(all).reshaped(8,2), m.reshaped(8,2));
 
   VERIFY(is_same_eq(m.reshaped(AutoSize,fix<1>), m(all)));
-  VERIFY_IS_EQUAL(m.reshaped(fix<1>,AutoSize,RowOrder), m.transpose()(all).transpose());
+  VERIFY_IS_EQUAL(m.template reshaped<RowMajor>(fix<1>,AutoSize), m.transpose()(all).transpose());
 }
 
 void test_reshape()

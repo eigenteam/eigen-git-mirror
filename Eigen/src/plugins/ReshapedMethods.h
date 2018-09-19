@@ -27,16 +27,16 @@
 /// \sa operator()(placeholders::all), class Reshaped, fix, fix<N>(int)
 ///
 #ifdef EIGEN_PARSED_BY_DOXYGEN
-template<typename NRowsType, typename NColsType, typename OrderType = ColOrder>
+template<int Order = ColMajor, typename NRowsType, typename NColsType>
 EIGEN_DEVICE_FUNC
 inline Reshaped<Derived,...>
-reshaped(NRowsType nRows, NColsType nCols, OrderType order = ColOrder);
+reshaped(NRowsType nRows, NColsType nCols);
 
 /** This is the const version of reshaped(NRowsType,NColsType). */
-template<typename NRowsType, typename NColsType, typename OrderType = ColOrder>
+template<int Order = ColMajor, typename NRowsType, typename NColsType>
 EIGEN_DEVICE_FUNC
 inline const Reshaped<const Derived,...>
-reshaped(NRowsType nRows, NColsType nCols, OrderType order = ColOrder) const;
+reshaped(NRowsType nRows, NColsType nCols) const;
 
 /// \returns as expression of \c *this with columns stacked to a linear column vector
 ///
@@ -83,18 +83,18 @@ reshaped(NRowsType nRows, NColsType nCols) EIGEN_RESHAPED_METHOD_CONST
                  internal::get_runtime_reshape_size(nCols,internal::get_runtime_value(nRows),size()));
 }
 
-template<typename NRowsType, typename NColsType, typename OrderType>
+template<int Order, typename NRowsType, typename NColsType>
 EIGEN_DEVICE_FUNC
 inline Reshaped<EIGEN_RESHAPED_METHOD_CONST Derived,
                 internal::get_compiletime_reshape_size<NRowsType,NColsType,SizeAtCompileTime>::value,
                 internal::get_compiletime_reshape_size<NColsType,NRowsType,SizeAtCompileTime>::value,
-                OrderType::value==AutoOrderValue?Flags&RowMajorBit:OrderType::value>
-reshaped(NRowsType nRows, NColsType nCols, OrderType) EIGEN_RESHAPED_METHOD_CONST
+                Order==AutoOrder?Flags&RowMajorBit:Order>
+reshaped(NRowsType nRows, NColsType nCols) EIGEN_RESHAPED_METHOD_CONST
 {
   return Reshaped<EIGEN_RESHAPED_METHOD_CONST Derived,
                   internal::get_compiletime_reshape_size<NRowsType,NColsType,SizeAtCompileTime>::value,
                   internal::get_compiletime_reshape_size<NColsType,NRowsType,SizeAtCompileTime>::value,
-                  OrderType::value==AutoOrderValue?Flags&RowMajorBit:OrderType::value>
+                  Order==AutoOrder?Flags&RowMajorBit:Order>
                 (derived(),
                  internal::get_runtime_reshape_size(nRows,internal::get_runtime_value(nCols),size()),
                  internal::get_runtime_reshape_size(nCols,internal::get_runtime_value(nRows),size()));
