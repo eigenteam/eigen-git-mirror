@@ -24,7 +24,7 @@ struct gebp_kernel;
 template<typename Scalar, typename Index, typename DataMapper, int nr, int StorageOrder, bool Conjugate = false, bool PanelMode=false>
 struct gemm_pack_rhs;
 
-template<typename Scalar, typename Index, typename DataMapper, int Pack1, int Pack2, int StorageOrder, bool Conjugate = false, bool PanelMode = false>
+template<typename Scalar, typename Index, typename DataMapper, int Pack1, int Pack2, typename Packet, int StorageOrder, bool Conjugate = false, bool PanelMode = false>
 struct gemm_pack_lhs;
 
 template<
@@ -156,11 +156,9 @@ class BlasVectorMapper {
 };
 
 template<typename Scalar, typename Index, int AlignmentType>
-class BlasLinearMapper {
-  public:
-  typedef typename packet_traits<Scalar>::type Packet;
-  typedef typename packet_traits<Scalar>::half HalfPacket;
-
+class BlasLinearMapper
+{
+public:
   EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE BlasLinearMapper(Scalar *data) : m_data(data) {}
 
   EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE void prefetch(int i) const {
@@ -171,29 +169,25 @@ class BlasLinearMapper {
     return m_data[i];
   }
 
-  EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE Packet loadPacket(Index i) const {
-    return ploadt<Packet, AlignmentType>(m_data + i);
+  template<typename PacketType>
+  EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE PacketType loadPacket(Index i) const {
+    return ploadt<PacketType, AlignmentType>(m_data + i);
   }
 
-  EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE HalfPacket loadHalfPacket(Index i) const {
-    return ploadt<HalfPacket, AlignmentType>(m_data + i);
+  template<typename PacketType>
+  EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE void storePacket(Index i, const PacketType &p) const {
+    pstoret<Scalar, PacketType, AlignmentType>(m_data + i, p);
   }
 
-  EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE void storePacket(Index i, const Packet &p) const {
-    pstoret<Scalar, Packet, AlignmentType>(m_data + i, p);
-  }
-
-  protected:
+protected:
   Scalar *m_data;
 };
 
 // Lightweight helper class to access matrix coefficients.
 template<typename Scalar, typename Index, int StorageOrder, int AlignmentType = Unaligned>
-class blas_data_mapper {
-  public:
-  typedef typename packet_traits<Scalar>::type Packet;
-  typedef typename packet_traits<Scalar>::half HalfPacket;
-
+class blas_data_mapper
+{
+public:
   typedef BlasLinearMapper<Scalar, Index, AlignmentType> LinearMapper;
   typedef BlasVectorMapper<Scalar, Index> VectorMapper;
 
@@ -218,17 +212,14 @@ class blas_data_mapper {
     return m_data[StorageOrder==RowMajor ? j + i*m_stride : i + j*m_stride];
   }
 
-  EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE Packet loadPacket(Index i, Index j) const {
-    return ploadt<Packet, AlignmentType>(&operator()(i, j));
+  template<typename PacketType>
+  EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE PacketType loadPacket(Index i, Index j) const {
+    return ploadt<PacketType, AlignmentType>(&operator()(i, j));
   }
 
   template <typename PacketT, int AlignmentT>
   EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE PacketT load(Index i, Index j) const {
     return ploadt<PacketT, AlignmentT>(&operator()(i, j));
-  }
-
-  EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE HalfPacket loadHalfPacket(Index i, Index j) const {
-    return ploadt<HalfPacket, AlignmentType>(&operator()(i, j));
   }
 
   template<typename SubPacket>
@@ -251,7 +242,7 @@ class blas_data_mapper {
     return internal::first_default_aligned(m_data, size);
   }
 
-  protected:
+protected:
   Scalar* EIGEN_RESTRICT m_data;
   const Index m_stride;
 };

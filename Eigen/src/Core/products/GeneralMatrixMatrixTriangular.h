@@ -84,7 +84,7 @@ struct general_matrix_matrix_triangular_product<Index,LhsScalar,LhsStorageOrder,
     ei_declare_aligned_stack_constructed_variable(LhsScalar, blockA, sizeA, blocking.blockA());
     ei_declare_aligned_stack_constructed_variable(RhsScalar, blockB, sizeB, blocking.blockB());
 
-    gemm_pack_lhs<LhsScalar, Index, LhsMapper, Traits::mr, Traits::LhsProgress, LhsStorageOrder> pack_lhs;
+    gemm_pack_lhs<LhsScalar, Index, LhsMapper, Traits::mr, Traits::LhsProgress, typename Traits::LhsPacket, LhsStorageOrder> pack_lhs;
     gemm_pack_rhs<RhsScalar, Index, RhsMapper, Traits::nr, RhsStorageOrder> pack_rhs;
     gebp_kernel<LhsScalar, RhsScalar, Index, ResMapper, Traits::mr, Traits::nr, ConjugateLhs, ConjugateRhs> gebp;
     tribb_kernel<LhsScalar, RhsScalar, Index, Traits::mr, Traits::nr, ConjugateLhs, ConjugateRhs, UpLo> sybb;
@@ -109,7 +109,6 @@ struct general_matrix_matrix_triangular_product<Index,LhsScalar,LhsStorageOrder,
         if (UpLo==Lower)
           gebp(res.getSubMapper(i2, 0), blockA, blockB, actual_mc, actual_kc,
                (std::min)(size,i2), alpha, -1, -1, 0, 0);
-
 
         sybb(_res+resStride*i2 + i2, resStride, blockA, blockB + actual_kc*i2, actual_mc, actual_kc, alpha);
 
@@ -160,7 +159,7 @@ struct tribb_kernel
       if(UpLo==Upper)
         gebp_kernel(res.getSubMapper(0, j), blockA, actual_b, j, depth, actualBlockSize, alpha,
                     -1, -1, 0, 0);
-
+      
       // selfadjoint micro block
       {
         Index i = j;
@@ -168,6 +167,7 @@ struct tribb_kernel
         // 1 - apply the kernel on the temporary buffer
         gebp_kernel(ResMapper(buffer.data(), BlockSize), blockA+depth*i, actual_b, actualBlockSize, depth, actualBlockSize, alpha,
                     -1, -1, 0, 0);
+
         // 2 - triangular accumulation
         for(Index j1=0; j1<actualBlockSize; ++j1)
         {
