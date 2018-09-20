@@ -390,6 +390,7 @@ public:
   typedef typename conditional<Vectorizable,_LhsPacket,LhsScalar>::type LhsPacket;
   typedef typename conditional<Vectorizable,_RhsPacket,RhsScalar>::type RhsPacket;
   typedef typename conditional<Vectorizable,_ResPacket,ResScalar>::type ResPacket;
+  typedef LhsPacket LhsPacket4Packing;
 
   typedef ResPacket AccPacket;
   
@@ -496,6 +497,7 @@ public:
   typedef typename conditional<Vectorizable,_LhsPacket,LhsScalar>::type LhsPacket;
   typedef typename conditional<Vectorizable,_RhsPacket,RhsScalar>::type RhsPacket;
   typedef typename conditional<Vectorizable,_ResPacket,ResScalar>::type ResPacket;
+  typedef LhsPacket LhsPacket4Packing;
 
   typedef ResPacket AccPacket;
 
@@ -626,6 +628,7 @@ public:
   typedef typename packet_traits<Scalar>::type     ScalarPacket;
   typedef DoublePacket<RealPacket> DoublePacketType;
 
+  typedef typename conditional<Vectorizable,ScalarPacket,Scalar>::type LhsPacket4Packing;
   typedef typename conditional<Vectorizable,RealPacket,  Scalar>::type LhsPacket;
   typedef typename conditional<Vectorizable,DoublePacketType,Scalar>::type RhsPacket;
   typedef typename conditional<Vectorizable,ScalarPacket,Scalar>::type ResPacket;
@@ -777,6 +780,7 @@ public:
   typedef typename conditional<Vectorizable,_LhsPacket,LhsScalar>::type LhsPacket;
   typedef typename conditional<Vectorizable,_RhsPacket,RhsScalar>::type RhsPacket;
   typedef typename conditional<Vectorizable,_ResPacket,ResScalar>::type ResPacket;
+  typedef LhsPacket LhsPacket4Packing;
 
   typedef ResPacket AccPacket;
 
