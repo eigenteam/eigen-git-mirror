@@ -375,6 +375,39 @@ struct get_compile_time_incr<ArithmeticSequence<FirstType,SizeType,IncrType> > {
 
 } // end namespace internal
 
+/** \namespace Eigen::indexing
+  * \ingroup Core_Module
+  * 
+  * The sole purpose of this namespace is to be able to import all functions
+  * and symbols that are expected to be used within operator() for indexing
+  * and slicing. If you already imported the whole Eigen namespace:
+  * \code using namespace Eigen; \endcode
+  * then you are already all set. Otherwise, if you don't want/cannot import
+  * the whole Eigen namespace, the following line:
+  * \code using namespace Eigen::indexing; \endcode
+  * is equivalent to:
+  * \code
+  using Eigen::all;
+  using Eigen::seq;
+  using Eigen::seqN;
+  using Eigen::lastN; // c++11 only
+  using Eigen::last;
+  using Eigen::lastp1;
+  using Eigen::fix;
+  \endcode
+  */
+namespace indexing {
+  using Eigen::all;
+  using Eigen::seq;
+  using Eigen::seqN;
+  #if EIGEN_HAS_CXX11
+  using Eigen::lastN;
+  #endif
+  using Eigen::last;
+  using Eigen::lastp1;
+  using Eigen::fix;
+}
+
 } // end namespace Eigen
 
 #endif // EIGEN_ARITHMETIC_SEQUENCE_H
