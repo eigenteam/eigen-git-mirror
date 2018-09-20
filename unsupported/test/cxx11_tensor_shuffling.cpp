@@ -83,10 +83,10 @@ static void test_expr_shuffling()
 
   Tensor<float, 4, DataLayout> result(5, 7, 3, 2);
 
-  array<ptrdiff_t, 4> src_slice_dim({2, 3, 1, 7});
-  array<ptrdiff_t, 4> src_slice_start({0, 0, 0, 0});
-  array<ptrdiff_t, 4> dst_slice_dim({1, 7, 3, 2});
-  array<ptrdiff_t, 4> dst_slice_start({0, 0, 0, 0});
+  array<ptrdiff_t, 4> src_slice_dim{{2, 3, 1, 7}};
+  array<ptrdiff_t, 4> src_slice_start{{0, 0, 0, 0}};
+  array<ptrdiff_t, 4> dst_slice_dim{{1, 7, 3, 2}};
+  array<ptrdiff_t, 4> dst_slice_start{{0, 0, 0, 0}};
 
   for (int i = 0; i < 5; ++i) {
     result.slice(dst_slice_start, dst_slice_dim) =

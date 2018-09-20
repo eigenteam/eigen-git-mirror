@@ -21,9 +21,9 @@ namespace Eigen {
 template <typename T, size_t n> class array {
  public:
   EIGEN_DEVICE_FUNC
-  EIGEN_STRONG_INLINE T& operator[] (size_t index) { return values[index]; }
+  EIGEN_STRONG_INLINE T& operator[] (size_t index) { eigen_internal_assert(index < size()); return values[index]; }
   EIGEN_DEVICE_FUNC
-  EIGEN_STRONG_INLINE const T& operator[] (size_t index) const { return values[index]; }
+  EIGEN_STRONG_INLINE const T& operator[] (size_t index) const { eigen_internal_assert(index < size()); return values[index]; }
 
   EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE T& at(size_t index) { eigen_assert(index < size()); return values[index]; }
