@@ -162,6 +162,7 @@ int main()
       typedef ResScalar LhsPacket;
       typedef ResScalar RhsPacket;
       typedef ResScalar ResPacket;
+      typedef LhsPacket LhsPacket4Packing;
       
     };
 
