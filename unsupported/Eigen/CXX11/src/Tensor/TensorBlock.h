@@ -188,7 +188,14 @@ class TensorBlockIO {
     StorageIndex input_span;
     StorageIndex output_span;
     StorageIndex size;
-    StorageIndex count = 0;
+    StorageIndex count;
+    BlockIteratorState()
+        : input_stride(0),
+          output_stride(0),
+          input_span(0),
+          output_span(0),
+          size(0),
+          count(0) {}
   };
 
   static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void Copy(
