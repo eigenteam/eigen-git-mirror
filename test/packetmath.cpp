@@ -148,24 +148,25 @@ template<typename Scalar> void packetmath()
 
   for (int offset=0; offset<PacketSize; ++offset)
   {
+    #define MIN(A,B) (A<B?A:B)
     packets[0] = internal::pload<Packet>(data1);
     packets[1] = internal::pload<Packet>(data1+PacketSize);
          if (offset==0) internal::palign<0>(packets[0], packets[1]);
-    else if (offset==1) internal::palign<1>(packets[0], packets[1]);
-    else if (offset==2) internal::palign<2>(packets[0], packets[1]);
-    else if (offset==3) internal::palign<3>(packets[0], packets[1]);
-    else if (offset==4) internal::palign<4>(packets[0], packets[1]);
-    else if (offset==5) internal::palign<5>(packets[0], packets[1]);
-    else if (offset==6) internal::palign<6>(packets[0], packets[1]);
-    else if (offset==7) internal::palign<7>(packets[0], packets[1]);
-    else if (offset==8) internal::palign<8>(packets[0], packets[1]);
-    else if (offset==9) internal::palign<9>(packets[0], packets[1]);
-    else if (offset==10) internal::palign<10>(packets[0], packets[1]);
-    else if (offset==11) internal::palign<11>(packets[0], packets[1]);
-    else if (offset==12) internal::palign<12>(packets[0], packets[1]);
-    else if (offset==13) internal::palign<13>(packets[0], packets[1]);
-    else if (offset==14) internal::palign<14>(packets[0], packets[1]);
-    else if (offset==15) internal::palign<15>(packets[0], packets[1]);
+    else if (offset==1) internal::palign<MIN(1,PacketSize-1)>(packets[0], packets[1]);
+    else if (offset==2) internal::palign<MIN(2,PacketSize-1)>(packets[0], packets[1]);
+    else if (offset==3) internal::palign<MIN(3,PacketSize-1)>(packets[0], packets[1]);
+    else if (offset==4) internal::palign<MIN(4,PacketSize-1)>(packets[0], packets[1]);
+    else if (offset==5) internal::palign<MIN(5,PacketSize-1)>(packets[0], packets[1]);
+    else if (offset==6) internal::palign<MIN(6,PacketSize-1)>(packets[0], packets[1]);
+    else if (offset==7) internal::palign<MIN(7,PacketSize-1)>(packets[0], packets[1]);
+    else if (offset==8) internal::palign<MIN(8,PacketSize-1)>(packets[0], packets[1]);
+    else if (offset==9) internal::palign<MIN(9,PacketSize-1)>(packets[0], packets[1]);
+    else if (offset==10) internal::palign<MIN(10,PacketSize-1)>(packets[0], packets[1]);
+    else if (offset==11) internal::palign<MIN(11,PacketSize-1)>(packets[0], packets[1]);
+    else if (offset==12) internal::palign<MIN(12,PacketSize-1)>(packets[0], packets[1]);
+    else if (offset==13) internal::palign<MIN(13,PacketSize-1)>(packets[0], packets[1]);
+    else if (offset==14) internal::palign<MIN(14,PacketSize-1)>(packets[0], packets[1]);
+    else if (offset==15) internal::palign<MIN(15,PacketSize-1)>(packets[0], packets[1]);
     internal::pstore(data2, packets[0]);
 
     for (int i=0; i<PacketSize; ++i)
