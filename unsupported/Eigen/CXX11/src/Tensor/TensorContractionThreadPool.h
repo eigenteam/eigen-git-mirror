@@ -244,7 +244,7 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
         RhsMapper;
     typedef internal::gemm_pack_lhs<LhsScalar, Index,
                                     typename LhsMapper::SubMapper, Traits::mr,
-                                    Traits::LhsProgress, ColMajor>
+                                    Traits::LhsProgress, typename Traits::LhsPacket4Packing, ColMajor>
         LhsPacker;
     typedef internal::gemm_pack_rhs<
         RhsScalar, Index, typename RhsMapper::SubMapper, Traits::nr, ColMajor>

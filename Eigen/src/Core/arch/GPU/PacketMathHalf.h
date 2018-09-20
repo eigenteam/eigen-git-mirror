@@ -542,11 +542,15 @@ template<> EIGEN_STRONG_INLINE Packet16h ploadu<Packet16h>(const Eigen::half* fr
 }
 
 template<> EIGEN_STRONG_INLINE void pstore<half>(Eigen::half* to, const Packet16h& from) {
-  _mm256_store_si256((__m256i*)to, from.x);
+  // (void*) -> workaround clang warning:
+  // cast from 'Eigen::half *' to '__m256i *' increases required alignment from 2 to 32
+  _mm256_store_si256((__m256i*)(void*)to, from.x);
 }
 
 template<> EIGEN_STRONG_INLINE void pstoreu<half>(Eigen::half* to, const Packet16h& from) {
-  _mm256_storeu_si256((__m256i*)to, from.x);
+  // (void*) -> workaround clang warning:
+  // cast from 'Eigen::half *' to '__m256i *' increases required alignment from 2 to 32
+  _mm256_storeu_si256((__m256i*)(void*)to, from.x);
 }
 
 template<> EIGEN_STRONG_INLINE Packet16h
