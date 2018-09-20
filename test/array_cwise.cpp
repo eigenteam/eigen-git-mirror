@@ -453,7 +453,7 @@ template<typename ArrayType> void min_max(const ArrayType& m)
 
 }
 
-EIGEN_DECLARE_TEST(array)
+EIGEN_DECLARE_TEST(array_cwise)
 {
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_1( array(Array<float, 1, 1>()) );
