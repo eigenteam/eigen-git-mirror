@@ -945,7 +945,7 @@ void BDCSVD<MatrixType>::perturbCol0
     zhat.setZero();
     return;
   }
-  Index last = perm(m-1);
+  Index lastIdx = perm(m-1);
   // The offset permits to skip deflated entries while computing zhat
   for (Index k = 0; k < n; ++k)
   {
@@ -955,12 +955,12 @@ void BDCSVD<MatrixType>::perturbCol0
     {
       // see equation (3.6)
       RealScalar dk = diag(k);
-      RealScalar prod = (singVals(last) + dk) * (mus(last) + (shifts(last) - dk));
+      RealScalar prod = (singVals(lastIdx) + dk) * (mus(lastIdx) + (shifts(lastIdx) - dk));
 #ifdef EIGEN_BDCSVD_SANITY_CHECKS
       if(prod<0) {
         std::cout << "k = " << k << " ;  z(k)=" << col0(k) << ", diag(k)=" << dk << "\n";
-        std::cout << "prod = " << "(" << singVals(last) << " + " << dk << ") * (" << mus(last) << " + (" << shifts(last) << " - " << dk << "))" << "\n";
-        std::cout << "     = " << singVals(last) + dk << " * " << mus(last) + (shifts(last) - dk) <<  "\n";
+        std::cout << "prod = " << "(" << singVals(lastIdx) << " + " << dk << ") * (" << mus(lastIdx) << " + (" << shifts(lastIdx) << " - " << dk << "))" << "\n";
+        std::cout << "     = " << singVals(lastIdx) + dk << " * " << mus(lastIdx) + (shifts(lastIdx) - dk) <<  "\n";
       }
       assert(prod>=0);
 #endif
@@ -1000,7 +1000,7 @@ void BDCSVD<MatrixType>::perturbCol0
         }
       }
 #ifdef EIGEN_BDCSVD_DEBUG_VERBOSE
-      std::cout << "zhat(" << k << ") =  sqrt( " << prod << ")  ;  " << (singVals(last) + dk) << " * " << mus(last) + shifts(last) << " - " << dk << "\n";
+      std::cout << "zhat(" << k << ") =  sqrt( " << prod << ")  ;  " << (singVals(lastIdx) + dk) << " * " << mus(lastIdx) + shifts(lastIdx) << " - " << dk << "\n";
 #endif
       RealScalar tmp = sqrt(prod);
 #ifdef EIGEN_BDCSVD_SANITY_CHECKS
