@@ -81,10 +81,9 @@ public:
     EIGEN_DEBUG_VAR(MightVectorize)
     EIGEN_DEBUG_VAR(MayLinearVectorize)
     EIGEN_DEBUG_VAR(MaySliceVectorize)
-    EIGEN_DEBUG_VAR(Traversal)
+    std::cerr << "Traversal" << " = " << Traversal << " (" << demangle_traversal(Traversal) << ")" << std::endl;
     EIGEN_DEBUG_VAR(UnrollingLimit)
-
-    EIGEN_DEBUG_VAR(Unrolling)
+    std::cerr << "Unrolling" << " = " << Unrolling << " (" << demangle_unrolling(Unrolling) << ")" << std::endl;
     std::cerr << std::endl;
   }
 #endif
@@ -411,7 +410,7 @@ DenseBase<Derived>::redux(const Func& func) const
 
   typedef typename internal::redux_evaluator<Derived> ThisEvaluator;
   ThisEvaluator thisEval(derived());
-  
+
   // The initial expression is passed to the reducer as an additional argument instead of
   // passing it as a member of redux_evaluator to help  
   return internal::redux_impl<Func, ThisEvaluator>::run(thisEval, func, derived());
