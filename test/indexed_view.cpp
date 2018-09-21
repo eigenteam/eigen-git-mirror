@@ -82,10 +82,6 @@ enum DummyEnum { XX=0, YY=1 };
 
 void check_indexed_view()
 {
-  using Eigen::placeholders::all;
-  using Eigen::placeholders::last;
-  using Eigen::placeholders::end;
-
   Index n = 10;
 
   ArrayXd a = ArrayXd::LinSpaced(n,0,n-1);
@@ -239,7 +235,7 @@ void check_indexed_view()
   VERIFY_IS_APPROX( A(seq(n-1,2,-2), seqN(n-1-6,4)), A(seq(last,2,-2), seqN(last-6,4)) );
   VERIFY_IS_APPROX( A(seq(n-1-6,n-1-2), seqN(n-1-6,4)), A(seq(last-6,last-2), seqN(6+last-6-6,4)) );
   VERIFY_IS_APPROX( A(seq((n-1)/2,(n)/2+3), seqN(2,4)), A(seq(last/2,(last+1)/2+3), seqN(last+2-last,4)) );
-  VERIFY_IS_APPROX( A(seq(n-2,2,-2), seqN(n-8,4)), A(seq(end-2,2,-2), seqN(end-8,4)) );
+  VERIFY_IS_APPROX( A(seq(n-2,2,-2), seqN(n-8,4)), A(seq(lastp1-2,2,-2), seqN(lastp1-8,4)) );
 
   // Check all combinations of seq:
   VERIFY_IS_APPROX( A(seq(1,n-1-2,2), seq(1,n-1-2,2)), A(seq(1,last-2,2), seq(1,last-2,fix<2>)) );
@@ -249,7 +245,7 @@ void check_indexed_view()
   VERIFY_IS_APPROX( A(seq(n-1-5,n-1-2), seq(n-1-5,n-1-2)), A(seq(last-5,last-2), seq(last-5,last-2)) );
 
   VERIFY_IS_APPROX( A.col(A.cols()-1), A(all,last) );
-  VERIFY_IS_APPROX( A(A.rows()-2, A.cols()/2), A(last-1, end/2) );
+  VERIFY_IS_APPROX( A(A.rows()-2, A.cols()/2), A(last-1, lastp1/2) );
   VERIFY_IS_APPROX( a(a.size()-2), a(last-1) );
   VERIFY_IS_APPROX( a(a.size()/2), a((last+1)/2) );
 
@@ -272,7 +268,7 @@ void check_indexed_view()
 
     VERIFY( is_same_eq(a.head(4), a(seq(0,3))) );
     VERIFY( is_same_eq(a.tail(4), a(seqN(last-3,4))) );
-    VERIFY( is_same_eq(a.tail(4), a(seq(end-4,last))) );
+    VERIFY( is_same_eq(a.tail(4), a(seq(lastp1-4,last))) );
     VERIFY( is_same_eq(a.segment<4>(3), a(seqN(3,fix<4>))) );
   }
 

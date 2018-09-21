@@ -604,9 +604,9 @@ class SparseMatrix
       m_outerIndex = newOuterIndex;
       if (outerChange > 0)
       {
-        StorageIndex last = m_outerSize == 0 ? 0 : m_outerIndex[m_outerSize];
+        StorageIndex lastIdx = m_outerSize == 0 ? 0 : m_outerIndex[m_outerSize];
         for(Index i=m_outerSize; i<m_outerSize+outerChange+1; i++)          
-          m_outerIndex[i] = last; 
+          m_outerIndex[i] = lastIdx; 
       }
       m_outerSize += outerChange;
     }

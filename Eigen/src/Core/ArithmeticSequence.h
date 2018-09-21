@@ -329,9 +329,9 @@ seq(const symbolic::BaseExpr<FirstTypeDerived> &f, const symbolic::BaseExpr<Last
   * \sa lastN(SizeType), seqN(FirstType,SizeType), seq(FirstType,LastType,IncrType) */
 template<typename SizeType,typename IncrType>
 auto lastN(SizeType size, IncrType incr)
--> decltype(seqN(Eigen::placeholders::last-(size-fix<1>())*incr, size, incr))
+-> decltype(seqN(Eigen::last-(size-fix<1>())*incr, size, incr))
 {
-  return seqN(Eigen::placeholders::last-(size-fix<1>())*incr, size, incr);
+  return seqN(Eigen::last-(size-fix<1>())*incr, size, incr);
 }
 
 /** \cpp11
@@ -342,9 +342,9 @@ auto lastN(SizeType size, IncrType incr)
   * \sa lastN(SizeType,IncrType, seqN(FirstType,SizeType), seq(FirstType,LastType) */
 template<typename SizeType>
 auto lastN(SizeType size)
--> decltype(seqN(Eigen::placeholders::last+fix<1>()-size, size))
+-> decltype(seqN(Eigen::last+fix<1>()-size, size))
 {
-  return seqN(Eigen::placeholders::last+fix<1>()-size, size);
+  return seqN(Eigen::last+fix<1>()-size, size);
 }
 #endif
 
@@ -374,6 +374,39 @@ struct get_compile_time_incr<ArithmeticSequence<FirstType,SizeType,IncrType> > {
 };
 
 } // end namespace internal
+
+/** \namespace Eigen::indexing
+  * \ingroup Core_Module
+  * 
+  * The sole purpose of this namespace is to be able to import all functions
+  * and symbols that are expected to be used within operator() for indexing
+  * and slicing. If you already imported the whole Eigen namespace:
+  * \code using namespace Eigen; \endcode
+  * then you are already all set. Otherwise, if you don't want/cannot import
+  * the whole Eigen namespace, the following line:
+  * \code using namespace Eigen::indexing; \endcode
+  * is equivalent to:
+  * \code
+  using Eigen::all;
+  using Eigen::seq;
+  using Eigen::seqN;
+  using Eigen::lastN; // c++11 only
+  using Eigen::last;
+  using Eigen::lastp1;
+  using Eigen::fix;
+  \endcode
+  */
+namespace indexing {
+  using Eigen::all;
+  using Eigen::seq;
+  using Eigen::seqN;
+  #if EIGEN_HAS_CXX11
+  using Eigen::lastN;
+  #endif
+  using Eigen::last;
+  using Eigen::lastp1;
+  using Eigen::fix;
+}
 
 } // end namespace Eigen
 

@@ -35,7 +35,7 @@ namespace Eigen {
   * std::cout << expr98.eval(x=6) << "\n";
   * \endcode
   *
-  * It is currently only used internally to define and manipulate the placeholders::last and placeholders::end symbols in Eigen::seq and Eigen::seqN.
+  * It is currently only used internally to define and manipulate the Eigen::last and Eigen::lastp1 symbols in Eigen::seq and Eigen::seqN.
   *
   */
 namespace symbolic {
