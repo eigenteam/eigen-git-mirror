@@ -1,13 +1,14 @@
 
+#ifdef EIGEN_PARSED_BY_DOXYGEN
+
 /// \returns an expression of \c *this with reshaped sizes.
 ///
 /// \param nRows the number of rows in the reshaped expression, specified at either run-time or compile-time, or AutoSize
 /// \param nCols the number of columns in the reshaped expression, specified at either run-time or compile-time, or AutoSize
-/// \tparam NRowsType the type of the value handling the number of rows, typically Index.
 /// \tparam Order specifies whether the coefficients should be processed in column-major-order (ColMajor), in row-major-order (RowMajor),
 ///              or follows the \em natural order of the nested expression (AutoOrder). The default is ColMajor.
+/// \tparam NRowsType the type of the value handling the number of rows, typically Index.
 /// \tparam NColsType the type of the value handling the number of columns, typically Index.
-/// \tparam OrderType the type of the order
 ///
 /// Dynamic size example: \include MatrixBase_reshaped_int_int.cpp
 /// Output: \verbinclude MatrixBase_reshaped_int_int.out
@@ -26,7 +27,6 @@
 ///
 /// \sa operator()(placeholders::all), class Reshaped, fix, fix<N>(int)
 ///
-#ifdef EIGEN_PARSED_BY_DOXYGEN
 template<int Order = ColMajor, typename NRowsType, typename NColsType>
 EIGEN_DEVICE_FUNC
 inline Reshaped<Derived,...>
