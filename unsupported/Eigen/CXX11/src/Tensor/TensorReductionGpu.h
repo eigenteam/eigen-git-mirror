@@ -208,8 +208,8 @@ __global__ void ReductionInitFullReduxKernelHalfFloat(Reducer reducer, const Sel
   eigen_assert(blockDim.x == 1);
   eigen_assert(gridDim.x == 1);
   if (num_coeffs % 2 != 0) {
-    half last = input.m_impl.coeff(num_coeffs-1);
-    *scratch = __halves2half2(last, reducer.initialize());
+    half lastCoeff = input.m_impl.coeff(num_coeffs-1);
+    *scratch = __halves2half2(lastCoeff, reducer.initialize());
   } else {
     *scratch = reducer.template initializePacket<half2>();
   }

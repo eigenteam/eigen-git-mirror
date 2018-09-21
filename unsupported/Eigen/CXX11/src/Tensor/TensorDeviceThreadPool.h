@@ -213,17 +213,17 @@ struct ThreadPoolDevice {
     // block_count leaves that do actual computations.
     Barrier barrier(static_cast<unsigned int>(block_count));
     std::function<void(Index, Index)> handleRange;
-    handleRange = [=, &handleRange, &barrier, &f](Index first, Index last) {
-      if (last - first <= block_size) {
+    handleRange = [=, &handleRange, &barrier, &f](Index firstIdx, Index lastIdx) {
+      if (lastIdx - firstIdx <= block_size) {
         // Single block or less, execute directly.
-        f(first, last);
+        f(firstIdx, lastIdx);
         barrier.Notify();
         return;
       }
       // Split into halves and submit to the pool.
-      Index mid = first + divup((last - first) / 2, block_size) * block_size;
-      pool_->Schedule([=, &handleRange]() { handleRange(mid, last); });
-      handleRange(first, mid);
+      Index mid = firstIdx + divup((lastIdx - firstIdx) / 2, block_size) * block_size;
+      pool_->Schedule([=, &handleRange]() { handleRange(mid, lastIdx); });
+      handleRange(firstIdx, mid);
     };
     handleRange(0, n);
     barrier.Wait();

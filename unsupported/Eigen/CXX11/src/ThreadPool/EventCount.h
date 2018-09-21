@@ -128,7 +128,7 @@ class EventCount {
 
   // Notify wakes one or all waiting threads.
   // Must be called after changing the associated wait predicate.
-  void Notify(bool all) {
+  void Notify(bool notifyAll) {
     std::atomic_thread_fence(std::memory_order_seq_cst);
     uint64_t state = state_.load(std::memory_order_acquire);
     for (;;) {
@@ -137,7 +137,7 @@ class EventCount {
         return;
       uint64_t waiters = (state & kWaiterMask) >> kWaiterShift;
       uint64_t newstate;
-      if (all) {
+      if (notifyAll) {
         // Reset prewait counter and empty wait list.
         newstate = (state & kEpochMask) + (kEpochInc * waiters) + kStackMask;
       } else if (waiters) {
@@ -157,10 +157,10 @@ class EventCount {
       }
       if (state_.compare_exchange_weak(state, newstate,
                                        std::memory_order_acquire)) {
-        if (!all && waiters) return;  // unblocked pre-wait thread
+        if (!notifyAll && waiters) return;  // unblocked pre-wait thread
         if ((state & kStackMask) == kStackMask) return;
         Waiter* w = &waiters_[state & kStackMask];
-        if (!all) w->next.store(nullptr, std::memory_order_relaxed);
+        if (!notifyAll) w->next.store(nullptr, std::memory_order_relaxed);
         Unpark(w);
         return;
       }

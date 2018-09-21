@@ -273,21 +273,21 @@ struct TensorEvaluator<const TensorPaddingOp<PaddingDimensions, ArgType>, Device
     const Index initialIndex = index;
     Index inputIndex = 0;
     for (int i = NumDims - 1; i > 0; --i) {
-      const Index first = index;
-      const Index last = index + PacketSize - 1;
+      const Index firstIdx = index;
+      const Index lastIdx = index + PacketSize - 1;
       const Index lastPaddedLeft = m_padding[i].first * m_outputStrides[i];
       const Index firstPaddedRight = (m_dimensions[i] - m_padding[i].second) * m_outputStrides[i];
       const Index lastPaddedRight = m_outputStrides[i+1];
 
-      if (!isLeftPaddingCompileTimeZero(i) && last < lastPaddedLeft) {
+      if (!isLeftPaddingCompileTimeZero(i) && lastIdx < lastPaddedLeft) {
         // all the coefficient are in the padding zone.
         return internal::pset1<PacketReturnType>(m_paddingValue);
       }
-      else if (!isRightPaddingCompileTimeZero(i) && first >= firstPaddedRight && last < lastPaddedRight) {
+      else if (!isRightPaddingCompileTimeZero(i) && firstIdx >= firstPaddedRight && lastIdx < lastPaddedRight) {
         // all the coefficient are in the padding zone.
         return internal::pset1<PacketReturnType>(m_paddingValue);
       }
-      else if ((isLeftPaddingCompileTimeZero(i) && isRightPaddingCompileTimeZero(i)) || (first >= lastPaddedLeft && last < firstPaddedRight)) {
+      else if ((isLeftPaddingCompileTimeZero(i) && isRightPaddingCompileTimeZero(i)) || (firstIdx >= lastPaddedLeft && lastIdx < firstPaddedRight)) {
         // all the coefficient are between the 2 padding zones.
         const Index idx = index / m_outputStrides[i];
         inputIndex += (idx - m_padding[i].first) * m_inputStrides[i];
@@ -299,21 +299,21 @@ struct TensorEvaluator<const TensorPaddingOp<PaddingDimensions, ArgType>, Device
       }
     }
 
-    const Index last = index + PacketSize - 1;
-    const Index first = index;
+    const Index lastIdx = index + PacketSize - 1;
+    const Index firstIdx = index;
     const Index lastPaddedLeft = m_padding[0].first;
     const Index firstPaddedRight = (m_dimensions[0] - m_padding[0].second);
     const Index lastPaddedRight = m_outputStrides[1];
 
-    if (!isLeftPaddingCompileTimeZero(0) && last < lastPaddedLeft) {
+    if (!isLeftPaddingCompileTimeZero(0) && lastIdx < lastPaddedLeft) {
       // all the coefficient are in the padding zone.
       return internal::pset1<PacketReturnType>(m_paddingValue);
     }
-    else if (!isRightPaddingCompileTimeZero(0) && first >= firstPaddedRight && last < lastPaddedRight) {
+    else if (!isRightPaddingCompileTimeZero(0) && firstIdx >= firstPaddedRight && lastIdx < lastPaddedRight) {
       // all the coefficient are in the padding zone.
       return internal::pset1<PacketReturnType>(m_paddingValue);
     }
-    else if ((isLeftPaddingCompileTimeZero(0) && isRightPaddingCompileTimeZero(0)) || (first >= lastPaddedLeft && last < firstPaddedRight)) {
+    else if ((isLeftPaddingCompileTimeZero(0) && isRightPaddingCompileTimeZero(0)) || (firstIdx >= lastPaddedLeft && lastIdx < firstPaddedRight)) {
       // all the coefficient are between the 2 padding zones.
       inputIndex += (index - m_padding[0].first);
       return m_impl.template packet<Unaligned>(inputIndex);
@@ -331,21 +331,21 @@ struct TensorEvaluator<const TensorPaddingOp<PaddingDimensions, ArgType>, Device
     Index inputIndex = 0;
 
     for (int i = 0; i < NumDims - 1; ++i) {
-      const Index first = index;
-      const Index last = index + PacketSize - 1;
+      const Index firstIdx = index;
+      const Index lastIdx = index + PacketSize - 1;
       const Index lastPaddedLeft = m_padding[i].first * m_outputStrides[i+1];
       const Index firstPaddedRight = (m_dimensions[i] - m_padding[i].second) * m_outputStrides[i+1];
       const Index lastPaddedRight = m_outputStrides[i];
 
-      if (!isLeftPaddingCompileTimeZero(i) && last < lastPaddedLeft) {
+      if (!isLeftPaddingCompileTimeZero(i) && lastIdx < lastPaddedLeft) {
         // all the coefficient are in the padding zone.
         return internal::pset1<PacketReturnType>(m_paddingValue);
       }
-      else if (!isRightPaddingCompileTimeZero(i) && first >= firstPaddedRight && last < lastPaddedRight) {
+      else if (!isRightPaddingCompileTimeZero(i) && firstIdx >= firstPaddedRight && lastIdx < lastPaddedRight) {
         // all the coefficient are in the padding zone.
         return internal::pset1<PacketReturnType>(m_paddingValue);
       }
-      else if ((isLeftPaddingCompileTimeZero(i) && isRightPaddingCompileTimeZero(i)) || (first >= lastPaddedLeft && last < firstPaddedRight)) {
+      else if ((isLeftPaddingCompileTimeZero(i) && isRightPaddingCompileTimeZero(i)) || (firstIdx >= lastPaddedLeft && lastIdx < firstPaddedRight)) {
         // all the coefficient are between the 2 padding zones.
         const Index idx = index / m_outputStrides[i+1];
         inputIndex += (idx - m_padding[i].first) * m_inputStrides[i];
@@ -357,21 +357,21 @@ struct TensorEvaluator<const TensorPaddingOp<PaddingDimensions, ArgType>, Device
       }
     }
 
-    const Index last = index + PacketSize - 1;
-    const Index first = index;
+    const Index lastIdx = index + PacketSize - 1;
+    const Index firstIdx = index;
     const Index lastPaddedLeft = m_padding[NumDims-1].first;
     const Index firstPaddedRight = (m_dimensions[NumDims-1] - m_padding[NumDims-1].second);
     const Index lastPaddedRight = m_outputStrides[NumDims-1];
 
-    if (!isLeftPaddingCompileTimeZero(NumDims-1) && last < lastPaddedLeft) {
+    if (!isLeftPaddingCompileTimeZero(NumDims-1) && lastIdx < lastPaddedLeft) {
       // all the coefficient are in the padding zone.
       return internal::pset1<PacketReturnType>(m_paddingValue);
     }
-    else if (!isRightPaddingCompileTimeZero(NumDims-1) && first >= firstPaddedRight && last < lastPaddedRight) {
+    else if (!isRightPaddingCompileTimeZero(NumDims-1) && firstIdx >= firstPaddedRight && lastIdx < lastPaddedRight) {
       // all the coefficient are in the padding zone.
       return internal::pset1<PacketReturnType>(m_paddingValue);
     }
-    else if ((isLeftPaddingCompileTimeZero(NumDims-1) && isRightPaddingCompileTimeZero(NumDims-1)) || (first >= lastPaddedLeft && last < firstPaddedRight)) {
+    else if ((isLeftPaddingCompileTimeZero(NumDims-1) && isRightPaddingCompileTimeZero(NumDims-1)) || (firstIdx >= lastPaddedLeft && lastIdx < firstPaddedRight)) {
       // all the coefficient are between the 2 padding zones.
       inputIndex += (index - m_padding[NumDims-1].first);
       return m_impl.template packet<Unaligned>(inputIndex);
