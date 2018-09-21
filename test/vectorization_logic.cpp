@@ -230,8 +230,13 @@ struct vectorization_logic
     VERIFY(test_redux(Matrix44(),
       LinearVectorizedTraversal,NoUnrolling));
 
-    VERIFY(test_redux(Matrix44().template block<(Matrix1::Flags&RowMajorBit)?4:PacketSize,(Matrix1::Flags&RowMajorBit)?PacketSize:4>(1,2),
-      DefaultTraversal,CompleteUnrolling));
+    if(PacketSize>1) {
+      VERIFY(test_redux(Matrix44().template block<(Matrix1::Flags&RowMajorBit)?4:PacketSize,(Matrix1::Flags&RowMajorBit)?PacketSize:4>(1,2),
+        SliceVectorizedTraversal,CompleteUnrolling));
+
+      VERIFY(test_redux(Matrix44().template block<(Matrix1::Flags&RowMajorBit)?2:PacketSize,(Matrix1::Flags&RowMajorBit)?PacketSize:2>(1,2),
+        DefaultTraversal,CompleteUnrolling));
+    }
 
     VERIFY(test_redux(Matrix44c().template block<2*PacketSize,1>(1,2),
       LinearVectorizedTraversal,CompleteUnrolling));
@@ -375,8 +380,13 @@ struct vectorization_logic_half
     VERIFY(test_redux(Matrix35(),
       LinearVectorizedTraversal,CompleteUnrolling));
 
-    VERIFY(test_redux(Matrix57().template block<PacketSize,3>(1,0),
-      DefaultTraversal,CompleteUnrolling));
+    VERIFY(test_redux(Matrix57().template block<PacketSize==1?2:PacketSize,3>(1,0),
+      SliceVectorizedTraversal,CompleteUnrolling));
+
+    if(PacketSize>1) {
+      VERIFY(test_redux(Matrix57().template block<PacketSize,2>(1,0),
+        DefaultTraversal,CompleteUnrolling));
+    }
 
     VERIFY((test_assign<
             Map<Matrix<Scalar,EIGEN_PLAIN_ENUM_MAX(2,PacketSize),EIGEN_PLAIN_ENUM_MAX(2,PacketSize)>, AlignedMax, InnerStride<3*PacketSize> >,
