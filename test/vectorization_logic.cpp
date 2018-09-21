@@ -37,7 +37,7 @@ using internal::demangle_unrolling;
 template<typename Dst, typename Src>
 bool test_assign(const Dst&, const Src&, int traversal, int unrolling)
 {
-  EIGEN_PREDICATE_SAME_MATRIX_SIZE(Dst,Src);
+  EIGEN_STATIC_ASSERT_SAME_MATRIX_SIZE(Dst,Src);
   typedef internal::copy_using_evaluator_traits<internal::evaluator<Dst>,internal::evaluator<Src>, internal::assign_op<typename Dst::Scalar,typename Src::Scalar> > traits;
   bool res = traits::Traversal==traversal;
   if(unrolling==InnerUnrolling+CompleteUnrolling)
@@ -62,7 +62,7 @@ bool test_assign(const Dst&, const Src&, int traversal, int unrolling)
 template<typename Dst, typename Src>
 bool test_assign(int traversal, int unrolling)
 {
-  EIGEN_PREDICATE_SAME_MATRIX_SIZE(Dst,Src);
+  EIGEN_STATIC_ASSERT_SAME_MATRIX_SIZE(Dst,Src);
   typedef internal::copy_using_evaluator_traits<internal::evaluator<Dst>,internal::evaluator<Src>, internal::assign_op<typename Dst::Scalar,typename Src::Scalar> > traits;
   bool res = traits::Traversal==traversal && traits::Unrolling==unrolling;
   if(!res)
