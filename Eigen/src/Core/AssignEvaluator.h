@@ -172,6 +172,8 @@ public:
     EIGEN_DEBUG_VAR(MaySliceVectorize)
     std::cerr << "Traversal" << " = " << Traversal << " (" << demangle_traversal(Traversal) << ")" << std::endl;
     EIGEN_DEBUG_VAR(SrcEvaluator::CoeffReadCost)
+    EIGEN_DEBUG_VAR(DstEvaluator::CoeffReadCost)
+    EIGEN_DEBUG_VAR(Dst::SizeAtCompileTime)
     EIGEN_DEBUG_VAR(UnrollingLimit)
     EIGEN_DEBUG_VAR(MayUnrollCompletely)
     EIGEN_DEBUG_VAR(MayUnrollInner)
