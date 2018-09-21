@@ -70,7 +70,7 @@ static void test_custom()
   }
 }
 
-void test_cxx11_tensor_random()
+EIGEN_DECLARE_TEST(cxx11_tensor_random)
 {
   CALL_SUBTEST(test_default());
   CALL_SUBTEST(test_normal());

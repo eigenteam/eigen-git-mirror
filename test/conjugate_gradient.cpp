@@ -26,7 +26,7 @@ template<typename T, typename I> void test_conjugate_gradient_T()
   CALL_SUBTEST( check_sparse_spd_solving(cg_colmajor_upper_I)     );
 }
 
-void test_conjugate_gradient()
+EIGEN_DECLARE_TEST(conjugate_gradient)
 {
   CALL_SUBTEST_1(( test_conjugate_gradient_T<double,int>() ));
   CALL_SUBTEST_2(( test_conjugate_gradient_T<std::complex<double>, int>() ));

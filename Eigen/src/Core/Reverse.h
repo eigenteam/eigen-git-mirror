@@ -114,7 +114,7 @@ template<typename MatrixType, int Direction> class Reverse
   *
   */
 template<typename Derived>
-inline typename DenseBase<Derived>::ReverseReturnType
+EIGEN_DEVICE_FUNC inline typename DenseBase<Derived>::ReverseReturnType
 DenseBase<Derived>::reverse()
 {
   return ReverseReturnType(derived());
@@ -136,7 +136,7 @@ DenseBase<Derived>::reverse()
   *
   * \sa VectorwiseOp::reverseInPlace(), reverse() */
 template<typename Derived>
-inline void DenseBase<Derived>::reverseInPlace()
+EIGEN_DEVICE_FUNC inline void DenseBase<Derived>::reverseInPlace()
 {
   if(cols()>rows())
   {
@@ -201,7 +201,7 @@ struct vectorwise_reverse_inplace_impl<Horizontal>
   *
   * \sa DenseBase::reverseInPlace(), reverse() */
 template<typename ExpressionType, int Direction>
-void VectorwiseOp<ExpressionType,Direction>::reverseInPlace()
+EIGEN_DEVICE_FUNC void VectorwiseOp<ExpressionType,Direction>::reverseInPlace()
 {
   internal::vectorwise_reverse_inplace_impl<Direction>::run(_expression().const_cast_derived());
 }

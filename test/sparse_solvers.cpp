@@ -101,7 +101,7 @@ template<typename Scalar> void sparse_solvers(int rows, int cols)
   }
 }
 
-void test_sparse_solvers()
+EIGEN_DECLARE_TEST(sparse_solvers)
 {
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_1(sparse_solvers<double>(8, 8) );

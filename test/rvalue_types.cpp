@@ -43,7 +43,7 @@ template <typename MatrixType>
 void rvalue_copyassign(const MatrixType&) {}
 #endif
 
-void test_rvalue_types()
+EIGEN_DECLARE_TEST(rvalue_types)
 {
   CALL_SUBTEST_1(rvalue_copyassign( MatrixXf::Random(50,50).eval() ));
   CALL_SUBTEST_1(rvalue_copyassign( ArrayXXf::Random(50,50).eval() ));

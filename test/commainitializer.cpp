@@ -65,7 +65,7 @@ struct test_block_recursion<-1>
   static void run() { }
 };
 
-void test_commainitializer()
+EIGEN_DECLARE_TEST(commainitializer)
 {
   Matrix3d m3;
   Matrix4d m4;

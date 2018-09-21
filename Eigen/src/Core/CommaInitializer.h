@@ -141,7 +141,7 @@ struct CommaInitializer
   * \sa CommaInitializer::finished(), class CommaInitializer
   */
 template<typename Derived>
-inline CommaInitializer<Derived> DenseBase<Derived>::operator<< (const Scalar& s)
+EIGEN_DEVICE_FUNC inline CommaInitializer<Derived> DenseBase<Derived>::operator<< (const Scalar& s)
 {
   return CommaInitializer<Derived>(*static_cast<Derived*>(this), s);
 }
@@ -149,7 +149,7 @@ inline CommaInitializer<Derived> DenseBase<Derived>::operator<< (const Scalar& s
 /** \sa operator<<(const Scalar&) */
 template<typename Derived>
 template<typename OtherDerived>
-inline CommaInitializer<Derived>
+EIGEN_DEVICE_FUNC inline CommaInitializer<Derived>
 DenseBase<Derived>::operator<<(const DenseBase<OtherDerived>& other)
 {
   return CommaInitializer<Derived>(*static_cast<Derived *>(this), other);

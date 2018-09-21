@@ -297,8 +297,8 @@ SluMatrix asSluMatrix(MatrixType& mat)
 template<typename Scalar, int Flags, typename Index>
 MappedSparseMatrix<Scalar,Flags,Index> map_superlu(SluMatrix& sluMat)
 {
-  eigen_assert((Flags&RowMajor)==RowMajor && sluMat.Stype == SLU_NR
-         || (Flags&ColMajor)==ColMajor && sluMat.Stype == SLU_NC);
+  eigen_assert(((Flags&RowMajor)==RowMajor && sluMat.Stype == SLU_NR)
+         || ((Flags&ColMajor)==ColMajor && sluMat.Stype == SLU_NC));
 
   Index outerSize = (Flags&RowMajor)==RowMajor ? sluMat.ncol : sluMat.nrow;
 
@@ -352,7 +352,7 @@ class SuperLUBase : public SparseSolverBase<Derived>
     
     /** \brief Reports whether previous computation was successful.
       *
-      * \returns \c Success if computation was succesful,
+      * \returns \c Success if computation was successful,
       *          \c NumericalIssue if the matrix.appears to be negative.
       */
     ComputationInfo info() const

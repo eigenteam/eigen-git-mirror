@@ -19,16 +19,16 @@
 #undef isnan
 #undef isinf
 #undef isfinite
-#include <SYCL/sycl.hpp>
+#include <CL/sycl.hpp>
 #include <iostream>
 #include <map>
 #include <memory>
 #include <utility>
 #endif
 
-#include <Eigen/src/Core/util/DisableStupidWarnings.h>
-
 #include "../SpecialFunctions"
+
+#include "../../../Eigen/src/Core/util/DisableStupidWarnings.h"
 #include "src/util/CXX11Meta.h"
 #include "src/util/MaxSizeVector.h"
 
@@ -80,12 +80,16 @@ typedef unsigned __int64 uint64_t;
 #endif
 
 #ifdef EIGEN_USE_GPU
-#include <iostream>
-#include <cuda_runtime.h>
-#if __cplusplus >= 201103L
-#include <atomic>
-#include <unistd.h>
-#endif
+  #include <iostream>
+  #if defined(EIGEN_USE_HIP)
+    #include <hip/hip_runtime.h>
+  #else
+    #include <cuda_runtime.h>
+  #endif
+  #if __cplusplus >= 201103L
+    #include <atomic>
+    #include <unistd.h>
+  #endif
 #endif
 
 #include "src/Tensor/TensorMacros.h"
@@ -95,7 +99,7 @@ typedef unsigned __int64 uint64_t;
 #include "src/Tensor/TensorCostModel.h"
 #include "src/Tensor/TensorDeviceDefault.h"
 #include "src/Tensor/TensorDeviceThreadPool.h"
-#include "src/Tensor/TensorDeviceCuda.h"
+#include "src/Tensor/TensorDeviceGpu.h"
 #include "src/Tensor/TensorDeviceSycl.h"
 #include "src/Tensor/TensorIndexList.h"
 #include "src/Tensor/TensorDimensionList.h"
@@ -108,18 +112,19 @@ typedef unsigned __int64 uint64_t;
 #include "src/Tensor/TensorGlobalFunctions.h"
 
 #include "src/Tensor/TensorBase.h"
+#include "src/Tensor/TensorBlock.h"
 
 #include "src/Tensor/TensorEvaluator.h"
 #include "src/Tensor/TensorExpr.h"
 #include "src/Tensor/TensorReduction.h"
-#include "src/Tensor/TensorReductionCuda.h"
+#include "src/Tensor/TensorReductionGpu.h"
 #include "src/Tensor/TensorArgMax.h"
 #include "src/Tensor/TensorConcatenation.h"
 #include "src/Tensor/TensorContractionMapper.h"
 #include "src/Tensor/TensorContractionBlocking.h"
 #include "src/Tensor/TensorContraction.h"
 #include "src/Tensor/TensorContractionThreadPool.h"
-#include "src/Tensor/TensorContractionCuda.h"
+#include "src/Tensor/TensorContractionGpu.h"
 #include "src/Tensor/TensorConversion.h"
 #include "src/Tensor/TensorConvolution.h"
 #include "src/Tensor/TensorFFT.h"
@@ -141,6 +146,7 @@ typedef unsigned __int64 uint64_t;
 #include "src/Tensor/TensorGenerator.h"
 #include "src/Tensor/TensorAssign.h"
 #include "src/Tensor/TensorScan.h"
+#include "src/Tensor/TensorTrace.h"
 
 #include "src/Tensor/TensorSycl.h"
 #include "src/Tensor/TensorExecutor.h"
@@ -154,6 +160,6 @@ typedef unsigned __int64 uint64_t;
 
 #include "src/Tensor/TensorIO.h"
 
-#include <Eigen/src/Core/util/ReenableStupidWarnings.h>
+#include "../../../Eigen/src/Core/util/ReenableStupidWarnings.h"
 
 //#endif // EIGEN_CXX11_TENSOR_MODULE

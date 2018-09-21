@@ -55,7 +55,7 @@ template<typename T, int flags, typename IdxType> void test_cholmod_T()
     test_cholmod_ST<SparseMatrix<T, flags, IdxType> >();
 }
 
-void test_cholmod_support()
+EIGEN_DECLARE_TEST(cholmod_support)
 {
   CALL_SUBTEST_11( (test_cholmod_T<double              , ColMajor, int >()) );
   CALL_SUBTEST_12( (test_cholmod_T<double              , ColMajor, long>()) );

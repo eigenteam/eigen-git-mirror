@@ -149,7 +149,6 @@ void reshape4x4(MatType m)
   MatrixXi m28r2 = m.transpose().template reshaped<ColMajor>(8,2).transpose();
   VERIFY_IS_EQUAL( m28r1, m28r2);
 
-  using placeholders::all;
   VERIFY(is_same_eq(m.reshaped(v16,fix<1>), m(all)));
   VERIFY_IS_EQUAL(m.reshaped(16,1), m(all));
   VERIFY_IS_EQUAL(m.reshaped(1,16), m(all).transpose());

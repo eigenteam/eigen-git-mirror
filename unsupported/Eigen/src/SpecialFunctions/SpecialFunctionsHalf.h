@@ -33,11 +33,27 @@ template<> EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half erfc(const Eigen::h
 template<> EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half igamma(const Eigen::half& a, const Eigen::half& x) {
   return Eigen::half(Eigen::numext::igamma(static_cast<float>(a), static_cast<float>(x)));
 }
+template <>
+EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half igamma_der_a(const Eigen::half& a, const Eigen::half& x) {
+  return Eigen::half(Eigen::numext::igamma_der_a(static_cast<float>(a), static_cast<float>(x)));
+}
+template <>
+EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half gamma_sample_der_alpha(const Eigen::half& alpha, const Eigen::half& sample) {
+  return Eigen::half(Eigen::numext::gamma_sample_der_alpha(static_cast<float>(alpha), static_cast<float>(sample)));
+}
 template<> EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half igammac(const Eigen::half& a, const Eigen::half& x) {
   return Eigen::half(Eigen::numext::igammac(static_cast<float>(a), static_cast<float>(x)));
 }
 template<> EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half betainc(const Eigen::half& a, const Eigen::half& b, const Eigen::half& x) {
   return Eigen::half(Eigen::numext::betainc(static_cast<float>(a), static_cast<float>(b), static_cast<float>(x)));
+}
+template <>
+EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half i0e(const Eigen::half& x) {
+  return Eigen::half(Eigen::numext::i0e(static_cast<float>(x)));
+}
+template <>
+EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half i1e(const Eigen::half& x) {
+  return Eigen::half(Eigen::numext::i1e(static_cast<float>(x)));
 }
 #endif
 

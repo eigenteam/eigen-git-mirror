@@ -15,7 +15,6 @@ template<typename MatrixType> void product_notemporary(const MatrixType& m)
 {
   /* This test checks the number of temporaries created
    * during the evaluation of a complex expression */
-  typedef typename MatrixType::Index Index;
   typedef typename MatrixType::Scalar Scalar;
   typedef typename MatrixType::RealScalar RealScalar;
   typedef Matrix<Scalar, 1, Dynamic> RowVectorType;
@@ -51,6 +50,7 @@ template<typename MatrixType> void product_notemporary(const MatrixType& m)
   VERIFY_EVALUATION_COUNT( m3.noalias() = s1 * (m1 * m2.transpose()), 0);
 
   VERIFY_EVALUATION_COUNT( m3 = m3 + (m1 * m2.adjoint()), 1);
+  VERIFY_EVALUATION_COUNT( m3 = m3 - (m1 * m2.adjoint()), 1);
 
   VERIFY_EVALUATION_COUNT( m3 = m3 + (m1 * m2.adjoint()).transpose(), 1);
   VERIFY_EVALUATION_COUNT( m3.noalias() = m3 + m1 * m2.transpose(), 0);
@@ -127,11 +127,19 @@ template<typename MatrixType> void product_notemporary(const MatrixType& m)
   VERIFY_EVALUATION_COUNT( cvres.noalias() = (rm3+rm3) * (m1*cv1), 1 );
 
   // Check outer products
+  #ifdef EIGEN_ALLOCA
+  bool temp_via_alloca = m3.rows()*sizeof(Scalar) <= EIGEN_STACK_ALLOCATION_LIMIT;
+  #else
+  bool temp_via_alloca = false;
+  #endif
   m3 = cv1 * rv1;
   VERIFY_EVALUATION_COUNT( m3.noalias() = cv1 * rv1, 0 );
-  VERIFY_EVALUATION_COUNT( m3.noalias() = (cv1+cv1) * (rv1+rv1), 1 );
+  VERIFY_EVALUATION_COUNT( m3.noalias() = (cv1+cv1) * (rv1+rv1), temp_via_alloca ? 0 : 1 );
   VERIFY_EVALUATION_COUNT( m3.noalias() = (m1*cv1) * (rv1), 1 );
   VERIFY_EVALUATION_COUNT( m3.noalias() += (m1*cv1) * (rv1), 1 );
+  rm3 = cv1 * rv1;
+  VERIFY_EVALUATION_COUNT( rm3.noalias() = cv1 * rv1, 0 );
+  VERIFY_EVALUATION_COUNT( rm3.noalias() = (cv1+cv1) * (rv1+rv1), temp_via_alloca ? 0 : 1 );
   VERIFY_EVALUATION_COUNT( rm3.noalias() = (cv1) * (rv1 * m1), 1 );
   VERIFY_EVALUATION_COUNT( rm3.noalias() -= (cv1) * (rv1 * m1), 1 );
   VERIFY_EVALUATION_COUNT( rm3.noalias() = (m1*cv1) * (rv1 * m1), 2 );
@@ -142,7 +150,7 @@ template<typename MatrixType> void product_notemporary(const MatrixType& m)
   VERIFY_EVALUATION_COUNT( rvres.noalias() = rv1 * (m1 * m2.adjoint()), 1 );
 }
 
-void test_product_notemporary()
+EIGEN_DECLARE_TEST(product_notemporary)
 {
   int s;
   for(int i = 0; i < g_repeat; i++) {

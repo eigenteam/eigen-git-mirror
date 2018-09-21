@@ -461,10 +461,16 @@ template<> EIGEN_STRONG_INLINE void pstore1<Packet2d>(double* to, const double& 
   pstore(to, Packet2d(vec2d_swizzle1(pa,0,0)));
 }
 
+#if EIGEN_COMP_PGI
+typedef const void * SsePrefetchPtrType;
+#else
+typedef const char * SsePrefetchPtrType;
+#endif
+
 #ifndef EIGEN_VECTORIZE_AVX
-template<> EIGEN_STRONG_INLINE void prefetch<float>(const float*   addr) { _mm_prefetch((const char*)(addr), _MM_HINT_T0); }
-template<> EIGEN_STRONG_INLINE void prefetch<double>(const double* addr) { _mm_prefetch((const char*)(addr), _MM_HINT_T0); }
-template<> EIGEN_STRONG_INLINE void prefetch<int>(const int*       addr) { _mm_prefetch((const char*)(addr), _MM_HINT_T0); }
+template<> EIGEN_STRONG_INLINE void prefetch<float>(const float*   addr) { _mm_prefetch((SsePrefetchPtrType)(addr), _MM_HINT_T0); }
+template<> EIGEN_STRONG_INLINE void prefetch<double>(const double* addr) { _mm_prefetch((SsePrefetchPtrType)(addr), _MM_HINT_T0); }
+template<> EIGEN_STRONG_INLINE void prefetch<int>(const int*       addr) { _mm_prefetch((SsePrefetchPtrType)(addr), _MM_HINT_T0); }
 #endif
 
 #if EIGEN_COMP_MSVC_STRICT && EIGEN_OS_WIN64
@@ -657,7 +663,7 @@ template<> EIGEN_STRONG_INLINE int predux_mul<Packet4i>(const Packet4i& a)
   // TODO try to call _mm_mul_epu32 directly
   EIGEN_ALIGN16 int aux[4];
   pstore(aux, a);
-  return  (aux[0] * aux[1]) * (aux[2] * aux[3]);;
+  return  (aux[0] * aux[1]) * (aux[2] * aux[3]);
 }
 
 // min
@@ -927,5 +933,15 @@ template<> EIGEN_STRONG_INLINE double pmadd(const double& a, const double& b, co
 } // end namespace internal
 
 } // end namespace Eigen
+
+#if EIGEN_COMP_PGI
+// PGI++ does not define the following intrinsics in C++ mode.
+static inline __m128  _mm_castpd_ps   (__m128d x) { return reinterpret_cast<__m128&>(x);  }
+static inline __m128i _mm_castpd_si128(__m128d x) { return reinterpret_cast<__m128i&>(x); }
+static inline __m128d _mm_castps_pd   (__m128  x) { return reinterpret_cast<__m128d&>(x); }
+static inline __m128i _mm_castps_si128(__m128  x) { return reinterpret_cast<__m128i&>(x); }
+static inline __m128  _mm_castsi128_ps(__m128i x) { return reinterpret_cast<__m128&>(x);  }
+static inline __m128d _mm_castsi128_pd(__m128i x) { return reinterpret_cast<__m128d&>(x); }
+#endif
 
 #endif // EIGEN_PACKET_MATH_SSE_H

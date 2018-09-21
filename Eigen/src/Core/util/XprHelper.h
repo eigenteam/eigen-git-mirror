@@ -34,6 +34,26 @@ inline IndexDest convert_index(const IndexSrc& idx) {
   return IndexDest(idx);
 }
 
+// true if T can be considered as an integral index (i.e., and integral type or enum)
+template<typename T> struct is_valid_index_type
+{
+  enum { value =
+#if EIGEN_HAS_TYPE_TRAITS
+    internal::is_integral<T>::value || std::is_enum<T>::value
+#elif EIGEN_COMP_MSVC
+    internal::is_integral<T>::value || __is_enum(T)
+#else
+    // without C++11, we use is_convertible to Index instead of is_integral in order to treat enums as Index.
+    internal::is_convertible<T,Index>::value
+#endif
+  };
+};
+
+// true if both types are not valid index types
+template<typename RowIndices, typename ColIndices>
+struct valid_indexed_view_overload {
+  enum { value = !(internal::is_valid_index_type<RowIndices>::value && internal::is_valid_index_type<ColIndices>::value) };
+};
 
 // promote_scalar_arg is an helper used in operation between an expression and a scalar, like:
 //    expression * scalar
@@ -385,7 +405,7 @@ template<typename T> struct plain_matrix_type_row_major
   typedef Matrix<typename traits<T>::Scalar,
                 Rows,
                 Cols,
-                (MaxCols==1&&MaxRows!=1) ? RowMajor : ColMajor,
+                (MaxCols==1&&MaxRows!=1) ? ColMajor : RowMajor,
                 MaxRows,
                 MaxCols
           > type;
@@ -440,7 +460,7 @@ template<typename T, int n, typename PlainObject = typename plain_object_eval<T>
 {
   enum {
     ScalarReadCost = NumTraits<typename traits<T>::Scalar>::ReadCost,
-    CoeffReadCost = evaluator<T>::CoeffReadCost,  // NOTE What if an evaluator evaluate itself into a tempory?
+    CoeffReadCost = evaluator<T>::CoeffReadCost,  // NOTE What if an evaluator evaluate itself into a temporary?
                                                   //      Then CoeffReadCost will be small (e.g., 1) but we still have to evaluate, especially if n>1.
                                                   //      This situation is already taken care by the EvalBeforeNestingBit flag, which is turned ON
                                                   //      for all evaluator creating a temporary. This flag is then propagated by the parent evaluators.
@@ -656,17 +676,32 @@ template<typename T> struct is_diagonal<DiagonalWrapper<T> >
 template<typename T, int S> struct is_diagonal<DiagonalMatrix<T,S> >
 { enum { ret = true }; };
 
+
+template<typename T> struct is_identity
+{ enum { value = false }; };
+
+template<typename T> struct is_identity<CwiseNullaryOp<internal::scalar_identity_op<typename T::Scalar>, T> >
+{ enum { value = true }; };
+
+
 template<typename S1, typename S2> struct glue_shapes;
 template<> struct glue_shapes<DenseShape,TriangularShape> { typedef TriangularShape type;  };
 
 template<typename T1, typename T2>
-bool is_same_dense(const T1 &mat1, const T2 &mat2, typename enable_if<has_direct_access<T1>::ret&&has_direct_access<T2>::ret, T1>::type * = 0)
+struct possibly_same_dense {
+  enum { value = has_direct_access<T1>::ret && has_direct_access<T2>::ret && is_same<typename T1::Scalar,typename T2::Scalar>::value };
+};
+
+template<typename T1, typename T2>
+EIGEN_DEVICE_FUNC
+bool is_same_dense(const T1 &mat1, const T2 &mat2, typename enable_if<possibly_same_dense<T1,T2>::value>::type * = 0)
 {
   return (mat1.data()==mat2.data()) && (mat1.innerStride()==mat2.innerStride()) && (mat1.outerStride()==mat2.outerStride());
 }
 
 template<typename T1, typename T2>
-bool is_same_dense(const T1 &, const T2 &, typename enable_if<!(has_direct_access<T1>::ret&&has_direct_access<T2>::ret), T1>::type * = 0)
+EIGEN_DEVICE_FUNC
+bool is_same_dense(const T1 &, const T2 &, typename enable_if<!possibly_same_dense<T1,T2>::value>::type * = 0)
 {
   return false;
 }

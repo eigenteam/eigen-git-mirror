@@ -105,7 +105,7 @@ static void test_small_to_big_type_cast()
 }
 
 
-void test_cxx11_tensor_casts()
+EIGEN_DECLARE_TEST(cxx11_tensor_casts)
 {
    CALL_SUBTEST(test_simple_cast());
    CALL_SUBTEST(test_vectorized_cast());

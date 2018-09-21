@@ -93,26 +93,58 @@ SYCLFORCEDEVALLEAFCOUNT(const)
 SYCLFORCEDEVALLEAFCOUNT()
 #undef SYCLFORCEDEVALLEAFCOUNT
 
-/// specialisation of the \ref LeafCount struct when the node type is TensorEvalToOp
-#define EVALTOLEAFCOUNT(CVQual)\
-template <typename Expr>\
-struct LeafCount<CVQual TensorEvalToOp<Expr> > {\
-  static const size_t Count = 1 + CategoryCount<Expr>::Count;\
+#define SYCLCUSTOMUNARYOPLEAFCOUNT(CVQual)\
+template <typename CustomUnaryFunc, typename XprType>\
+struct LeafCount<CVQual TensorCustomUnaryOp<CustomUnaryFunc, XprType> > {\
+static const size_t Count =1;\
 };
 
-EVALTOLEAFCOUNT(const)
-EVALTOLEAFCOUNT()
-#undef EVALTOLEAFCOUNT
+SYCLCUSTOMUNARYOPLEAFCOUNT(const)
+SYCLCUSTOMUNARYOPLEAFCOUNT()
+#undef SYCLCUSTOMUNARYOPLEAFCOUNT
+
+
+#define SYCLCUSTOMBINARYOPLEAFCOUNT(CVQual)\
+template <typename CustomBinaryFunc, typename LhsXprType, typename RhsXprType>\
+struct LeafCount<CVQual TensorCustomBinaryOp<CustomBinaryFunc, LhsXprType, RhsXprType> > {\
+static const size_t Count =1;\
+};
+SYCLCUSTOMBINARYOPLEAFCOUNT( const)
+SYCLCUSTOMBINARYOPLEAFCOUNT()
+#undef SYCLCUSTOMBINARYOPLEAFCOUNT
+
+/// specialisation of the \ref LeafCount struct when the node type is TensorEvalToOp
+#define EVALTOLAYOUTSWAPINDEXTUPLELEAFCOUNT(CVQual , ExprNode, Num)\
+template <typename Expr>\
+struct LeafCount<CVQual ExprNode<Expr> > {\
+  static const size_t Count = Num + CategoryCount<Expr>::Count;\
+};
+
+EVALTOLAYOUTSWAPINDEXTUPLELEAFCOUNT(const, TensorEvalToOp, 1)
+EVALTOLAYOUTSWAPINDEXTUPLELEAFCOUNT(, TensorEvalToOp, 1)
+EVALTOLAYOUTSWAPINDEXTUPLELEAFCOUNT(const, TensorLayoutSwapOp, 0)
+EVALTOLAYOUTSWAPINDEXTUPLELEAFCOUNT(, TensorLayoutSwapOp, 0)
+
+EVALTOLAYOUTSWAPINDEXTUPLELEAFCOUNT(const, TensorIndexTupleOp, 0)
+EVALTOLAYOUTSWAPINDEXTUPLELEAFCOUNT(, TensorIndexTupleOp, 0)
+
+#undef EVALTOLAYOUTSWAPINDEXTUPLELEAFCOUNT
 
 /// specialisation of the \ref LeafCount struct when the node type is const TensorReductionOp
-#define REDUCTIONLEAFCOUNT(CVQual)\
+#define REDUCTIONLEAFCOUNT(CVQual, ExprNode)\
 template <typename OP, typename Dim, typename Expr>\
-struct LeafCount<CVQual TensorReductionOp<OP, Dim, Expr> > {\
+struct LeafCount<CVQual ExprNode<OP, Dim, Expr> > {\
     static const size_t Count =1;\
 };
 
-REDUCTIONLEAFCOUNT(const)
-REDUCTIONLEAFCOUNT()
+// TensorReductionOp
+REDUCTIONLEAFCOUNT(const,TensorReductionOp)
+REDUCTIONLEAFCOUNT(,TensorReductionOp)
+
+// tensor Argmax -TensorTupleReducerOp
+REDUCTIONLEAFCOUNT(const, TensorTupleReducerOp)
+REDUCTIONLEAFCOUNT(, TensorTupleReducerOp)
+
 #undef REDUCTIONLEAFCOUNT
 
 /// specialisation of the \ref LeafCount struct when the node type is const TensorContractionOp
@@ -128,8 +160,6 @@ CONTRACTIONCONVOLUTIONLEAFCOUNT(const,TensorConvolutionOp)
 CONTRACTIONCONVOLUTIONLEAFCOUNT(,TensorConvolutionOp)
 #undef CONTRACTIONCONVOLUTIONLEAFCOUNT
 
-
-
 /// specialisation of the \ref LeafCount struct when the node type is  TensorSlicingOp
 #define SLICEOPLEAFCOUNT(CVQual)\
 template <typename StartIndices, typename Sizes, typename XprType>\
@@ -138,7 +168,6 @@ struct LeafCount<CVQual TensorSlicingOp<StartIndices, Sizes, XprType> >:Category
 SLICEOPLEAFCOUNT(const)
 SLICEOPLEAFCOUNT()
 #undef SLICEOPLEAFCOUNT
-
 
 /// specialisation of the \ref LeafCount struct when the node type is  TensorChippingOp
 #define CHIPPINGOPLEAFCOUNT(CVQual)\
@@ -149,7 +178,7 @@ CHIPPINGOPLEAFCOUNT(const)
 CHIPPINGOPLEAFCOUNT()
 #undef CHIPPINGOPLEAFCOUNT
 
-
+///TensorStridingSlicingOp
 #define SLICESTRIDEOPLEAFCOUNT(CVQual)\
 template<typename StartIndices, typename StopIndices, typename Strides, typename XprType>\
 struct LeafCount<CVQual TensorStridingSlicingOp<StartIndices, StopIndices, Strides, XprType> >:CategoryCount<XprType>{};
@@ -158,6 +187,24 @@ SLICESTRIDEOPLEAFCOUNT(const)
 SLICESTRIDEOPLEAFCOUNT()
 #undef SLICESTRIDEOPLEAFCOUNT
 
+//TensorImagePatchOp
+#define TENSORIMAGEPATCHOPLEAFCOUNT(CVQual)\
+template<DenseIndex Rows, DenseIndex Cols, typename XprType>\
+struct LeafCount<CVQual TensorImagePatchOp<Rows, Cols, XprType> >:CategoryCount<XprType>{};
+
+
+TENSORIMAGEPATCHOPLEAFCOUNT(const)
+TENSORIMAGEPATCHOPLEAFCOUNT()
+#undef TENSORIMAGEPATCHOPLEAFCOUNT
+
+// TensorVolumePatchOp
+#define TENSORVOLUMEPATCHOPLEAFCOUNT(CVQual)\
+template<DenseIndex Planes, DenseIndex Rows, DenseIndex Cols, typename XprType>\
+struct LeafCount<CVQual TensorVolumePatchOp<Planes, Rows, Cols, XprType> >:CategoryCount<XprType>{};
+
+TENSORVOLUMEPATCHOPLEAFCOUNT(const)
+TENSORVOLUMEPATCHOPLEAFCOUNT()
+#undef TENSORVOLUMEPATCHOPLEAFCOUNT
 
 } /// namespace TensorSycl
 } /// namespace internal

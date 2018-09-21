@@ -28,7 +28,7 @@ static int nb_storeu;
 
 #include "main.h"
 
-void test_unalignedcount()
+EIGEN_DECLARE_TEST(unalignedcount)
 {
   #if defined(EIGEN_VECTORIZE_AVX)
   VectorXf a(40), b(40);

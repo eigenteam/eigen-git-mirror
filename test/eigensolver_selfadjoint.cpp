@@ -68,7 +68,6 @@ template<typename MatrixType> void selfadjointeigensolver_essential_check(const 
 
 template<typename MatrixType> void selfadjointeigensolver(const MatrixType& m)
 {
-  typedef typename MatrixType::Index Index;
   /* this test covers the following files:
      EigenSolver.h, SelfAdjointEigenSolver.h (and indirectly: Tridiagonalization.h)
   */
@@ -231,7 +230,7 @@ void bug_1204()
   SelfAdjointEigenSolver<Eigen::SparseMatrix<double> > eig(A);
 }
 
-void test_eigensolver_selfadjoint()
+EIGEN_DECLARE_TEST(eigensolver_selfadjoint)
 {
   int s = 0;
   for(int i = 0; i < g_repeat; i++) {

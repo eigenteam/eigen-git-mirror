@@ -129,7 +129,7 @@ void matlab_cplx_real(const M& ar, const M& ai, const M& b, M& cr, M& ci)
 template<typename A, typename B, typename C>
 EIGEN_DONT_INLINE void gemm(const A& a, const B& b, C& c)
 {
- c.noalias() += a * b;
+  c.noalias() += a * b;
 }
 
 int main(int argc, char ** argv)

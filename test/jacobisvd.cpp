@@ -36,7 +36,6 @@ void jacobisvd(const MatrixType& a = MatrixType(), bool pickrandom = true)
 template<typename MatrixType> void jacobisvd_verify_assert(const MatrixType& m)
 {
   svd_verify_assert<JacobiSVD<MatrixType> >(m);
-  typedef typename MatrixType::Index Index;
   Index rows = m.rows();
   Index cols = m.cols();
 
@@ -70,7 +69,7 @@ void jacobisvd_method()
   VERIFY_IS_APPROX(m.jacobiSvd(ComputeFullU|ComputeFullV).solve(m), m);
 }
 
-void test_jacobisvd()
+EIGEN_DECLARE_TEST(jacobisvd)
 {
   CALL_SUBTEST_3(( jacobisvd_verify_assert(Matrix3f()) ));
   CALL_SUBTEST_4(( jacobisvd_verify_assert(Matrix4d()) ));

@@ -32,19 +32,20 @@ internal::IndexMapper<Index, InputDims, 1, Eigen::internal::traits<HostExpr>::La
 Kernel_accessor kernel_filter;
 const size_t kernelSize, range_x, range_y;
 Buffer_accessor buffer_acc;
+ptrdiff_t out_offset;
 Local_accessor local_acc;
 FunctorExpr functors;
 TupleType tuple_of_accessors;
 EigenConvolutionKernel1D(internal::IndexMapper<Index, InputDims, 1, Eigen::internal::traits<HostExpr>::Layout> indexMapper_,
   Kernel_accessor kernel_filter_,  const size_t kernelSize_, const size_t range_x_, const size_t range_y_,
-  Buffer_accessor buffer_acc_, Local_accessor local_acc_, FunctorExpr functors_, TupleType tuple_of_accessors_)
+  Buffer_accessor buffer_acc_, ptrdiff_t out_offset_, Local_accessor local_acc_, FunctorExpr functors_, TupleType tuple_of_accessors_)
   :indexMapper(indexMapper_), kernel_filter(kernel_filter_), kernelSize(kernelSize_), range_x(range_x_), range_y(range_y_),
-  buffer_acc(buffer_acc_), local_acc(local_acc_), functors(functors_), tuple_of_accessors(tuple_of_accessors_) {}
+  buffer_acc(buffer_acc_), out_offset(out_offset_),local_acc(local_acc_), functors(functors_), tuple_of_accessors(tuple_of_accessors_) {}
 
   void operator()(cl::sycl::nd_item<2> itemID) {
     typedef typename TensorSycl::internal::ConvertToDeviceExpression<HostExpr>::Type DevExpr;
     auto device_expr =TensorSycl::internal::createDeviceExpression<DevExpr, PlaceHolderExpr>(functors, tuple_of_accessors);
-    auto device_evaluator = Eigen::TensorEvaluator<DevExpr, Eigen::DefaultDevice>(device_expr.expr, Eigen::DefaultDevice());
+    auto device_evaluator = Eigen::TensorEvaluator<DevExpr, Eigen::SyclKernelDevice>(device_expr.expr, Eigen::SyclKernelDevice());
 
     auto buffer_ptr = ConvertToActualTypeSycl(CoeffReturnType, buffer_acc);
     auto kernel_ptr = ConvertToActualTypeSycl(KernelType, kernel_filter);
@@ -75,7 +76,7 @@ EigenConvolutionKernel1D(internal::IndexMapper<Index, InputDims, 1, Eigen::inter
       }
       const size_t tensor_index = indexMapper.mapCudaOutputPlaneToTensorOutputOffset(itemID.get_global(1))
       +indexMapper.mapCudaOutputKernelToTensorOutputOffset(itemID.get_local(0) + first_output_start);
-      buffer_ptr[tensor_index] = result;
+      buffer_ptr[tensor_index+ConvertToActualSyclOffset(CoeffReturnType, out_offset)] = result;
     }
   }
 };
@@ -89,19 +90,20 @@ internal::IndexMapper<Index, InputDims, 2, Eigen::internal::traits<HostExpr>::La
 Kernel_accessor kernel_filter;
 const size_t kernelSize_x, kernelSize_y, range_x, range_y , range_z;
 Buffer_accessor buffer_acc;
+ptrdiff_t out_offset;
 Local_accessor local_acc;
 FunctorExpr functors;
 TupleType tuple_of_accessors;
 EigenConvolutionKernel2D(internal::IndexMapper<Index, InputDims, 2, Eigen::internal::traits<HostExpr>::Layout> indexMapper_,
   Kernel_accessor kernel_filter_,  const size_t kernelSize_x_, const size_t kernelSize_y_ ,const size_t range_x_, const size_t range_y_, const size_t range_z_,
-  Buffer_accessor buffer_acc_, Local_accessor local_acc_, FunctorExpr functors_, TupleType tuple_of_accessors_)
+  Buffer_accessor buffer_acc_, ptrdiff_t out_offset_, Local_accessor local_acc_, FunctorExpr functors_, TupleType tuple_of_accessors_)
   :indexMapper(indexMapper_), kernel_filter(kernel_filter_), kernelSize_x(kernelSize_x_), kernelSize_y(kernelSize_y_), range_x(range_x_), range_y(range_y_), range_z(range_z_),
-  buffer_acc(buffer_acc_), local_acc(local_acc_), functors(functors_), tuple_of_accessors(tuple_of_accessors_) {}
+  buffer_acc(buffer_acc_), out_offset(out_offset_), local_acc(local_acc_), functors(functors_), tuple_of_accessors(tuple_of_accessors_) {}
 
   void operator()(cl::sycl::nd_item<3> itemID) {
     typedef typename TensorSycl::internal::ConvertToDeviceExpression<HostExpr>::Type DevExpr;
     auto device_expr =TensorSycl::internal::createDeviceExpression<DevExpr, PlaceHolderExpr>(functors, tuple_of_accessors);
-    auto device_evaluator = Eigen::TensorEvaluator<DevExpr, Eigen::DefaultDevice>(device_expr.expr, Eigen::DefaultDevice());
+    auto device_evaluator = Eigen::TensorEvaluator<DevExpr, Eigen::SyclKernelDevice>(device_expr.expr, Eigen::SyclKernelDevice());
 
     auto buffer_ptr = ConvertToActualTypeSycl(CoeffReturnType, buffer_acc);
     auto kernel_ptr = ConvertToActualTypeSycl(KernelType, kernel_filter);
@@ -141,7 +143,7 @@ EigenConvolutionKernel2D(internal::IndexMapper<Index, InputDims, 2, Eigen::inter
       }
       const size_t tensor_index = indexMapper.mapCudaOutputPlaneToTensorOutputOffset(itemID.get_global(2))
       +indexMapper.mapCudaOutputKernelToTensorOutputOffset(itemID.get_local(0) + fitst_x_output_start, itemID.get_local(1) + fitst_y_output_start);
-      buffer_ptr[tensor_index] = result;
+      buffer_ptr[tensor_index  +ConvertToActualSyclOffset(CoeffReturnType, out_offset)] = result;
     }
   }
 };
@@ -156,21 +158,22 @@ internal::IndexMapper<Index, InputDims, 3, Eigen::internal::traits<HostExpr>::La
 Kernel_accessor kernel_filter;
 const size_t kernelSize_x, kernelSize_y, kernelSize_z, range_x, range_y , range_z, numP;
 Buffer_accessor buffer_acc;
+ptrdiff_t out_offset;
 Local_accessor local_acc;
 FunctorExpr functors;
 TupleType tuple_of_accessors;
 EigenConvolutionKernel3D(internal::IndexMapper<Index, InputDims, 3, Eigen::internal::traits<HostExpr>::Layout> indexMapper_,
   Kernel_accessor kernel_filter_,  const size_t kernelSize_x_, const size_t kernelSize_y_ , const size_t kernelSize_z_ ,
   const size_t range_x_, const size_t range_y_, const size_t range_z_, const size_t numP_,
-  Buffer_accessor buffer_acc_, Local_accessor local_acc_, FunctorExpr functors_, TupleType tuple_of_accessors_)
+  Buffer_accessor buffer_acc_, ptrdiff_t out_offset_, Local_accessor local_acc_, FunctorExpr functors_, TupleType tuple_of_accessors_)
   :indexMapper(indexMapper_), kernel_filter(kernel_filter_), kernelSize_x(kernelSize_x_), kernelSize_y(kernelSize_y_),
   kernelSize_z(kernelSize_z_), range_x(range_x_), range_y(range_y_), range_z(range_z_), numP(numP_),
-  buffer_acc(buffer_acc_), local_acc(local_acc_), functors(functors_), tuple_of_accessors(tuple_of_accessors_) {}
+  buffer_acc(buffer_acc_), out_offset(out_offset_), local_acc(local_acc_), functors(functors_), tuple_of_accessors(tuple_of_accessors_) {}
 
   void operator()(cl::sycl::nd_item<3> itemID) {
     typedef typename TensorSycl::internal::ConvertToDeviceExpression<HostExpr>::Type DevExpr;
     auto device_expr =TensorSycl::internal::createDeviceExpression<DevExpr, PlaceHolderExpr>(functors, tuple_of_accessors);
-    auto device_evaluator = Eigen::TensorEvaluator<DevExpr, Eigen::DefaultDevice>(device_expr.expr, Eigen::DefaultDevice());
+    auto device_evaluator = Eigen::TensorEvaluator<DevExpr, Eigen::SyclKernelDevice>(device_expr.expr, Eigen::SyclKernelDevice());
 
     auto buffer_ptr = ConvertToActualTypeSycl(CoeffReturnType, buffer_acc);
     auto kernel_ptr = ConvertToActualTypeSycl(KernelType, kernel_filter);
@@ -215,7 +218,7 @@ EigenConvolutionKernel3D(internal::IndexMapper<Index, InputDims, 3, Eigen::inter
         }
         const size_t tensor_index = indexMapper.mapCudaOutputPlaneToTensorOutputOffset(p)
         +indexMapper.mapCudaOutputKernelToTensorOutputOffset(itemID.get_local(0) + fitst_x_output_start, itemID.get_local(1) + fitst_y_output_start, itemID.get_local(2) + fitst_z_output_start );
-        buffer_ptr[tensor_index] = result;
+        buffer_ptr[tensor_index+ConvertToActualSyclOffset(CoeffReturnType, out_offset)] = result;
       }
 
       itemID.barrier(cl::sycl::access::fence_space::local_space);
@@ -239,6 +242,8 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
   enum {
     IsAligned = TensorEvaluator<InputArgType, const Eigen::SyclDevice>::IsAligned & TensorEvaluator<KernelArgType, const Eigen::SyclDevice>::IsAligned,
     PacketAccess = false,
+    BlockAccess = false,
+    PreferBlockAccess = false,
     Layout = TensorEvaluator<InputArgType, const Eigen::SyclDevice>::Layout,
     CoordAccess = false,  // to be implemented
     RawAccess = false
@@ -297,7 +302,7 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
   /// used by sycl in order to build the sycl buffer
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Device& device() const{return m_device;}
   /// used by sycl in order to build the sycl buffer
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE CoeffReturnType* data() const { return m_buf; }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE typename Eigen::internal::traits<XprType>::PointerType data() const { return m_buf; }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void preloadKernel() {
     // Don't make a local copy of the kernel unless we have to (i.e. it's an
@@ -307,7 +312,7 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
       m_kernel = in_place;
       m_local_kernel = false;
     } else {
-      size_t kernel_sz = m_kernelImpl.dimensions().TotalSize() * sizeof(Scalar);
+      ptrdiff_t kernel_sz = m_kernelImpl.dimensions().TotalSize() * sizeof(Scalar);
       Scalar* local = (Scalar*)m_device.allocate(kernel_sz);
       typedef TensorEvalToOp<const KernelArgType> EvalTo;
       EvalTo evalToTmp(local, m_kernelArg);
@@ -325,6 +330,7 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
     typedef Eigen::TensorSycl::internal::FunctorExtractor<InputEvaluator> InputFunctorExpr;
     // extract input functor list
     InputFunctorExpr input_functors = Eigen::TensorSycl::internal::extractFunctors(m_inputImpl);
+    ptrdiff_t out_offset = m_device.get_offset(data);
 
 
     m_device.sycl_queue().submit([&](cl::sycl::handler &cgh) {
@@ -335,8 +341,8 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
       // create input tuple of accessors
       InputTupleType tuple_of_accessors = Eigen::TensorSycl::internal::createTupleOfAccessors<InputEvaluator>(cgh, m_inputImpl);
 
-      typedef cl::sycl::accessor<uint8_t, 1, cl::sycl::access::mode::discard_write, cl::sycl::access::target::global_buffer> OutputAccessorType;
-      OutputAccessorType out_res= m_device. template get_sycl_accessor<cl::sycl::access::mode::discard_write>(cgh, data);
+      typedef cl::sycl::accessor<uint8_t, 1, cl::sycl::access::mode::write, cl::sycl::access::target::global_buffer> OutputAccessorType;
+      OutputAccessorType out_res= m_device. template get_sycl_accessor<cl::sycl::access::mode::write>(cgh, data);
       typedef cl::sycl::accessor<uint8_t, 1, cl::sycl::access::mode::read, cl::sycl::access::target::global_buffer> KernelAccessorType;
       KernelAccessorType kernel_acc= m_device. template get_sycl_accessor<cl::sycl::access::mode::read>(cgh, m_kernel);
 
@@ -348,7 +354,7 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
           size_t range_x, GRange_x, tileSize_x, range_y, GRange_y, tileSize_y;
           m_device.parallel_for_setup(numX, numP, tileSize_x,tileSize_y,range_x,range_y, GRange_x, GRange_y );
           const size_t shared_mem =(tileSize_x +kernel_size -1)*(tileSize_y);
-          assert(static_cast<unsigned long>(shared_mem) <= m_device.sharedMemPerBlock());
+          gpu_assert(static_cast<unsigned long>(shared_mem) <= m_device.sharedMemPerBlock());
           auto global_range=cl::sycl::range<2>(GRange_x, GRange_y);  // global range
           auto local_range=cl::sycl::range<2>(tileSize_x, tileSize_y);  // local range
           InputLocalAcc local_acc(cl::sycl::range<1>(shared_mem), cgh);
@@ -358,7 +364,7 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
           cgh.parallel_for(cl::sycl::nd_range<2>(global_range, local_range),
           EigenConvolutionKernel1D<CoeffReturnType, Scalar, InputArgType, InputFunctorExpr, Index,
           InputDims, KernelAccessorType, OutputAccessorType, InputLocalAcc, InputTupleType>(
-          indexMapper,kernel_acc, kernel_size, numX, numP, out_res, local_acc, input_functors, tuple_of_accessors));
+          indexMapper,kernel_acc, kernel_size, numX, numP, out_res, out_offset, local_acc, input_functors, tuple_of_accessors));
           break;
         }
 
@@ -373,7 +379,7 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
           size_t range_x, GRange_x, tileSize_x, range_y, GRange_y, tileSize_y, range_z, GRange_z, tileSize_z;
           m_device.parallel_for_setup(numX, numY, numP, tileSize_x, tileSize_y, tileSize_z, range_x, range_y, range_z, GRange_x, GRange_y, GRange_z );
           const size_t shared_mem =(tileSize_x +kernel_size_x -1)*(tileSize_y +kernel_size_y -1) * tileSize_z;
-          assert(static_cast<unsigned long>(shared_mem) <= m_device.sharedMemPerBlock());
+          gpu_assert(static_cast<unsigned long>(shared_mem) <= m_device.sharedMemPerBlock());
           auto global_range=cl::sycl::range<3>(GRange_x, GRange_y, GRange_z);  // global range
           auto local_range=cl::sycl::range<3>(tileSize_x, tileSize_y, tileSize_z);  // local range
           InputLocalAcc local_acc(cl::sycl::range<1>(shared_mem), cgh);
@@ -383,7 +389,7 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
           cgh.parallel_for(cl::sycl::nd_range<3>(global_range, local_range),
           EigenConvolutionKernel2D<CoeffReturnType, Scalar, InputArgType, InputFunctorExpr, Index,
           InputDims, KernelAccessorType, OutputAccessorType, InputLocalAcc, InputTupleType>(
-          indexMapper,kernel_acc, kernel_size_x,  kernel_size_y, numX, numY, numP, out_res, local_acc, input_functors, tuple_of_accessors));
+          indexMapper,kernel_acc, kernel_size_x,  kernel_size_y, numX, numY, numP, out_res, out_offset, local_acc, input_functors, tuple_of_accessors));
           break;
         }
 
@@ -404,7 +410,7 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
           size_t range_x, GRange_x, tileSize_x, range_y, GRange_y, tileSize_y, range_z, GRange_z, tileSize_z;
           m_device.parallel_for_setup(numX, numY, numZ, tileSize_x, tileSize_y, tileSize_z, range_x, range_y, range_z, GRange_x, GRange_y, GRange_z );
           const size_t shared_mem =(tileSize_x +kernel_size_x -1)*(tileSize_y +kernel_size_y -1) * (tileSize_z +kernel_size_y -1);
-          assert(static_cast<unsigned long>(shared_mem) <= m_device.sharedMemPerBlock());
+          gpu_assert(static_cast<unsigned long>(shared_mem) <= m_device.sharedMemPerBlock());
           auto global_range=cl::sycl::range<3>(GRange_x, GRange_y, GRange_z);  // global range
           auto local_range=cl::sycl::range<3>(tileSize_x, tileSize_y, tileSize_z);  // local range
           InputLocalAcc local_acc(cl::sycl::range<1>(shared_mem), cgh);
@@ -412,7 +418,7 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
           EigenConvolutionKernel3D<CoeffReturnType, Scalar, InputArgType, InputFunctorExpr, Index,
           InputDims, KernelAccessorType, OutputAccessorType, InputLocalAcc, InputTupleType>(
           indexMapper,kernel_acc, kernel_size_x,  kernel_size_y, kernel_size_z, numX, numY,
-          numZ, numP, out_res, local_acc, input_functors, tuple_of_accessors));
+          numZ, numP, out_res, out_offset, local_acc, input_functors, tuple_of_accessors));
           break;
         }
 
@@ -421,6 +427,7 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
         }
       }
     });
+    m_device.asynchronousExec();
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE CoeffReturnType coeff(Index index) const

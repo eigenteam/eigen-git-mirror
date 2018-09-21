@@ -24,7 +24,8 @@ struct selfadjoint_rank2_update_selector;
 template<typename Scalar, typename Index, typename UType, typename VType>
 struct selfadjoint_rank2_update_selector<Scalar,Index,UType,VType,Lower>
 {
-  static void run(Scalar* mat, Index stride, const UType& u, const VType& v, const Scalar& alpha)
+  static EIGEN_DEVICE_FUNC
+  void run(Scalar* mat, Index stride, const UType& u, const VType& v, const Scalar& alpha)
   {
     const Index size = u.size();
     for (Index i=0; i<size; ++i)
@@ -57,7 +58,7 @@ template<bool Cond, typename T> struct conj_expr_if
 
 template<typename MatrixType, unsigned int UpLo>
 template<typename DerivedU, typename DerivedV>
-SelfAdjointView<MatrixType,UpLo>& SelfAdjointView<MatrixType,UpLo>
+EIGEN_DEVICE_FUNC SelfAdjointView<MatrixType,UpLo>& SelfAdjointView<MatrixType,UpLo>
 ::rankUpdate(const MatrixBase<DerivedU>& u, const MatrixBase<DerivedV>& v, const Scalar& alpha)
 {
   typedef internal::blas_traits<DerivedU> UBlasTraits;

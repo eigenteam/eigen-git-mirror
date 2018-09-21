@@ -52,7 +52,7 @@ struct PacketType : internal::packet_traits<Scalar> {
 };
 
 // For CUDA packet types when using a GpuDevice
-#if defined(EIGEN_USE_GPU) && defined(__CUDACC__) && defined(EIGEN_HAS_CUDA_FP16)
+#if defined(EIGEN_USE_GPU) && defined(EIGEN_HAS_GPU_FP16)
 template <>
 struct PacketType<half, GpuDevice> {
   typedef half2 type;
@@ -124,7 +124,9 @@ template <typename U, typename V> struct Tuple {
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
   Tuple& operator= (const Tuple& rhs) {
+  #ifndef __SYCL_DEVICE_ONLY__
     if (&rhs == this) return *this;
+  #endif
     first = rhs.first;
     second = rhs.second;
     return *this;

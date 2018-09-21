@@ -85,8 +85,8 @@ template<typename LhsScalar, typename RhsScalar, typename Scalar>
 #endif
 
 
-template<typename Dimensions, typename LhsXprType, typename RhsXprType>
-struct traits<TensorContractionOp<Dimensions, LhsXprType, RhsXprType> >
+template<typename Dimensions, typename LhsXprType, typename RhsXprType, typename OutputKernelType>
+struct traits<TensorContractionOp<Dimensions, LhsXprType, RhsXprType, OutputKernelType> >
 {
   // Type promotion to handle the case where the types of the lhs and the rhs are different.
   typedef typename gebp_traits<typename remove_const<typename LhsXprType::Scalar>::type,
@@ -104,29 +104,32 @@ struct traits<TensorContractionOp<Dimensions, LhsXprType, RhsXprType> >
   // From NumDims below.
   static const int NumDimensions = traits<RhsXprType>::NumDimensions + traits<RhsXprType>::NumDimensions - 2 * array_size<Dimensions>::value;
   static const int Layout = traits<LhsXprType>::Layout;
+  typedef typename conditional<Pointer_type_promotion<typename LhsXprType::Scalar, Scalar>::val,
+  typename traits<LhsXprType>::PointerType, typename traits<RhsXprType>::PointerType>::type PointerType;
 
   enum {
     Flags = 0
   };
 };
 
-template<typename Dimensions, typename LhsXprType, typename RhsXprType>
-struct eval<TensorContractionOp<Dimensions, LhsXprType, RhsXprType>, Eigen::Dense>
+template<typename Dimensions, typename LhsXprType, typename RhsXprType, typename OutputKernelType>
+struct eval<TensorContractionOp<Dimensions, LhsXprType, RhsXprType, OutputKernelType>, Eigen::Dense>
 {
-  typedef const TensorContractionOp<Dimensions, LhsXprType, RhsXprType>& type;
+  typedef const TensorContractionOp<Dimensions, LhsXprType, RhsXprType, OutputKernelType>& type;
 };
 
-template<typename Dimensions, typename LhsXprType, typename RhsXprType>
-struct nested<TensorContractionOp<Dimensions, LhsXprType, RhsXprType>, 1, typename eval<TensorContractionOp<Dimensions, LhsXprType, RhsXprType> >::type>
+template<typename Dimensions, typename LhsXprType, typename RhsXprType, typename OutputKernelType>
+struct nested<TensorContractionOp<Dimensions, LhsXprType, RhsXprType, OutputKernelType>, 1, typename eval<TensorContractionOp<Dimensions, LhsXprType, RhsXprType, OutputKernelType> >::type>
 {
-  typedef TensorContractionOp<Dimensions, LhsXprType, RhsXprType> type;
+  typedef TensorContractionOp<Dimensions, LhsXprType, RhsXprType, OutputKernelType> type;
 };
 
-template<typename Indices_, typename LeftArgType_, typename RightArgType_, typename Device_>
-struct traits<TensorEvaluator<const TensorContractionOp<Indices_, LeftArgType_, RightArgType_>, Device_> > {
+template<typename Indices_, typename LeftArgType_, typename RightArgType_, typename OutputKernelType_, typename Device_>
+struct traits<TensorEvaluator<const TensorContractionOp<Indices_, LeftArgType_, RightArgType_, OutputKernelType_>, Device_> > {
   typedef Indices_ Indices;
   typedef LeftArgType_ LeftArgType;
   typedef RightArgType_ RightArgType;
+  typedef OutputKernelType_ OutputKernelType;
   typedef Device_ Device;
 
   // From NumDims below.
@@ -135,8 +138,46 @@ struct traits<TensorEvaluator<const TensorContractionOp<Indices_, LeftArgType_, 
 
 }  // end namespace internal
 
-template<typename Indices, typename LhsXprType, typename RhsXprType>
-class TensorContractionOp : public TensorBase<TensorContractionOp<Indices, LhsXprType, RhsXprType>, ReadOnlyAccessors>
+// Tensor contraction params that should enable to get from output matrix
+// 2-dimensional coordinates to the output tensor dimensions.
+struct TensorContractionParams {
+  // TensorContraction evaluator assumes that both tensors are in ColMajor
+  // layout, if tensors are in RowMajor evaluator swap lhs with rhs.
+  bool swapped_arguments;
+};
+
+// Output kernel allows to fuse operations into the tensor contraction.
+//
+// Examples:
+//   1. Elementwise Relu transformation following Conv2D.
+//   2. AddBias to the Conv2D output channels dimension.
+//
+// The NoOpOutputKernel implements an output kernel that does absolutely nothing.
+struct NoOpOutputKernel {
+  /**
+   * Tensor contraction evaluator calls this kernel after finishing each block
+   * of output matrix. Output blocks belong to the 2-dimensional output tensor.
+   *
+   * TensorContractionParams contains contraction dimensions information
+   * required to map output 2-d space into the expected output tensor space
+   * (potentially higher dimensional).
+   *
+   * \param[in] output_mapper Access to output tensor memory
+   * \param[in] params   Tensor contraction parameters
+   * \param[in] i        Index of a first row available through output_mapper
+   * \param[in] j        Index of a first column available through output_mapper
+   * \param[in] num_rows Number of available rows
+   * \param[in] num_cols Number of available columns
+   */
+  template <typename Index, typename Scalar>
+  EIGEN_ALWAYS_INLINE void operator()(
+      const internal::blas_data_mapper<Scalar, Index, ColMajor>& /*output_mapper*/,
+      const TensorContractionParams& /*params*/, Index /*i*/,
+      Index /*j*/, Index /*num_rows*/, Index /*num_cols*/) const {}
+};
+
+template<typename Indices, typename LhsXprType, typename RhsXprType, typename OutputKernelType = const NoOpOutputKernel>
+class TensorContractionOp : public TensorBase<TensorContractionOp<Indices, LhsXprType, RhsXprType, OutputKernelType>, ReadOnlyAccessors>
 {
   public:
   typedef typename Eigen::internal::traits<TensorContractionOp>::Scalar Scalar;
@@ -147,8 +188,10 @@ class TensorContractionOp : public TensorBase<TensorContractionOp<Indices, LhsXp
   typedef typename Eigen::internal::traits<TensorContractionOp>::Index Index;
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorContractionOp(
-      const LhsXprType& lhs, const RhsXprType& rhs, const Indices& dims)
-      : m_lhs_xpr(lhs), m_rhs_xpr(rhs), m_indices(dims) {}
+      const LhsXprType& lhs, const RhsXprType& rhs, const Indices& dims,
+      const OutputKernelType& output_kernel = OutputKernelType())
+      : m_lhs_xpr(lhs), m_rhs_xpr(rhs), m_indices(dims),
+        m_output_kernel(output_kernel) {}
 
   EIGEN_DEVICE_FUNC
   const Indices& indices() const { return m_indices; }
@@ -162,10 +205,14 @@ class TensorContractionOp : public TensorBase<TensorContractionOp<Indices, LhsXp
   const typename internal::remove_all<typename RhsXprType::Nested>::type&
   rhsExpression() const { return m_rhs_xpr; }
 
+  EIGEN_DEVICE_FUNC
+  const OutputKernelType& outputKernel() const { return m_output_kernel; }
+
   protected:
     typename LhsXprType::Nested m_lhs_xpr;
     typename RhsXprType::Nested m_rhs_xpr;
     const Indices m_indices;
+    const OutputKernelType m_output_kernel;
 };
 
 
@@ -175,9 +222,10 @@ struct TensorContractionEvaluatorBase
   typedef typename internal::traits<Derived>::Indices Indices;
   typedef typename internal::traits<Derived>::LeftArgType LeftArgType;
   typedef typename internal::traits<Derived>::RightArgType RightArgType;
+  typedef typename internal::traits<Derived>::OutputKernelType OutputKernelType;
   typedef typename internal::traits<Derived>::Device Device;
 
-  typedef TensorContractionOp<Indices, LeftArgType, RightArgType> XprType;
+  typedef TensorContractionOp<Indices, LeftArgType, RightArgType, OutputKernelType> XprType;
   typedef typename internal::remove_const<typename XprType::Scalar>::type Scalar;
   typedef typename XprType::Index Index;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
@@ -185,7 +233,9 @@ struct TensorContractionEvaluatorBase
 
   enum {
     IsAligned = true,
-    PacketAccess = (internal::unpacket_traits<PacketReturnType>::size > 1),
+    PacketAccess = (PacketType<CoeffReturnType, Device>::size > 1),
+    BlockAccess = false,
+    PreferBlockAccess = false,
     Layout = TensorEvaluator<LeftArgType, Device>::Layout,
     CoordAccess = false,  // to be implemented
     RawAccess = true
@@ -220,6 +270,7 @@ struct TensorContractionEvaluatorBase
     m_rightImpl(choose(Cond<static_cast<int>(Layout) == static_cast<int>(ColMajor)>(),
                           op.rhsExpression(), op.lhsExpression()), device),
         m_device(device),
+        m_output_kernel(op.outputKernel()),
         m_result(NULL) {
     EIGEN_STATIC_ASSERT((static_cast<int>(TensorEvaluator<LeftArgType, Device>::Layout) ==
          static_cast<int>(TensorEvaluator<RightArgType, Device>::Layout)),
@@ -297,7 +348,7 @@ struct TensorContractionEvaluatorBase
     // dimensions and right non-contracting dimensions.
     m_lhs_inner_dim_contiguous = true;
     int dim_idx = 0;
-    unsigned int nocontract_idx = 0;
+    Index nocontract_idx = 0;
 
     for (int i = 0; i < LDims; i++) {
       // find if we are contracting on index i of left tensor
@@ -389,6 +440,12 @@ struct TensorContractionEvaluatorBase
         numext::swap(m_dimensions[i], m_dimensions[j]);
       }
     }
+
+    // A set of parameters that will allow output kernel to get from output
+    // tensor dimensions (i, j) into the original tensor dimensions.
+    // TODO(ezhulenev): Add parameters required to infer output tensor index for
+    // more complex contractions than 2x2 on internal dimension.
+    m_tensor_contraction_params.swapped_arguments = static_cast<int>(Layout) == RowMajor;
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Dimensions& dimensions() const { return m_dimensions; }
@@ -406,47 +463,66 @@ struct TensorContractionEvaluatorBase
     }
   }
 
-  EIGEN_DEVICE_FUNC void evalTo(Scalar* buffer) const {
-    if (this->m_lhs_inner_dim_contiguous) {
-      if (this->m_rhs_inner_dim_contiguous) {
-        if (this->m_rhs_inner_dim_reordered) {
-          static_cast<const Derived*>(this)->template evalProduct<true, true, true, Unaligned>(buffer);
-        }
-        else {
-          static_cast<const Derived*>(this)->template evalProduct<true, true, false, Unaligned>(buffer);
-        }
-      }
-      else {
-       if (this->m_rhs_inner_dim_reordered) {
-          static_cast<const Derived*>(this)->template evalProduct<true, false, true, Unaligned>(buffer);
-        }
-        else {
-          static_cast<const Derived*>(this)->template evalProduct<true, false, false, Unaligned>(buffer);
-        }
-      }
+#define TENSOR_CONTRACTION_DISPATCH(METHOD, ALIGNMENT, ARGS)   \
+    if (this->m_lhs_inner_dim_contiguous) { \
+      if (this->m_rhs_inner_dim_contiguous) { \
+        if (this->m_rhs_inner_dim_reordered) { \
+          METHOD<true, true, true, ALIGNMENT>ARGS;    \
+        } \
+        else { \
+          METHOD<true, true, false, ALIGNMENT>ARGS; \
+        } \
+      } \
+      else { \
+       if (this->m_rhs_inner_dim_reordered) { \
+          METHOD<true, false, true, ALIGNMENT>ARGS; \
+        } \
+        else { \
+          METHOD<true, false, false, ALIGNMENT>ARGS; \
+        } \
+      } \
+    } \
+    else { \
+      if (this->m_rhs_inner_dim_contiguous) { \
+        if (this->m_rhs_inner_dim_reordered) { \
+          METHOD<false, true, true, ALIGNMENT>ARGS; \
+        } \
+        else { \
+          METHOD<false, true, false, ALIGNMENT>ARGS; \
+        } \
+      } \
+      else { \
+       if (this->m_rhs_inner_dim_reordered) { \
+          METHOD<false, false, true, ALIGNMENT>ARGS; \
+        } \
+        else { \
+          METHOD<false, false, false, ALIGNMENT>ARGS; \
+        } \
+      } \
     }
-    else {
-      if (this->m_rhs_inner_dim_contiguous) {
-        if (this->m_rhs_inner_dim_reordered) {
-          static_cast<const Derived*>(this)->template evalProduct<false, true, true, Unaligned>(buffer);
-        }
-        else {
-          static_cast<const Derived*>(this)->template evalProduct<false, true, false, Unaligned>(buffer);
-        }
-      }
-      else {
-       if (this->m_rhs_inner_dim_reordered) {
-          static_cast<const Derived*>(this)->template evalProduct<false, false, true, Unaligned>(buffer);
-        }
-        else {
-          static_cast<const Derived*>(this)->template evalProduct<false, false, false, Unaligned>(buffer);
-        }
-      }
+
+  EIGEN_DEVICE_FUNC void evalTo(Scalar* buffer) const {
+   static_cast<const Derived*>(this)->template evalProduct<Unaligned>(buffer);
+  }
+
+  template <bool lhs_inner_dim_contiguous, bool rhs_inner_dim_contiguous,
+            bool rhs_inner_dim_reordered, int Alignment>
+  void evalProductSequential(Scalar* buffer) const {
+    if (this->m_j_size == 1) {
+      this->template evalGemv<lhs_inner_dim_contiguous,
+                              rhs_inner_dim_contiguous, rhs_inner_dim_reordered,
+                              Alignment>(buffer);
+    } else {
+      this->template evalGemm<lhs_inner_dim_contiguous, rhs_inner_dim_contiguous,
+                              rhs_inner_dim_reordered, Alignment>(buffer);
     }
   }
 
   template <bool lhs_inner_dim_contiguous, bool rhs_inner_dim_contiguous, bool rhs_inner_dim_reordered, int Alignment>
-  EIGEN_DEVICE_FUNC void evalGemv(Scalar* buffer) const {
+  #if !defined(EIGEN_HIPCC)
+  EIGEN_DEVICE_FUNC
+  #endif
+  void evalGemv(Scalar* buffer) const {
     const Index rows = m_i_size;
     const Index cols = m_k_size;
 
@@ -484,10 +560,18 @@ struct TensorContractionEvaluatorBase
     internal::general_matrix_vector_product<Index,LhsScalar,LhsMapper,ColMajor,false,RhsScalar,RhsMapper,false>::run(
         rows, cols, lhs, rhs,
         buffer, resIncr, alpha);
+
+    typedef internal::blas_data_mapper<Scalar, Index, ColMajor> OutputMapper;
+    m_output_kernel(OutputMapper(buffer, rows), m_tensor_contraction_params,
+                    static_cast<Index>(0), static_cast<Index>(0), rows,
+                    static_cast<Index>(1));
   }
 
   template <bool lhs_inner_dim_contiguous, bool rhs_inner_dim_contiguous, bool rhs_inner_dim_reordered, int Alignment>
-  EIGEN_DEVICE_FUNC void evalGemm(Scalar* buffer) const {
+  #if !defined(EIGEN_HIPCC)
+  EIGEN_DEVICE_FUNC
+  #endif
+  void evalGemm(Scalar* buffer) const {
     #if defined(EIGEN_VECTORIZE_AVX) && defined(EIGEN_USE_LIBXSMM)
     if (m_can_use_xsmm) {
       evalGemmXSMM(buffer);
@@ -536,7 +620,7 @@ struct TensorContractionEvaluatorBase
     typedef internal::blas_data_mapper<Scalar, Index, ColMajor> OutputMapper;
 
     // Declare GEBP packing and kernel structs
-    internal::gemm_pack_lhs<LhsScalar, Index, typename LhsMapper::SubMapper, mr, Traits::LhsProgress, ColMajor> pack_lhs;
+    internal::gemm_pack_lhs<LhsScalar, Index, typename LhsMapper::SubMapper, mr, Traits::LhsProgress, typename Traits::LhsPacket4Packing, ColMajor> pack_lhs;
     internal::gemm_pack_rhs<RhsScalar, Index, typename RhsMapper::SubMapper, nr, ColMajor> pack_rhs;
 
     internal::gebp_kernel<LhsScalar, RhsScalar, Index, OutputMapper, mr, nr, false, false> gebp;
@@ -551,7 +635,7 @@ struct TensorContractionEvaluatorBase
     OutputMapper output(buffer, m);
 
     // Sizes of the blocks to load in cache. See the Goto paper for details.
-    internal::TensorContractionBlocking<LhsMapper, RhsMapper, Index, internal::ShardByCol> blocking(k, m, n, 1);
+    internal::TensorContractionBlocking<LhsScalar, RhsScalar, Index, internal::ShardByCol> blocking(k, m, n, 1);
     const Index kc = blocking.kc();
     const Index mc = numext::mini(m, blocking.mc());
     const Index nc = numext::mini(n, blocking.nc());
@@ -577,7 +661,15 @@ struct TensorContractionEvaluatorBase
 
           // call gebp (matrix kernel)
           // The parameters here are copied from Eigen's GEMM implementation
-          gebp(output.getSubMapper(i2, j2), blockA, blockB, actual_mc, actual_kc, actual_nc, Scalar(1), -1, -1, 0, 0);
+          const OutputMapper output_mapper = output.getSubMapper(i2, j2);
+          gebp(output_mapper, blockA, blockB, actual_mc, actual_kc, actual_nc,
+               Scalar(1), -1, -1, 0, 0);
+
+          // We are done with this [i2, j2] output block.
+          if (k2 + kc >= k) {
+            m_output_kernel(output_mapper, m_tensor_contraction_params, i2, j2,
+                            actual_mc, actual_nc);
+          }
         }
       }
     }
@@ -609,7 +701,7 @@ struct TensorContractionEvaluatorBase
     return internal::ploadt<PacketReturnType, LoadMode>(m_result + index);
   }
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar* data() const { return m_result; }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE typename Eigen::internal::traits<XprType>::PointerType data() const { return m_result; }
 
 protected:
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void EnableXSMMIfPossible(const array<IndexPair<Index>, ContractDims>& eval_op_indices) {
@@ -840,23 +932,26 @@ protected:
   Index m_j_size;
   Index m_k_size;
 
+  TensorContractionParams m_tensor_contraction_params;
+
   TensorEvaluator<EvalLeftArgType, Device> m_leftImpl;
   TensorEvaluator<EvalRightArgType, Device> m_rightImpl;
   const Device& m_device;
+  OutputKernelType m_output_kernel;
   Scalar* m_result;
   bool m_can_use_xsmm;
 };
 
 
 // evaluator for default device
-template<typename Indices, typename LeftArgType, typename RightArgType, typename Device>
-struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgType>, Device> :
+template<typename Indices, typename LeftArgType, typename RightArgType, typename OutputKernelType, typename Device>
+struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgType, OutputKernelType>, Device> :
     public TensorContractionEvaluatorBase<
-      TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgType>, Device> > {
-  typedef TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgType>, Device> Self;
+      TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgType, OutputKernelType>, Device> > {
+  typedef TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgType, OutputKernelType>, Device> Self;
   typedef TensorContractionEvaluatorBase<Self> Base;
 
-  typedef TensorContractionOp<Indices, LeftArgType, RightArgType> XprType;
+  typedef TensorContractionOp<Indices, LeftArgType, RightArgType, OutputKernelType> XprType;
   typedef typename internal::remove_const<typename XprType::Scalar>::type Scalar;
   typedef typename XprType::Index Index;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
@@ -893,14 +988,9 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
   EIGEN_DEVICE_FUNC TensorEvaluator(const XprType& op, const Device& device) :
       Base(op, device) { }
 
-  template <bool lhs_inner_dim_contiguous, bool rhs_inner_dim_contiguous, bool rhs_inner_dim_reordered, int Alignment>
-  EIGEN_DEVICE_FUNC void evalProduct(Scalar* buffer) const {
-    if (this->m_j_size == 1) {
-      this->template evalGemv<lhs_inner_dim_contiguous, rhs_inner_dim_contiguous, rhs_inner_dim_reordered, Alignment>(buffer);
-      return;
-    }
-
-    this->template evalGemm<lhs_inner_dim_contiguous, rhs_inner_dim_contiguous, rhs_inner_dim_reordered, Alignment>(buffer);
+  template <int Alignment>
+  void evalProduct(Scalar* buffer) const {
+    TENSOR_CONTRACTION_DISPATCH(this->template evalProductSequential, Alignment, (buffer));
   }
 };
 

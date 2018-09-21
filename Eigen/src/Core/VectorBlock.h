@@ -35,7 +35,7 @@ struct traits<VectorBlock<VectorType, Size> >
   * It is the return type of DenseBase::segment(Index,Index) and DenseBase::segment<int>(Index) and
   * most of the time this is the only way it is used.
   *
-  * However, if you want to directly maniputate sub-vector expressions,
+  * However, if you want to directly manipulate sub-vector expressions,
   * for instance if you want to write a function returning such an expression, you
   * will need to use this class.
   *

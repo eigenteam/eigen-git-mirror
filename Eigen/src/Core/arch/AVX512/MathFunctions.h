@@ -88,9 +88,9 @@ plog<Packet16f>(const Packet16f& _x) {
   //     x = x + x - 1.0;
   //   } else { x = x - 1.0; }
   __mmask16 mask = _mm512_cmp_ps_mask(x, p16f_cephes_SQRTHF, _CMP_LT_OQ);
-  Packet16f tmp = _mm512_mask_blend_ps(mask, x, _mm512_setzero_ps());
+  Packet16f tmp = _mm512_mask_blend_ps(mask, _mm512_setzero_ps(), x);
   x = psub(x, p16f_1);
-  e = psub(e, _mm512_mask_blend_ps(mask, p16f_1, _mm512_setzero_ps()));
+  e = psub(e, _mm512_mask_blend_ps(mask, _mm512_setzero_ps(), p16f_1));
   x = padd(x, tmp);
 
   Packet16f x2 = pmul(x, x);
@@ -119,8 +119,9 @@ plog<Packet16f>(const Packet16f& _x) {
   x = padd(x, y2);
 
   // Filter out invalid inputs, i.e. negative arg will be NAN, 0 will be -INF.
-  return _mm512_mask_blend_ps(iszero_mask, p16f_minus_inf,
-                              _mm512_mask_blend_ps(invalid_mask, p16f_nan, x));
+  return _mm512_mask_blend_ps(iszero_mask,
+                              _mm512_mask_blend_ps(invalid_mask, x, p16f_nan),
+                              p16f_minus_inf);
 }
 #endif
 
@@ -257,50 +258,39 @@ pexp<Packet8d>(const Packet8d& _x) {
 template <>
 EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED Packet16f
 psqrt<Packet16f>(const Packet16f& _x) {
-  _EIGEN_DECLARE_CONST_Packet16f(one_point_five, 1.5f);
-  _EIGEN_DECLARE_CONST_Packet16f(minus_half, -0.5f);
-  _EIGEN_DECLARE_CONST_Packet16f_FROM_INT(flt_min, 0x00800000);
+  Packet16f neg_half = pmul(_x, pset1<Packet16f>(-.5f));
+  __mmask16 denormal_mask = _mm512_kand(
+      _mm512_cmp_ps_mask(_x, pset1<Packet16f>((std::numeric_limits<float>::min)()),
+                        _CMP_LT_OQ),
+      _mm512_cmp_ps_mask(_x, _mm512_setzero_ps(), _CMP_GE_OQ));
 
-  Packet16f neg_half = pmul(_x, p16f_minus_half);
-
-  // select only the inverse sqrt of positive normal inputs (denormals are
-  // flushed to zero and cause infs as well).
-  __mmask16 non_zero_mask = _mm512_cmp_ps_mask(_x, p16f_flt_min, _CMP_GE_OQ);
-  Packet16f x = _mm512_mask_blend_ps(non_zero_mask, _mm512_rsqrt14_ps(_x),
-                                     _mm512_setzero_ps());
+  Packet16f x = _mm512_rsqrt14_ps(_x);
 
   // Do a single step of Newton's iteration.
-  x = pmul(x, pmadd(neg_half, pmul(x, x), p16f_one_point_five));
+  x = pmul(x, pmadd(neg_half, pmul(x, x), pset1<Packet16f>(1.5f)));
 
-  // Multiply the original _x by it's reciprocal square root to extract the
-  // square root.
-  return pmul(_x, x);
+  // Flush results for denormals to zero.
+  return _mm512_mask_blend_ps(denormal_mask, pmul(_x,x), _mm512_setzero_ps());
 }
 
 template <>
 EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED Packet8d
 psqrt<Packet8d>(const Packet8d& _x) {
-  _EIGEN_DECLARE_CONST_Packet8d(one_point_five, 1.5);
-  _EIGEN_DECLARE_CONST_Packet8d(minus_half, -0.5);
-  _EIGEN_DECLARE_CONST_Packet8d_FROM_INT64(dbl_min, 0x0010000000000000LL);
+  Packet8d neg_half = pmul(_x, pset1<Packet8d>(-.5f));
+  __mmask16 denormal_mask = _mm512_kand(
+      _mm512_cmp_pd_mask(_x, pset1<Packet8d>((std::numeric_limits<double>::min)()),
+                        _CMP_LT_OQ),
+      _mm512_cmp_pd_mask(_x, _mm512_setzero_pd(), _CMP_GE_OQ));
 
-  Packet8d neg_half = pmul(_x, p8d_minus_half);
+  Packet8d x = _mm512_rsqrt14_pd(_x);
 
-  // select only the inverse sqrt of positive normal inputs (denormals are
-  // flushed to zero and cause infs as well).
-  __mmask8 non_zero_mask = _mm512_cmp_pd_mask(_x, p8d_dbl_min, _CMP_GE_OQ);
-  Packet8d x = _mm512_mask_blend_pd(non_zero_mask, _mm512_rsqrt14_pd(_x),
-                                    _mm512_setzero_pd());
-
-  // Do a first step of Newton's iteration.
-  x = pmul(x, pmadd(neg_half, pmul(x, x), p8d_one_point_five));
+  // Do a single step of Newton's iteration.
+  x = pmul(x, pmadd(neg_half, pmul(x, x), pset1<Packet8d>(1.5f)));
 
   // Do a second step of Newton's iteration.
-  x = pmul(x, pmadd(neg_half, pmul(x, x), p8d_one_point_five));
+  x = pmul(x, pmadd(neg_half, pmul(x, x), pset1<Packet8d>(1.5f)));
 
-  // Multiply the original _x by it's reciprocal square root to extract the
-  // square root.
-  return pmul(_x, x);
+  return _mm512_mask_blend_pd(denormal_mask, pmul(_x,x), _mm512_setzero_pd());
 }
 #else
 template <>
@@ -333,20 +323,18 @@ prsqrt<Packet16f>(const Packet16f& _x) {
   // select only the inverse sqrt of positive normal inputs (denormals are
   // flushed to zero and cause infs as well).
   __mmask16 le_zero_mask = _mm512_cmp_ps_mask(_x, p16f_flt_min, _CMP_LT_OQ);
-  Packet16f x = _mm512_mask_blend_ps(le_zero_mask, _mm512_setzero_ps(),
-                                     _mm512_rsqrt14_ps(_x));
+  Packet16f x = _mm512_mask_blend_ps(le_zero_mask, _mm512_rsqrt14_ps(_x), _mm512_setzero_ps());
 
   // Fill in NaNs and Infs for the negative/zero entries.
   __mmask16 neg_mask = _mm512_cmp_ps_mask(_x, _mm512_setzero_ps(), _CMP_LT_OQ);
   Packet16f infs_and_nans = _mm512_mask_blend_ps(
-      neg_mask, p16f_nan,
-      _mm512_mask_blend_ps(le_zero_mask, p16f_inf, _mm512_setzero_ps()));
+      neg_mask, _mm512_mask_blend_ps(le_zero_mask, _mm512_setzero_ps(), p16f_inf), p16f_nan);
 
   // Do a single step of Newton's iteration.
   x = pmul(x, pmadd(neg_half, pmul(x, x), p16f_one_point_five));
 
   // Insert NaNs and Infs in all the right places.
-  return _mm512_mask_blend_ps(le_zero_mask, infs_and_nans, x);
+  return _mm512_mask_blend_ps(le_zero_mask, x, infs_and_nans);
 }
 
 template <>
@@ -363,14 +351,12 @@ prsqrt<Packet8d>(const Packet8d& _x) {
   // select only the inverse sqrt of positive normal inputs (denormals are
   // flushed to zero and cause infs as well).
   __mmask8 le_zero_mask = _mm512_cmp_pd_mask(_x, p8d_dbl_min, _CMP_LT_OQ);
-  Packet8d x = _mm512_mask_blend_pd(le_zero_mask, _mm512_setzero_pd(),
-                                    _mm512_rsqrt14_pd(_x));
+  Packet8d x = _mm512_mask_blend_pd(le_zero_mask, _mm512_rsqrt14_pd(_x), _mm512_setzero_pd());
 
   // Fill in NaNs and Infs for the negative/zero entries.
   __mmask8 neg_mask = _mm512_cmp_pd_mask(_x, _mm512_setzero_pd(), _CMP_LT_OQ);
   Packet8d infs_and_nans = _mm512_mask_blend_pd(
-      neg_mask, p8d_nan,
-      _mm512_mask_blend_pd(le_zero_mask, p8d_inf, _mm512_setzero_pd()));
+      neg_mask, _mm512_mask_blend_pd(le_zero_mask, _mm512_setzero_pd(), p8d_inf), p8d_nan);
 
   // Do a first step of Newton's iteration.
   x = pmul(x, pmadd(neg_half, pmul(x, x), p8d_one_point_five));
@@ -379,9 +365,9 @@ prsqrt<Packet8d>(const Packet8d& _x) {
   x = pmul(x, pmadd(neg_half, pmul(x, x), p8d_one_point_five));
 
   // Insert NaNs and Infs in all the right places.
-  return _mm512_mask_blend_pd(le_zero_mask, infs_and_nans, x);
+  return _mm512_mask_blend_pd(le_zero_mask, x, infs_and_nans);
 }
-#else
+#elif defined(EIGEN_VECTORIZE_AVX512ER)
 template <>
 EIGEN_STRONG_INLINE Packet16f prsqrt<Packet16f>(const Packet16f& x) {
   return _mm512_rsqrt28_ps(x);

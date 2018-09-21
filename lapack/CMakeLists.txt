@@ -35,7 +35,7 @@ set(EigenLapack_SRCS  ${EigenLapack_SRCS}
   second_NONE.f dsecnd_NONE.f
 )
 
-option(EIGEN_ENABLE_LAPACK_TESTS OFF "Enbale the Lapack unit tests")
+option(EIGEN_ENABLE_LAPACK_TESTS OFF "Enable the Lapack unit tests")
 
 if(EIGEN_ENABLE_LAPACK_TESTS)
 
@@ -49,7 +49,7 @@ if(EIGEN_ENABLE_LAPACK_TESTS)
                   INACTIVITY_TIMEOUT 15
                   TIMEOUT 240
                   STATUS download_status
-                  EXPECTED_MD5 5758ce55afcf79da98de8b9de1615ad5
+                  EXPECTED_MD5 ab5742640617e3221a873aba44bbdc93
                   SHOW_PROGRESS)
                   
     message(STATUS ${download_status})
@@ -59,7 +59,7 @@ if(EIGEN_ENABLE_LAPACK_TESTS)
       message(STATUS "Setup lapack reference and lapack unit tests")
       execute_process(COMMAND tar xzf  "lapack_addons_3.4.1.tgz" WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
     else()
-      message(STATUS "Download of lapack_addons_3.4.1.tgz failed, LAPACK unit tests wont be enabled")
+      message(STATUS "Download of lapack_addons_3.4.1.tgz failed, LAPACK unit tests won't be enabled")
       set(EIGEN_ENABLE_LAPACK_TESTS false)
     endif()
                   

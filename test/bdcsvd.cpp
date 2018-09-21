@@ -62,7 +62,7 @@ void compare_bdc_jacobi(const MatrixType& a = MatrixType(), unsigned int computa
   if(computationOptions & ComputeThinV) VERIFY_IS_APPROX(bdc_svd.matrixV(), jacobi_svd.matrixV());
 }
 
-void test_bdcsvd()
+EIGEN_DECLARE_TEST(bdcsvd)
 {
   CALL_SUBTEST_3(( svd_verify_assert<BDCSVD<Matrix3f>  >(Matrix3f()) ));
   CALL_SUBTEST_4(( svd_verify_assert<BDCSVD<Matrix4d>  >(Matrix4d()) ));
@@ -104,7 +104,8 @@ void test_bdcsvd()
   CALL_SUBTEST_7( BDCSVD<MatrixXf>(10,10) );
 
   // Check that preallocation avoids subsequent mallocs
-  CALL_SUBTEST_9( svd_preallocate<void>() );
+  // Disabled because not supported by BDCSVD
+  // CALL_SUBTEST_9( svd_preallocate<void>() );
 
   CALL_SUBTEST_2( svd_underoverflow<void>() );
 }

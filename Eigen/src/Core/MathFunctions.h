@@ -96,7 +96,7 @@ struct real_default_impl<Scalar,true>
 
 template<typename Scalar> struct real_impl : real_default_impl<Scalar> {};
 
-#ifdef __CUDA_ARCH__
+#if defined(EIGEN_GPU_COMPILE_PHASE)
 template<typename T>
 struct real_impl<std::complex<T> >
 {
@@ -144,7 +144,7 @@ struct imag_default_impl<Scalar,true>
 
 template<typename Scalar> struct imag_impl : imag_default_impl<Scalar> {};
 
-#ifdef __CUDA_ARCH__
+#if defined(EIGEN_GPU_COMPILE_PHASE)
 template<typename T>
 struct imag_impl<std::complex<T> >
 {
@@ -238,7 +238,7 @@ struct imag_ref_retval
 ****************************************************************************/
 
 template<typename Scalar, bool IsComplex = NumTraits<Scalar>::IsComplex>
-struct conj_impl
+struct conj_default_impl
 {
   EIGEN_DEVICE_FUNC
   static inline Scalar run(const Scalar& x)
@@ -248,7 +248,7 @@ struct conj_impl
 };
 
 template<typename Scalar>
-struct conj_impl<Scalar,true>
+struct conj_default_impl<Scalar,true>
 {
   EIGEN_DEVICE_FUNC
   static inline Scalar run(const Scalar& x)
@@ -257,6 +257,20 @@ struct conj_impl<Scalar,true>
     return conj(x);
   }
 };
+
+template<typename Scalar> struct conj_impl : conj_default_impl<Scalar> {};
+
+#if defined(EIGEN_GPU_COMPILE_PHASE)
+template<typename T>
+struct conj_impl<std::complex<T> >
+{
+  EIGEN_DEVICE_FUNC
+  static inline std::complex<T> run(const std::complex<T>& x)
+  {
+    return std::complex<T>(x.real(), -x.imag());
+  }
+};
+#endif
 
 template<typename Scalar>
 struct conj_retval
@@ -347,31 +361,7 @@ struct norm1_retval
 * Implementation of hypot                                                *
 ****************************************************************************/
 
-template<typename Scalar>
-struct hypot_impl
-{
-  typedef typename NumTraits<Scalar>::Real RealScalar;
-  static inline RealScalar run(const Scalar& x, const Scalar& y)
-  {
-    EIGEN_USING_STD_MATH(abs);
-    EIGEN_USING_STD_MATH(sqrt);
-    RealScalar _x = abs(x);
-    RealScalar _y = abs(y);
-    Scalar p, qp;
-    if(_x>_y)
-    {
-      p = _x;
-      qp = _y / p;
-    }
-    else
-    {
-      p = _y;
-      qp = _x / p;
-    }
-    if(p==RealScalar(0)) return RealScalar(0);
-    return p * sqrt(RealScalar(1) + qp*qp);
-  }
-};
+template<typename Scalar> struct hypot_impl;
 
 template<typename Scalar>
 struct hypot_retval
@@ -445,7 +435,12 @@ struct round_retval
   struct arg_impl {
     static inline Scalar run(const Scalar& x)
     {
+      #if defined(EIGEN_HIP_DEVICE_COMPILE)
+      // HIP does not seem to have a native device side implementation for the math routine "arg"
+      using std::arg;
+      #else 		  
       EIGEN_USING_STD_MATH(arg);
+      #endif
       return arg(x);
     }
   };
@@ -497,11 +492,11 @@ namespace std_fallback {
 
     EIGEN_USING_STD_MATH(exp);
     Scalar u = exp(x);
-    if (u == Scalar(1)) {
+    if (numext::equal_strict(u, Scalar(1))) {
       return x;
     }
     Scalar um1 = u - RealScalar(1);
-    if (um1 == Scalar(-1)) {
+    if (numext::equal_strict(um1, Scalar(-1))) {
       return RealScalar(-1);
     }
 
@@ -512,7 +507,7 @@ namespace std_fallback {
 
 template<typename Scalar>
 struct expm1_impl {
-  static inline Scalar run(const Scalar& x)
+  EIGEN_DEVICE_FUNC static inline Scalar run(const Scalar& x)
   {
     EIGEN_STATIC_ASSERT_NON_INTEGER(Scalar)
     #if EIGEN_HAS_CXX11_MATH
@@ -543,13 +538,13 @@ namespace std_fallback {
     typedef typename NumTraits<Scalar>::Real RealScalar;
     EIGEN_USING_STD_MATH(log);
     Scalar x1p = RealScalar(1) + x;
-    return ( x1p == Scalar(1) ) ? x : x * ( log(x1p) / (x1p - RealScalar(1)) );
+    return numext::equal_strict(x1p, Scalar(1)) ? x : x * ( log(x1p) / (x1p - RealScalar(1)) );
   }
 }
 
 template<typename Scalar>
 struct log1p_impl {
-  static inline Scalar run(const Scalar& x)
+  EIGEN_DEVICE_FUNC static inline Scalar run(const Scalar& x)
   {
     EIGEN_STATIC_ASSERT_NON_INTEGER(Scalar)
     #if EIGEN_HAS_CXX11_MATH
@@ -689,20 +684,27 @@ struct random_default_impl<Scalar, false, true>
 {
   static inline Scalar run(const Scalar& x, const Scalar& y)
   {
-    typedef typename conditional<NumTraits<Scalar>::IsSigned,std::ptrdiff_t,std::size_t>::type ScalarX;
-    if(y<x)
+    if (y <= x)
       return x;
-    // the following difference might overflow on a 32 bits system,
-    // but since y>=x the result converted to an unsigned long is still correct.
-    std::size_t range = ScalarX(y)-ScalarX(x);
-    std::size_t offset = 0;
-    // rejection sampling
-    std::size_t divisor = 1;
-    std::size_t multiplier = 1;
-    if(range<RAND_MAX) divisor = (std::size_t(RAND_MAX)+1)/(range+1);
-    else               multiplier = 1 + range/(std::size_t(RAND_MAX)+1);
+    // ScalarU is the unsigned counterpart of Scalar, possibly Scalar itself.
+    typedef typename make_unsigned<Scalar>::type ScalarU;
+    // ScalarX is the widest of ScalarU and unsigned int.
+    // We'll deal only with ScalarX and unsigned int below thus avoiding signed
+    // types and arithmetic and signed overflows (which are undefined behavior).
+    typedef typename conditional<(ScalarU(-1) > unsigned(-1)), ScalarU, unsigned>::type ScalarX;
+    // The following difference doesn't overflow, provided our integer types are two's
+    // complement and have the same number of padding bits in signed and unsigned variants.
+    // This is the case in most modern implementations of C++.
+    ScalarX range = ScalarX(y) - ScalarX(x);
+    ScalarX offset = 0;
+    ScalarX divisor = 1;
+    ScalarX multiplier = 1;
+    const unsigned rand_max = RAND_MAX;
+    if (range <= rand_max) divisor = (rand_max + 1) / (range + 1);
+    else                   multiplier = 1 + range / (rand_max + 1);
+    // Rejection sampling.
     do {
-      offset = (std::size_t(std::rand()) * multiplier) / divisor;
+      offset = (unsigned(std::rand()) * multiplier) / divisor;
     } while (offset > range);
     return Scalar(ScalarX(x) + offset);
   }
@@ -749,7 +751,7 @@ inline EIGEN_MATHFUNC_RETVAL(random, Scalar) random()
   return EIGEN_MATHFUNC_IMPL(random, Scalar)::run();
 }
 
-// Implementatin of is* functions
+// Implementation of is* functions
 
 // std::is* do not work with fast-math and gcc, std::is* are available on MSVC 2013 and newer, as well as in clang.
 #if (EIGEN_HAS_CXX11_MATH && !(EIGEN_COMP_GNUC_STRICT && __FINITE_MATH_ONLY__)) || (EIGEN_COMP_MSVC>=1800) || (EIGEN_COMP_CLANG)
@@ -778,7 +780,7 @@ EIGEN_DEVICE_FUNC
 typename internal::enable_if<(!internal::is_integral<T>::value)&&(!NumTraits<T>::IsComplex),bool>::type
 isfinite_impl(const T& x)
 {
-  #ifdef __CUDA_ARCH__
+  #if defined(EIGEN_GPU_COMPILE_PHASE)
     return (::isfinite)(x);
   #elif EIGEN_USE_STD_FPCLASSIFY
     using std::isfinite;
@@ -793,7 +795,7 @@ EIGEN_DEVICE_FUNC
 typename internal::enable_if<(!internal::is_integral<T>::value)&&(!NumTraits<T>::IsComplex),bool>::type
 isinf_impl(const T& x)
 {
-  #ifdef __CUDA_ARCH__
+  #if defined(EIGEN_GPU_COMPILE_PHASE)
     return (::isinf)(x);
   #elif EIGEN_USE_STD_FPCLASSIFY
     using std::isinf;
@@ -808,7 +810,7 @@ EIGEN_DEVICE_FUNC
 typename internal::enable_if<(!internal::is_integral<T>::value)&&(!NumTraits<T>::IsComplex),bool>::type
 isnan_impl(const T& x)
 {
-  #ifdef __CUDA_ARCH__
+  #if defined(EIGEN_GPU_COMPILE_PHASE)
     return (::isnan)(x);
   #elif EIGEN_USE_STD_FPCLASSIFY
     using std::isnan;
@@ -874,7 +876,7 @@ template<typename T> T generic_fast_tanh_float(const T& a_x);
 
 namespace numext {
 
-#if !defined(__CUDA_ARCH__) && !defined(__SYCL_DEVICE_ONLY__)
+#if (!defined(EIGEN_GPUCC) || defined(EIGEN_CONSTEXPR_ARE_DEVICE_FUNC)) 
 template<typename T>
 EIGEN_DEVICE_FUNC
 EIGEN_ALWAYS_INLINE T mini(const T& x, const T& y)
@@ -890,84 +892,6 @@ EIGEN_ALWAYS_INLINE T maxi(const T& x, const T& y)
   EIGEN_USING_STD_MATH(max);
   return max EIGEN_NOT_A_MACRO (x,y);
 }
-
-
-#elif defined(__SYCL_DEVICE_ONLY__)
-template<typename T>
-EIGEN_ALWAYS_INLINE T mini(const T& x, const T& y)
-{
-
-  return y < x ? y : x;
-}
-
-template<typename T>
-EIGEN_ALWAYS_INLINE T maxi(const T& x, const T& y)
-{
-
-  return x < y ? y : x;
-}
-
-EIGEN_ALWAYS_INLINE int mini(const int& x, const int& y)
-{
-  return cl::sycl::min(x,y);
-}
-
-EIGEN_ALWAYS_INLINE int maxi(const int& x, const int& y)
-{
-  return cl::sycl::max(x,y);
-}
-
-EIGEN_ALWAYS_INLINE unsigned int mini(const unsigned int& x, const unsigned int& y)
-{
-  return cl::sycl::min(x,y);
-}
-
-EIGEN_ALWAYS_INLINE unsigned int maxi(const unsigned int& x, const unsigned int& y)
-{
-  return cl::sycl::max(x,y);
-}
-
-EIGEN_ALWAYS_INLINE  long mini(const long & x, const long & y)
-{
-  return cl::sycl::min(x,y);
-}
-
-EIGEN_ALWAYS_INLINE  long maxi(const long & x, const long & y)
-{
-  return cl::sycl::max(x,y);
-}
-
-EIGEN_ALWAYS_INLINE unsigned long mini(const unsigned long& x, const unsigned long& y)
-{
-  return cl::sycl::min(x,y);
-}
-
-EIGEN_ALWAYS_INLINE unsigned long maxi(const unsigned long& x, const unsigned long& y)
-{
-  return cl::sycl::max(x,y);
-}
-
-
-EIGEN_ALWAYS_INLINE float mini(const float& x, const float& y)
-{
-  return cl::sycl::fmin(x,y);
-}
-
-EIGEN_ALWAYS_INLINE float maxi(const float& x, const float& y)
-{
-  return cl::sycl::fmax(x,y);
-}
-
-EIGEN_ALWAYS_INLINE double mini(const double& x, const double& y)
-{
-  return cl::sycl::fmin(x,y);
-}
-
-EIGEN_ALWAYS_INLINE double maxi(const double& x, const double& y)
-{
-  return cl::sycl::fmax(x,y);
-}
-
 #else
 template<typename T>
 EIGEN_DEVICE_FUNC
@@ -981,6 +905,24 @@ EIGEN_ALWAYS_INLINE float mini(const float& x, const float& y)
 {
   return fminf(x, y);
 }
+template<>
+EIGEN_DEVICE_FUNC
+EIGEN_ALWAYS_INLINE double mini(const double& x, const double& y)
+{
+  return fmin(x, y);
+}
+template<>
+EIGEN_DEVICE_FUNC
+EIGEN_ALWAYS_INLINE long double mini(const long double& x, const long double& y)
+{
+#if defined(EIGEN_HIPCC)
+  // no "fminl" on HIP yet
+  return (x < y) ? x : y;
+#else
+  return fminl(x, y);
+#endif
+}
+
 template<typename T>
 EIGEN_DEVICE_FUNC
 EIGEN_ALWAYS_INLINE T maxi(const T& x, const T& y)
@@ -993,7 +935,93 @@ EIGEN_ALWAYS_INLINE float maxi(const float& x, const float& y)
 {
   return fmaxf(x, y);
 }
+template<>
+EIGEN_DEVICE_FUNC
+EIGEN_ALWAYS_INLINE double maxi(const double& x, const double& y)
+{
+  return fmax(x, y);
+}
+template<>
+EIGEN_DEVICE_FUNC
+EIGEN_ALWAYS_INLINE long double maxi(const long double& x, const long double& y)
+{
+#if defined(EIGEN_HIPCC)
+  // no "fmaxl" on HIP yet
+  return (x > y) ? x : y;
+#else
+  return fmaxl(x, y);
 #endif
+}
+#endif
+
+#if defined(__SYCL_DEVICE_ONLY__)
+
+
+#define SYCL_SPECIALIZE_SIGNED_INTEGER_TYPES_BINARY(NAME, FUNC) \
+  SYCL_SPECIALIZE_BINARY_FUNC(NAME, FUNC, cl::sycl::cl_char)   \
+  SYCL_SPECIALIZE_BINARY_FUNC(NAME, FUNC, cl::sycl::cl_short)  \
+  SYCL_SPECIALIZE_BINARY_FUNC(NAME, FUNC, cl::sycl::cl_int)    \
+  SYCL_SPECIALIZE_BINARY_FUNC(NAME, FUNC, cl::sycl::cl_long)
+#define SYCL_SPECIALIZE_SIGNED_INTEGER_TYPES_UNARY(NAME, FUNC) \
+  SYCL_SPECIALIZE_UNARY_FUNC(NAME, FUNC, cl::sycl::cl_char)   \
+  SYCL_SPECIALIZE_UNARY_FUNC(NAME, FUNC, cl::sycl::cl_short)  \
+  SYCL_SPECIALIZE_UNARY_FUNC(NAME, FUNC, cl::sycl::cl_int)    \
+  SYCL_SPECIALIZE_UNARY_FUNC(NAME, FUNC, cl::sycl::cl_long)
+#define SYCL_SPECIALIZE_UNSIGNED_INTEGER_TYPES_BINARY(NAME, FUNC) \
+  SYCL_SPECIALIZE_BINARY_FUNC(NAME, FUNC, cl::sycl::cl_uchar)  \
+  SYCL_SPECIALIZE_BINARY_FUNC(NAME, FUNC, cl::sycl::cl_ushort) \
+  SYCL_SPECIALIZE_BINARY_FUNC(NAME, FUNC, cl::sycl::cl_uint)   \
+  SYCL_SPECIALIZE_BINARY_FUNC(NAME, FUNC, cl::sycl::cl_ulong)
+#define SYCL_SPECIALIZE_UNSIGNED_INTEGER_TYPES_UNARY(NAME, FUNC) \
+  SYCL_SPECIALIZE_UNARY_FUNC(NAME, FUNC, cl::sycl::cl_uchar)  \
+  SYCL_SPECIALIZE_UNARY_FUNC(NAME, FUNC, cl::sycl::cl_ushort) \
+  SYCL_SPECIALIZE_UNARY_FUNC(NAME, FUNC, cl::sycl::cl_uint)   \
+  SYCL_SPECIALIZE_UNARY_FUNC(NAME, FUNC, cl::sycl::cl_ulong)
+#define SYCL_SPECIALIZE_INTEGER_TYPES_BINARY(NAME, FUNC) \
+  SYCL_SPECIALIZE_SIGNED_INTEGER_TYPES_BINARY(NAME, FUNC) \
+  SYCL_SPECIALIZE_UNSIGNED_INTEGER_TYPES_BINARY(NAME, FUNC)
+#define SYCL_SPECIALIZE_INTEGER_TYPES_UNARY(NAME, FUNC) \
+  SYCL_SPECIALIZE_SIGNED_INTEGER_TYPES_UNARY(NAME, FUNC) \
+  SYCL_SPECIALIZE_UNSIGNED_INTEGER_TYPES_UNARY(NAME, FUNC)
+#define SYCL_SPECIALIZE_FLOATING_TYPES_BINARY(NAME, FUNC) \
+  SYCL_SPECIALIZE_BINARY_FUNC(NAME, FUNC, cl::sycl::cl_float) \
+  SYCL_SPECIALIZE_BINARY_FUNC(NAME, FUNC,cl::sycl::cl_double)
+#define SYCL_SPECIALIZE_FLOATING_TYPES_UNARY(NAME, FUNC) \
+  SYCL_SPECIALIZE_UNARY_FUNC(NAME, FUNC, cl::sycl::cl_float) \
+  SYCL_SPECIALIZE_UNARY_FUNC(NAME, FUNC,cl::sycl::cl_double)
+#define SYCL_SPECIALIZE_FLOATING_TYPES_UNARY_FUNC_RET_TYPE(NAME, FUNC, RET_TYPE) \
+  SYCL_SPECIALIZE_GEN_UNARY_FUNC(NAME, FUNC, RET_TYPE, cl::sycl::cl_float) \
+  SYCL_SPECIALIZE_GEN_UNARY_FUNC(NAME, FUNC, RET_TYPE, cl::sycl::cl_double) 
+
+#define SYCL_SPECIALIZE_GEN_UNARY_FUNC(NAME, FUNC, RET_TYPE, ARG_TYPE) \
+template<>                                               \
+  EIGEN_DEVICE_FUNC                                      \
+  EIGEN_ALWAYS_INLINE RET_TYPE NAME(const ARG_TYPE& x) { \
+    return cl::sycl::FUNC(x);                            \
+  }
+
+#define SYCL_SPECIALIZE_UNARY_FUNC(NAME, FUNC, TYPE) \
+  SYCL_SPECIALIZE_GEN_UNARY_FUNC(NAME, FUNC, TYPE, TYPE)
+
+#define SYCL_SPECIALIZE_GEN1_BINARY_FUNC(NAME, FUNC, RET_TYPE, ARG_TYPE1, ARG_TYPE2) \
+  template<>                                                                  \
+  EIGEN_DEVICE_FUNC                                                           \
+  EIGEN_ALWAYS_INLINE RET_TYPE NAME(const ARG_TYPE1& x, const ARG_TYPE2& y) { \
+    return cl::sycl::FUNC(x, y);                                              \
+  }
+
+#define SYCL_SPECIALIZE_GEN2_BINARY_FUNC(NAME, FUNC, RET_TYPE, ARG_TYPE) \
+  SYCL_SPECIALIZE_GEN1_BINARY_FUNC(NAME, FUNC, RET_TYPE, ARG_TYPE, ARG_TYPE)
+
+#define SYCL_SPECIALIZE_BINARY_FUNC(NAME, FUNC, TYPE) \
+  SYCL_SPECIALIZE_GEN2_BINARY_FUNC(NAME, FUNC, TYPE, TYPE)
+
+SYCL_SPECIALIZE_INTEGER_TYPES_BINARY(mini, min)
+SYCL_SPECIALIZE_FLOATING_TYPES_BINARY(mini, fmin)
+SYCL_SPECIALIZE_INTEGER_TYPES_BINARY(maxi, max)
+SYCL_SPECIALIZE_FLOATING_TYPES_BINARY(maxi, fmax)
+
+#endif // defined(__SYCL_DEVICE_ONLY__)
 
 
 template<typename Scalar>
@@ -1059,6 +1087,9 @@ inline EIGEN_MATHFUNC_RETVAL(abs2, Scalar) abs2(const Scalar& x)
   return EIGEN_MATHFUNC_IMPL(abs2, Scalar)::run(x);
 }
 
+EIGEN_DEVICE_FUNC
+inline bool abs2(bool x) { return x; }
+
 template<typename Scalar>
 EIGEN_DEVICE_FUNC
 inline EIGEN_MATHFUNC_RETVAL(norm1, Scalar) norm1(const Scalar& x)
@@ -1073,6 +1104,10 @@ inline EIGEN_MATHFUNC_RETVAL(hypot, Scalar) hypot(const Scalar& x, const Scalar&
   return EIGEN_MATHFUNC_IMPL(hypot, Scalar)::run(x, y);
 }
 
+#if defined(__SYCL_DEVICE_ONLY__)
+  SYCL_SPECIALIZE_FLOATING_TYPES_BINARY(hypot, hypot)
+#endif // defined(__SYCL_DEVICE_ONLY__)
+
 template<typename Scalar>
 EIGEN_DEVICE_FUNC
 inline EIGEN_MATHFUNC_RETVAL(log1p, Scalar) log1p(const Scalar& x)
@@ -1081,11 +1116,10 @@ inline EIGEN_MATHFUNC_RETVAL(log1p, Scalar) log1p(const Scalar& x)
 }
 
 #if defined(__SYCL_DEVICE_ONLY__)
-EIGEN_ALWAYS_INLINE float   log1p(float x) { return cl::sycl::log1p(x); }
-EIGEN_ALWAYS_INLINE double  log1p(double x) { return cl::sycl::log1p(x); }
-#endif // defined(__SYCL_DEVICE_ONLY__)
+SYCL_SPECIALIZE_FLOATING_TYPES_UNARY(log1p, log1p)
+#endif //defined(__SYCL_DEVICE_ONLY__)
 
-#ifdef __CUDACC__
+#if defined(EIGEN_GPUCC)
 template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
 float log1p(const float &x) { return ::log1pf(x); }
 
@@ -1101,8 +1135,7 @@ inline typename internal::pow_impl<ScalarX,ScalarY>::result_type pow(const Scala
 }
 
 #if defined(__SYCL_DEVICE_ONLY__)
-EIGEN_ALWAYS_INLINE float   pow(float x, float y) { return cl::sycl::pow(x, y); }
-EIGEN_ALWAYS_INLINE double  pow(double x, double y) { return cl::sycl::pow(x, y); }
+SYCL_SPECIALIZE_FLOATING_TYPES_BINARY(pow, pow)
 #endif // defined(__SYCL_DEVICE_ONLY__)
 
 template<typename T> EIGEN_DEVICE_FUNC bool (isnan)   (const T &x) { return internal::isnan_impl(x); }
@@ -1110,12 +1143,9 @@ template<typename T> EIGEN_DEVICE_FUNC bool (isinf)   (const T &x) { return inte
 template<typename T> EIGEN_DEVICE_FUNC bool (isfinite)(const T &x) { return internal::isfinite_impl(x); }
 
 #if defined(__SYCL_DEVICE_ONLY__)
-EIGEN_ALWAYS_INLINE float   isnan(float x) { return cl::sycl::isnan(x); }
-EIGEN_ALWAYS_INLINE double  isnan(double x) { return cl::sycl::isnan(x); }
-EIGEN_ALWAYS_INLINE float   isinf(float x) { return cl::sycl::isinf(x); }
-EIGEN_ALWAYS_INLINE double  isinf(double x) { return cl::sycl::isinf(x); }
-EIGEN_ALWAYS_INLINE float   isfinite(float x) { return cl::sycl::isfinite(x); }
-EIGEN_ALWAYS_INLINE double  isfinite(double x) { return cl::sycl::isfinite(x); }
+SYCL_SPECIALIZE_FLOATING_TYPES_UNARY_FUNC_RET_TYPE(isnan, isnan, bool)
+SYCL_SPECIALIZE_FLOATING_TYPES_UNARY_FUNC_RET_TYPE(isinf, isinf, bool)
+SYCL_SPECIALIZE_FLOATING_TYPES_UNARY_FUNC_RET_TYPE(isfinite, isfinite, bool)
 #endif // defined(__SYCL_DEVICE_ONLY__)
 
 template<typename Scalar>
@@ -1126,8 +1156,7 @@ inline EIGEN_MATHFUNC_RETVAL(round, Scalar) round(const Scalar& x)
 }
 
 #if defined(__SYCL_DEVICE_ONLY__)
-EIGEN_ALWAYS_INLINE float   round(float x) { return cl::sycl::round(x); }
-EIGEN_ALWAYS_INLINE double  round(double x) { return cl::sycl::round(x); }
+SYCL_SPECIALIZE_FLOATING_TYPES_UNARY(round, round)
 #endif // defined(__SYCL_DEVICE_ONLY__)
 
 template<typename T>
@@ -1139,11 +1168,10 @@ T (floor)(const T& x)
 }
 
 #if defined(__SYCL_DEVICE_ONLY__)
-EIGEN_ALWAYS_INLINE float   floor(float x) { return cl::sycl::floor(x); }
-EIGEN_ALWAYS_INLINE double  floor(double x) { return cl::sycl::floor(x); }
+SYCL_SPECIALIZE_FLOATING_TYPES_UNARY(floor, floor)
 #endif // defined(__SYCL_DEVICE_ONLY__)
 
-#ifdef __CUDACC__
+#if defined(EIGEN_GPUCC)
 template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
 float floor(const float &x) { return ::floorf(x); }
 
@@ -1160,11 +1188,10 @@ T (ceil)(const T& x)
 }
 
 #if defined(__SYCL_DEVICE_ONLY__)
-EIGEN_ALWAYS_INLINE float   ceil(float x) { return cl::sycl::ceil(x); }
-EIGEN_ALWAYS_INLINE double  ceil(double x) { return cl::sycl::ceil(x); }
+SYCL_SPECIALIZE_FLOATING_TYPES_UNARY(ceil, ceil)
 #endif // defined(__SYCL_DEVICE_ONLY__)
 
-#ifdef __CUDACC__
+#if defined(EIGEN_GPUCC)
 template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
 float ceil(const float &x) { return ::ceilf(x); }
 
@@ -1205,8 +1232,7 @@ T sqrt(const T &x)
 }
 
 #if defined(__SYCL_DEVICE_ONLY__)
-EIGEN_ALWAYS_INLINE float   sqrt(float x) { return cl::sycl::sqrt(x); }
-EIGEN_ALWAYS_INLINE double  sqrt(double x) { return cl::sycl::sqrt(x); }
+SYCL_SPECIALIZE_FLOATING_TYPES_UNARY(sqrt, sqrt)
 #endif // defined(__SYCL_DEVICE_ONLY__)
 
 template<typename T>
@@ -1217,12 +1243,11 @@ T log(const T &x) {
 }
 
 #if defined(__SYCL_DEVICE_ONLY__)
-EIGEN_ALWAYS_INLINE float   log(float x) { return cl::sycl::log(x); }
-EIGEN_ALWAYS_INLINE double  log(double x) { return cl::sycl::log(x); }
+SYCL_SPECIALIZE_FLOATING_TYPES_UNARY(log, log)
 #endif // defined(__SYCL_DEVICE_ONLY__)
 
 
-#ifdef __CUDACC__
+#if defined(EIGEN_GPUCC)
 template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
 float log(const float &x) { return ::logf(x); }
 
@@ -1232,17 +1257,25 @@ double log(const double &x) { return ::log(x); }
 
 template<typename T>
 EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
-typename NumTraits<T>::Real abs(const T &x) {
+typename internal::enable_if<NumTraits<T>::IsSigned || NumTraits<T>::IsComplex,typename NumTraits<T>::Real>::type
+abs(const T &x) {
   EIGEN_USING_STD_MATH(abs);
   return abs(x);
 }
 
+template<typename T>
+EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+typename internal::enable_if<!(NumTraits<T>::IsSigned || NumTraits<T>::IsComplex),typename NumTraits<T>::Real>::type
+abs(const T &x) {
+  return x;
+}
+
 #if defined(__SYCL_DEVICE_ONLY__)
-EIGEN_ALWAYS_INLINE float   abs(float x) { return cl::sycl::fabs(x); }
-EIGEN_ALWAYS_INLINE double  abs(double x) { return cl::sycl::fabs(x); }
+SYCL_SPECIALIZE_INTEGER_TYPES_UNARY(abs, abs)
+SYCL_SPECIALIZE_FLOATING_TYPES_UNARY(abs, fabs)
 #endif // defined(__SYCL_DEVICE_ONLY__)
 
-#ifdef __CUDACC__
+#if defined(EIGEN_GPUCC)
 template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
 float abs(const float &x) { return ::fabsf(x); }
 
@@ -1268,16 +1301,31 @@ T exp(const T &x) {
 }
 
 #if defined(__SYCL_DEVICE_ONLY__)
-EIGEN_ALWAYS_INLINE float   exp(float x) { return cl::sycl::exp(x); }
-EIGEN_ALWAYS_INLINE double  exp(double x) { return cl::sycl::exp(x); }
+SYCL_SPECIALIZE_FLOATING_TYPES_UNARY(exp, exp)
 #endif // defined(__SYCL_DEVICE_ONLY__)
 
-#ifdef __CUDACC__
+#if defined(EIGEN_GPUCC)
 template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
 float exp(const float &x) { return ::expf(x); }
 
 template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
 double exp(const double &x) { return ::exp(x); }
+
+template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+std::complex<float> exp(const std::complex<float>& x) {
+  float com = ::expf(x.real());
+  float res_real = com * ::cosf(x.imag());
+  float res_imag = com * ::sinf(x.imag());
+  return std::complex<float>(res_real, res_imag);
+}
+
+template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+std::complex<double> exp(const std::complex<double>& x) {
+  double com = ::exp(x.real());
+  double res_real = com * ::cos(x.imag());
+  double res_imag = com * ::sin(x.imag());
+  return std::complex<double>(res_real, res_imag);
+}
 #endif
 
 template<typename Scalar>
@@ -1288,11 +1336,10 @@ inline EIGEN_MATHFUNC_RETVAL(expm1, Scalar) expm1(const Scalar& x)
 }
 
 #if defined(__SYCL_DEVICE_ONLY__)
-EIGEN_ALWAYS_INLINE float   expm1(float x) { return cl::sycl::expm1(x); }
-EIGEN_ALWAYS_INLINE double  expm1(double x) { return cl::sycl::expm1(x); }
+SYCL_SPECIALIZE_FLOATING_TYPES_UNARY(expm1, expm1)
 #endif // defined(__SYCL_DEVICE_ONLY__)
 
-#ifdef __CUDACC__
+#if defined(EIGEN_GPUCC)
 template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
 float expm1(const float &x) { return ::expm1f(x); }
 
@@ -1308,11 +1355,10 @@ T cos(const T &x) {
 }
 
 #if defined(__SYCL_DEVICE_ONLY__)
-EIGEN_ALWAYS_INLINE float   cos(float x) { return cl::sycl::cos(x); }
-EIGEN_ALWAYS_INLINE double  cos(double x) { return cl::sycl::cos(x); }
+SYCL_SPECIALIZE_FLOATING_TYPES_UNARY(cos,cos)
 #endif // defined(__SYCL_DEVICE_ONLY__)
 
-#ifdef __CUDACC__
+#if defined(EIGEN_GPUCC)
 template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
 float cos(const float &x) { return ::cosf(x); }
 
@@ -1328,11 +1374,10 @@ T sin(const T &x) {
 }
 
 #if defined(__SYCL_DEVICE_ONLY__)
-EIGEN_ALWAYS_INLINE float   sin(float x) { return cl::sycl::sin(x); }
-EIGEN_ALWAYS_INLINE double  sin(double x) { return cl::sycl::sin(x); }
+SYCL_SPECIALIZE_FLOATING_TYPES_UNARY(sin, sin)
 #endif // defined(__SYCL_DEVICE_ONLY__)
 
-#ifdef __CUDACC__
+#if defined(EIGEN_GPUCC)
 template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
 float sin(const float &x) { return ::sinf(x); }
 
@@ -1348,11 +1393,10 @@ T tan(const T &x) {
 }
 
 #if defined(__SYCL_DEVICE_ONLY__)
-EIGEN_ALWAYS_INLINE float   tan(float x) { return cl::sycl::tan(x); }
-EIGEN_ALWAYS_INLINE double  tan(double x) { return cl::sycl::tan(x); }
+SYCL_SPECIALIZE_FLOATING_TYPES_UNARY(tan, tan)
 #endif // defined(__SYCL_DEVICE_ONLY__)
 
-#ifdef __CUDACC__
+#if defined(EIGEN_GPUCC)
 template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
 float tan(const float &x) { return ::tanf(x); }
 
@@ -1367,12 +1411,21 @@ T acos(const T &x) {
   return acos(x);
 }
 
+#if EIGEN_HAS_CXX11_MATH
+template<typename T>
+EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+T acosh(const T &x) {
+  EIGEN_USING_STD_MATH(acosh);
+  return acosh(x);
+}
+#endif
+
 #if defined(__SYCL_DEVICE_ONLY__)
-EIGEN_ALWAYS_INLINE float   acos(float x) { return cl::sycl::acos(x); }
-EIGEN_ALWAYS_INLINE double  acos(double x) { return cl::sycl::acos(x); }
+SYCL_SPECIALIZE_FLOATING_TYPES_UNARY(acos, acos)
+SYCL_SPECIALIZE_FLOATING_TYPES_UNARY(acosh, acosh)
 #endif // defined(__SYCL_DEVICE_ONLY__)
 
-#ifdef __CUDACC__
+#if defined(EIGEN_GPUCC)
 template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
 float acos(const float &x) { return ::acosf(x); }
 
@@ -1387,12 +1440,21 @@ T asin(const T &x) {
   return asin(x);
 }
 
+#if EIGEN_HAS_CXX11_MATH
+template<typename T>
+EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+T asinh(const T &x) {
+  EIGEN_USING_STD_MATH(asinh);
+  return asinh(x);
+}
+#endif
+
 #if defined(__SYCL_DEVICE_ONLY__)
-EIGEN_ALWAYS_INLINE float   asin(float x) { return cl::sycl::asin(x); }
-EIGEN_ALWAYS_INLINE double  asin(double x) { return cl::sycl::asin(x); }
+SYCL_SPECIALIZE_FLOATING_TYPES_UNARY(asin, asin)
+SYCL_SPECIALIZE_FLOATING_TYPES_UNARY(asinh, asinh)
 #endif // defined(__SYCL_DEVICE_ONLY__)
 
-#ifdef __CUDACC__
+#if defined(EIGEN_GPUCC)
 template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
 float asin(const float &x) { return ::asinf(x); }
 
@@ -1407,12 +1469,21 @@ T atan(const T &x) {
   return atan(x);
 }
 
+#if EIGEN_HAS_CXX11_MATH
+template<typename T>
+EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+T atanh(const T &x) {
+  EIGEN_USING_STD_MATH(atanh);
+  return atanh(x);
+}
+#endif
+
 #if defined(__SYCL_DEVICE_ONLY__)
-EIGEN_ALWAYS_INLINE float   atan(float x) { return cl::sycl::atan(x); }
-EIGEN_ALWAYS_INLINE double  atan(double x) { return cl::sycl::atan(x); }
+SYCL_SPECIALIZE_FLOATING_TYPES_UNARY(atan, atan)
+SYCL_SPECIALIZE_FLOATING_TYPES_UNARY(atanh, atanh)
 #endif // defined(__SYCL_DEVICE_ONLY__)
 
-#ifdef __CUDACC__
+#if defined(EIGEN_GPUCC)
 template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
 float atan(const float &x) { return ::atanf(x); }
 
@@ -1429,11 +1500,10 @@ T cosh(const T &x) {
 }
 
 #if defined(__SYCL_DEVICE_ONLY__)
-EIGEN_ALWAYS_INLINE float   cosh(float x) { return cl::sycl::cosh(x); }
-EIGEN_ALWAYS_INLINE double  cosh(double x) { return cl::sycl::cosh(x); }
+SYCL_SPECIALIZE_FLOATING_TYPES_UNARY(cosh, cosh)
 #endif // defined(__SYCL_DEVICE_ONLY__)
 
-#ifdef __CUDACC__
+#if defined(EIGEN_GPUCC)
 template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
 float cosh(const float &x) { return ::coshf(x); }
 
@@ -1449,11 +1519,10 @@ T sinh(const T &x) {
 }
 
 #if defined(__SYCL_DEVICE_ONLY__)
-EIGEN_ALWAYS_INLINE float   sinh(float x) { return cl::sycl::sinh(x); }
-EIGEN_ALWAYS_INLINE double  sinh(double x) { return cl::sycl::sinh(x); }
+SYCL_SPECIALIZE_FLOATING_TYPES_UNARY(sinh, sinh)
 #endif // defined(__SYCL_DEVICE_ONLY__)
 
-#ifdef __CUDACC__
+#if defined(EIGEN_GPUCC)
 template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
 float sinh(const float &x) { return ::sinhf(x); }
 
@@ -1468,15 +1537,16 @@ T tanh(const T &x) {
   return tanh(x);
 }
 
-#if defined(__SYCL_DEVICE_ONLY__)
-EIGEN_ALWAYS_INLINE float   tanh(float x) { return cl::sycl::tanh(x); }
-EIGEN_ALWAYS_INLINE double  tanh(double x) { return cl::sycl::tanh(x); }
-#elif (!defined(__CUDACC__)) && EIGEN_FAST_MATH
+#if (!defined(EIGEN_GPUCC)) && EIGEN_FAST_MATH && (!defined(__SYCL_DEVICE_ONLY__))
 EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
 float tanh(float x) { return internal::generic_fast_tanh_float(x); }
 #endif
 
-#ifdef __CUDACC__
+#if defined(__SYCL_DEVICE_ONLY__)
+SYCL_SPECIALIZE_FLOATING_TYPES_UNARY(tanh, tanh)
+#endif // defined(__SYCL_DEVICE_ONLY__)
+
+#if defined(EIGEN_GPUCC)
 template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
 float tanh(const float &x) { return ::tanhf(x); }
 
@@ -1492,11 +1562,10 @@ T fmod(const T& a, const T& b) {
 }
 
 #if defined(__SYCL_DEVICE_ONLY__)
-EIGEN_ALWAYS_INLINE float   fmod(float x, float y) { return cl::sycl::fmod(x, y); }
-EIGEN_ALWAYS_INLINE double  fmod(double x, double y) { return cl::sycl::fmod(x, y); }
+SYCL_SPECIALIZE_FLOATING_TYPES_BINARY(fmod, fmod)
 #endif // defined(__SYCL_DEVICE_ONLY__)
 
-#ifdef __CUDACC__
+#if defined(EIGEN_GPUCC)
 template <>
 EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
 float fmod(const float& a, const float& b) {
@@ -1509,6 +1578,23 @@ double fmod(const double& a, const double& b) {
   return ::fmod(a, b);
 }
 #endif
+
+#if defined(__SYCL_DEVICE_ONLY__)
+#undef SYCL_SPECIALIZE_SIGNED_INTEGER_TYPES_BINARY
+#undef SYCL_SPECIALIZE_SIGNED_INTEGER_TYPES_UNARY
+#undef SYCL_SPECIALIZE_UNSIGNED_INTEGER_TYPES_BINARY
+#undef SYCL_SPECIALIZE_UNSIGNED_INTEGER_TYPES_UNARY
+#undef SYCL_SPECIALIZE_INTEGER_TYPES_BINARY
+#undef SYCL_SPECIALIZE_UNSIGNED_INTEGER_TYPES_UNARY
+#undef SYCL_SPECIALIZE_FLOATING_TYPES_BINARY
+#undef SYCL_SPECIALIZE_FLOATING_TYPES_UNARY
+#undef SYCL_SPECIALIZE_FLOATING_TYPES_UNARY_FUNC_RET_TYPE
+#undef SYCL_SPECIALIZE_GEN_UNARY_FUNC
+#undef SYCL_SPECIALIZE_UNARY_FUNC
+#undef SYCL_SPECIALIZE_GEN1_BINARY_FUNC
+#undef SYCL_SPECIALIZE_GEN2_BINARY_FUNC
+#undef SYCL_SPECIALIZE_BINARY_FUNC
+#endif // defined(__SYCL_DEVICE_ONLY__)
 
 } // end namespace numext
 

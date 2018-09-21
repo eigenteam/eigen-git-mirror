@@ -35,11 +35,11 @@ template<typename T, typename I> void test_simplicial_cholesky_T()
   check_sparse_spd_determinant(ldlt_colmajor_lower_amd);
   check_sparse_spd_determinant(ldlt_colmajor_upper_amd);
   
-  check_sparse_spd_solving(ldlt_colmajor_lower_nat, 300, 1000);
-  check_sparse_spd_solving(ldlt_colmajor_upper_nat, 300, 1000);
+  check_sparse_spd_solving(ldlt_colmajor_lower_nat, (std::min)(300,EIGEN_TEST_MAX_SIZE), 1000);
+  check_sparse_spd_solving(ldlt_colmajor_upper_nat, (std::min)(300,EIGEN_TEST_MAX_SIZE), 1000);
 }
 
-void test_simplicial_cholesky()
+EIGEN_DECLARE_TEST(simplicial_cholesky)
 {
   CALL_SUBTEST_1(( test_simplicial_cholesky_T<double,int>() ));
   CALL_SUBTEST_2(( test_simplicial_cholesky_T<std::complex<double>, int>() ));

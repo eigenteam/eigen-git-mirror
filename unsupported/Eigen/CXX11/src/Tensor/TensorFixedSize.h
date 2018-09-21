@@ -20,7 +20,7 @@ namespace Eigen {
   * The fixed sized equivalent of
   * Eigen::Tensor<float, 3> t(3, 5, 7);
   * is
-  * Eigen::TensorFixedSize<float, Size<3,5,7>> t;
+  * Eigen::TensorFixedSize<float, Sizes<3,5,7>> t;
   */
 
 template<typename Scalar_, typename Dimensions_, int Options_, typename IndexType>
@@ -40,6 +40,9 @@ class TensorFixedSize : public TensorBase<TensorFixedSize<Scalar_, Dimensions_, 
 
     enum {
       IsAligned = bool(EIGEN_MAX_ALIGN_BYTES>0),
+      PacketAccess = (internal::packet_traits<Scalar>::size > 1),
+      BlockAccess = false,
+      PreferBlockAccess = false,
       Layout = Options_ & RowMajor ? RowMajor : ColMajor,
       CoordAccess = true,
       RawAccess = true

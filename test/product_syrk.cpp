@@ -11,7 +11,6 @@
 
 template<typename MatrixType> void syrk(const MatrixType& m)
 {
-  typedef typename MatrixType::Index Index;
   typedef typename MatrixType::Scalar Scalar;
   typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::ColsAtCompileTime, RowMajor> RMatrixType;
   typedef Matrix<Scalar, MatrixType::ColsAtCompileTime, Dynamic> Rhs1;
@@ -118,7 +117,7 @@ template<typename MatrixType> void syrk(const MatrixType& m)
                    ((s1 * m1.row(c).adjoint() * m1.row(c).adjoint().adjoint()).eval().template triangularView<Upper>().toDenseMatrix()));
 }
 
-void test_product_syrk()
+EIGEN_DECLARE_TEST(product_syrk)
 {
   for(int i = 0; i < g_repeat ; i++)
   {

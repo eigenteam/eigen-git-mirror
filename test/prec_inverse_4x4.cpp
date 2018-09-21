@@ -68,7 +68,7 @@ template<typename MatrixType> void inverse_general_4x4(int repeat)
   }
 }
 
-void test_prec_inverse_4x4()
+EIGEN_DECLARE_TEST(prec_inverse_4x4)
 {
   CALL_SUBTEST_1((inverse_permutation_4x4<Matrix4f>()));
   CALL_SUBTEST_1(( inverse_general_4x4<Matrix4f>(200000 * g_repeat) ));

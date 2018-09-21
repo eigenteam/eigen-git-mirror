@@ -13,7 +13,7 @@
 
 #define EIGEN_TEST_NO_LONGDOUBLE
 #define EIGEN_TEST_NO_COMPLEX
-#define EIGEN_TEST_FUNC cxx11_tensor_reduction_sycl
+
 #define EIGEN_DEFAULT_DENSE_INDEX_TYPE int64_t
 #define EIGEN_USE_SYCL
 
@@ -174,7 +174,7 @@ template<typename DataType> void sycl_reduction_test_per_device(const cl::sycl::
   test_first_dim_reductions_max_sycl<DataType, ColMajor, int64_t>(sycl_device);
   test_last_dim_reductions_sum_sycl<DataType, ColMajor, int64_t>(sycl_device);
 }
-void test_cxx11_tensor_reduction_sycl() {
+EIGEN_DECLARE_TEST(cxx11_tensor_reduction_sycl) {
   for (const auto& device :Eigen::get_sycl_supported_devices()) {
     CALL_SUBTEST(sycl_reduction_test_per_device<float>(device));
   }

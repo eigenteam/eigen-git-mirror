@@ -38,6 +38,7 @@ struct traits<TensorForcedEvalOp<XprType> >
   typedef typename remove_reference<Nested>::type _Nested;
   static const int NumDimensions = XprTraits::NumDimensions;
   static const int Layout = XprTraits::Layout;
+  typedef typename XprTraits::PointerType PointerType;
 
   enum {
     Flags = 0
@@ -92,11 +93,13 @@ struct TensorEvaluator<const TensorForcedEvalOp<ArgType>, Device>
   typedef typename XprType::Index Index;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
   typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
-  static const int PacketSize = internal::unpacket_traits<PacketReturnType>::size;
+  static const int PacketSize = PacketType<CoeffReturnType, Device>::size;
 
   enum {
     IsAligned = true,
-    PacketAccess = (PacketSize > 1),
+    PacketAccess = (PacketType<CoeffReturnType, Device>::size > 1),
+    BlockAccess = false,
+    PreferBlockAccess = false,
     Layout = TensorEvaluator<ArgType, Device>::Layout,
     RawAccess = true
   };
@@ -108,9 +111,12 @@ struct TensorEvaluator<const TensorForcedEvalOp<ArgType>, Device>
 
   EIGEN_DEVICE_FUNC const Dimensions& dimensions() const { return m_impl.dimensions(); }
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool evalSubExprsIfNeeded(CoeffReturnType*) {
+  #if !defined(EIGEN_HIPCC)
+  EIGEN_DEVICE_FUNC
+  #endif
+  EIGEN_STRONG_INLINE bool evalSubExprsIfNeeded(CoeffReturnType*) {
     const Index numValues =  internal::array_prod(m_impl.dimensions());
-    m_buffer = (CoeffReturnType*)m_device.allocate(numValues * sizeof(CoeffReturnType));
+    m_buffer = (CoeffReturnType*)m_device.allocate_temp(numValues * sizeof(CoeffReturnType));
     // Should initialize the memory in case we're dealing with non POD types.
     if (NumTraits<CoeffReturnType>::RequireInitialization) {
       for (Index i = 0; i < numValues; ++i) {
@@ -119,12 +125,12 @@ struct TensorEvaluator<const TensorForcedEvalOp<ArgType>, Device>
     }
     typedef TensorEvalToOp< const typename internal::remove_const<ArgType>::type > EvalTo;
     EvalTo evalToTmp(m_buffer, m_op);
-    const bool PacketAccess = internal::IsVectorizable<Device, const ArgType>::value;
-    internal::TensorExecutor<const EvalTo, typename internal::remove_const<Device>::type, PacketAccess>::run(evalToTmp, m_device);
+    const bool Vectorize = internal::IsVectorizable<Device, const ArgType>::value;
+    internal::TensorExecutor<const EvalTo, typename internal::remove_const<Device>::type, Vectorize>::run(evalToTmp, m_device);
     return true;
   }
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void cleanup() {
-    m_device.deallocate(m_buffer);
+    m_device.deallocate_temp(m_buffer);
     m_buffer = NULL;
   }
 
@@ -143,7 +149,8 @@ struct TensorEvaluator<const TensorForcedEvalOp<ArgType>, Device>
     return TensorOpCost(sizeof(CoeffReturnType), 0, 0, vectorized, PacketSize);
   }
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE CoeffReturnType* data() const { return m_buffer; }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+  typename Eigen::internal::traits<XprType>::PointerType  data() const { return m_buffer; }
 
   /// required by sycl in order to extract the sycl accessor
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const TensorEvaluator<ArgType, Device>& impl() { return m_impl; }

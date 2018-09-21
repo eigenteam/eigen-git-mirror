@@ -157,6 +157,11 @@ template<typename Derived> class DenseBase
           * we are dealing with a column-vector (if there is only one column) or with
           * a row-vector (if there is only one row). */
 
+      NumDimensions = int(MaxSizeAtCompileTime) == 1 ? 0 : bool(IsVectorAtCompileTime) ? 1 : 2,
+        /**< This value is equal to Tensor::NumDimensions, i.e. 0 for scalars, 1 for vectors, 
+         * and 2 for matrices.
+         */
+
       Flags = internal::traits<Derived>::Flags,
         /**< This stores expression \ref flags flags which may or may not be inherited by new expressions
           * constructed from this one. See the \ref flags "list of flags".
@@ -296,7 +301,7 @@ template<typename Derived> class DenseBase
     EIGEN_DEVICE_FUNC
     Derived& operator=(const ReturnByValue<OtherDerived>& func);
 
-    /** \ínternal
+    /** \internal
       * Copies \a other into *this without evaluating other. \returns a reference to *this.
       * \deprecated */
     template<typename OtherDerived>
@@ -395,7 +400,7 @@ template<typename Derived> class DenseBase
       * Notice that in the case of a plain matrix or vector (not an expression) this function just returns
       * a const reference, in order to avoid a useless copy.
       * 
-      * \warning Be carefull with eval() and the auto C++ keyword, as detailed in this \link TopicPitfalls_auto_keyword page \endlink.
+      * \warning Be careful with eval() and the auto C++ keyword, as detailed in this \link TopicPitfalls_auto_keyword page \endlink.
       */
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE EvalReturnType eval() const
@@ -484,9 +489,9 @@ template<typename Derived> class DenseBase
       return derived().coeff(0,0);
     }
 
-    bool all() const;
-    bool any() const;
-    Index count() const;
+    EIGEN_DEVICE_FUNC bool all() const;
+    EIGEN_DEVICE_FUNC bool any() const;
+    EIGEN_DEVICE_FUNC Index count() const;
 
     typedef VectorwiseOp<Derived, Horizontal> RowwiseReturnType;
     typedef const VectorwiseOp<const Derived, Horizontal> ConstRowwiseReturnType;

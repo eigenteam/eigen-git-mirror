@@ -32,12 +32,28 @@ struct MakeLocalPointer {
 
 
 namespace Eigen {
+  template<typename StrideDims, typename XprType> class TensorTupleReducerDeviceOp;
+  template<typename StrideDims, typename ArgType> struct TensorEvaluator<const TensorTupleReducerDeviceOp<StrideDims, ArgType>, SyclKernelDevice>;
+namespace internal {
+
+#ifdef __SYCL_DEVICE_ONLY__
+template<typename A, typename B> struct TypeConversion {
+  template<typename T>
+  static typename MakeGlobalPointer<A>::Type get_address_space_pointer(typename MakeGlobalPointer<T>::Type p);
+  template<typename T>
+  static typename MakeLocalPointer<A>::Type get_address_space_pointer(typename MakeLocalPointer<T>::Type p);
+
+  template<typename T>
+  static A* get_address_space_pointer(T* p);
+  typedef decltype(get_address_space_pointer(B())) type;
+};
+
+#endif
+}
 namespace TensorSycl {
 namespace internal {
 
   template<typename CoeffReturnType, typename OP, typename OutputAccessor, typename InputAccessor, typename LocalAccessor> struct GenericKernelReducer;
-
-
 /// This struct is used for special expression nodes with no operations (for example assign and selectOP).
   struct NoOP;
 
@@ -46,6 +62,13 @@ template<bool IsConst, typename T> struct GetType{
 };
 template<typename T> struct GetType<false, T>{
   typedef T Type;
+};
+
+template <bool Conds,  size_t X , size_t Y > struct ValueCondition {
+  static constexpr size_t Res =X;
+};
+template<size_t X, size_t Y> struct ValueCondition<false, X, Y> {
+  static constexpr size_t Res =Y;
 };
 
 }
@@ -79,6 +102,9 @@ template<typename T> struct GetType<false, T>{
 
 /// this is used for extracting tensor reduction
 #include "TensorReductionSycl.h"
+
+// TensorArgMaxSycl.h
+#include "TensorArgMaxSycl.h"
 
 /// this is used for extracting tensor convolution
 #include "TensorConvolutionSycl.h"

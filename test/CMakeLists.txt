@@ -1,16 +1,7 @@
-# generate split test header file only if it does not yet exist
-# in order to prevent a rebuild everytime cmake is configured
-if(NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/split_test_helper.h)  
-  file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/split_test_helper.h "")
-  foreach(i RANGE 1 999)
-    file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/split_test_helper.h
-      "#ifdef EIGEN_TEST_PART_${i}\n"
-      "#define CALL_SUBTEST_${i}(FUNC) CALL_SUBTEST(FUNC)\n"
-      "#else\n"
-      "#define CALL_SUBTEST_${i}(FUNC)\n"
-      "#endif\n\n"
-    )
-  endforeach()
+# The file split_test_helper.h was generated at first run,
+# it is now included in test/
+if(EXISTS ${CMAKE_CURRENT_BINARY_DIR}/split_test_helper.h)
+  file(REMOVE ${CMAKE_CURRENT_BINARY_DIR}/split_test_helper.h)
 endif()
 
 # check if we have a Fortran compiler
@@ -27,8 +18,17 @@ endif()
 
 if(NOT EIGEN_Fortran_COMPILER_WORKS)
   # search for a default Lapack library to complete Eigen's one
-  find_package(LAPACK)
+  find_package(LAPACK QUIET)
 endif()
+
+# TODO do the same for EXTERNAL_LAPACK
+option(EIGEN_TEST_EXTERNAL_BLAS "Use external BLAS library for testsuite" OFF)
+if(EIGEN_TEST_EXTERNAL_BLAS)
+  find_package(BLAS REQUIRED)
+  message(STATUS "BLAS_COMPILER_FLAGS: ${BLAS_COMPILER_FLAGS}")
+  add_definitions("-DEIGEN_USE_BLAS") # is adding  ${BLAS_COMPILER_FLAGS} necessary?
+  list(APPEND EXTERNAL_LIBS "${BLAS_LIBRARIES}")
+endif(EIGEN_TEST_EXTERNAL_BLAS)
 
 # configure blas/lapack (use Eigen's ones)
 set(EIGEN_BLAS_LIBRARIES eigen_blas)
@@ -68,6 +68,17 @@ else()
   ei_add_property(EIGEN_MISSING_BACKENDS "UmfPack, ")
 endif()
 
+find_package(KLU)
+if(KLU_FOUND)
+  add_definitions("-DEIGEN_KLU_SUPPORT")
+  include_directories(${KLU_INCLUDES})
+  set(SPARSE_LIBS ${SPARSE_LIBS} ${KLU_LIBRARIES} ${EIGEN_BLAS_LIBRARIES})
+  set(KLU_ALL_LIBS ${KLU_LIBRARIES} ${EIGEN_BLAS_LIBRARIES})
+  ei_add_property(EIGEN_TESTED_BACKENDS "KLU, ")
+else()
+  ei_add_property(EIGEN_MISSING_BACKENDS "KLU, ")
+endif()
+
 find_package(SuperLU 4.0)
 if(SUPERLU_FOUND)
   add_definitions("-DEIGEN_SUPERLU_SUPPORT")
@@ -80,23 +91,30 @@ else()
 endif()
 
 
-find_package(Pastix)
-find_package(Scotch)
-find_package(Metis 5.0 REQUIRED)
-if(PASTIX_FOUND)
+find_package(PASTIX QUIET COMPONENTS METIS SEQ)
+# check that the PASTIX found is a version without MPI
+find_path(PASTIX_pastix_nompi.h_INCLUDE_DIRS
+  NAMES pastix_nompi.h
+  HINTS ${PASTIX_INCLUDE_DIRS}
+)
+if (NOT PASTIX_pastix_nompi.h_INCLUDE_DIRS)
+  message(STATUS "A version of Pastix has been found but pastix_nompi.h does not exist in the include directory."
+                 " Because Eigen tests require a version without MPI, we disable the Pastix backend.")
+endif()
+if(PASTIX_FOUND AND PASTIX_pastix_nompi.h_INCLUDE_DIRS)
   add_definitions("-DEIGEN_PASTIX_SUPPORT")
-  include_directories(${PASTIX_INCLUDES})
+  include_directories(${PASTIX_INCLUDE_DIRS_DEP})
   if(SCOTCH_FOUND)
-    include_directories(${SCOTCH_INCLUDES})
+    include_directories(${SCOTCH_INCLUDE_DIRS})
     set(PASTIX_LIBRARIES ${PASTIX_LIBRARIES} ${SCOTCH_LIBRARIES})
   elseif(METIS_FOUND)
-    include_directories(${METIS_INCLUDES})
+    include_directories(${METIS_INCLUDE_DIRS})
     set(PASTIX_LIBRARIES ${PASTIX_LIBRARIES} ${METIS_LIBRARIES})
   else(SCOTCH_FOUND)
     ei_add_property(EIGEN_MISSING_BACKENDS  "PaStiX, ")
   endif(SCOTCH_FOUND)
-  set(SPARSE_LIBS ${SPARSE_LIBS} ${PASTIX_LIBRARIES} ${ORDERING_LIBRARIES} ${EIGEN_BLAS_LIBRARIES})
-  set(PASTIX_ALL_LIBS ${PASTIX_LIBRARIES} ${EIGEN_BLAS_LIBRARIES})
+  set(SPARSE_LIBS ${SPARSE_LIBS} ${PASTIX_LIBRARIES_DEP} ${ORDERING_LIBRARIES})
+  set(PASTIX_ALL_LIBS ${PASTIX_LIBRARIES_DEP})
   ei_add_property(EIGEN_TESTED_BACKENDS  "PaStiX, ")
 else()
   ei_add_property(EIGEN_MISSING_BACKENDS  "PaStiX, ")
@@ -104,7 +122,7 @@ endif()
 
 if(METIS_FOUND)
   add_definitions("-DEIGEN_METIS_SUPPORT")
-  include_directories(${METIS_INCLUDES})
+  include_directories(${METIS_INCLUDE_DIRS})
   ei_add_property(EIGEN_TESTED_BACKENDS "METIS, ")
 else()
   ei_add_property(EIGEN_MISSING_BACKENDS "METIS, ")
@@ -141,6 +159,7 @@ add_custom_target(BuildOfficial)
 
 ei_add_test(rand)
 ei_add_test(meta)
+ei_add_test(numext)
 ei_add_test(sizeof)
 ei_add_test(dynalloc)
 ei_add_test(nomalloc)
@@ -180,7 +199,7 @@ ei_add_test(smallvectors)
 ei_add_test(mapped_matrix)
 ei_add_test(mapstride)
 ei_add_test(mapstaticmethods)
-ei_add_test(array)
+ei_add_test(array_cwise)
 ei_add_test(array_for_matrix)
 ei_add_test(array_replicate)
 ei_add_test(array_reverse)
@@ -265,6 +284,7 @@ ei_add_test(mpl2only)
 ei_add_test(inplace_decomposition)
 ei_add_test(half_float)
 ei_add_test(array_of_string)
+ei_add_test(num_dimensions)
 
 add_executable(bug1213 bug1213.cpp bug1213_main.cpp)
 
@@ -288,6 +308,10 @@ endif(QT4_FOUND)
 
 if(UMFPACK_FOUND)
   ei_add_test(umfpack_support "" "${UMFPACK_ALL_LIBS}")
+endif()
+
+if(KLU_FOUND OR SuiteSparse_FOUND)
+  ei_add_test(klu_support "" "${KLU_ALL_LIBS}")
 endif()
 
 if(SUPERLU_FOUND)
@@ -364,16 +388,56 @@ if(CUDA_FOUND)
   if(EIGEN_TEST_CUDA_CLANG)
    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 --cuda-gpu-arch=sm_30")
   endif()
-  cuda_include_directories(${CMAKE_CURRENT_BINARY_DIR})
   set(EIGEN_ADD_TEST_FILENAME_EXTENSION  "cu")
   
-  ei_add_test(cuda_basic)
+  ei_add_test(gpu_basic)
   
   unset(EIGEN_ADD_TEST_FILENAME_EXTENSION)
 
 endif(CUDA_FOUND)
 
 endif(EIGEN_TEST_CUDA)
+
+
+# HIP unit tests
+option(EIGEN_TEST_HIP "Add HIP support." OFF)
+if (EIGEN_TEST_HIP)
+
+  set(HIP_PATH "/opt/rocm/hip" CACHE STRING "Path to the HIP installation.")
+
+  if (EXISTS ${HIP_PATH})
+    
+    list(APPEND CMAKE_MODULE_PATH ${HIP_PATH}/cmake) 
+
+    find_package(HIP REQUIRED)
+    if (HIP_FOUND)
+
+      execute_process(COMMAND ${HIP_PATH}/bin/hipconfig --platform OUTPUT_VARIABLE HIP_PLATFORM)
+
+      if (${HIP_PLATFORM} STREQUAL "hcc")
+
+	include_directories(${HIP_PATH}/include)
+
+	set(EIGEN_ADD_TEST_FILENAME_EXTENSION  "cu")
+	ei_add_test(gpu_basic)
+	unset(EIGEN_ADD_TEST_FILENAME_EXTENSION)
+	
+      elseif (${HIP_PLATFORM} STREQUAL "nvcc")
+	message(FATAL_ERROR "HIP_PLATFORM = nvcc is not supported within Eigen")
+      else ()
+	message(FATAL_ERROR "Unknown HIP_PLATFORM = ${HIP_PLATFORM}")
+      endif()
+      
+    endif(HIP_FOUND)
+    
+  else ()
+
+    message(FATAL_ERROR "EIGEN_TEST_HIP is ON, but the specified HIP_PATH (${HIP_PATH}) does not exist")
+    
+  endif()
+    
+endif(EIGEN_TEST_HIP)
+
 
 
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/failtests)    

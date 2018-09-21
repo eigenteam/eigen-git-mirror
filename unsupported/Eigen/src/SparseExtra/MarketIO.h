@@ -104,11 +104,12 @@ namespace internal
     out << value.real << " " << value.imag()<< "\n"; 
   }
 
-} // end namepsace internal
+} // end namespace internal
 
 inline bool getMarketHeader(const std::string& filename, int& sym, bool& iscomplex, bool& isvector)
 {
   sym = 0; 
+  iscomplex = false;
   isvector = false;
   std::ifstream in(filename.c_str(),std::ios::in);
   if(!in)

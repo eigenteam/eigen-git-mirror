@@ -13,7 +13,7 @@
 
 #define EIGEN_TEST_NO_LONGDOUBLE
 #define EIGEN_TEST_NO_COMPLEX
-#define EIGEN_TEST_FUNC cxx11_tensor_forced_eval_sycl
+
 #define EIGEN_DEFAULT_DENSE_INDEX_TYPE int64_t
 #define EIGEN_USE_SYCL
 
@@ -44,7 +44,7 @@ void test_forced_eval_sycl(const Eigen::SyclDevice &sycl_device) {
   Eigen::TensorMap<Eigen::Tensor<DataType, 3, DataLayout, IndexType>> gpu_in2(gpu_in2_data, tensorRange);
   Eigen::TensorMap<Eigen::Tensor<DataType, 3, DataLayout, IndexType>> gpu_out(gpu_out_data, tensorRange);
   sycl_device.memcpyHostToDevice(gpu_in1_data, in1.data(),(in1.dimensions().TotalSize())*sizeof(DataType));
-  sycl_device.memcpyHostToDevice(gpu_in2_data, in2.data(),(in1.dimensions().TotalSize())*sizeof(DataType));
+  sycl_device.memcpyHostToDevice(gpu_in2_data, in2.data(),(in2.dimensions().TotalSize())*sizeof(DataType));
   /// c=(a+b)*b
   gpu_out.device(sycl_device) =(gpu_in1 + gpu_in2).eval() * gpu_in2;
   sycl_device.memcpyDeviceToHost(out.data(), gpu_out_data,(out.dimensions().TotalSize())*sizeof(DataType));
@@ -69,7 +69,7 @@ template <typename DataType, typename Dev_selector> void tensorForced_evalperDev
   test_forced_eval_sycl<DataType, RowMajor, int64_t>(sycl_device);
   test_forced_eval_sycl<DataType, ColMajor, int64_t>(sycl_device);
 }
-void test_cxx11_tensor_forced_eval_sycl() {
+EIGEN_DECLARE_TEST(cxx11_tensor_forced_eval_sycl) {
   for (const auto& device :Eigen::get_sycl_supported_devices()) {
     CALL_SUBTEST(tensorForced_evalperDevice<float>(device));
   }

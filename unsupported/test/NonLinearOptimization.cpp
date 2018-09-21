@@ -565,7 +565,7 @@ void testLmdif1()
 
   // do the computation
   lmdif_functor functor;
-  DenseIndex nfev;
+  DenseIndex nfev = -1; // initialize to avoid maybe-uninitialized warning
   info = LevenbergMarquardt<lmdif_functor>::lmdif1(functor, x, &nfev);
 
   // check return value
@@ -1818,7 +1818,7 @@ void testNistEckerle4(void)
   VERIFY_IS_APPROX(x[2], 4.5154121844E+02);
 }
 
-void test_NonLinearOptimization()
+EIGEN_DECLARE_TEST(NonLinearOptimization)
 {
     // Tests using the examples provided by (c)minpack
     CALL_SUBTEST/*_1*/(testChkder());

@@ -15,7 +15,6 @@
 
 template<typename ArrayType> void vectorwiseop_array(const ArrayType& m)
 {
-  typedef typename ArrayType::Index Index;
   typedef typename ArrayType::Scalar Scalar;
   typedef Array<Scalar, ArrayType::RowsAtCompileTime, 1> ColVectorType;
   typedef Array<Scalar, 1, ArrayType::ColsAtCompileTime> RowVectorType;
@@ -129,7 +128,6 @@ template<typename ArrayType> void vectorwiseop_array(const ArrayType& m)
 
 template<typename MatrixType> void vectorwiseop_matrix(const MatrixType& m)
 {
-  typedef typename MatrixType::Index Index;
   typedef typename MatrixType::Scalar Scalar;
   typedef typename NumTraits<Scalar>::Real RealScalar;
   typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> ColVectorType;
@@ -239,7 +237,7 @@ template<typename MatrixType> void vectorwiseop_matrix(const MatrixType& m)
   VERIFY_EVALUATION_COUNT( m2 = (m1.rowwise() - m1.colwise().sum()/RealScalar(m1.rows())), (MatrixType::RowsAtCompileTime!=1 ? 1 : 0) );
 }
 
-void test_vectorwiseop()
+EIGEN_DECLARE_TEST(vectorwiseop)
 {
   CALL_SUBTEST_1( vectorwiseop_array(Array22cd()) );
   CALL_SUBTEST_2( vectorwiseop_array(Array<double, 3, 2>()) );

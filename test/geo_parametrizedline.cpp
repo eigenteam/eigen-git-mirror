@@ -19,7 +19,6 @@ template<typename LineType> void parametrizedline(const LineType& _line)
      ParametrizedLine.h
   */
   using std::abs;
-  typedef typename LineType::Index Index;
   const Index dim = _line.dim();
   typedef typename LineType::Scalar Scalar;
   typedef typename NumTraits<Scalar>::Real RealScalar;
@@ -118,7 +117,7 @@ template<typename Scalar> void parametrizedline_alignment()
   #endif
 }
 
-void test_geo_parametrizedline()
+EIGEN_DECLARE_TEST(geo_parametrizedline)
 {
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_1( parametrizedline(ParametrizedLine<float,2>()) );

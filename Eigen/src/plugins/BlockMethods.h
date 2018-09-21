@@ -40,6 +40,14 @@ typedef const VectorBlock<const Derived> ConstSegmentReturnType;
 template<int Size> struct FixedSegmentReturnType { typedef VectorBlock<Derived, Size> Type; };
 template<int Size> struct ConstFixedSegmentReturnType { typedef const VectorBlock<const Derived, Size> Type; };
 
+/// \internal inner-vector
+typedef Block<Derived,IsRowMajor?1:Dynamic,IsRowMajor?Dynamic:1,true>       InnerVectorReturnType;
+typedef Block<const Derived,IsRowMajor?1:Dynamic,IsRowMajor?Dynamic:1,true> ConstInnerVectorReturnType;
+
+/// \internal set of inner-vectors
+typedef Block<Derived,Dynamic,Dynamic,true> InnerVectorsReturnType;
+typedef Block<const Derived,Dynamic,Dynamic,true> ConstInnerVectorsReturnType;
+
 #endif // not EIGEN_PARSED_BY_DOXYGEN
 
 /// \returns an expression of a block in \c *this with either dynamic or fixed sizes.
@@ -1036,7 +1044,7 @@ inline const typename ConstFixedBlockXpr<NRows,NCols>::Type block(Index startRow
 /// \a NRows is \a Dynamic, and the same for the number of columns.
 ///
 /// Example: \include MatrixBase_template_int_int_block_int_int_int_int.cpp
-/// Output: \verbinclude MatrixBase_template_int_int_block_int_int_int_int.cpp
+/// Output: \verbinclude MatrixBase_template_int_int_block_int_int_int_int.out
 ///
 /// \note The usage of of this overload is discouraged from %Eigen 3.4, better used the generic
 /// block(Index,Index,NRowsType,NColsType), here is the one-to-one complete equivalence:
@@ -1053,6 +1061,7 @@ EIGEN_DOC_BLOCK_ADDONS_NOT_INNER_PANEL
 /// \sa block(Index,Index,NRowsType,NColsType), class Block
 ///
 template<int NRows, int NCols>
+EIGEN_DEVICE_FUNC
 inline typename FixedBlockXpr<NRows,NCols>::Type block(Index startRow, Index startCol,
                                                   Index blockRows, Index blockCols)
 {
@@ -1353,4 +1362,40 @@ inline typename ConstFixedSegmentReturnType<N>::Type tail(Index n = N) const
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
   return typename ConstFixedSegmentReturnType<N>::Type(derived(), size() - n);
+}
+
+/// \returns the \a outer -th column (resp. row) of the matrix \c *this if \c *this
+/// is col-major (resp. row-major).
+///
+InnerVectorReturnType innerVector(Index outer)
+{ return InnerVectorReturnType(derived(), outer); }
+
+/// \returns the \a outer -th column (resp. row) of the matrix \c *this if \c *this
+/// is col-major (resp. row-major). Read-only.
+///
+const ConstInnerVectorReturnType innerVector(Index outer) const
+{ return ConstInnerVectorReturnType(derived(), outer); }
+
+/// \returns the \a outer -th column (resp. row) of the matrix \c *this if \c *this
+/// is col-major (resp. row-major).
+///
+InnerVectorsReturnType
+innerVectors(Index outerStart, Index outerSize)
+{
+  return Block<Derived,Dynamic,Dynamic,true>(derived(),
+                                             IsRowMajor ? outerStart : 0, IsRowMajor ? 0 : outerStart,
+                                             IsRowMajor ? outerSize : rows(), IsRowMajor ? cols() : outerSize);
+
+}
+
+/// \returns the \a outer -th column (resp. row) of the matrix \c *this if \c *this
+/// is col-major (resp. row-major). Read-only.
+///
+const ConstInnerVectorsReturnType
+innerVectors(Index outerStart, Index outerSize) const
+{
+  return Block<const Derived,Dynamic,Dynamic,true>(derived(),
+                                                  IsRowMajor ? outerStart : 0, IsRowMajor ? 0 : outerStart,
+                                                  IsRowMajor ? outerSize : rows(), IsRowMajor ? cols() : outerSize);
+
 }

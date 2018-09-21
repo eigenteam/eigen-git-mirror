@@ -33,7 +33,7 @@ int EIGEN_BLAS_FUNC(copy)(int *n, RealScalar *px, int *incx, RealScalar *py, int
   Scalar* x = reinterpret_cast<Scalar*>(px);
   Scalar* y = reinterpret_cast<Scalar*>(py);
 
-  // be carefull, *incx==0 is allowed !!
+  // be careful, *incx==0 is allowed !!
   if(*incx==1 && *incy==1)
     make_vector(y,*n) = make_vector(x,*n);
   else

@@ -13,13 +13,12 @@
 
 template<typename MatrixType> void qr()
 {
-  typedef typename MatrixType::Index Index;
-
+  static const int Rows = MatrixType::RowsAtCompileTime, Cols = MatrixType::ColsAtCompileTime;
   Index max_size = EIGEN_TEST_MAX_SIZE;
   Index min_size = numext::maxi(1,EIGEN_TEST_MAX_SIZE/10);
-  Index rows  = internal::random<Index>(min_size,max_size),
-        cols  = internal::random<Index>(min_size,max_size),
-        cols2 = internal::random<Index>(min_size,max_size),
+  Index rows  = Rows == Dynamic ? internal::random<Index>(min_size,max_size) : Rows,
+        cols  = Cols == Dynamic ? internal::random<Index>(min_size,max_size) : Cols,
+        cols2 = Cols == Dynamic ? internal::random<Index>(min_size,max_size) : Cols,
         rank  = internal::random<Index>(1, (std::min)(rows, cols)-1);
 
   typedef typename MatrixType::Scalar Scalar;
@@ -126,11 +125,12 @@ template<typename MatrixType> void qr_verify_assert()
   VERIFY_RAISES_ASSERT(qr.logAbsDeterminant())
 }
 
-void test_qr_fullpivoting()
+EIGEN_DECLARE_TEST(qr_fullpivoting)
 {
- for(int i = 0; i < 1; i++) {
-    // FIXME : very weird bug here
-//     CALL_SUBTEST(qr(Matrix2f()) );
+  for(int i = 0; i < 1; i++) {
+    CALL_SUBTEST_5( qr<Matrix3f>() );
+    CALL_SUBTEST_6( qr<Matrix3d>() );
+    CALL_SUBTEST_8( qr<Matrix2f>() );
     CALL_SUBTEST_1( qr<MatrixXf>() );
     CALL_SUBTEST_2( qr<MatrixXd>() );
     CALL_SUBTEST_3( qr<MatrixXcd>() );

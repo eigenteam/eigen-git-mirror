@@ -111,7 +111,7 @@ rot3 = rot1.slerp(alpha,rot2);\endcode</td></tr>
 
 
 <a href="#" class="top">top</a>\section TutorialGeoTransform Affine transformations
-Generic affine transformations are represented by the Transform class which internaly
+Generic affine transformations are represented by the Transform class which internally
 is a (Dim+1)^2 matrix. In Eigen we have chosen to not distinghish between points and
 vectors such that all points are actually represented by displacement vectors from the
 origin ( \f$ \mathbf{p} \equiv \mathbf{p}-0 \f$ ). With that in mind, real points and

@@ -68,7 +68,7 @@ Array<float,4,1>                <=>   Array4f
 
 Conversion between the matrix and array worlds:
 \code
-Array44f a1, a1;
+Array44f a1, a2;
 Matrix4f m1, m2;
 m1 = a1 * a2;                     // coeffwise product, implicit conversion from array to matrix.
 a1 = m1 * m2;                     // matrix product, implicit conversion from matrix to array.
@@ -261,6 +261,8 @@ x.setIdentity();
 Vector3f::UnitX() // 1 0 0
 Vector3f::UnitY() // 0 1 0
 Vector3f::UnitZ() // 0 0 1
+Vector4f::Unit(i)
+x.setUnit(i);
 \endcode
   </td>
   <td>
@@ -278,6 +280,7 @@ N/A
 
 
 VectorXf::Unit(size,i)
+x.setUnit(size,i);
 VectorXf::Unit(4,1) == Vector4f(0,1,0,0)
                     == Vector4f::UnitY()
 \endcode
@@ -285,7 +288,12 @@ VectorXf::Unit(4,1) == Vector4f(0,1,0,0)
 </tr>
 </table>
 
-
+Note that it is allowed to call any of the \c set* functions to a dynamic-sized vector or matrix without passing new sizes.
+For instance:
+\code
+MatrixXi M(3,3);
+M.setIdentity();
+\endcode
 
 \subsection QuickRef_Map Mapping external arrays
 

@@ -40,7 +40,6 @@ class MatrixPowerParenthesesReturnValue : public ReturnByValue< MatrixPowerParen
 {
   public:
     typedef typename MatrixType::RealScalar RealScalar;
-    typedef typename MatrixType::Index Index;
 
     /**
      * \brief Constructor.
@@ -81,7 +80,7 @@ class MatrixPowerParenthesesReturnValue : public ReturnByValue< MatrixPowerParen
  *
  * \note Currently this class is only used by MatrixPower. One may
  * insist that this be nested into MatrixPower. This class is here to
- * faciliate future development of triangular matrix functions.
+ * facilitate future development of triangular matrix functions.
  */
 template<typename MatrixType>
 class MatrixPowerAtomic : internal::noncopyable
@@ -94,7 +93,6 @@ class MatrixPowerAtomic : internal::noncopyable
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::RealScalar RealScalar;
     typedef std::complex<RealScalar> ComplexScalar;
-    typedef typename MatrixType::Index Index;
     typedef Block<MatrixType,Dynamic,Dynamic> ResultType;
 
     const MatrixType& m_A;
@@ -340,7 +338,6 @@ class MatrixPower : internal::noncopyable
   private:
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::RealScalar RealScalar;
-    typedef typename MatrixType::Index Index;
 
   public:
     /**
@@ -600,7 +597,6 @@ class MatrixPowerReturnValue : public ReturnByValue< MatrixPowerReturnValue<Deri
   public:
     typedef typename Derived::PlainObject PlainObject;
     typedef typename Derived::RealScalar RealScalar;
-    typedef typename Derived::Index Index;
 
     /**
      * \brief Constructor.
@@ -648,7 +644,6 @@ class MatrixComplexPowerReturnValue : public ReturnByValue< MatrixComplexPowerRe
   public:
     typedef typename Derived::PlainObject PlainObject;
     typedef typename std::complex<typename Derived::RealScalar> ComplexScalar;
-    typedef typename Derived::Index Index;
 
     /**
      * \brief Constructor.

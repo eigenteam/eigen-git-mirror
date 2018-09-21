@@ -26,7 +26,7 @@ template<typename T, typename I> void test_bicgstab_T()
   //CALL_SUBTEST( check_sparse_square_solving(bicgstab_colmajor_ssor)     );
 }
 
-void test_bicgstab()
+EIGEN_DECLARE_TEST(bicgstab)
 {
   CALL_SUBTEST_1((test_bicgstab_T<double,int>()) );
   CALL_SUBTEST_2((test_bicgstab_T<std::complex<double>, int>()));

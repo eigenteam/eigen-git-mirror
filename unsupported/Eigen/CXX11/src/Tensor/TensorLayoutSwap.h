@@ -46,6 +46,7 @@ struct traits<TensorLayoutSwapOp<XprType> > : public traits<XprType>
   typedef typename remove_reference<Nested>::type _Nested;
   static const int NumDimensions = traits<XprType>::NumDimensions;
   static const int Layout = (traits<XprType>::Layout == ColMajor) ? RowMajor : ColMajor;
+  typedef typename XprTraits::PointerType PointerType;
 };
 
 template<typename XprType>
@@ -118,6 +119,8 @@ struct TensorEvaluator<const TensorLayoutSwapOp<ArgType>, Device>
   enum {
     IsAligned = TensorEvaluator<ArgType, Device>::IsAligned,
     PacketAccess = TensorEvaluator<ArgType, Device>::PacketAccess,
+    BlockAccess = false,
+    PreferBlockAccess = false,
     Layout = (static_cast<int>(TensorEvaluator<ArgType, Device>::Layout) == static_cast<int>(ColMajor)) ? RowMajor : ColMajor,
     CoordAccess = false,  // to be implemented
     RawAccess = TensorEvaluator<ArgType, Device>::RawAccess
@@ -159,7 +162,7 @@ struct TensorEvaluator<const TensorLayoutSwapOp<ArgType>, Device>
     return m_impl.costPerCoeff(vectorized);
   }
 
-  EIGEN_DEVICE_FUNC Scalar* data() const { return m_impl.data(); }
+  EIGEN_DEVICE_FUNC typename Eigen::internal::traits<XprType>::PointerType data() const { return m_impl.data(); }
 
   const TensorEvaluator<ArgType, Device>& impl() const { return m_impl; }
 
@@ -180,6 +183,8 @@ template<typename ArgType, typename Device>
   enum {
     IsAligned = TensorEvaluator<ArgType, Device>::IsAligned,
     PacketAccess = TensorEvaluator<ArgType, Device>::PacketAccess,
+    BlockAccess = false,
+    PreferBlockAccess = false,
     Layout = (static_cast<int>(TensorEvaluator<ArgType, Device>::Layout) == static_cast<int>(ColMajor)) ? RowMajor : ColMajor,
     CoordAccess = false  // to be implemented
   };

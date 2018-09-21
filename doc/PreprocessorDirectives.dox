@@ -51,7 +51,7 @@ are doing.
 
 \section TopicPreprocessorDirectivesCppVersion C++ standard features
 
-By default, %Eigen strive to automatically detect and enable langage features at compile-time based on
+By default, %Eigen strive to automatically detect and enable language features at compile-time based on
 the information provided by the compiler.
 
  - \b EIGEN_MAX_CPP_VER - disables usage of C++ features requiring a version greater than EIGEN_MAX_CPP_VER.
@@ -66,7 +66,7 @@ functions by defining EIGEN_HAS_C99_MATH=1.
    Automatic detection disabled if EIGEN_MAX_CPP_VER<11.
  - \b EIGEN_HAS_CXX11_MATH - controls the implementation of some functions such as round, logp1, isinf, isnan, etc.
    Automatic detection disabled if EIGEN_MAX_CPP_VER<11.
- - \b EIGEN_HAS_RVALUE_REFERENCES - defines whetehr rvalue references are supported
+ - \b EIGEN_HAS_RVALUE_REFERENCES - defines whether rvalue references are supported
    Automatic detection disabled if EIGEN_MAX_CPP_VER<11.
  - \b EIGEN_HAS_STD_RESULT_OF - defines whether std::result_of is supported
    Automatic detection disabled if EIGEN_MAX_CPP_VER<11.
@@ -120,6 +120,12 @@ run time. However, these assertions do cost time and can thus be turned off.
  - \b \c EIGEN_STACK_ALLOCATION_LIMIT - defines the maximum bytes for a buffer to be allocated on the stack. For internal
    temporary buffers, dynamic memory allocation is employed as a fall back. For fixed-size matrices or arrays, exceeding
    this threshold raises a compile time assertion. Use 0 to set no limit. Default is 128 KB.
+ - \b \c EIGEN_NO_CUDA - disables CUDA support when defined. Might be useful in .cu files for which Eigen is used on the host only,
+   and never called from device code.
+ - \b \c EIGEN_STRONG_INLINE - This macro is used to qualify critical functions and methods that we expect the compiler to inline.
+   By default it is defined to \c __forceinline for MSVC and ICC, and to \c inline for other compilers. A tipical usage is to
+   define it to \c inline for MSVC users wanting faster compilation times, at the risk of performance degradations in some rare
+   cases for which MSVC inliner fails to do a good job.
 
 
  - \c EIGEN_DONT_ALIGN - Deprecated, it is a synonym for \c EIGEN_MAX_ALIGN_BYTES=0. It disables alignment completely. %Eigen will not try to align its objects and does not expect that any objects passed to it are aligned. This will turn off vectorization if \b EIGEN_UNALIGNED_VECTORIZE=1. Not defined by default.

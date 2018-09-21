@@ -12,7 +12,7 @@
 
 #include "../../../Eigen/Core"
 
-#include <Eigen/src/Core/util/DisableStupidWarnings.h>
+#include "../../../Eigen/src/Core/util/DisableStupidWarnings.h"
 
 /** \defgroup CXX11_ThreadPool_Module C++11 ThreadPool Module
   *
@@ -44,35 +44,31 @@
 #include <thread>
 #include <functional>
 #include <memory>
-
 #include "src/util/CXX11Meta.h"
 #include "src/util/MaxSizeVector.h"
 
 #include "src/ThreadPool/ThreadLocal.h"
+#ifndef EIGEN_THREAD_LOCAL
+// There are non-parenthesized calls to "max" in the  <unordered_map> header,
+// which trigger a check in test/main.h causing compilation to fail.
+// We work around the check here by removing the check for max in
+// the case where we have to emulate thread_local.
+#ifdef max
+#undef max
+#endif
+#include <unordered_map>
+#endif
 #include "src/ThreadPool/ThreadYield.h"
 #include "src/ThreadPool/ThreadCancel.h"
 #include "src/ThreadPool/EventCount.h"
 #include "src/ThreadPool/RunQueue.h"
 #include "src/ThreadPool/ThreadPoolInterface.h"
 #include "src/ThreadPool/ThreadEnvironment.h"
-#include "src/ThreadPool/SimpleThreadPool.h"
+#include "src/ThreadPool/Barrier.h"
 #include "src/ThreadPool/NonBlockingThreadPool.h"
 
-
-// Use the more efficient NonBlockingThreadPool by default.
-namespace Eigen {
-#ifndef EIGEN_USE_SIMPLE_THREAD_POOL
-template <typename Env> using ThreadPoolTempl = NonBlockingThreadPoolTempl<Env>;
-typedef NonBlockingThreadPool ThreadPool;
-#else
-template <typename Env> using ThreadPoolTempl = SimpleThreadPoolTempl<Env>;
-typedef SimpleThreadPool ThreadPool;
-#endif
-}  // namespace Eigen
-
 #endif
 
-#include <Eigen/src/Core/util/ReenableStupidWarnings.h>
+#include "../../../Eigen/src/Core/util/ReenableStupidWarnings.h"
 
 #endif // EIGEN_CXX11_THREADPOOL_MODULE
-

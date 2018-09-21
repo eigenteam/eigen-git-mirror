@@ -220,7 +220,7 @@ class SPQR : public SparseSolverBase<SPQR<_MatrixType> >
     
     /** \brief Reports whether previous computation was successful.
       *
-      * \returns \c Success if computation was succesful,
+      * \returns \c Success if computation was successful,
       *          \c NumericalIssue if the sparse QR can not be computed
       */
     ComputationInfo info() const

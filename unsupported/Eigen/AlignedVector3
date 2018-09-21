@@ -10,7 +10,9 @@
 #ifndef EIGEN_ALIGNED_VECTOR3
 #define EIGEN_ALIGNED_VECTOR3
 
-#include <Eigen/Geometry>
+#include "../../Eigen/Geometry"
+
+#include "../../Eigen/src/Core/util/DisableStupidWarnings.h"
 
 namespace Eigen {
 
@@ -220,5 +222,7 @@ struct evaluator<AlignedVector3<Scalar> >
 //@}
 
 }
+
+#include "../../Eigen/src/Core/util/ReenableStupidWarnings.h"
 
 #endif // EIGEN_ALIGNED_VECTOR3

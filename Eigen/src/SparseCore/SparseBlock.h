@@ -326,46 +326,6 @@ private:
 
 //----------
 
-/** \returns the \a outer -th column (resp. row) of the matrix \c *this if \c *this
-  * is col-major (resp. row-major).
-  */
-template<typename Derived>
-typename SparseMatrixBase<Derived>::InnerVectorReturnType SparseMatrixBase<Derived>::innerVector(Index outer)
-{ return InnerVectorReturnType(derived(), outer); }
-
-/** \returns the \a outer -th column (resp. row) of the matrix \c *this if \c *this
-  * is col-major (resp. row-major). Read-only.
-  */
-template<typename Derived>
-const typename SparseMatrixBase<Derived>::ConstInnerVectorReturnType SparseMatrixBase<Derived>::innerVector(Index outer) const
-{ return ConstInnerVectorReturnType(derived(), outer); }
-
-/** \returns the \a outer -th column (resp. row) of the matrix \c *this if \c *this
-  * is col-major (resp. row-major).
-  */
-template<typename Derived>
-typename SparseMatrixBase<Derived>::InnerVectorsReturnType
-SparseMatrixBase<Derived>::innerVectors(Index outerStart, Index outerSize)
-{
-  return Block<Derived,Dynamic,Dynamic,true>(derived(),
-                                             IsRowMajor ? outerStart : 0, IsRowMajor ? 0 : outerStart,
-                                             IsRowMajor ? outerSize : rows(), IsRowMajor ? cols() : outerSize);
-
-}
-
-/** \returns the \a outer -th column (resp. row) of the matrix \c *this if \c *this
-  * is col-major (resp. row-major). Read-only.
-  */
-template<typename Derived>
-const typename SparseMatrixBase<Derived>::ConstInnerVectorsReturnType
-SparseMatrixBase<Derived>::innerVectors(Index outerStart, Index outerSize) const
-{
-  return Block<const Derived,Dynamic,Dynamic,true>(derived(),
-                                                  IsRowMajor ? outerStart : 0, IsRowMajor ? 0 : outerStart,
-                                                  IsRowMajor ? outerSize : rows(), IsRowMajor ? cols() : outerSize);
-
-}
-
 /** Generic implementation of sparse Block expression.
   * Real-only.
   */

@@ -24,6 +24,7 @@ struct traits<TensorScanOp<Op, XprType> >
   typedef typename remove_reference<Nested>::type _Nested;
   static const int NumDimensions = XprTraits::NumDimensions;
   static const int Layout = XprTraits::Layout;
+  typedef typename XprTraits::PointerType PointerType;
 };
 
 template<typename Op, typename XprType>
@@ -94,8 +95,9 @@ struct TensorEvaluator<const TensorScanOp<Op, ArgType>, Device> {
 
   enum {
     IsAligned = false,
-    PacketAccess = (internal::unpacket_traits<PacketReturnType>::size > 1),
+    PacketAccess = (PacketType<CoeffReturnType, Device>::size > 1),
     BlockAccess = false,
+    PreferBlockAccess = false,
     Layout = TensorEvaluator<ArgType, Device>::Layout,
     CoordAccess = false,
     RawAccess = true
@@ -175,7 +177,7 @@ struct TensorEvaluator<const TensorScanOp<Op, ArgType>, Device> {
     return internal::ploadt<PacketReturnType, LoadMode>(m_output + index);
   }
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE CoeffReturnType* data() const
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE typename Eigen::internal::traits<XprType>::PointerType data() const
   {
     return m_output;
   }
@@ -241,7 +243,7 @@ struct ScanLauncher {
   }
 };
 
-#if defined(EIGEN_USE_GPU) && defined(__CUDACC__)
+#if defined(EIGEN_USE_GPU) && (defined(EIGEN_GPUCC))
 
 // GPU implementation of scan
 // TODO(ibab) This placeholder implementation performs multiple scans in
@@ -277,10 +279,11 @@ struct ScanLauncher<Self, Reducer, GpuDevice> {
      Index total_size = internal::array_prod(self.dimensions());
      Index num_blocks = (total_size / self.size() + 63) / 64;
      Index block_size = 64;
-     LAUNCH_CUDA_KERNEL((ScanKernel<Self, Reducer>), num_blocks, block_size, 0, self.device(), self, total_size, data);
+
+     LAUNCH_GPU_KERNEL((ScanKernel<Self, Reducer>), num_blocks, block_size, 0, self.device(), self, total_size, data);
   }
 };
-#endif  // EIGEN_USE_GPU && __CUDACC__
+#endif  // EIGEN_USE_GPU && (EIGEN_GPUCC)
 
 }  // end namespace Eigen
 

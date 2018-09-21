@@ -10,8 +10,12 @@
 #  EIGEN3_INCLUDE_DIR - the eigen include directory
 #  EIGEN3_VERSION - eigen version
 #
+# and the following imported target:
+#
+#  Eigen3::Eigen - The header-only Eigen library
+#
 # This module reads hints about search locations from 
-# the following enviroment variables:
+# the following environment variables:
 #
 # EIGEN3_ROOT
 # EIGEN3_ROOT_DIR
@@ -64,6 +68,7 @@ if (EIGEN3_INCLUDE_DIR)
   # in cache already
   _eigen3_check_version()
   set(EIGEN3_FOUND ${EIGEN3_VERSION_OK})
+  set(Eigen3_FOUND ${EIGEN3_VERSION_OK})
 
 else (EIGEN3_INCLUDE_DIR)
   
@@ -95,3 +100,8 @@ else (EIGEN3_INCLUDE_DIR)
 
 endif(EIGEN3_INCLUDE_DIR)
 
+if(EIGEN3_FOUND AND NOT TARGET Eigen3::Eigen)
+  add_library(Eigen3::Eigen INTERFACE IMPORTED)
+  set_target_properties(Eigen3::Eigen PROPERTIES
+    INTERFACE_INCLUDE_DIRECTORIES "${EIGEN3_INCLUDE_DIR}")
+endif()

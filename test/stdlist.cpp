@@ -15,8 +15,6 @@
 template<typename MatrixType>
 void check_stdlist_matrix(const MatrixType& m)
 {
-  typedef typename MatrixType::Index Index;
-  
   Index rows = m.rows();
   Index cols = m.cols();
   MatrixType x = MatrixType::Random(rows,cols), y = MatrixType::Random(rows,cols);
@@ -102,7 +100,7 @@ void check_stdlist_quaternion(const QuaternionType&)
   VERIFY_IS_APPROX(v.back(), x);
 }
 
-void test_stdlist()
+EIGEN_DECLARE_TEST(stdlist)
 {
   // some non vectorizable fixed sizes
   CALL_SUBTEST_1(check_stdlist_matrix(Vector2f()));

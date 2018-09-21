@@ -16,7 +16,7 @@ namespace Eigen {
 
 namespace internal {
 
-#if defined(__CUDACC__) && defined(EIGEN_USE_GPU)
+#if defined(EIGEN_CUDACC) && defined(EIGEN_USE_GPU)
 
 // Many std::complex methods such as operator+, operator-, operator* and
 // operator/ are not constexpr. Due to this, clang does not treat them as device
@@ -55,7 +55,7 @@ template<typename T> struct scalar_difference_op<std::complex<T>, std::complex<T
 // Product
 template<typename T> struct scalar_product_op<const std::complex<T>, const std::complex<T> >  : binary_op_base<const std::complex<T>, const std::complex<T> > {
   enum {
-    Vectorizable = packet_traits<std::complex<T>>::HasMul
+    Vectorizable = packet_traits<std::complex<T> >::HasMul
   };
   typedef typename std::complex<T> result_type;
 
@@ -76,7 +76,7 @@ template<typename T> struct scalar_product_op<std::complex<T>, std::complex<T> >
 // Quotient
 template<typename T> struct scalar_quotient_op<const std::complex<T>, const std::complex<T> > : binary_op_base<const std::complex<T>, const std::complex<T> > {
   enum {
-    Vectorizable = packet_traits<std::complex<T>>::HasDiv
+    Vectorizable = packet_traits<std::complex<T> >::HasDiv
   };
   typedef typename std::complex<T> result_type;
 

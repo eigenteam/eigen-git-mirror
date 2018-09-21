@@ -190,7 +190,7 @@ template<typename _MatrixType> class RealSchur
     RealSchur& computeFromHessenberg(const HessMatrixType& matrixH, const OrthMatrixType& matrixQ,  bool computeU);
     /** \brief Reports whether previous computation was successful.
       *
-      * \returns \c Success if computation was succesful, \c NoConvergence otherwise.
+      * \returns \c Success if computation was successful, \c NoConvergence otherwise.
       */
     ComputationInfo info() const
     {
@@ -270,8 +270,13 @@ RealSchur<MatrixType>& RealSchur<MatrixType>::compute(const EigenBase<InputType>
   // Step 1. Reduce to Hessenberg form
   m_hess.compute(matrix.derived()/scale);
 
-  // Step 2. Reduce to real Schur form  
-  computeFromHessenberg(m_hess.matrixH(), m_hess.matrixQ(), computeU);
+  // Step 2. Reduce to real Schur form
+  // Note: we copy m_hess.matrixQ() into m_matU here and not in computeFromHessenberg
+  //       to be able to pass our working-space buffer for the Householder to Dense evaluation.
+  m_workspaceVector.resize(matrix.cols());
+  if(computeU)
+    m_hess.matrixQ().evalTo(m_matU, m_workspaceVector);
+  computeFromHessenberg(m_hess.matrixH(), m_matU, computeU);
 
   m_matT *= scale;
   
@@ -284,13 +289,13 @@ RealSchur<MatrixType>& RealSchur<MatrixType>::computeFromHessenberg(const HessMa
   using std::abs;
 
   m_matT = matrixH;
-  if(computeU)
+  m_workspaceVector.resize(m_matT.cols());
+  if(computeU && !internal::is_same_dense(m_matU,matrixQ))
     m_matU = matrixQ;
   
   Index maxIters = m_maxIters;
   if (maxIters == -1)
     maxIters = m_maxIterationsPerRow * matrixH.rows();
-  m_workspaceVector.resize(m_matT.cols());
   Scalar* workspace = &m_workspaceVector.coeffRef(0);
 
   // The matrix m_matT is divided in three parts. 
@@ -303,7 +308,7 @@ RealSchur<MatrixType>& RealSchur<MatrixType>::computeFromHessenberg(const HessMa
   Scalar exshift(0);   // sum of exceptional shifts
   Scalar norm = computeNormOfT();
 
-  if(norm!=0)
+  if(norm!=Scalar(0))
   {
     while (iu >= 0)
     {
@@ -327,7 +332,7 @@ RealSchur<MatrixType>& RealSchur<MatrixType>::computeFromHessenberg(const HessMa
       else // No convergence yet
       {
         // The firstHouseholderVector vector has to be initialized to something to get rid of a silly GCC warning (-O1 -Wall -DNDEBUG )
-        Vector3s firstHouseholderVector(0,0,0), shiftInfo;
+        Vector3s firstHouseholderVector = Vector3s::Zero(), shiftInfo;
         computeShift(iu, iter, exshift, shiftInfo);
         iter = iter + 1;
         totalIter = totalIter + 1;

@@ -612,7 +612,7 @@ template<typename Scalar, int Dim, int Options> void transform_products()
   VERIFY_IS_APPROX((ac*p).matrix(), a_m*p_m);
 }
 
-void test_geo_transformations()
+EIGEN_DECLARE_TEST(geo_transformations)
 {
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_1(( transformations<double,Affine,AutoAlign>() ));

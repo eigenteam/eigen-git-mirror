@@ -61,7 +61,7 @@ struct plain_array
 #if defined(EIGEN_DISABLE_UNALIGNED_ARRAY_ASSERT)
   #define EIGEN_MAKE_UNALIGNED_ARRAY_ASSERT(sizemask)
 #elif EIGEN_GNUC_AT_LEAST(4,7) 
-  // GCC 4.7 is too aggressive in its optimizations and remove the alignement test based on the fact the array is declared to be aligned.
+  // GCC 4.7 is too aggressive in its optimizations and remove the alignment test based on the fact the array is declared to be aligned.
   // See this bug report: http://gcc.gnu.org/bugzilla/show_bug.cgi?id=53900
   // Hiding the origin of the array pointer behind a function argument seems to do the trick even if the function is inlined:
   template<typename PtrType>
@@ -207,7 +207,9 @@ template<typename T, int Size, int _Rows, int _Cols, int _Options> class DenseSt
       EIGEN_UNUSED_VARIABLE(rows);
       EIGEN_UNUSED_VARIABLE(cols);
     }
-    EIGEN_DEVICE_FUNC void swap(DenseStorage& other) { std::swap(m_data,other.m_data); }
+    EIGEN_DEVICE_FUNC void swap(DenseStorage& other) {
+      numext::swap(m_data, other.m_data);
+    }
     EIGEN_DEVICE_FUNC static Index rows(void) {return _Rows;}
     EIGEN_DEVICE_FUNC static Index cols(void) {return _Cols;}
     EIGEN_DEVICE_FUNC void conservativeResize(Index,Index,Index) {}
@@ -267,7 +269,11 @@ template<typename T, int Size, int _Options> class DenseStorage<T, Size, Dynamic
     }
     EIGEN_DEVICE_FUNC DenseStorage(Index, Index rows, Index cols) : m_rows(rows), m_cols(cols) {}
     EIGEN_DEVICE_FUNC void swap(DenseStorage& other)
-    { std::swap(m_data,other.m_data); std::swap(m_rows,other.m_rows); std::swap(m_cols,other.m_cols); }
+    {
+      numext::swap(m_data,other.m_data);
+      numext::swap(m_rows,other.m_rows);
+      numext::swap(m_cols,other.m_cols);
+    }
     EIGEN_DEVICE_FUNC Index rows() const {return m_rows;}
     EIGEN_DEVICE_FUNC Index cols() const {return m_cols;}
     EIGEN_DEVICE_FUNC void conservativeResize(Index, Index rows, Index cols) { m_rows = rows; m_cols = cols; }
@@ -296,7 +302,11 @@ template<typename T, int Size, int _Cols, int _Options> class DenseStorage<T, Si
       return *this; 
     }
     EIGEN_DEVICE_FUNC DenseStorage(Index, Index rows, Index) : m_rows(rows) {}
-    EIGEN_DEVICE_FUNC void swap(DenseStorage& other) { std::swap(m_data,other.m_data); std::swap(m_rows,other.m_rows); }
+    EIGEN_DEVICE_FUNC void swap(DenseStorage& other)
+    {
+      numext::swap(m_data,other.m_data);
+      numext::swap(m_rows,other.m_rows);
+    }
     EIGEN_DEVICE_FUNC Index rows(void) const {return m_rows;}
     EIGEN_DEVICE_FUNC Index cols(void) const {return _Cols;}
     EIGEN_DEVICE_FUNC void conservativeResize(Index, Index rows, Index) { m_rows = rows; }
@@ -325,11 +335,14 @@ template<typename T, int Size, int _Rows, int _Options> class DenseStorage<T, Si
       return *this;
     }
     EIGEN_DEVICE_FUNC DenseStorage(Index, Index, Index cols) : m_cols(cols) {}
-    EIGEN_DEVICE_FUNC void swap(DenseStorage& other) { std::swap(m_data,other.m_data); std::swap(m_cols,other.m_cols); }
+    EIGEN_DEVICE_FUNC void swap(DenseStorage& other) {
+      numext::swap(m_data,other.m_data);
+      numext::swap(m_cols,other.m_cols);
+    }
     EIGEN_DEVICE_FUNC Index rows(void) const {return _Rows;}
     EIGEN_DEVICE_FUNC Index cols(void) const {return m_cols;}
-    void conservativeResize(Index, Index, Index cols) { m_cols = cols; }
-    void resize(Index, Index, Index cols) { m_cols = cols; }
+    EIGEN_DEVICE_FUNC void conservativeResize(Index, Index, Index cols) { m_cols = cols; }
+    EIGEN_DEVICE_FUNC void resize(Index, Index, Index cols) { m_cols = cols; }
     EIGEN_DEVICE_FUNC const T *data() const { return m_data.array; }
     EIGEN_DEVICE_FUNC T *data() { return m_data.array; }
 };
@@ -381,16 +394,19 @@ template<typename T, int _Options> class DenseStorage<T, Dynamic, Dynamic, Dynam
     EIGEN_DEVICE_FUNC
     DenseStorage& operator=(DenseStorage&& other) EIGEN_NOEXCEPT
     {
-      using std::swap;
-      swap(m_data, other.m_data);
-      swap(m_rows, other.m_rows);
-      swap(m_cols, other.m_cols);
+      numext::swap(m_data, other.m_data);
+      numext::swap(m_rows, other.m_rows);
+      numext::swap(m_cols, other.m_cols);
       return *this;
     }
 #endif
     EIGEN_DEVICE_FUNC ~DenseStorage() { internal::conditional_aligned_delete_auto<T,(_Options&DontAlign)==0>(m_data, m_rows*m_cols); }
     EIGEN_DEVICE_FUNC void swap(DenseStorage& other)
-    { std::swap(m_data,other.m_data); std::swap(m_rows,other.m_rows); std::swap(m_cols,other.m_cols); }
+    {
+      numext::swap(m_data,other.m_data);
+      numext::swap(m_rows,other.m_rows);
+      numext::swap(m_cols,other.m_cols);
+    }
     EIGEN_DEVICE_FUNC Index rows(void) const {return m_rows;}
     EIGEN_DEVICE_FUNC Index cols(void) const {return m_cols;}
     void conservativeResize(Index size, Index rows, Index cols)
@@ -459,14 +475,16 @@ template<typename T, int _Rows, int _Options> class DenseStorage<T, Dynamic, _Ro
     EIGEN_DEVICE_FUNC
     DenseStorage& operator=(DenseStorage&& other) EIGEN_NOEXCEPT
     {
-      using std::swap;
-      swap(m_data, other.m_data);
-      swap(m_cols, other.m_cols);
+      numext::swap(m_data, other.m_data);
+      numext::swap(m_cols, other.m_cols);
       return *this;
     }
 #endif
     EIGEN_DEVICE_FUNC ~DenseStorage() { internal::conditional_aligned_delete_auto<T,(_Options&DontAlign)==0>(m_data, _Rows*m_cols); }
-    EIGEN_DEVICE_FUNC void swap(DenseStorage& other) { std::swap(m_data,other.m_data); std::swap(m_cols,other.m_cols); }
+    EIGEN_DEVICE_FUNC void swap(DenseStorage& other) {
+      numext::swap(m_data,other.m_data);
+      numext::swap(m_cols,other.m_cols);
+    }
     EIGEN_DEVICE_FUNC static Index rows(void) {return _Rows;}
     EIGEN_DEVICE_FUNC Index cols(void) const {return m_cols;}
     EIGEN_DEVICE_FUNC void conservativeResize(Index size, Index, Index cols)
@@ -533,14 +551,16 @@ template<typename T, int _Cols, int _Options> class DenseStorage<T, Dynamic, Dyn
     EIGEN_DEVICE_FUNC
     DenseStorage& operator=(DenseStorage&& other) EIGEN_NOEXCEPT
     {
-      using std::swap;
-      swap(m_data, other.m_data);
-      swap(m_rows, other.m_rows);
+      numext::swap(m_data, other.m_data);
+      numext::swap(m_rows, other.m_rows);
       return *this;
     }
 #endif
     EIGEN_DEVICE_FUNC ~DenseStorage() { internal::conditional_aligned_delete_auto<T,(_Options&DontAlign)==0>(m_data, _Cols*m_rows); }
-    EIGEN_DEVICE_FUNC void swap(DenseStorage& other) { std::swap(m_data,other.m_data); std::swap(m_rows,other.m_rows); }
+    EIGEN_DEVICE_FUNC void swap(DenseStorage& other) {
+      numext::swap(m_data,other.m_data);
+      numext::swap(m_rows,other.m_rows);
+    }
     EIGEN_DEVICE_FUNC Index rows(void) const {return m_rows;}
     EIGEN_DEVICE_FUNC static Index cols(void) {return _Cols;}
     void conservativeResize(Index size, Index rows, Index)

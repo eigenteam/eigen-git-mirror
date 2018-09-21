@@ -25,7 +25,7 @@
 /// AutoSize does preserve compile-time sizes when possible, i.e., when the sizes of the input are known at compile time \b and
 /// that the other size is passed at compile-time using Eigen::fix<N> as above.
 ///
-/// \sa operator()(placeholders::all), class Reshaped, fix, fix<N>(int)
+/// \sa operator()(all), class Reshaped, fix, fix<N>(int)
 ///
 template<int Order = ColMajor, typename NRowsType, typename NColsType>
 EIGEN_DEVICE_FUNC
@@ -50,7 +50,7 @@ reshaped(NRowsType nRows, NColsType nCols) const;
 /// \sa reshaped()
 EIGEN_DEVICE_FUNC
 inline Reshaped<Derived,SizeAtCompileTime,1>
-operator()(placeholders::all);
+operator()(all);
 
 #else
 

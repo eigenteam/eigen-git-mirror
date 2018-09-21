@@ -39,7 +39,7 @@ public:
   enum {
     DstAlignment = DstEvaluator::Alignment,
     SrcAlignment = SrcEvaluator::Alignment,
-    DstHasDirectAccess = DstFlags & DirectAccessBit,
+    DstHasDirectAccess = (DstFlags & DirectAccessBit) == DirectAccessBit,
     JointAlignment = EIGEN_PLAIN_ENUM_MIN(DstAlignment,SrcAlignment)
   };
 
@@ -83,7 +83,7 @@ private:
                        && int(OuterStride)!=Dynamic && int(OuterStride)%int(InnerPacketSize)==0
                        && (EIGEN_UNALIGNED_VECTORIZE  || int(JointAlignment)>=int(InnerRequiredAlignment)),
     MayLinearize = bool(StorageOrdersAgree) && (int(DstFlags) & int(SrcFlags) & LinearAccessBit),
-    MayLinearVectorize = bool(MightVectorize) && MayLinearize && DstHasDirectAccess
+    MayLinearVectorize = bool(MightVectorize) && bool(MayLinearize) && bool(DstHasDirectAccess)
                        && (EIGEN_UNALIGNED_VECTORIZE || (int(DstAlignment)>=int(LinearRequiredAlignment)) || MaxSizeAtCompileTime == Dynamic),
       /* If the destination isn't aligned, we have to do runtime checks and we don't unroll,
          so it's only good for large enough sizes. */
@@ -97,7 +97,7 @@ private:
 
 public:
   enum {
-    Traversal = int(MayLinearVectorize) && (LinearPacketSize>InnerPacketSize) ? int(LinearVectorizedTraversal)
+    Traversal = (int(MayLinearVectorize) && (LinearPacketSize>InnerPacketSize)) ? int(LinearVectorizedTraversal)
               : int(MayInnerVectorize)   ? int(InnerVectorizedTraversal)
               : int(MayLinearVectorize)  ? int(LinearVectorizedTraversal)
               : int(MaySliceVectorize)   ? int(SliceVectorizedTraversal)
@@ -756,7 +756,7 @@ EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void call_dense_assignment_loop(DstXprType
 // AssignmentKind must define a Kind typedef.
 template<typename DstShape, typename SrcShape> struct AssignmentKind;
 
-// Assignement kind defined in this file:
+// Assignment kind defined in this file:
 struct Dense2Dense {};
 struct EigenBase2EigenBase {};
 
@@ -899,7 +899,7 @@ struct Assignment<DstXprType, SrcXprType, Functor, EigenBase2EigenBase, Weak>
     src.evalTo(dst);
   }
 
-  // NOTE The following two functions are templated to avoid their instanciation if not needed
+  // NOTE The following two functions are templated to avoid their instantiation if not needed
   //      This is needed because some expressions supports evalTo only and/or have 'void' as scalar type.
   template<typename SrcScalarType>
   EIGEN_DEVICE_FUNC

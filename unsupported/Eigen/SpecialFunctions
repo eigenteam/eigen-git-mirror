@@ -29,11 +29,15 @@ namespace Eigen {
   * - erfc
   * - lgamma
   * - igamma
+  * - igamma_der_a
+  * - gamma_sample_der_alpha
   * - igammac
   * - digamma
   * - polygamma
   * - zeta
   * - betainc
+  * - i0e
+  * - i1e
   *
   * \code
   * #include <unsupported/Eigen/SpecialFunctions>
@@ -49,8 +53,8 @@ namespace Eigen {
 #include "src/SpecialFunctions/SpecialFunctionsFunctors.h"
 #include "src/SpecialFunctions/SpecialFunctionsArrayAPI.h"
 
-#if defined EIGEN_VECTORIZE_CUDA
-  #include "src/SpecialFunctions/arch/CUDA/CudaSpecialFunctions.h"
+#if defined EIGEN_VECTORIZE_GPU
+  #include "src/SpecialFunctions/arch/GPU/GpuSpecialFunctions.h"
 #endif
 
 namespace Eigen {

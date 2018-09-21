@@ -13,8 +13,6 @@
 
 template<typename MatrixType> void verifyIsQuasiTriangular(const MatrixType& T)
 {
-  typedef typename MatrixType::Index Index;
-
   const Index size = T.cols();
   typedef typename MatrixType::Scalar Scalar;
 
@@ -100,7 +98,7 @@ template<typename MatrixType> void schur(int size = MatrixType::ColsAtCompileTim
   }
 }
 
-void test_schur_real()
+EIGEN_DECLARE_TEST(schur_real)
 {
   CALL_SUBTEST_1(( schur<Matrix4f>() ));
   CALL_SUBTEST_2(( schur<MatrixXd>(internal::random<int>(1,EIGEN_TEST_MAX_SIZE/4)) ));

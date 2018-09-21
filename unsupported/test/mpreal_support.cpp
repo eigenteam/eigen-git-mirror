@@ -7,7 +7,7 @@
 using namespace mpfr;
 using namespace Eigen;
 
-void test_mpreal_support()
+EIGEN_DECLARE_TEST(mpreal_support)
 {
   // set precision to 256 bits (double has only 53 bits)
   mpreal::set_default_prec(256);

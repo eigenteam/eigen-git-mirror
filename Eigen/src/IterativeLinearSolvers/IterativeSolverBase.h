@@ -275,7 +275,7 @@ public:
   const Preconditioner& preconditioner() const { return m_preconditioner; }
 
   /** \returns the max number of iterations.
-    * It is either the value setted by setMaxIterations or, by default,
+    * It is either the value set by setMaxIterations or, by default,
     * twice the number of columns of the matrix.
     */
   Index maxIterations() const

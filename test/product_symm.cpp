@@ -16,7 +16,6 @@ template<typename Scalar, int Size, int OtherSize> void symm(int size = Size, in
   typedef Matrix<Scalar, OtherSize, Size> Rhs2;
   enum { order = OtherSize==1 ? 0 : RowMajor };
   typedef Matrix<Scalar, Size, OtherSize,order> Rhs3;
-  typedef typename MatrixType::Index Index;
 
   Index rows = size;
   Index cols = size;
@@ -95,7 +94,7 @@ template<typename Scalar, int Size, int OtherSize> void symm(int size = Size, in
 
 }
 
-void test_product_symm()
+EIGEN_DECLARE_TEST(product_symm)
 {
   for(int i = 0; i < g_repeat ; i++)
   {

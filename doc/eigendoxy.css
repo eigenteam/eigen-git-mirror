@@ -93,7 +93,7 @@ table th.inter {
 	border-color: #cccccc;
 }
 
-/** class for exemple / output tables **/
+/** class for example / output tables **/
 
 table.example {
 }
@@ -218,4 +218,9 @@ h3.version {
 
 td.width20em p.endtd {
   width:  20em;
+}
+
+/* needed for huge screens */
+.ui-resizable-e {
+  background-repeat: repeat-y;
 }

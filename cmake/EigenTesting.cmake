@@ -19,19 +19,28 @@ macro(ei_add_test_internal testname testname_with_suffix)
   endif()
 
   if(EIGEN_ADD_TEST_FILENAME_EXTENSION STREQUAL cu)
-    if(EIGEN_TEST_CUDA_CLANG)
+    if(EIGEN_TEST_HIP)
+      hip_reset_flags()
+      hip_add_executable(${targetname} ${filename} HIPCC_OPTIONS "-DEIGEN_USE_HIP ${ARGV2}")
+    elseif(EIGEN_TEST_CUDA_CLANG)
       set_source_files_properties(${filename} PROPERTIES LANGUAGE CXX)
-      if(CUDA_64_BIT_DEVICE_CODE)
+      
+      if(CUDA_64_BIT_DEVICE_CODE AND (EXISTS "${CUDA_TOOLKIT_ROOT_DIR}/lib64"))
         link_directories("${CUDA_TOOLKIT_ROOT_DIR}/lib64")
       else()
         link_directories("${CUDA_TOOLKIT_ROOT_DIR}/lib")
       endif()
+
       if (${ARGC} GREATER 2)
         add_executable(${targetname} ${filename})
       else()
         add_executable(${targetname} ${filename} OPTIONS ${ARGV2})
       endif()
-      target_link_libraries(${targetname} "cudart_static" "cuda" "dl" "rt" "pthread")
+      set(CUDA_CLANG_LINK_LIBRARIES "cudart_static" "cuda" "dl" "pthread")
+      if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+      set(CUDA_CLANG_LINK_LIBRARIES ${CUDA_CLANG_LINK_LIBRARIES} "rt")
+      endif()
+      target_link_libraries(${targetname} ${CUDA_CLANG_LINK_LIBRARIES})
     else()
       if (${ARGC} GREATER 2)
         cuda_add_executable(${targetname} ${filename} OPTIONS ${ARGV2})
@@ -58,8 +67,6 @@ macro(ei_add_test_internal testname testname_with_suffix)
   endif(EIGEN_NO_ASSERTION_CHECKING)
 
   ei_add_target_property(${targetname} COMPILE_FLAGS "-DEIGEN_TEST_MAX_SIZE=${EIGEN_TEST_MAX_SIZE}")
-
-  ei_add_target_property(${targetname} COMPILE_FLAGS "-DEIGEN_TEST_FUNC=${testname}")
 
   if(MSVC)
     ei_add_target_property(${targetname} COMPILE_FLAGS "/bigobj")
@@ -99,7 +106,7 @@ macro(ei_add_test_internal testname testname_with_suffix)
 
   add_test(${testname_with_suffix} "${targetname}")
 
-  # Specify target and test labels accoirding to EIGEN_CURRENT_SUBPROJECT
+  # Specify target and test labels according to EIGEN_CURRENT_SUBPROJECT
   get_property(current_subproject GLOBAL PROPERTY EIGEN_CURRENT_SUBPROJECT)
   if ((current_subproject) AND (NOT (current_subproject STREQUAL "")))
     set_property(TARGET ${targetname} PROPERTY LABELS "Build${current_subproject}")
@@ -111,7 +118,6 @@ endmacro(ei_add_test_internal)
 
 # SYCL
 macro(ei_add_test_internal_sycl testname testname_with_suffix)
-  include_directories( SYSTEM ${COMPUTECPP_PACKAGE_ROOT_DIR}/include)
   set(targetname ${testname_with_suffix})
 
   if(EIGEN_ADD_TEST_FILENAME_EXTENSION)
@@ -120,23 +126,31 @@ macro(ei_add_test_internal_sycl testname testname_with_suffix)
     set(filename ${testname}.cpp)
   endif()
 
-  set( include_file ${CMAKE_CURRENT_BINARY_DIR}/inc_${filename})
-  set( bc_file ${CMAKE_CURRENT_BINARY_DIR}/${filename})
-  set( host_file ${CMAKE_CURRENT_SOURCE_DIR}/${filename})
+  set( include_file "${CMAKE_CURRENT_BINARY_DIR}/inc_${filename}")
+  set( bc_file "${CMAKE_CURRENT_BINARY_DIR}/${filename}.sycl")
+  set( host_file "${CMAKE_CURRENT_SOURCE_DIR}/${filename}")
 
-  ADD_CUSTOM_COMMAND(
-    OUTPUT ${include_file}
-    COMMAND ${CMAKE_COMMAND} -E echo "\\#include \\\"${host_file}\\\"" > ${include_file}
-    COMMAND ${CMAKE_COMMAND} -E echo "\\#include \\\"${bc_file}.sycl\\\"" >> ${include_file}
-    DEPENDS ${filename} ${bc_file}.sycl
-    COMMENT "Building ComputeCpp integration header file ${include_file}"
-  )
-  # Add a custom target for the generated integration header
-  add_custom_target(${testname}_integration_header_sycl DEPENDS ${include_file})
+  if(NOT EIGEN_SYCL_TRISYCL)
+    include_directories( SYSTEM ${COMPUTECPP_PACKAGE_ROOT_DIR}/include)
 
-  add_executable(${targetname} ${include_file})
-  add_dependencies(${targetname} ${testname}_integration_header_sycl)
-  add_sycl_to_target(${targetname} ${filename} ${CMAKE_CURRENT_BINARY_DIR})
+    ADD_CUSTOM_COMMAND(
+      OUTPUT ${include_file}
+      COMMAND ${CMAKE_COMMAND} -E echo "\\#include \\\"${host_file}\\\"" > ${include_file}
+      COMMAND ${CMAKE_COMMAND} -E echo "\\#include \\\"${bc_file}\\\"" >> ${include_file}
+      DEPENDS ${filename} ${bc_file}
+      COMMENT "Building ComputeCpp integration header file ${include_file}"
+      )
+
+    # Add a custom target for the generated integration header
+    add_custom_target("${testname}_integration_header_sycl" DEPENDS ${include_file})
+
+    add_executable(${targetname} ${include_file})
+    add_dependencies(${targetname} "${testname}_integration_header_sycl")
+  else()
+    add_executable(${targetname} ${host_file})
+  endif()
+
+  add_sycl_to_target(${targetname} ${CMAKE_CURRENT_BINARY_DIR} ${filename})
 
   if (targetname MATCHES "^eigen2_")
     add_dependencies(eigen2_buildtests ${targetname})
@@ -153,8 +167,6 @@ macro(ei_add_test_internal_sycl testname testname_with_suffix)
   endif(EIGEN_NO_ASSERTION_CHECKING)
 
   ei_add_target_property(${targetname} COMPILE_FLAGS "-DEIGEN_TEST_MAX_SIZE=${EIGEN_TEST_MAX_SIZE}")
-
-  ei_add_target_property(${targetname} COMPILE_FLAGS "-DEIGEN_TEST_FUNC=${testname}")
 
   if(MSVC AND NOT EIGEN_SPLIT_LARGE_TESTS)
     ei_add_target_property(${targetname} COMPILE_FLAGS "/bigobj")
@@ -240,7 +252,7 @@ endmacro(ei_add_test_internal_sycl)
 #
 # If EIGEN_SPLIT_LARGE_TESTS is ON, the test is split into multiple executables
 #   test_<testname>_<N>
-# where N runs from 1 to the greatest occurence found in the source file. Each of these
+# where N runs from 1 to the greatest occurrence found in the source file. Each of these
 # executables is built passing -DEIGEN_TEST_PART_N. This allows to split large tests
 # into smaller executables.
 #
@@ -260,26 +272,28 @@ macro(ei_add_test testname)
   endif()
 
   file(READ "${filename}" test_source)
-  set(parts 0)
   string(REGEX MATCHALL "CALL_SUBTEST_[0-9]+|EIGEN_TEST_PART_[0-9]+|EIGEN_SUFFIXES(;[0-9]+)+"
-         occurences "${test_source}")
-  string(REGEX REPLACE "CALL_SUBTEST_|EIGEN_TEST_PART_|EIGEN_SUFFIXES" "" suffixes "${occurences}")
+         occurrences "${test_source}")
+  string(REGEX REPLACE "CALL_SUBTEST_|EIGEN_TEST_PART_|EIGEN_SUFFIXES" "" suffixes "${occurrences}")
   list(REMOVE_DUPLICATES suffixes)
-  if(EIGEN_SPLIT_LARGE_TESTS AND suffixes)
+  set(explicit_suffixes "")
+  if( (NOT EIGEN_SPLIT_LARGE_TESTS) AND suffixes)
+    # Check whether we have EIGEN_TEST_PART_* statements, in which case we likely must enforce splitting.
+    # For instance, indexed_view activate a different c++ version for each part.
+    string(REGEX MATCHALL "EIGEN_TEST_PART_[0-9]+" occurrences "${test_source}")
+    string(REGEX REPLACE "EIGEN_TEST_PART_" "" explicit_suffixes "${occurrences}")
+    list(REMOVE_DUPLICATES explicit_suffixes)
+  endif()
+  if( (EIGEN_SPLIT_LARGE_TESTS AND suffixes) OR explicit_suffixes)
     add_custom_target(${testname})
     foreach(suffix ${suffixes})
       ei_add_test_internal(${testname} ${testname}_${suffix}
         "${ARGV1} -DEIGEN_TEST_PART_${suffix}=1" "${ARGV2}")
       add_dependencies(${testname} ${testname}_${suffix})
     endforeach(suffix)
-  else(EIGEN_SPLIT_LARGE_TESTS AND suffixes)
-    set(symbols_to_enable_all_parts "")
-    foreach(suffix ${suffixes})
-      set(symbols_to_enable_all_parts
-        "${symbols_to_enable_all_parts} -DEIGEN_TEST_PART_${suffix}=1")
-    endforeach(suffix)
-    ei_add_test_internal(${testname} ${testname} "${ARGV1} ${symbols_to_enable_all_parts}" "${ARGV2}")
-  endif(EIGEN_SPLIT_LARGE_TESTS AND suffixes)
+  else()
+    ei_add_test_internal(${testname} ${testname} "${ARGV1} -DEIGEN_TEST_PART_ALL=1" "${ARGV2}")
+  endif()
 endmacro(ei_add_test)
 
 macro(ei_add_test_sycl testname)
@@ -296,8 +310,8 @@ macro(ei_add_test_sycl testname)
   file(READ "${filename}" test_source)
   set(parts 0)
   string(REGEX MATCHALL "CALL_SUBTEST_[0-9]+|EIGEN_TEST_PART_[0-9]+|EIGEN_SUFFIXES(;[0-9]+)+"
-         occurences "${test_source}")
-  string(REGEX REPLACE "CALL_SUBTEST_|EIGEN_TEST_PART_|EIGEN_SUFFIXES" "" suffixes "${occurences}")
+         occurrences "${test_source}")
+  string(REGEX REPLACE "CALL_SUBTEST_|EIGEN_TEST_PART_|EIGEN_SUFFIXES" "" suffixes "${occurrences}")
   list(REMOVE_DUPLICATES suffixes)
   if(EIGEN_SPLIT_LARGE_TESTS AND suffixes)
     add_custom_target(${testname})
@@ -442,6 +456,12 @@ macro(ei_testing_print_summary)
       message(STATUS "VSX:               Using architecture defaults")
     endif()
 
+    if(EIGEN_TEST_MSA)
+      message(STATUS "MIPS MSA:          ON")
+    else()
+      message(STATUS "MIPS MSA:          Using architecture defaults")
+    endif()
+
     if(EIGEN_TEST_NEON)
       message(STATUS "ARM NEON:          ON")
     else()
@@ -467,7 +487,11 @@ macro(ei_testing_print_summary)
     endif()
 
     if(EIGEN_TEST_SYCL)
-      message(STATUS "SYCL:              ON")
+      if(EIGEN_SYCL_TRISYCL)
+        message(STATUS "SYCL:              ON (using triSYCL)")
+      else()
+        message(STATUS "SYCL:              ON (using computeCPP)")
+      endif()
     else()
       message(STATUS "SYCL:              OFF")
     endif()
@@ -479,6 +503,11 @@ macro(ei_testing_print_summary)
       endif()
     else()
       message(STATUS "CUDA:              OFF")
+    endif()
+    if(EIGEN_TEST_HIP)
+      message(STATUS "HIP:               ON (using hipcc)")
+    else()
+      message(STATUS "HIP:               OFF")
     endif()
 
   endif() # vectorization / alignment options
@@ -538,6 +567,8 @@ macro(ei_get_compilerver VAR)
       else()
         set(${VAR} "na")
       endif()
+    elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "PGI")
+      set(${VAR} "${CMAKE_CXX_COMPILER_ID}-${CMAKE_CXX_COMPILER_VERSION}")
     else()
     # on all other system we rely on ${CMAKE_CXX_COMPILER}
     # supporting a "--version" or "/version" flag
@@ -634,6 +665,8 @@ macro(ei_get_cxxflags VAR)
     set(${VAR} SSE3)
   elseif(EIGEN_TEST_SSE2 OR IS_64BIT_ENV)
     set(${VAR} SSE2)
+  elseif(EIGEN_TEST_MSA)
+    set(${VAR} MSA)
   endif()
 
   if(EIGEN_TEST_OPENMP)
@@ -664,6 +697,10 @@ macro(ei_set_build_string)
 
   if (NOT ${LOCAL_COMPILER_FLAGS} STREQUAL  "")
     set(TMP_BUILD_STRING ${TMP_BUILD_STRING}-${LOCAL_COMPILER_FLAGS})
+  endif()
+
+  if(EIGEN_TEST_EXTERNAL_BLAS)
+    set(TMP_BUILD_STRING ${TMP_BUILD_STRING}-external_blas)
   endif()
 
   ei_is_64bit_env(IS_64BIT_ENV)

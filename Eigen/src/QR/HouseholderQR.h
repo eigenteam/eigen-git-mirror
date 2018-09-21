@@ -204,28 +204,27 @@ template<typename _MatrixType> class HouseholderQR
 
     inline Index rows() const { return m_qr.rows(); }
     inline Index cols() const { return m_qr.cols(); }
-    
+
     /** \returns a const reference to the vector of Householder coefficients used to represent the factor \c Q.
       * 
       * For advanced uses only.
       */
     const HCoeffsType& hCoeffs() const { return m_hCoeffs; }
-    
+
     #ifndef EIGEN_PARSED_BY_DOXYGEN
     template<typename RhsType, typename DstType>
-    EIGEN_DEVICE_FUNC
     void _solve_impl(const RhsType &rhs, DstType &dst) const;
     #endif
 
   protected:
-    
+
     static void check_template_parameters()
     {
       EIGEN_STATIC_ASSERT_NON_INTEGER(Scalar);
     }
 
     void computeInPlace();
-    
+
     MatrixType m_qr;
     HCoeffsType m_hCoeffs;
     RowVectorType m_temp;
@@ -292,7 +291,7 @@ template<typename MatrixQR, typename HCoeffs,
   bool InnerStrideIsOne = (MatrixQR::InnerStrideAtCompileTime == 1 && HCoeffs::InnerStrideAtCompileTime == 1)>
 struct householder_qr_inplace_blocked
 {
-  // This is specialized for MKL-supported Scalar types in HouseholderQR_MKL.h
+  // This is specialized for LAPACK-supported Scalar types in HouseholderQR_LAPACKE.h
   static void run(MatrixQR& mat, HCoeffs& hCoeffs, Index maxBlockSize=32,
       typename MatrixQR::Scalar* tempData = 0)
   {
@@ -354,11 +353,7 @@ void HouseholderQR<_MatrixType>::_solve_impl(const RhsType &rhs, DstType &dst) c
 
   typename RhsType::PlainObject c(rhs);
 
-  // Note that the matrix Q = H_0^* H_1^*... so its inverse is Q^* = (H_0 H_1 ...)^T
-  c.applyOnTheLeft(householderSequence(
-    m_qr.leftCols(rank),
-    m_hCoeffs.head(rank)).transpose()
-  );
+  c.applyOnTheLeft(householderQ().setLength(rank).adjoint() );
 
   m_qr.topLeftCorner(rank, rank)
       .template triangularView<Upper>()

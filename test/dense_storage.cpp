@@ -52,7 +52,7 @@ void dense_storage_assignment()
     VERIFY_IS_EQUAL(raw_reference[i], raw_copied_reference[i]);
 }
 
-void test_dense_storage()
+EIGEN_DECLARE_TEST(dense_storage)
 {
   dense_storage_copy<int,Dynamic,Dynamic>();  
   dense_storage_copy<int,Dynamic,3>();

@@ -48,7 +48,7 @@ namespace Eigen {
   *
   * <dl>
   * <dt><b>Relation to other parts of Eigen:</b></dt>
-  * <dd>The midterm developement goal for this class is to have a similar hierarchy as Eigen uses for matrices, so that
+  * <dd>The midterm development goal for this class is to have a similar hierarchy as Eigen uses for matrices, so that
   * taking blocks or using tensors in expressions is easily possible, including an interface with the vector/matrix code
   * by providing .asMatrix() and .asVector() (or similar) methods for rank 2 and 1 tensors. However, currently, the %Tensor
   * class does not provide any of these features and is only available as a stand-alone class that just allows for
@@ -112,7 +112,7 @@ class Tensor : public TensorBase<Tensor<Scalar_, NumIndices_, Options_, IndexTyp
 
 #if EIGEN_HAS_VARIADIC_TEMPLATES
     template<typename... IndexTypes>
-    EIGEN_DEVICE_FUNC inline const Scalar& coeff(Index firstIndex, Index secondIndex, IndexTypes... otherIndices) const
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar& coeff(Index firstIndex, Index secondIndex, IndexTypes... otherIndices) const
     {
       // The number of indices used to access a tensor coefficient must be equal to the rank of the tensor.
       EIGEN_STATIC_ASSERT(sizeof...(otherIndices) + 2 == NumIndices, YOU_MADE_A_PROGRAMMING_MISTAKE)
@@ -398,6 +398,21 @@ class Tensor : public TensorBase<Tensor<Scalar_, NumIndices_, Options_, IndexTyp
       internal::TensorExecutor<const Assign, DefaultDevice>::run(assign, DefaultDevice());
     }
 
+    #if EIGEN_HAS_RVALUE_REFERENCES
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE Tensor(Self&& other)
+      : Tensor()
+    {
+      m_storage.swap(other.m_storage);
+    }
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE Tensor& operator=(Self&& other)
+    {
+      m_storage.swap(other.m_storage);
+      return *this;
+    }
+    #endif
+
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE Tensor& operator=(const Tensor& other)
     {
@@ -461,6 +476,18 @@ class Tensor : public TensorBase<Tensor<Scalar_, NumIndices_, Options_, IndexTyp
       EIGEN_STATIC_ASSERT(NumIndices == 0, YOU_MADE_A_PROGRAMMING_MISTAKE);
       // Nothing to do: rank 0 tensors have fixed size
     }
+
+#ifdef EIGEN_HAS_INDEX_LIST
+    template <typename FirstType, typename... OtherTypes>
+    EIGEN_DEVICE_FUNC
+    void resize(const Eigen::IndexList<FirstType, OtherTypes...>& dimensions) {
+      array<Index, NumIndices> dims;
+      for (int i = 0; i < NumIndices; ++i) {
+        dims[i] = static_cast<Index>(dimensions[i]);
+      }
+      resize(dims);
+    }
+#endif
 
     /** Custom Dimension */
 #ifdef EIGEN_HAS_SFINAE

@@ -81,12 +81,12 @@ static void test_expr_shuffling()
   Tensor<float, 4, DataLayout> expected;
   expected = tensor.shuffle(shuffles);
 
-  Tensor<float, 4, DataLayout> result(5,7,3,2);
+  Tensor<float, 4, DataLayout> result(5, 7, 3, 2);
 
-  array<int, 4> src_slice_dim{{2,3,1,7}};
-  array<int, 4> src_slice_start{{0,0,0,0}};
-  array<int, 4> dst_slice_dim{{1,7,3,2}};
-  array<int, 4> dst_slice_start{{0,0,0,0}};
+  array<ptrdiff_t, 4> src_slice_dim{{2, 3, 1, 7}};
+  array<ptrdiff_t, 4> src_slice_start{{0, 0, 0, 0}};
+  array<ptrdiff_t, 4> dst_slice_dim{{1, 7, 3, 2}};
+  array<ptrdiff_t, 4> dst_slice_start{{0, 0, 0, 0}};
 
   for (int i = 0; i < 5; ++i) {
     result.slice(dst_slice_start, dst_slice_dim) =
@@ -215,7 +215,7 @@ static void test_shuffle_unshuffle()
 }
 
 
-void test_cxx11_tensor_shuffling()
+EIGEN_DECLARE_TEST(cxx11_tensor_shuffling)
 {
   CALL_SUBTEST(test_simple_shuffling<ColMajor>());
   CALL_SUBTEST(test_simple_shuffling<RowMajor>());

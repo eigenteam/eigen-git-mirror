@@ -318,9 +318,9 @@ template<> EIGEN_STRONG_INLINE void pstore1<Packet8i>(int* to, const int& a)
 }
 
 #ifndef EIGEN_VECTORIZE_AVX512
-template<> EIGEN_STRONG_INLINE void prefetch<float>(const float*   addr) { _mm_prefetch((const char*)(addr), _MM_HINT_T0); }
-template<> EIGEN_STRONG_INLINE void prefetch<double>(const double* addr) { _mm_prefetch((const char*)(addr), _MM_HINT_T0); }
-template<> EIGEN_STRONG_INLINE void prefetch<int>(const int*       addr) { _mm_prefetch((const char*)(addr), _MM_HINT_T0); }
+template<> EIGEN_STRONG_INLINE void prefetch<float>(const float*   addr) { _mm_prefetch((SsePrefetchPtrType)(addr), _MM_HINT_T0); }
+template<> EIGEN_STRONG_INLINE void prefetch<double>(const double* addr) { _mm_prefetch((SsePrefetchPtrType)(addr), _MM_HINT_T0); }
+template<> EIGEN_STRONG_INLINE void prefetch<int>(const int*       addr) { _mm_prefetch((SsePrefetchPtrType)(addr), _MM_HINT_T0); }
 #endif
 
 template<> EIGEN_STRONG_INLINE float  pfirst<Packet8f>(const Packet8f& a) {
@@ -343,9 +343,12 @@ template<> EIGEN_STRONG_INLINE Packet4d preverse(const Packet4d& a)
 {
    __m256d tmp = _mm256_shuffle_pd(a,a,5);
   return _mm256_permute2f128_pd(tmp, tmp, 1);
-
+  #if 0
+  // This version is unlikely to be faster as _mm256_shuffle_ps and _mm256_permute_pd
+  // exhibit the same latency/throughput, but it is here for future reference/benchmarking...
   __m256d swap_halves = _mm256_permute2f128_pd(a,a,1);
     return _mm256_permute_pd(swap_halves,5);
+  #endif
 }
 
 // pabs should be ok
@@ -412,7 +415,7 @@ template<> EIGEN_STRONG_INLINE double predux<Packet4d>(const Packet4d& a)
   return predux(Packet2d(_mm_add_pd(_mm256_castpd256_pd128(a),_mm256_extractf128_pd(a,1))));
 }
 
-template<> EIGEN_STRONG_INLINE Packet4f predux_downto4<Packet8f>(const Packet8f& a)
+template<> EIGEN_STRONG_INLINE Packet4f predux_half_dowto4<Packet8f>(const Packet8f& a)
 {
   return _mm_add_ps(_mm256_castps256_ps128(a),_mm256_extractf128_ps(a,1));
 }

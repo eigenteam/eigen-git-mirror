@@ -82,7 +82,11 @@ struct default_packet_traits
     HasPolygamma = 0,
     HasErf = 0,
     HasErfc = 0,
+    HasI0e = 0,
+    HasI1e = 0,
     HasIGamma = 0,
+    HasIGammaDerA = 0,
+    HasGammaSampleDerAlpha = 0,
     HasIGammac = 0,
     HasBetaInc = 0,
 
@@ -231,7 +235,7 @@ pload1(const typename unpacket_traits<Packet>::type  *a) { return pset1<Packet>(
   * duplicated to form: {from[0],from[0],from[1],from[1],from[2],from[2],from[3],from[3]}
   * Currently, this function is only used for scalar * complex products.
   */
-template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
+template<typename Packet> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Packet
 ploaddup(const typename unpacket_traits<Packet>::type* from) { return *from; }
 
 /** \internal \returns a packet with elements of \a *from quadrupled.
@@ -279,7 +283,7 @@ inline void pbroadcast2(const typename unpacket_traits<Packet>::type *a,
 }
 
 /** \internal \brief Returns a packet with coefficients (a,a+1,...,a+packet_size-1). */
-template<typename Packet> inline Packet
+template<typename Packet> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Packet
 plset(const typename unpacket_traits<Packet>::type& a) { return a; }
 
 /** \internal copy the packet \a from to \a *to, \a to must be 16 bytes aligned */
@@ -299,7 +303,9 @@ template<typename Scalar, typename Packet> EIGEN_DEVICE_FUNC inline void pstoreu
 /** \internal tries to do cache prefetching of \a addr */
 template<typename Scalar> EIGEN_DEVICE_FUNC inline void prefetch(const Scalar* addr)
 {
-#ifdef __CUDA_ARCH__
+#if defined(EIGEN_HIP_DEVICE_COMPILE)
+  // do nothing
+#elif defined(EIGEN_CUDA_ARCH)
 #if defined(__LP64__)
   // 64-bit pointer operand constraint for inlined asm
   asm(" prefetch.L1 [ %1 ];" : "=l"(addr) : "l"(addr));
@@ -324,13 +330,13 @@ preduxp(const Packet* vecs) { return vecs[0]; }
 template<typename Packet> EIGEN_DEVICE_FUNC inline typename unpacket_traits<Packet>::type predux(const Packet& a)
 { return a; }
 
-/** \internal \returns the sum of the elements of \a a by block of 4 elements.
+/** \internal \returns the sum of the elements of upper and lower half of \a a if \a a is larger than 4.
   * For a packet {a0, a1, a2, a3, a4, a5, a6, a7}, it returns a half packet {a0+a4, a1+a5, a2+a6, a3+a7}
   * For packet-size smaller or equal to 4, this boils down to a noop.
   */
 template<typename Packet> EIGEN_DEVICE_FUNC inline
 typename conditional<(unpacket_traits<Packet>::size%8)==0,typename unpacket_traits<Packet>::half,Packet>::type
-predux_downto4(const Packet& a)
+predux_half_dowto4(const Packet& a)
 { return a; }
 
 /** \internal \returns the product of the elements of \a a*/
@@ -487,7 +493,7 @@ EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE void pstoret(Scalar* to, const Packet& fro
   * by the current computation.
   */
 template<typename Packet, int LoadMode>
-inline Packet ploadt_ro(const typename unpacket_traits<Packet>::type* from)
+EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE Packet ploadt_ro(const typename unpacket_traits<Packet>::type* from)
 {
   return ploadt<Packet, LoadMode>(from);
 }
@@ -526,7 +532,7 @@ inline void palign(PacketType& first, const PacketType& second)
 ***************************************************************************/
 
 // Eigen+CUDA does not support complexes.
-#ifndef __CUDACC__
+#if !defined(EIGEN_GPUCC)
 
 template<> inline std::complex<float> pmul(const std::complex<float>& a, const std::complex<float>& b)
 { return std::complex<float>(real(a)*real(b) - imag(a)*imag(b), imag(a)*real(b) + real(a)*imag(b)); }

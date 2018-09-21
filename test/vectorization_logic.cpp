@@ -22,6 +22,14 @@
 #include "main.h"
 #include <typeinfo>
 
+// Disable "ignoring attributes on template argument"
+// for packet_traits<Packet*>
+// => The only workaround would be to wrap _m128 and the likes
+//    within wrappers.
+#if EIGEN_GNUC_AT_LEAST(6,0)
+    #pragma GCC diagnostic ignored "-Wignored-attributes"
+#endif
+
 using internal::demangle_flags;
 using internal::demangle_traversal;
 using internal::demangle_unrolling;
@@ -207,6 +215,12 @@ struct vectorization_logic
     VERIFY(test_redux(Vector1(),
       LinearVectorizedTraversal,CompleteUnrolling));
 
+    VERIFY(test_redux(Vector1().array()*Vector1().array(),
+      LinearVectorizedTraversal,CompleteUnrolling));
+
+    VERIFY(test_redux((Vector1().array()*Vector1().array()).col(0),
+      LinearVectorizedTraversal,CompleteUnrolling));
+
     VERIFY(test_redux(Matrix<Scalar,PacketSize,3>(),
       LinearVectorizedTraversal,CompleteUnrolling));
 
@@ -380,7 +394,7 @@ template<typename Scalar> struct vectorization_logic_half<Scalar,false>
   static void run() {}
 };
 
-void test_vectorization_logic()
+EIGEN_DECLARE_TEST(vectorization_logic)
 {
 
 #ifdef EIGEN_VECTORIZE

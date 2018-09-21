@@ -15,6 +15,7 @@ namespace Eigen {
 namespace internal {
 
 template<typename Derived>
+EIGEN_DEVICE_FUNC
 inline const typename Derived::Scalar bruteforce_det3_helper
 (const MatrixBase<Derived>& matrix, int a, int b, int c)
 {
@@ -23,6 +24,7 @@ inline const typename Derived::Scalar bruteforce_det3_helper
 }
 
 template<typename Derived>
+EIGEN_DEVICE_FUNC
 const typename Derived::Scalar bruteforce_det4_helper
 (const MatrixBase<Derived>& matrix, int j, int k, int m, int n)
 {
@@ -44,7 +46,8 @@ template<typename Derived,
 
 template<typename Derived> struct determinant_impl<Derived, 1>
 {
-  static inline typename traits<Derived>::Scalar run(const Derived& m)
+  static inline EIGEN_DEVICE_FUNC
+  typename traits<Derived>::Scalar run(const Derived& m)
   {
     return m.coeff(0,0);
   }
@@ -52,7 +55,8 @@ template<typename Derived> struct determinant_impl<Derived, 1>
 
 template<typename Derived> struct determinant_impl<Derived, 2>
 {
-  static inline typename traits<Derived>::Scalar run(const Derived& m)
+  static inline EIGEN_DEVICE_FUNC
+  typename traits<Derived>::Scalar run(const Derived& m)
   {
     return m.coeff(0,0) * m.coeff(1,1) - m.coeff(1,0) * m.coeff(0,1);
   }
@@ -60,7 +64,8 @@ template<typename Derived> struct determinant_impl<Derived, 2>
 
 template<typename Derived> struct determinant_impl<Derived, 3>
 {
-  static inline typename traits<Derived>::Scalar run(const Derived& m)
+  static inline EIGEN_DEVICE_FUNC
+  typename traits<Derived>::Scalar run(const Derived& m)
   {
     return bruteforce_det3_helper(m,0,1,2)
           - bruteforce_det3_helper(m,1,0,2)
@@ -70,7 +75,8 @@ template<typename Derived> struct determinant_impl<Derived, 3>
 
 template<typename Derived> struct determinant_impl<Derived, 4>
 {
-  static typename traits<Derived>::Scalar run(const Derived& m)
+  static EIGEN_DEVICE_FUNC
+  typename traits<Derived>::Scalar run(const Derived& m)
   {
     // trick by Martin Costabel to compute 4x4 det with only 30 muls
     return bruteforce_det4_helper(m,0,1,2,3)
@@ -89,6 +95,7 @@ template<typename Derived> struct determinant_impl<Derived, 4>
   * \returns the determinant of this matrix
   */
 template<typename Derived>
+EIGEN_DEVICE_FUNC
 inline typename internal::traits<Derived>::Scalar MatrixBase<Derived>::determinant() const
 {
   eigen_assert(rows() == cols());

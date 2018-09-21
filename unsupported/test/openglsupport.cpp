@@ -106,7 +106,7 @@ GLint createShader(const char* vtx, const char* frg)
   return prg_id;
 }
 
-void test_openglsupport()
+EIGEN_DECLARE_TEST(openglsupport)
 {
   int argc = 0;
   glutInit(&argc, 0);
@@ -317,10 +317,6 @@ void test_openglsupport()
         "void main(void) { data = vec4(v2d[0]+v3d[0]+v4d[0]); }\n";
         
       GLint prg_id = createShader(vtx,frg);
-      
-      typedef Vector2d Vector2d;
-      typedef Vector3d Vector3d;
-      typedef Vector4d Vector4d;
       
       VERIFY_UNIFORM(dv,v2d, Vector2d);
       VERIFY_UNIFORM(dv,v3d, Vector3d);

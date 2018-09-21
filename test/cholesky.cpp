@@ -57,7 +57,6 @@ template<typename MatrixType,template <typename,int> class CholType> void test_c
 
 template<typename MatrixType> void cholesky(const MatrixType& m)
 {
-  typedef typename MatrixType::Index Index;
   /* this test covers the following files:
      LLT.h LDLT.h
   */
@@ -289,8 +288,6 @@ template<typename MatrixType> void cholesky_cplx(const MatrixType& m)
 
   // test mixing real/scalar types
 
-  typedef typename MatrixType::Index Index;
-
   Index rows = m.rows();
   Index cols = m.cols();
 
@@ -373,6 +370,7 @@ template<typename MatrixType> void cholesky_definiteness(const MatrixType& m)
     VERIFY(ldlt.info()==Success);
     VERIFY(!ldlt.isNegative());
     VERIFY(!ldlt.isPositive());
+    VERIFY_IS_APPROX(mat,ldlt.reconstructedMatrix());
   }
   {
     mat << 1, 2, 2, 1;
@@ -380,6 +378,7 @@ template<typename MatrixType> void cholesky_definiteness(const MatrixType& m)
     VERIFY(ldlt.info()==Success);
     VERIFY(!ldlt.isNegative());
     VERIFY(!ldlt.isPositive());
+    VERIFY_IS_APPROX(mat,ldlt.reconstructedMatrix());
   }
   {
     mat << 0, 0, 0, 0;
@@ -387,6 +386,7 @@ template<typename MatrixType> void cholesky_definiteness(const MatrixType& m)
     VERIFY(ldlt.info()==Success);
     VERIFY(ldlt.isNegative());
     VERIFY(ldlt.isPositive());
+    VERIFY_IS_APPROX(mat,ldlt.reconstructedMatrix());
   }
   {
     mat << 0, 0, 0, 1;
@@ -394,6 +394,7 @@ template<typename MatrixType> void cholesky_definiteness(const MatrixType& m)
     VERIFY(ldlt.info()==Success);
     VERIFY(!ldlt.isNegative());
     VERIFY(ldlt.isPositive());
+    VERIFY_IS_APPROX(mat,ldlt.reconstructedMatrix());
   }
   {
     mat << -1, 0, 0, 0;
@@ -401,6 +402,7 @@ template<typename MatrixType> void cholesky_definiteness(const MatrixType& m)
     VERIFY(ldlt.info()==Success);
     VERIFY(ldlt.isNegative());
     VERIFY(!ldlt.isPositive());
+    VERIFY_IS_APPROX(mat,ldlt.reconstructedMatrix());
   }
 }
 
@@ -452,6 +454,18 @@ void cholesky_faillure_cases()
     VERIFY(ldlt.info()==NumericalIssue);
     VERIFY_IS_NOT_APPROX(mat,ldlt.reconstructedMatrix());
   }
+
+  // bug 1479
+  {
+    mat.resize(4,4);
+    mat <<  1, 2, 0, 1,
+            2, 4, 0, 2,
+            0, 0, 0, 1,
+            1, 2, 1, 1;
+    ldlt.compute(mat);
+    VERIFY(ldlt.info()==NumericalIssue);
+    VERIFY_IS_NOT_APPROX(mat,ldlt.reconstructedMatrix());
+  }
 }
 
 template<typename MatrixType> void cholesky_verify_assert()
@@ -474,7 +488,7 @@ template<typename MatrixType> void cholesky_verify_assert()
   VERIFY_RAISES_ASSERT(ldlt.solveInPlace(&tmp))
 }
 
-void test_cholesky()
+EIGEN_DECLARE_TEST(cholesky)
 {
   int s = 0;
   for(int i = 0; i < g_repeat; i++) {

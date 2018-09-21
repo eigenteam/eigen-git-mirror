@@ -23,9 +23,8 @@ inline bool test_isApprox_abs(const Type1& a, const Type2& b)
 
 // Returns a matrix with eigenvalues clustered around 0, 1 and 2.
 template<typename MatrixType>
-MatrixType randomMatrixWithRealEivals(const typename MatrixType::Index size)
+MatrixType randomMatrixWithRealEivals(const Index size)
 {
-  typedef typename MatrixType::Index Index;
   typedef typename MatrixType::Scalar Scalar;
   typedef typename MatrixType::RealScalar RealScalar;
   MatrixType diag = MatrixType::Zero(size, size);
@@ -42,16 +41,15 @@ template <typename MatrixType, int IsComplex = NumTraits<typename internal::trai
 struct randomMatrixWithImagEivals
 {
   // Returns a matrix with eigenvalues clustered around 0 and +/- i.
-  static MatrixType run(const typename MatrixType::Index size);
+  static MatrixType run(const Index size);
 };
 
 // Partial specialization for real matrices
 template<typename MatrixType>
 struct randomMatrixWithImagEivals<MatrixType, 0>
 {
-  static MatrixType run(const typename MatrixType::Index size)
+  static MatrixType run(const Index size)
   {
-    typedef typename MatrixType::Index Index;
     typedef typename MatrixType::Scalar Scalar;
     MatrixType diag = MatrixType::Zero(size, size);
     Index i = 0;
@@ -77,9 +75,8 @@ struct randomMatrixWithImagEivals<MatrixType, 0>
 template<typename MatrixType>
 struct randomMatrixWithImagEivals<MatrixType, 1>
 {
-  static MatrixType run(const typename MatrixType::Index size)
+  static MatrixType run(const Index size)
   {
-    typedef typename MatrixType::Index Index;
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::RealScalar RealScalar;
     const Scalar imagUnit(0, 1);
@@ -171,7 +168,6 @@ void testMatrixType(const MatrixType& m)
 {
   // Matrices with clustered eigenvalue lead to different code paths
   // in MatrixFunction.h and are thus useful for testing.
-  typedef typename MatrixType::Index Index;
 
   const Index size = m.rows();
   for (int i = 0; i < g_repeat; i++) {
@@ -181,7 +177,7 @@ void testMatrixType(const MatrixType& m)
   }
 }
 
-void test_matrix_function()
+EIGEN_DECLARE_TEST(matrix_function)
 {
   CALL_SUBTEST_1(testMatrixType(Matrix<float,1,1>()));
   CALL_SUBTEST_2(testMatrixType(Matrix3cf()));

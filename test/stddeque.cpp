@@ -15,8 +15,6 @@
 template<typename MatrixType>
 void check_stddeque_matrix(const MatrixType& m)
 {
-  typedef typename MatrixType::Index Index;
-  
   Index rows = m.rows();
   Index cols = m.cols();
   MatrixType x = MatrixType::Random(rows,cols), y = MatrixType::Random(rows,cols);
@@ -102,7 +100,7 @@ void check_stddeque_quaternion(const QuaternionType&)
   VERIFY_IS_APPROX(v.back(), x);
 }
 
-void test_stddeque()
+EIGEN_DECLARE_TEST(stddeque)
 {
   // some non vectorizable fixed sizes
   CALL_SUBTEST_1(check_stddeque_matrix(Vector2f()));

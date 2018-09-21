@@ -54,17 +54,29 @@ is_same_type(const T1&, const T2&)
 template<typename T1,typename T2>
 bool is_same_symb(const T1& a, const T2& b, Index size)
 {
-  using Eigen::placeholders::last;
   return a.eval(last=size-1) == b.eval(last=size-1);
 }
 
+template<typename T>
+void check_is_symbolic(const T&) {
+  STATIC_CHECK(( symbolic::is_symbolic<T>::value ))
+}
+
+template<typename T>
+void check_isnot_symbolic(const T&) {
+  STATIC_CHECK(( !symbolic::is_symbolic<T>::value ))
+}
 
 #define VERIFY_EQ_INT(A,B) VERIFY_IS_APPROX(int(A),int(B))
 
 void check_symbolic_index()
 {
-  using Eigen::placeholders::last;
-  using Eigen::placeholders::end;
+  check_is_symbolic(last);
+  check_is_symbolic(lastp1);
+  check_is_symbolic(last+1);
+  check_is_symbolic(last-lastp1);
+  check_is_symbolic(2*last-lastp1/2);
+  check_isnot_symbolic(fix<3>());
 
   Index size=100;
 
@@ -77,27 +89,27 @@ void check_symbolic_index()
   VERIFY( is_same_type( fix<9>()|fix<2>(), fix<9|2>() ) );
   VERIFY( is_same_type( fix<9>()/2, int(9/2) ) );
 
-  VERIFY( is_same_symb( end-1, last, size) );
-  VERIFY( is_same_symb( end-fix<1>, last, size) );
+  VERIFY( is_same_symb( lastp1-1, last, size) );
+  VERIFY( is_same_symb( lastp1-fix<1>, last, size) );
 
   VERIFY_IS_EQUAL( ( (last*5-2)/3 ).eval(last=size-1), ((size-1)*5-2)/3 );
   VERIFY_IS_EQUAL( ( (last*fix<5>-fix<2>)/fix<3> ).eval(last=size-1), ((size-1)*5-2)/3 );
-  VERIFY_IS_EQUAL( ( -last*end  ).eval(last=size-1), -(size-1)*size );
-  VERIFY_IS_EQUAL( ( end-3*last  ).eval(last=size-1), size- 3*(size-1) );
-  VERIFY_IS_EQUAL( ( (end-3*last)/end  ).eval(last=size-1), (size- 3*(size-1))/size );
+  VERIFY_IS_EQUAL( ( -last*lastp1  ).eval(last=size-1), -(size-1)*size );
+  VERIFY_IS_EQUAL( ( lastp1-3*last  ).eval(last=size-1), size- 3*(size-1) );
+  VERIFY_IS_EQUAL( ( (lastp1-3*last)/lastp1  ).eval(last=size-1), (size- 3*(size-1))/size );
 
 #if EIGEN_HAS_CXX14
   {
-    struct x_tag {};  static const Symbolic::SymbolExpr<x_tag> x;
-    struct y_tag {};  static const Symbolic::SymbolExpr<y_tag> y;
-    struct z_tag {};  static const Symbolic::SymbolExpr<z_tag> z;
+    struct x_tag {};  static const symbolic::SymbolExpr<x_tag> x;
+    struct y_tag {};  static const symbolic::SymbolExpr<y_tag> y;
+    struct z_tag {};  static const symbolic::SymbolExpr<z_tag> z;
 
     VERIFY_IS_APPROX( int(((x+3)/y+z).eval(x=6,y=3,z=-13)), (6+3)/3+(-13) );
   }
 #endif
 }
 
-void test_symbolic_index()
+EIGEN_DECLARE_TEST(symbolic_index)
 {
   CALL_SUBTEST_1( check_symbolic_index() );
   CALL_SUBTEST_2( check_symbolic_index() );

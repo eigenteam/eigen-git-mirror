@@ -353,7 +353,7 @@ class CompleteOrthogonalDecomposition {
   inline RealScalar maxPivot() const { return m_cpqr.maxPivot(); }
 
   /** \brief Reports whether the complete orthogonal decomposition was
-   * succesful.
+   * successful.
    *
    * \note This function always returns \c Success. It is provided for
    * compatibility
@@ -367,7 +367,7 @@ class CompleteOrthogonalDecomposition {
 
 #ifndef EIGEN_PARSED_BY_DOXYGEN
   template <typename RhsType, typename DstType>
-  EIGEN_DEVICE_FUNC void _solve_impl(const RhsType& rhs, DstType& dst) const;
+  void _solve_impl(const RhsType& rhs, DstType& dst) const;
 #endif
 
  protected:
@@ -452,7 +452,7 @@ void CompleteOrthogonalDecomposition<MatrixType>::computeInPlace()
         // Apply Z(k) to the first k rows of X_k
         m_cpqr.m_qr.topRightCorner(k, cols - rank + 1)
             .applyHouseholderOnTheRight(
-                m_cpqr.m_qr.row(k).tail(cols - rank).transpose(), m_zCoeffs(k),
+                m_cpqr.m_qr.row(k).tail(cols - rank).adjoint(), m_zCoeffs(k),
                 &m_temp(0));
       }
       if (k != rank - 1) {
@@ -500,11 +500,8 @@ void CompleteOrthogonalDecomposition<_MatrixType>::_solve_impl(
   }
 
   // Compute c = Q^* * rhs
-  // Note that the matrix Q = H_0^* H_1^*... so its inverse is
-  // Q^* = (H_0 H_1 ...)^T
   typename RhsType::PlainObject c(rhs);
-  c.applyOnTheLeft(
-      householderSequence(matrixQTZ(), hCoeffs()).setLength(rank).transpose());
+  c.applyOnTheLeft(matrixQ().setLength(rank).adjoint());
 
   // Solve T z = c(1:rank, :)
   dst.topRows(rank) = matrixT()

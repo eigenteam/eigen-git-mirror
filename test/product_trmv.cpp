@@ -11,7 +11,6 @@
 
 template<typename MatrixType> void trmv(const MatrixType& m)
 {
-  typedef typename MatrixType::Index Index;
   typedef typename MatrixType::Scalar Scalar;
   typedef typename NumTraits<Scalar>::Real RealScalar;
   typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> VectorType;
@@ -71,7 +70,7 @@ template<typename MatrixType> void trmv(const MatrixType& m)
   // TODO check with sub-matrices
 }
 
-void test_product_trmv()
+EIGEN_DECLARE_TEST(product_trmv)
 {
   int s = 0;
   for(int i = 0; i < g_repeat ; i++) {

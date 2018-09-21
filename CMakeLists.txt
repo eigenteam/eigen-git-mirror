@@ -8,6 +8,7 @@ if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
   message(FATAL_ERROR "In-source builds not allowed. Please make a new directory (called a build directory) and run CMake from there. You may need to remove CMakeCache.txt. ")
 endif()
 
+
 # Alias Eigen_*_DIR to Eigen3_*_DIR:
 
 set(Eigen_SOURCE_DIR ${Eigen3_SOURCE_DIR})
@@ -41,10 +42,13 @@ string(REGEX MATCH "define[ \t]+EIGEN_MINOR_VERSION[ \t]+([0-9]+)" _eigen_minor_
 set(EIGEN_MINOR_VERSION "${CMAKE_MATCH_1}")
 set(EIGEN_VERSION_NUMBER ${EIGEN_WORLD_VERSION}.${EIGEN_MAJOR_VERSION}.${EIGEN_MINOR_VERSION})
 
-# if the mercurial program is absent, this will leave the EIGEN_HG_CHANGESET string empty,
-# but won't stop CMake.
-execute_process(COMMAND hg tip -R ${CMAKE_SOURCE_DIR} OUTPUT_VARIABLE EIGEN_HGTIP_OUTPUT)
-execute_process(COMMAND hg branch -R ${CMAKE_SOURCE_DIR} OUTPUT_VARIABLE EIGEN_BRANCH_OUTPUT)
+# if we are not in a mercurial clone
+if(IS_DIRECTORY ${CMAKE_SOURCE_DIR}/.hg)
+  # if the mercurial program is absent or this will leave the EIGEN_HG_CHANGESET string empty,
+  # but won't stop CMake.
+  execute_process(COMMAND hg tip -R ${CMAKE_SOURCE_DIR} OUTPUT_VARIABLE EIGEN_HGTIP_OUTPUT)
+  execute_process(COMMAND hg branch -R ${CMAKE_SOURCE_DIR} OUTPUT_VARIABLE EIGEN_BRANCH_OUTPUT)
+endif()
 
 # if this is the default (aka development) branch, extract the mercurial changeset number from the hg tip output...
 if(EIGEN_BRANCH_OUTPUT MATCHES "default")
@@ -104,7 +108,7 @@ if(NOT WIN32 OR NOT CMAKE_HOST_SYSTEM_NAME MATCHES Windows)
   option(EIGEN_BUILD_PKGCONFIG "Build pkg-config .pc file for Eigen" ON)
 endif()
 
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
+set(CMAKE_INCLUDE_CURRENT_DIR OFF)
 
 option(EIGEN_SPLIT_LARGE_TESTS "Split large tests into smaller executables" ON)
 
@@ -153,11 +157,7 @@ if(NOT MSVC)
   ei_add_cxx_compiler_flag("-Wdouble-promotion")
 #  ei_add_cxx_compiler_flag("-Wconversion")
   
-  # -Wshadow is insanely too strict with gcc, hopefully it will become usable with gcc 6
-  # if(NOT CMAKE_COMPILER_IS_GNUCXX OR (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "5.0.0"))
-  if(NOT CMAKE_COMPILER_IS_GNUCXX)
-    ei_add_cxx_compiler_flag("-Wshadow")
-  endif()
+  ei_add_cxx_compiler_flag("-Wshadow")
   
   ei_add_cxx_compiler_flag("-Wno-psabi")
   ei_add_cxx_compiler_flag("-Wno-variadic-macros")
@@ -232,7 +232,10 @@ if(NOT MSVC)
 
   option(EIGEN_TEST_AVX512 "Enable/Disable AVX512 in tests/examples" OFF)
   if(EIGEN_TEST_AVX512)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mavx512f -fabi-version=6 -DEIGEN_ENABLE_AVX512")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mavx512f -DEIGEN_ENABLE_AVX512")
+    if (NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fabi-version=6")
+    endif()
     message(STATUS "Enabling AVX512 in tests/examples")
   endif()
 
@@ -254,6 +257,12 @@ if(NOT MSVC)
     message(STATUS "Enabling VSX in tests/examples")
   endif()
 
+  option(EIGEN_TEST_MSA "Enable/Disable MSA in tests/examples" OFF)
+  if(EIGEN_TEST_MSA)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mmsa")
+    message(STATUS "Enabling MSA in tests/examples")
+  endif()
+
   option(EIGEN_TEST_NEON "Enable/Disable Neon in tests/examples" OFF)
   if(EIGEN_TEST_NEON)
     if(EIGEN_TEST_FMA)
@@ -271,9 +280,15 @@ if(NOT MSVC)
     message(STATUS "Enabling NEON in tests/examples")
   endif()
 
-  option(EIGEN_TEST_ZVECTOR "Enable/Disable S390X(zEC13) ZVECTOR in tests/examples" OFF)
-  if(EIGEN_TEST_ZVECTOR)
+  option(EIGEN_TEST_Z13 "Enable/Disable S390X(zEC13) ZVECTOR in tests/examples" OFF)
+  if(EIGEN_TEST_Z13)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=z13 -mzvector")
+    message(STATUS "Enabling S390X(zEC13) ZVECTOR in tests/examples")
+  endif()
+
+  option(EIGEN_TEST_Z14 "Enable/Disable S390X(zEC14) ZVECTOR in tests/examples" OFF)
+  if(EIGEN_TEST_Z14)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=z14 -mzvector")
     message(STATUS "Enabling S390X(zEC13) ZVECTOR in tests/examples")
   endif()
 
@@ -363,7 +378,7 @@ option(EIGEN_TEST_CXX11 "Enable testing with C++11 and C++11 features (e.g. Tens
 
 set(EIGEN_CUDA_COMPUTE_ARCH 30 CACHE STRING "The CUDA compute architecture level to target when compiling CUDA code")
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 # Backward compatibility support for EIGEN_INCLUDE_INSTALL_DIR
 if(EIGEN_INCLUDE_INSTALL_DIR)
@@ -437,10 +452,17 @@ endif()
 
 # add SYCL
 option(EIGEN_TEST_SYCL "Add Sycl support." OFF)
+option(EIGEN_SYCL_TRISYCL "Use the triSYCL Sycl implementation (ComputeCPP by default)." OFF)
 if(EIGEN_TEST_SYCL)
   set (CMAKE_MODULE_PATH "${CMAKE_ROOT}/Modules" "cmake/Modules/" "${CMAKE_MODULE_PATH}")
-  include(FindComputeCpp)
-endif()
+  if(EIGEN_SYCL_TRISYCL)
+    message(STATUS "Using triSYCL")
+    include(FindTriSYCL)
+  else(EIGEN_SYCL_TRISYCL)
+    message(STATUS "Using ComputeCPP SYCL")
+    include(FindComputeCpp)
+  endif(EIGEN_SYCL_TRISYCL)
+endif(EIGEN_TEST_SYCL)
 
 add_subdirectory(unsupported)
 
@@ -516,6 +538,7 @@ if (NOT CMAKE_VERSION VERSION_LESS 3.0)
 
   # Imported target support
   add_library (eigen INTERFACE)
+  add_library (Eigen3::Eigen ALIAS eigen)
 
   target_compile_definitions (eigen INTERFACE ${EIGEN_DEFINITIONS})
   target_include_directories (eigen INTERFACE

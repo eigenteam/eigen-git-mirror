@@ -34,6 +34,7 @@ struct traits<TensorAssignOp<LhsXprType, RhsXprType> >
   typedef typename remove_reference<RhsNested>::type _RhsNested;
   static const std::size_t NumDimensions = internal::traits<LhsXprType>::NumDimensions;
   static const int Layout = internal::traits<LhsXprType>::Layout;
+  typedef typename traits<LhsXprType>::PointerType PointerType;
 
   enum {
     Flags = 0
@@ -67,6 +68,8 @@ class TensorAssignOp : public TensorBase<TensorAssignOp<LhsXprType, RhsXprType> 
   typedef typename Eigen::internal::traits<TensorAssignOp>::StorageKind StorageKind;
   typedef typename Eigen::internal::traits<TensorAssignOp>::Index Index;
 
+  static const int NumDims = Eigen::internal::traits<TensorAssignOp>::NumDimensions;
+
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorAssignOp(LhsXprType& lhs, const RhsXprType& rhs)
       : m_lhs_xpr(lhs), m_rhs_xpr(rhs) {}
 
@@ -94,20 +97,35 @@ struct TensorEvaluator<const TensorAssignOp<LeftArgType, RightArgType>, Device>
   typedef typename XprType::CoeffReturnType CoeffReturnType;
   typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
   typedef typename TensorEvaluator<RightArgType, Device>::Dimensions Dimensions;
-  static const int PacketSize = internal::unpacket_traits<PacketReturnType>::size;
+
+  static const int PacketSize = PacketType<CoeffReturnType, Device>::size;
+  static const int NumDims = XprType::NumDims;
 
   enum {
-    IsAligned = TensorEvaluator<LeftArgType, Device>::IsAligned & TensorEvaluator<RightArgType, Device>::IsAligned,
-    PacketAccess = TensorEvaluator<LeftArgType, Device>::PacketAccess & TensorEvaluator<RightArgType, Device>::PacketAccess,
-    Layout = TensorEvaluator<LeftArgType, Device>::Layout,
-    RawAccess = TensorEvaluator<LeftArgType, Device>::RawAccess
+    IsAligned         = TensorEvaluator<LeftArgType, Device>::IsAligned &
+                        TensorEvaluator<RightArgType, Device>::IsAligned,
+    PacketAccess      = TensorEvaluator<LeftArgType, Device>::PacketAccess &
+                        TensorEvaluator<RightArgType, Device>::PacketAccess,
+    BlockAccess       = TensorEvaluator<LeftArgType, Device>::BlockAccess &
+                        TensorEvaluator<RightArgType, Device>::BlockAccess,
+    PreferBlockAccess = TensorEvaluator<LeftArgType, Device>::PreferBlockAccess |
+                        TensorEvaluator<RightArgType, Device>::PreferBlockAccess,
+    Layout            = TensorEvaluator<LeftArgType, Device>::Layout,
+    RawAccess         = TensorEvaluator<LeftArgType, Device>::RawAccess
   };
+
+  typedef typename internal::TensorBlock<
+      typename internal::remove_const<Scalar>::type, Index, NumDims, Layout>
+      TensorBlock;
 
   EIGEN_DEVICE_FUNC TensorEvaluator(const XprType& op, const Device& device) :
       m_leftImpl(op.lhsExpression(), device),
       m_rightImpl(op.rhsExpression(), device)
   {
-    EIGEN_STATIC_ASSERT((static_cast<int>(TensorEvaluator<LeftArgType, Device>::Layout) == static_cast<int>(TensorEvaluator<RightArgType, Device>::Layout)), YOU_MADE_A_PROGRAMMING_MISTAKE);
+    EIGEN_STATIC_ASSERT(
+        (static_cast<int>(TensorEvaluator<LeftArgType, Device>::Layout) ==
+         static_cast<int>(TensorEvaluator<RightArgType, Device>::Layout)),
+        YOU_MADE_A_PROGRAMMING_MISTAKE);
   }
 
   EIGEN_DEVICE_FUNC const Dimensions& dimensions() const
@@ -163,12 +181,31 @@ struct TensorEvaluator<const TensorAssignOp<LeftArgType, RightArgType>, Device>
            TensorOpCost(0, sizeof(CoeffReturnType), 0, vectorized, PacketSize);
   }
 
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void getResourceRequirements(
+      std::vector<internal::TensorOpResourceRequirements>* resources) const {
+    m_leftImpl.getResourceRequirements(resources);
+    m_rightImpl.getResourceRequirements(resources);
+  }
+
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void evalBlock(TensorBlock* block) {
+    if (TensorEvaluator<LeftArgType, Device>::RawAccess &&
+        m_leftImpl.data() != NULL) {
+      TensorBlock left_block(block->first_coeff_index(), block->block_sizes(),
+                             block->tensor_strides(), block->tensor_strides(),
+                             m_leftImpl.data() + block->first_coeff_index());
+      m_rightImpl.block(&left_block);
+    } else {
+      m_rightImpl.block(block);
+      m_leftImpl.writeBlock(*block);
+    }
+  }
+
   /// required by sycl in order to extract the accessor
   const TensorEvaluator<LeftArgType, Device>& left_impl() const { return m_leftImpl; }
   /// required by sycl in order to extract the accessor
   const TensorEvaluator<RightArgType, Device>& right_impl() const { return m_rightImpl; }
 
-  EIGEN_DEVICE_FUNC CoeffReturnType* data() const { return m_leftImpl.data(); }
+  EIGEN_DEVICE_FUNC typename Eigen::internal::traits<XprType>::PointerType data() const { return m_leftImpl.data(); }
 
  private:
   TensorEvaluator<LeftArgType, Device> m_leftImpl;
