@@ -149,18 +149,22 @@ void reshape4x4(MatType m)
   MatrixXi m28r2 = m.transpose().template reshaped<ColMajor>(8,2).transpose();
   VERIFY_IS_EQUAL( m28r1, m28r2);
 
-  VERIFY(is_same_eq(m.reshaped(v16,fix<1>), m(all)));
-  VERIFY_IS_EQUAL(m.reshaped(16,1), m(all));
-  VERIFY_IS_EQUAL(m.reshaped(1,16), m(all).transpose());
-  VERIFY_IS_EQUAL(m(all).reshaped(2,8), m.reshaped(2,8));
-  VERIFY_IS_EQUAL(m(all).reshaped(4,4), m.reshaped(4,4));
-  VERIFY_IS_EQUAL(m(all).reshaped(8,2), m.reshaped(8,2));
+  VERIFY(is_same_eq(m.reshaped(v16,fix<1>), m.reshaped()));
+  VERIFY_IS_EQUAL(m.reshaped(16,1), m.reshaped());
+  VERIFY_IS_EQUAL(m.reshaped(1,16), m.reshaped().transpose());
+  VERIFY_IS_EQUAL(m.reshaped().reshaped(2,8), m.reshaped(2,8));
+  VERIFY_IS_EQUAL(m.reshaped().reshaped(4,4), m.reshaped(4,4));
+  VERIFY_IS_EQUAL(m.reshaped().reshaped(8,2), m.reshaped(8,2));
 
-  VERIFY(is_same_eq(m.reshaped(AutoSize,fix<1>), m(all)));
-  VERIFY_IS_EQUAL(m.template reshaped<RowMajor>(fix<1>,AutoSize), m.transpose()(all).transpose());
+  VERIFY_IS_EQUAL(m.reshaped(), m.template reshaped<ColMajor>());
+  VERIFY_IS_EQUAL(m.transpose().reshaped().transpose(), m.template reshaped<RowMajor>());
+  VERIFY_IS_EQUAL(m.template reshaped<RowMajor>(fix<1>, AutoSize), m.template reshaped<RowMajor>());
+
+  VERIFY(is_same_eq(m.reshaped(AutoSize,fix<1>), m.reshaped()));
+  VERIFY_IS_EQUAL(m.template reshaped<RowMajor>(fix<1>,AutoSize), m.transpose().reshaped().transpose());
 }
 
-void test_reshape()
+EIGEN_DECLARE_TEST(reshape)
 {
   typedef Matrix<int,Dynamic,Dynamic> RowMatrixXi;
   typedef Matrix<int,4,4> RowMatrix4i;

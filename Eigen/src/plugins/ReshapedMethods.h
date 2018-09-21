@@ -6,7 +6,7 @@
 /// \param nRows the number of rows in the reshaped expression, specified at either run-time or compile-time, or AutoSize
 /// \param nCols the number of columns in the reshaped expression, specified at either run-time or compile-time, or AutoSize
 /// \tparam Order specifies whether the coefficients should be processed in column-major-order (ColMajor), in row-major-order (RowMajor),
-///              or follows the \em natural order of the nested expression (AutoOrder). The default is ColMajor.
+///               or follows the \em natural order of the nested expression (AutoOrder). The default is ColMajor.
 /// \tparam NRowsType the type of the value handling the number of rows, typically Index.
 /// \tparam NColsType the type of the value handling the number of columns, typically Index.
 ///
@@ -37,6 +37,36 @@ template<int Order = ColMajor, typename NRowsType, typename NColsType>
 EIGEN_DEVICE_FUNC
 inline const Reshaped<const Derived,...>
 reshaped(NRowsType nRows, NColsType nCols) const;
+
+/// \returns an expression of \c *this with columns (or rows) stacked to a linear column (or row) vector
+///
+/// \tparam Order specifies whether to glue columns or rows, and returns a column or row vector.
+///               Possible values are ColMajor, RowMajor or AutoOrder. The default is ColMajor.
+///
+/// If Order==ColMajor (the default), then it returns a column vector from the stacked columns of \c *this.
+/// This is equivalent to \code A(all) \endcode and \code A.reshaped<RowMajor>(fix<1>,AutoSize) \endcode.
+///
+/// If Order==RowMajor, then it returns a row vector from the glued rows of \c *this.
+/// This is equivalent to \code A.reshaped<RowMajor>(fix<1>,AutoSize) \endcode.
+///
+/// If Order=AutoOrder, the it returns the same expression as \code A.reshaped<storage_order_of_A>() \endcode
+///
+/// If you want more control, you can still fall back to reshaped(NRowsType,NColsType).
+/// For instance, to return a column vector with element stacked following the storage order,
+/// you can do: \code A.reshaped<AutoOrder>(AutoSize,fix<1>) \endcode
+///
+/// \sa operator()(all), reshaped(NRowsType,NColsType), class Reshaped
+///
+template<int Order = ColMajor>
+EIGEN_DEVICE_FUNC
+inline Reshaped<Derived,...>
+reshaped();
+
+/** This is the const version of reshaped(). */
+template<int Order = ColMajor>
+EIGEN_DEVICE_FUNC
+inline const Reshaped<const Derived,...>
+reshaped() const;
 
 /// \returns as expression of \c *this with columns stacked to a linear column vector
 ///
@@ -104,9 +134,27 @@ reshaped(NRowsType nRows, NColsType nCols) EIGEN_RESHAPED_METHOD_CONST
 
 EIGEN_DEVICE_FUNC
 inline Reshaped<EIGEN_RESHAPED_METHOD_CONST Derived,SizeAtCompileTime,1>
-operator()(const Eigen::internal::all_t&) EIGEN_RESHAPED_METHOD_CONST
+reshaped() EIGEN_RESHAPED_METHOD_CONST
 {
   return Reshaped<EIGEN_RESHAPED_METHOD_CONST Derived,SizeAtCompileTime,1>(derived(),size(),1);
+}
+
+template<int Order>
+EIGEN_DEVICE_FUNC
+inline Reshaped<EIGEN_RESHAPED_METHOD_CONST Derived,
+                Order==RowMajor ? 1 : SizeAtCompileTime,
+                Order==RowMajor ? SizeAtCompileTime : 1,
+                Order==AutoOrder?Flags&RowMajorBit:Order>
+reshaped() EIGEN_RESHAPED_METHOD_CONST
+{
+  EIGEN_STATIC_ASSERT(Order==RowMajor || Order==ColMajor, INVALID_TEMPLATE_PARAMETER);
+  return Reshaped<EIGEN_RESHAPED_METHOD_CONST Derived,
+                  Order==RowMajor ? 1 : SizeAtCompileTime,
+                  Order==RowMajor ? SizeAtCompileTime : 1,
+                  Order==AutoOrder?Flags&RowMajorBit:Order>
+                (derived(),
+                 Order==RowMajor ? 1 : size(),
+                 Order==RowMajor ? size() : 1);
 }
 
 #undef EIGEN_RESHAPED_METHOD_CONST
