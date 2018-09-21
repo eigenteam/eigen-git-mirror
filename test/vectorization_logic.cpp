@@ -37,6 +37,7 @@ using internal::demangle_unrolling;
 template<typename Dst, typename Src>
 bool test_assign(const Dst&, const Src&, int traversal, int unrolling)
 {
+  EIGEN_PREDICATE_SAME_MATRIX_SIZE(Dst,Src);
   typedef internal::copy_using_evaluator_traits<internal::evaluator<Dst>,internal::evaluator<Src>, internal::assign_op<typename Dst::Scalar,typename Src::Scalar> > traits;
   bool res = traits::Traversal==traversal;
   if(unrolling==InnerUnrolling+CompleteUnrolling)
@@ -61,6 +62,7 @@ bool test_assign(const Dst&, const Src&, int traversal, int unrolling)
 template<typename Dst, typename Src>
 bool test_assign(int traversal, int unrolling)
 {
+  EIGEN_PREDICATE_SAME_MATRIX_SIZE(Dst,Src);
   typedef internal::copy_using_evaluator_traits<internal::evaluator<Dst>,internal::evaluator<Src>, internal::assign_op<typename Dst::Scalar,typename Src::Scalar> > traits;
   bool res = traits::Traversal==traversal && traits::Unrolling==unrolling;
   if(!res)
@@ -117,26 +119,26 @@ struct vectorization_logic
     typedef Matrix<Scalar,Dynamic,1> VectorX;
     typedef Matrix<Scalar,Dynamic,Dynamic> MatrixXX;
     typedef Matrix<Scalar,PacketSize,PacketSize> Matrix11;
-    typedef Matrix<Scalar,2*PacketSize,2*PacketSize> Matrix22;
+    typedef Matrix<Scalar,(Matrix11::Flags&RowMajorBit)?8:2*PacketSize,(Matrix11::Flags&RowMajorBit)?2*PacketSize:8>   Matrix22;
     typedef Matrix<Scalar,(Matrix11::Flags&RowMajorBit)?16:4*PacketSize,(Matrix11::Flags&RowMajorBit)?4*PacketSize:16> Matrix44;
     typedef Matrix<Scalar,(Matrix11::Flags&RowMajorBit)?16:4*PacketSize,(Matrix11::Flags&RowMajorBit)?4*PacketSize:16,DontAlign|EIGEN_DEFAULT_MATRIX_STORAGE_ORDER_OPTION> Matrix44u;
     typedef Matrix<Scalar,4*PacketSize,4*PacketSize,ColMajor> Matrix44c;
     typedef Matrix<Scalar,4*PacketSize,4*PacketSize,RowMajor> Matrix44r;
 
     typedef Matrix<Scalar,
-        (PacketSize==8 ? 4 : PacketSize==4 ? 2 : PacketSize==2 ? 1 : /*PacketSize==1 ?*/ 1),
-        (PacketSize==8 ? 2 : PacketSize==4 ? 2 : PacketSize==2 ? 2 : /*PacketSize==1 ?*/ 1)
+        (PacketSize==16 ? 8 : PacketSize==8 ? 4 : PacketSize==4 ? 2 : PacketSize==2 ? 1 : /*PacketSize==1 ?*/ 1),
+        (PacketSize==16 ? 2 : PacketSize==8 ? 2 : PacketSize==4 ? 2 : PacketSize==2 ? 2 : /*PacketSize==1 ?*/ 1)
       > Matrix1;
 
     typedef Matrix<Scalar,
-        (PacketSize==8 ? 4 : PacketSize==4 ? 2 : PacketSize==2 ? 1 : /*PacketSize==1 ?*/ 1),
-        (PacketSize==8 ? 2 : PacketSize==4 ? 2 : PacketSize==2 ? 2 : /*PacketSize==1 ?*/ 1),
+        (PacketSize==16 ? 8 : PacketSize==8 ? 4 : PacketSize==4 ? 2 : PacketSize==2 ? 1 : /*PacketSize==1 ?*/ 1),
+        (PacketSize==16 ? 2 : PacketSize==8 ? 2 : PacketSize==4 ? 2 : PacketSize==2 ? 2 : /*PacketSize==1 ?*/ 1),
       DontAlign|((Matrix1::Flags&RowMajorBit)?RowMajor:ColMajor)> Matrix1u;
 
     // this type is made such that it can only be vectorized when viewed as a linear 1D vector
     typedef Matrix<Scalar,
-        (PacketSize==8 ? 4 : PacketSize==4 ? 6 : PacketSize==2 ? ((Matrix11::Flags&RowMajorBit)?2:3) : /*PacketSize==1 ?*/ 1),
-        (PacketSize==8 ? 6 : PacketSize==4 ? 2 : PacketSize==2 ? ((Matrix11::Flags&RowMajorBit)?3:2) : /*PacketSize==1 ?*/ 3)
+        (PacketSize==16 ?  4 : PacketSize==8 ? 4 : PacketSize==4 ? 6 : PacketSize==2 ? ((Matrix11::Flags&RowMajorBit)?2:3) : /*PacketSize==1 ?*/ 1),
+        (PacketSize==16 ? 12 : PacketSize==8 ? 6 : PacketSize==4 ? 2 : PacketSize==2 ? ((Matrix11::Flags&RowMajorBit)?3:2) : /*PacketSize==1 ?*/ 3)
       > Matrix3;
     
     #if !EIGEN_GCC_AND_ARCH_DOESNT_WANT_STACK_ALIGNMENT
@@ -202,7 +204,7 @@ struct vectorization_logic
       VERIFY(test_assign(Matrix11(), Matrix11()+Matrix11(),InnerVectorizedTraversal,CompleteUnrolling));
 
 
-      VERIFY(test_assign(Matrix11(),Matrix<Scalar,17,17>().template block<PacketSize,PacketSize>(2,3)+Matrix<Scalar,17,17>().template block<PacketSize,PacketSize>(8,4),
+      VERIFY(test_assign(Matrix11(),Matrix<Scalar,21,21>().template block<PacketSize,PacketSize>(2,3)+Matrix<Scalar,21,21>().template block<PacketSize,PacketSize>(3,2),
         (EIGEN_UNALIGNED_VECTORIZE) ? InnerVectorizedTraversal : DefaultTraversal, CompleteUnrolling|InnerUnrolling));
 
       VERIFY(test_assign(Vector1(),Matrix11()*Vector1(),
@@ -294,19 +296,19 @@ struct vectorization_logic_half
 //     typedef Matrix<Scalar,4*PacketSize,4*PacketSize,RowMajor> Matrix44r;
 
     typedef Matrix<Scalar,
-        (PacketSize==8 ? 4 : PacketSize==4 ? 2 : PacketSize==2 ? 1 : /*PacketSize==1 ?*/ 1),
-        (PacketSize==8 ? 2 : PacketSize==4 ? 2 : PacketSize==2 ? 2 : /*PacketSize==1 ?*/ 1)
+        (PacketSize==16 ? 8 : PacketSize==8 ? 4 : PacketSize==4 ? 2 : PacketSize==2 ? 1 : /*PacketSize==1 ?*/ 1),
+        (PacketSize==16 ? 2 : PacketSize==8 ? 2 : PacketSize==4 ? 2 : PacketSize==2 ? 2 : /*PacketSize==1 ?*/ 1)
       > Matrix1;
 
     typedef Matrix<Scalar,
-        (PacketSize==8 ? 4 : PacketSize==4 ? 2 : PacketSize==2 ? 1 : /*PacketSize==1 ?*/ 1),
-        (PacketSize==8 ? 2 : PacketSize==4 ? 2 : PacketSize==2 ? 2 : /*PacketSize==1 ?*/ 1),
+        (PacketSize==16 ? 8 : PacketSize==8 ? 4 : PacketSize==4 ? 2 : PacketSize==2 ? 1 : /*PacketSize==1 ?*/ 1),
+        (PacketSize==16 ? 2 : PacketSize==8 ? 2 : PacketSize==4 ? 2 : PacketSize==2 ? 2 : /*PacketSize==1 ?*/ 1),
       DontAlign|((Matrix1::Flags&RowMajorBit)?RowMajor:ColMajor)> Matrix1u;
 
     // this type is made such that it can only be vectorized when viewed as a linear 1D vector
     typedef Matrix<Scalar,
-        (PacketSize==8 ? 4 : PacketSize==4 ? 6 : PacketSize==2 ? ((Matrix11::Flags&RowMajorBit)?2:3) : /*PacketSize==1 ?*/ 1),
-        (PacketSize==8 ? 6 : PacketSize==4 ? 2 : PacketSize==2 ? ((Matrix11::Flags&RowMajorBit)?3:2) : /*PacketSize==1 ?*/ 3)
+        (PacketSize==16 ?  4 : PacketSize==8 ? 4 : PacketSize==4 ? 6 : PacketSize==2 ? ((Matrix11::Flags&RowMajorBit)?2:3) : /*PacketSize==1 ?*/ 1),
+        (PacketSize==16 ? 12 : PacketSize==8 ? 6 : PacketSize==4 ? 2 : PacketSize==2 ? ((Matrix11::Flags&RowMajorBit)?3:2) : /*PacketSize==1 ?*/ 3)
       > Matrix3;
     
     #if !EIGEN_GCC_AND_ARCH_DOESNT_WANT_STACK_ALIGNMENT
@@ -359,7 +361,8 @@ struct vectorization_logic_half
         NoUnrolling));
         
       VERIFY(test_assign(Matrix11(),Matrix<Scalar,17,17>().template block<PacketSize,PacketSize>(2,3)+Matrix<Scalar,17,17>().template block<PacketSize,PacketSize>(8,4),
-        EIGEN_UNALIGNED_VECTORIZE ? InnerVectorizedTraversal : DefaultTraversal,PacketSize>4?InnerUnrolling:CompleteUnrolling));
+        EIGEN_UNALIGNED_VECTORIZE ? InnerVectorizedTraversal : DefaultTraversal,InnerUnrolling+CompleteUnrolling));
+  
 
       VERIFY(test_assign(Vector1(),Matrix11()*Vector1(),
                          InnerVectorizedTraversal,CompleteUnrolling));
@@ -391,10 +394,10 @@ struct vectorization_logic_half
     VERIFY((test_assign<
             Map<Matrix<Scalar,EIGEN_PLAIN_ENUM_MAX(2,PacketSize),EIGEN_PLAIN_ENUM_MAX(2,PacketSize)>, AlignedMax, InnerStride<3*PacketSize> >,
             Matrix<Scalar,EIGEN_PLAIN_ENUM_MAX(2,PacketSize),EIGEN_PLAIN_ENUM_MAX(2,PacketSize)>
-            >(DefaultTraversal,CompleteUnrolling)));
+            >(DefaultTraversal,PacketSize>4?InnerUnrolling:CompleteUnrolling)));
 
     VERIFY((test_assign(Matrix57(), Matrix<Scalar,5*PacketSize,3>()*Matrix<Scalar,3,7>(),
-                        InnerVectorizedTraversal, InnerUnrolling|CompleteUnrolling)));
+                        InnerVectorizedTraversal, InnerUnrolling+CompleteUnrolling)));
     #endif
   }
 };
