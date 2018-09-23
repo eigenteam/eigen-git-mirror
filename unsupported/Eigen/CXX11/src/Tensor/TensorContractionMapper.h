@@ -255,7 +255,7 @@ class BaseTensorContractionMapper : public SimpleTensorContractionMapper<Scalar,
 
     const IndexPair<Index> indexPair = this->computeIndexPair(i, j, packet_size - 1);
     const Index first = indexPair.first;
-    const Index last = indexPair.second;
+    const Index lastIdx = indexPair.second;
 
     // We can always do optimized packet reads from left hand side right now, because
     // the vertical matrix dimension on the left hand side is never contracting.
@@ -263,7 +263,7 @@ class BaseTensorContractionMapper : public SimpleTensorContractionMapper<Scalar,
     // been shuffled first.
     if (Tensor::PacketAccess &&
         (side == Lhs || internal::array_size<contract_t>::value <= 1 || !inner_dim_reordered) &&
-        (last - first) == (packet_size - 1)) {
+        (lastIdx - first) == (packet_size - 1)) {
 
       return this->m_tensor.template packet<AlignmentType>(first);
     }
@@ -276,7 +276,7 @@ class BaseTensorContractionMapper : public SimpleTensorContractionMapper<Scalar,
       data[k] = this->m_tensor.coeff(internal_pair.first);
       data[k + 1] = this->m_tensor.coeff(internal_pair.second);
     }
-    data[packet_size - 1] = this->m_tensor.coeff(last);
+    data[packet_size - 1] = this->m_tensor.coeff(lastIdx);
 
     return pload<PacketT>(data);
   }

@@ -32,14 +32,20 @@ public:
     PacketSize = unpacket_traits<PacketType>::size,
     InnerMaxSize = int(Evaluator::IsRowMajor)
                  ? Evaluator::MaxColsAtCompileTime
-                 : Evaluator::MaxRowsAtCompileTime
+                 : Evaluator::MaxRowsAtCompileTime,
+    OuterMaxSize = int(Evaluator::IsRowMajor)
+                 ? Evaluator::MaxRowsAtCompileTime
+                 : Evaluator::MaxColsAtCompileTime,
+    SliceVectorizedWork = int(InnerMaxSize)==Dynamic ? Dynamic
+                        : int(OuterMaxSize)==Dynamic ? (int(InnerMaxSize)>=int(PacketSize) ? Dynamic : 0)
+                        : (int(InnerMaxSize)/int(PacketSize)) * int(OuterMaxSize)
   };
 
   enum {
     MightVectorize = (int(Evaluator::Flags)&ActualPacketAccessBit)
                   && (functor_traits<Func>::PacketAccess),
     MayLinearVectorize = bool(MightVectorize) && (int(Evaluator::Flags)&LinearAccessBit),
-    MaySliceVectorize  = bool(MightVectorize) && int(InnerMaxSize)>=3*PacketSize
+    MaySliceVectorize  = bool(MightVectorize) && (int(SliceVectorizedWork)==Dynamic || int(SliceVectorizedWork)>=3)
   };
 
 public:
@@ -69,13 +75,15 @@ public:
     EIGEN_DEBUG_VAR(Evaluator::Flags)
     std::cerr.unsetf(std::ios::hex);
     EIGEN_DEBUG_VAR(InnerMaxSize)
+    EIGEN_DEBUG_VAR(OuterMaxSize)
+    EIGEN_DEBUG_VAR(SliceVectorizedWork)
     EIGEN_DEBUG_VAR(PacketSize)
     EIGEN_DEBUG_VAR(MightVectorize)
     EIGEN_DEBUG_VAR(MayLinearVectorize)
     EIGEN_DEBUG_VAR(MaySliceVectorize)
-    EIGEN_DEBUG_VAR(Traversal)
+    std::cerr << "Traversal" << " = " << Traversal << " (" << demangle_traversal(Traversal) << ")" << std::endl;
     EIGEN_DEBUG_VAR(UnrollingLimit)
-    EIGEN_DEBUG_VAR(Unrolling)
+    std::cerr << "Unrolling" << " = " << Unrolling << " (" << demangle_unrolling(Unrolling) << ")" << std::endl;
     std::cerr << std::endl;
   }
 #endif
@@ -402,7 +410,7 @@ DenseBase<Derived>::redux(const Func& func) const
 
   typedef typename internal::redux_evaluator<Derived> ThisEvaluator;
   ThisEvaluator thisEval(derived());
-  
+
   // The initial expression is passed to the reducer as an additional argument instead of
   // passing it as a member of redux_evaluator to help  
   return internal::redux_impl<Func, ThisEvaluator>::run(thisEval, func, derived());
