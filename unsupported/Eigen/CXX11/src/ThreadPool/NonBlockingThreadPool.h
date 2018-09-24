@@ -97,7 +97,7 @@ class ThreadPoolTempl : public Eigen::ThreadPoolInterface {
     }
   }
 
-  void Schedule(std::function<void()> fn) {
+  void Schedule(std::function<void()> fn) EIGEN_OVERRIDE {
     ScheduleWithHint(std::move(fn), 0, num_threads_);
   }
 
@@ -134,7 +134,7 @@ class ThreadPoolTempl : public Eigen::ThreadPoolInterface {
     }
   }
 
-  void Cancel() {
+  void Cancel() EIGEN_OVERRIDE {
     cancelled_ = true;
     done_ = true;
 
@@ -149,9 +149,9 @@ class ThreadPoolTempl : public Eigen::ThreadPoolInterface {
     ec_.Notify(true);
   }
 
-  int NumThreads() const final { return num_threads_; }
+  int NumThreads() const EIGEN_FINAL { return num_threads_; }
 
-  int CurrentThreadId() const final {
+  int CurrentThreadId() const EIGEN_FINAL {
     const PerThread* pt = const_cast<ThreadPoolTempl*>(this)->GetPerThread();
     if (pt->pool == this) {
       return pt->thread_id;

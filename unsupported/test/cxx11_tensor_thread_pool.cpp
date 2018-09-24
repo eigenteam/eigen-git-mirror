@@ -18,12 +18,12 @@ using Eigen::Tensor;
 
 class TestAllocator : public Allocator {
  public:
-  ~TestAllocator() override {}
-  EIGEN_DEVICE_FUNC void* allocate(size_t num_bytes) const override {
+  ~TestAllocator() EIGEN_OVERRIDE {}
+  EIGEN_DEVICE_FUNC void* allocate(size_t num_bytes) const EIGEN_OVERRIDE {
     const_cast<TestAllocator*>(this)->alloc_count_++;
     return internal::aligned_malloc(num_bytes);
   }
-  EIGEN_DEVICE_FUNC void deallocate(void* buffer) const override {
+  EIGEN_DEVICE_FUNC void deallocate(void* buffer) const EIGEN_OVERRIDE {
     const_cast<TestAllocator*>(this)->dealloc_count_++;
     internal::aligned_free(buffer);
   }

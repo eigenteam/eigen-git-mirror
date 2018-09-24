@@ -638,6 +638,15 @@
   #endif
 #endif
 
+#ifndef EIGEN_HAS_CXX11_OVERRIDE_FINAL
+  #if    EIGEN_MAX_CPP_VER>=11 && \
+       (__cplusplus >= 201103L || EIGEN_COMP_MSVC >= 1700)
+    #define EIGEN_HAS_CXX11_OVERRIDE_FINAL 1
+  #else
+    #define EIGEN_HAS_CXX11_OVERRIDE_FINAL 0
+  #endif
+#endif
+
 #if defined(EIGEN_CUDACC) && EIGEN_HAS_CONSTEXPR
   // While available already with c++11, this is useful mostly starting with c++14 and relaxed constexpr rules
   #if defined(__NVCC__)
@@ -1093,6 +1102,15 @@ bool all(T t, Ts ... ts){ return t && all(ts...); }
 
 }
 }
+#endif
+
+#if EIGEN_HAS_CXX11_OVERRIDE_FINAL
+// provide override and final specifiers if they are available:
+#   define EIGEN_OVERRIDE override
+#   define EIGEN_FINAL final
+#else
+#   define EIGEN_OVERRIDE
+#   define EIGEN_FINAL
 #endif
 
 // Wrapping #pragma unroll in a macro since it is required for SYCL
