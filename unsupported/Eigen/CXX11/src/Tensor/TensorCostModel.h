@@ -188,7 +188,6 @@ class TensorCostModel {
     return totalCost(output_size, cost_per_coeff) / kTaskSize;
   }
 
- private:
   static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE double totalCost(
       double output_size, const TensorOpCost& cost_per_coeff) {
     // Cost of memory fetches from L2 cache. 64 is typical cache line size.
