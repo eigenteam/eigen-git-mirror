@@ -9,15 +9,8 @@
 
 #include "main.h"
 
-// Nothing to test here if we do not have mkldnn enabled.
-#if defined(EIGEN_USE_MKLDNN)
-
 #include <Eigen/CXX11/Tensor>
 
-using Eigen::array;
-using Eigen::ColMajor;
-using Eigen::Tensor;
-using Eigen::Index;
 using Eigen::internal::blas_data_mapper;
 using Eigen::internal::mkldnn_gemm_kernel;
 using Eigen::internal::mkldnn_gemm_pack;
@@ -136,6 +129,3 @@ EIGEN_DECLARE_TEST(cxx11_tensor_contraction_mkldnn) {
   CALL_SUBTEST(test_mkldnn_gemm_pack<float>());
   CALL_SUBTEST(test_mkldnn_gemm_kernel<float>());
 }
-#else
-EIGEN_DECLARE_TEST(cxx11_tensor_contraction_mkldnn) {}
-#endif  // EIGEN_USE_MKLDNN
