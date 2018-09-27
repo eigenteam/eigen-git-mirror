@@ -148,7 +148,7 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
     int num_threads = TensorCostModel<ThreadPoolDevice>::numThreads(
         static_cast<double>(n) * m, cost, this->m_device.numThreads());
     int num_threads_by_k = numThreadsInnerDim(m, n, k);
-    if (false && shardByInnerDim(m, n, k, num_threads, num_threads_by_k)) {
+    if (shardByInnerDim(m, n, k, num_threads, num_threads_by_k)) {
       // We are in the scenario where it is more effective to shard by the
       // inner dimension.
       this->template evalShardedByInnerDim<Alignment>(num_threads_by_k,
