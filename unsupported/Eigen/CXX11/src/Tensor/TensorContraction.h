@@ -665,6 +665,24 @@ struct TensorContractionEvaluatorBase
 
     // zero out the result buffer (which must be of size at least m * n * sizeof(Scalar)
     this->m_device.memset(buffer, 0, m * n * sizeof(Scalar));
+    this->template evalGemmPartial<lhs_inner_dim_contiguous,
+                                   rhs_inner_dim_contiguous,
+                                   rhs_inner_dim_reordered, Alignment>(buffer,
+                                                                       0, k, 1);
+  }
+
+  template <bool lhs_inner_dim_contiguous, bool rhs_inner_dim_contiguous, bool rhs_inner_dim_reordered, int Alignment>
+  EIGEN_DEVICE_FUNC void evalGemmPartial(Scalar* buffer, Index k_start, Index k_end, int /*num_threads*/) const {
+    // columns in left side, rows in right side
+    const Index k = this->m_k_size;
+
+    eigen_assert(k_end >= k_start && k_start >= 0 && k_end <= k);
+
+    // rows in left side
+    const Index m = this->m_i_size;
+
+    // columns in right side
+    const Index n = this->m_j_size;
 
     // define data mappers for Lhs and Rhs
     typedef typename internal::remove_const<typename EvalLeftArgType::Scalar>::type LhsScalar;
@@ -717,7 +735,7 @@ struct TensorContractionEvaluatorBase
     for(Index i2=0; i2<m; i2+=mc)
     {
       const Index actual_mc = numext::mini(i2+mc,m)-i2;
-      for (Index k2 = 0; k2 < k; k2 += kc) {
+      for (Index k2 = k_start; k2 < k_end; k2 += kc) {
         // make sure we don't overshoot right edge of left matrix, then pack vertical panel
         const Index actual_kc = numext::mini(k2 + kc, k) - k2;
         TensorContractionKernel::packLhs(blockA, lhs.getSubMapper(i2, k2),
