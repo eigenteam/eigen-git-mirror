@@ -136,6 +136,81 @@ struct traits<TensorEvaluator<const TensorContractionOp<Indices_, LeftArgType_, 
   static const int NumDimensions = traits<LeftArgType_>::NumDimensions + traits<RightArgType_>::NumDimensions - 2 * array_size<Indices_>::value;
 };
 
+// WARNING: In this code we assume that Lhs and Rhs tensor expressions are in
+// ColMajor storage order. This property is guaranteed by the
+// TensorContractionOp evaluator. TensorContractionKernel specifies how we pack
+// blocks of Lhs and Rhs tensor expressions, and how we invoke matrix
+// multiplication for these blocks. Default tensor contraction uses
+// gemm_pack_rhs, gemm_pack_lhs and gebp_kernel from Eigen Core (see
+// GeneralBlocPanelKernel.h for details).
+//
+// By specializing contraction kernels we can use other low level libraries to
+// perform matrix multiplication, and still rely on Eigen contraction evaluator.
+// This also includes full support in TensorContractionThreadPool, assuming that
+// underlying gemm do not use it's own threading.
+//
+// - ResScalar/LhsScalar/RhsScalar - scalar type for the result of
+//   multiplication, lhs tensor and rhs tensor respectively.
+//
+// - StorageIndex - index type for the tensor expressions. In practice almost
+//   always is Eigen::Index.
+//
+// - OutputMapper provides access to the memory of the output matrix. In
+//   practice it's always column major blas_data_mapper (it must be of ResScalar
+//   type).
+//
+// - LhsMapper/RhsMapper similarly to blas_data_mapper provide a two dimensional
+//   view into the Lhs/Rhs tensor expressions. In practice it's
+//   TensorContractionInputMapper, or some specialization of it based on the
+//   type of tensor expression (e.g. TensorImagePatchOp has optimized input
+//   mapper).
+template<typename ResScalar, typename LhsScalar, typename RhsScalar,
+    typename StorageIndex, typename OutputMapper, typename LhsMapper,
+    typename RhsMapper>
+struct TensorContractionKernel {
+  typedef typename internal::gebp_traits<LhsScalar, RhsScalar> Traits;
+
+  typedef internal::gemm_pack_lhs<LhsScalar, StorageIndex,
+                                  typename LhsMapper::SubMapper,
+                                  Traits::mr, Traits::LhsProgress,
+                                  typename Traits::LhsPacket4Packing, ColMajor>
+      LhsPacker;
+
+  typedef internal::gemm_pack_rhs<RhsScalar, StorageIndex,
+                                  typename RhsMapper::SubMapper, Traits::nr,
+                                  ColMajor>
+      RhsPacker;
+
+  typedef internal::gebp_kernel<LhsScalar, RhsScalar, StorageIndex,
+                                OutputMapper, Traits::mr, Traits::nr,
+      /*ConjugateLhs*/ false, /*ConjugateRhs*/ false>
+      GebpKernel;
+
+  EIGEN_DONT_INLINE
+  static void packLhs(LhsScalar* lhsBlock,
+                      const typename LhsMapper::SubMapper& data_mapper,
+                      const StorageIndex depth, const StorageIndex rows) {
+    LhsPacker()(lhsBlock, data_mapper, depth, rows, /*stride*/ 0, /*offset*/ 0);
+  }
+
+  EIGEN_DONT_INLINE
+  static void packRhs(RhsScalar* rhsBlock,
+                      const typename RhsMapper::SubMapper& data_mapper,
+                      const StorageIndex depth, const StorageIndex cols) {
+    RhsPacker()(rhsBlock, data_mapper, depth, cols);
+  }
+
+  EIGEN_DONT_INLINE
+  static void invoke(const OutputMapper& output_mapper,
+                     const LhsScalar* lhsBlock, const RhsScalar* rhsBlock,
+                     const StorageIndex rows, const StorageIndex depth,
+                     const StorageIndex cols, const ResScalar alpha) {
+    GebpKernel()(output_mapper, lhsBlock, rhsBlock, rows, depth, cols, alpha,
+        /*strideA*/ -1, /*strideB*/ -1,
+        /*offsetA*/ 0, /*offsetB*/ 0);
+  }
+};
+
 }  // end namespace internal
 
 // Tensor contraction params that should enable to get from output matrix
@@ -591,13 +666,9 @@ struct TensorContractionEvaluatorBase
     // zero out the result buffer (which must be of size at least m * n * sizeof(Scalar)
     this->m_device.memset(buffer, 0, m * n * sizeof(Scalar));
 
-    // define mr, nr, and all of my data mapper types
+    // define data mappers for Lhs and Rhs
     typedef typename internal::remove_const<typename EvalLeftArgType::Scalar>::type LhsScalar;
     typedef typename internal::remove_const<typename EvalRightArgType::Scalar>::type RhsScalar;
-    typedef typename internal::gebp_traits<LhsScalar, RhsScalar> Traits;
-
-    const Index nr = Traits::nr;
-    const Index mr = Traits::mr;
 
     typedef TensorEvaluator<EvalLeftArgType, Device> LeftEvaluator;
     typedef TensorEvaluator<EvalRightArgType, Device> RightEvaluator;
@@ -619,11 +690,9 @@ struct TensorContractionEvaluatorBase
 
     typedef internal::blas_data_mapper<Scalar, Index, ColMajor> OutputMapper;
 
-    // Declare GEBP packing and kernel structs
-    internal::gemm_pack_lhs<LhsScalar, Index, typename LhsMapper::SubMapper, mr, Traits::LhsProgress, typename Traits::LhsPacket4Packing, ColMajor> pack_lhs;
-    internal::gemm_pack_rhs<RhsScalar, Index, typename RhsMapper::SubMapper, nr, ColMajor> pack_rhs;
-
-    internal::gebp_kernel<LhsScalar, RhsScalar, Index, OutputMapper, mr, nr, false, false> gebp;
+    typedef internal::TensorContractionKernel<
+        Scalar, LhsScalar, RhsScalar, Index, OutputMapper, LhsMapper, RhsMapper>
+        TensorContractionKernel;
 
     // initialize data mappers
     LhsMapper lhs(this->m_leftImpl, this->m_left_nocontract_strides, this->m_i_strides,
@@ -635,7 +704,7 @@ struct TensorContractionEvaluatorBase
     OutputMapper output(buffer, m);
 
     // Sizes of the blocks to load in cache. See the Goto paper for details.
-    internal::TensorContractionBlocking<LhsScalar, RhsScalar, Index, internal::ShardByCol> blocking(k, m, n, 1);
+    internal::TensorContractionBlocking<Scalar, LhsScalar, RhsScalar, Index, internal::ShardByCol> blocking(k, m, n, 1);
     const Index kc = blocking.kc();
     const Index mc = numext::mini(m, blocking.mc());
     const Index nc = numext::mini(n, blocking.nc());
@@ -651,19 +720,22 @@ struct TensorContractionEvaluatorBase
       for (Index k2 = 0; k2 < k; k2 += kc) {
         // make sure we don't overshoot right edge of left matrix, then pack vertical panel
         const Index actual_kc = numext::mini(k2 + kc, k) - k2;
-        pack_lhs(blockA, lhs.getSubMapper(i2, k2), actual_kc, actual_mc, 0, 0);
+        TensorContractionKernel::packLhs(blockA, lhs.getSubMapper(i2, k2),
+                                         actual_kc, actual_mc);
 
         // series of horizontal blocks
         for (Index j2 = 0; j2 < n; j2 += nc) {
           // make sure we don't overshoot right edge of right matrix, then pack block
           const Index actual_nc = numext::mini(j2 + nc, n) - j2;
-          pack_rhs(blockB, rhs.getSubMapper(k2, j2), actual_kc, actual_nc, 0, 0);
+          TensorContractionKernel::packRhs(blockB, rhs.getSubMapper(k2, j2),
+                                           actual_kc, actual_nc);
 
           // call gebp (matrix kernel)
           // The parameters here are copied from Eigen's GEMM implementation
           const OutputMapper output_mapper = output.getSubMapper(i2, j2);
-          gebp(output_mapper, blockA, blockB, actual_mc, actual_kc, actual_nc,
-               Scalar(1), -1, -1, 0, 0);
+          TensorContractionKernel::invoke(output_mapper, blockA, blockB,
+                                          actual_mc, actual_kc, actual_nc,
+                                          Scalar(1));
 
           // We are done with this [i2, j2] output block.
           if (k2 + kc >= k) {

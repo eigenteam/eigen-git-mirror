@@ -15,177 +15,6 @@
 
 namespace Eigen {
 
-namespace internal {
-
-// WARNING: In this code we assume that Lhs and Rhs tensor expressions are in
-// ColMajor storage order. This property is guaranteed by the
-// TensorContractionOp evaluator. TensorContractionKernel specifies how we pack
-// blocks of Lhs and Rhs tensor expressions, and how we invoke matrix
-// multiplication for these blocks. Default tensor contraction uses
-// gemm_pack_rhs, gemm_pack_lhs and gebp_kernel from Eigen Core (see
-// GeneralBlocPanelKernel.h for details).
-//
-// By specializing contraction kernels we can use other low level libraries to
-// perform matrix multiplication, and still rely on Eigen thread pool evaluator
-// for scaling. Assumption is that custom gemm do not use it's own threading for
-// parallelisation.
-//
-// - ResScalar/LhsScalar/RhsScalar - scalar type for the result of
-//   multiplication, lhs tensor and rhs tensor respectively.
-//
-// - StorageIndex - index type for the tensor expressions. In practice almost
-//   always is Eigen::Index.
-//
-// - OutputMapper provides access to the memory of the output matrix. In
-//   practice it's always column major blas_data_mapper (it must be of ResScalar
-//   type).
-//
-// - LhsMapper/RhsMapper similarly to blas_data_mapper provide a two dimensional
-//   view into the Lhs/Rhs tensor expressions. In practice it's
-//   TensorContractionInputMapper, or some specialization of it based on the
-//   type of tensor expression (e.g. TensorImagePatchOp has optimized input
-//   mapper).
-//
-// TODO(ezhulenev): Use TensorContractionKernel in default tensor contraction
-// evaluator.
-template<typename ResScalar, typename LhsScalar, typename RhsScalar,
-    typename StorageIndex, typename OutputMapper, typename LhsMapper,
-    typename RhsMapper>
-struct TensorContractionKernel {
-  typedef typename internal::gebp_traits<LhsScalar, RhsScalar> Traits;
-
-  typedef internal::gemm_pack_lhs<LhsScalar, StorageIndex,
-                                  typename LhsMapper::SubMapper,
-                                  Traits::mr, Traits::LhsProgress,
-                                  typename Traits::LhsPacket4Packing, ColMajor>
-      LhsPacker;
-
-  typedef internal::gemm_pack_rhs<RhsScalar, StorageIndex,
-                                  typename RhsMapper::SubMapper, Traits::nr,
-                                  ColMajor>
-      RhsPacker;
-
-  typedef internal::gebp_kernel<LhsScalar, RhsScalar, StorageIndex,
-                                OutputMapper, Traits::mr, Traits::nr,
-      /*ConjugateLhs*/ false, /*ConjugateRhs*/ false>
-      GebpKernel;
-
-  EIGEN_DONT_INLINE
-  static void packLhs(LhsScalar* lhsBlock,
-                      const typename LhsMapper::SubMapper& data_mapper,
-                      const StorageIndex depth, const StorageIndex rows) {
-    LhsPacker()(lhsBlock, data_mapper, depth, rows);
-  }
-
-  EIGEN_DONT_INLINE
-  static void packRhs(RhsScalar* rhsBlock,
-                      const typename RhsMapper::SubMapper& data_mapper,
-                      const StorageIndex depth, const StorageIndex cols) {
-    RhsPacker()(rhsBlock, data_mapper, depth, cols);
-  }
-
-  EIGEN_DONT_INLINE
-  static void invoke(const OutputMapper& output_mapper,
-                     const LhsScalar* lhsBlock, const RhsScalar* rhsBlock,
-                     const StorageIndex rows, const StorageIndex depth,
-                     const StorageIndex cols, const ResScalar alpha) {
-    GebpKernel()(output_mapper, lhsBlock, rhsBlock, rows, depth, cols, alpha,
-        /*strideA*/ -1, /*strideB*/ -1,
-        /*offsetA*/ 0, /*offsetB*/ 0);
-  }
-};
-
-// Some tensor contraction kernels might rely on the gemm libraries that are
-// optimized for a specific dimension sizes. By default Eigen picks block
-// sizes to fit the working set in the L1/L2 caches, by specializing we can
-// refine this choice and round up these sizes to work well with underlying gemm
-// library.
-// TODO(ezhulenev): Move it to TensorContractionBlocking, or keep separate?
-template<typename ResScalar, typename LhsScalar, typename RhsScalar,
-    typename StorageIndex>
-struct TensorContractionKernelBlocking {
-  static void refine(const StorageIndex /*m*/,
-                     const StorageIndex /*n*/,
-                     const StorageIndex /*k*/,
-                     StorageIndex* /*bm*/,
-                     StorageIndex* /*bn*/,
-                     StorageIndex* /*bk*/) {
-    // By default we do nothing and stick to the block sizes picked by Eigen.
-  }
-};
-
-#if defined(EIGEN_USE_MKLDNN)
-// If all scalar types in tensor contraction are floats, we can use mkldnn gemm
-// as our low level kernel.
-template<typename StorageIndex, typename OutputMapper, typename LhsMapper,
-    typename RhsMapper>
-struct TensorContractionKernel<float, float, float, StorageIndex, OutputMapper,
-                               LhsMapper, RhsMapper> {
-  // For now mkldnn has only mkldnn_sgemm (gemm for floats).
-  typedef float Scalar;
-
-  typedef typename internal::gebp_traits<Scalar, Scalar> Traits;
-
-  typedef internal::mkldnn_gemm_pack<Scalar, StorageIndex,
-                                     typename LhsMapper::SubMapper, ColMajor>
-      LhsPacker;
-
-  typedef internal::mkldnn_gemm_pack<Scalar, StorageIndex,
-                                     typename RhsMapper::SubMapper, ColMajor>
-      RhsPacker;
-
-  typedef internal::mkldnn_gemm_kernel<Scalar, StorageIndex, OutputMapper>
-      GemmKernel;
-
-  EIGEN_DONT_INLINE
-  static void packLhs(Scalar* lhsBlock,
-                      const typename LhsMapper::SubMapper& data_mapper,
-                      StorageIndex depth, StorageIndex rows) {
-    LhsPacker()(lhsBlock, data_mapper, rows, depth);
-  }
-
-  EIGEN_DONT_INLINE
-  static void packRhs(Scalar* rhsBlock,
-                      const typename RhsMapper::SubMapper& data_mapper,
-                      const StorageIndex depth, const StorageIndex cols) {
-    RhsPacker()(rhsBlock, data_mapper, depth, cols);
-  }
-
-  EIGEN_DONT_INLINE
-  static void invoke(const OutputMapper& output_mapper, const Scalar* lhsBlock,
-                     const Scalar* rhsBlock, const StorageIndex rows,
-                     const StorageIndex depth, const StorageIndex cols,
-                     const Scalar alpha) {
-    GemmKernel()(output_mapper, lhsBlock, rhsBlock, rows, depth, cols, alpha);
-  }
-};
-
-// For mkldnn_sgemm having the right dimensions (especially for small matrices)
-// is more important than fitting all the working set in L1/L2 caches.
-template<typename StorageIndex>
-struct TensorContractionKernelBlocking<float, float, float, StorageIndex> {
-  // Mkldnn Avx/Avx2/Avx512 unroll factors are: 8/16/48. We pick the largest.
-  static const StorageIndex kUnrollM = 48;
-  // Mkldnn Avx/Avx2/Avx512 unroll factors are: 6/6/8. We pick the closest
-  // number that divides to both of them.
-  static const StorageIndex kUnrollN = 24;
-
-  static void refine(const StorageIndex m,
-                     const StorageIndex n,
-                     const StorageIndex /*k*/,
-                     StorageIndex* bm,
-                     StorageIndex* bn,
-                     StorageIndex* /*bk*/) {
-    // TODO(ezhulenev): There is probably a better way to pick block sizes.
-    *bm = (std::min)(m, Eigen::divup(*bm, kUnrollM) * kUnrollM);
-    *bn = (std::min)(n, Eigen::divup(*bn, kUnrollN) * kUnrollN);
-    // Stick with default bk.
-  }
-};
-
-#endif  // EIGEN_USE_MKLDNN
-} // namespace internal
-
 template<typename Indices, typename LeftArgType, typename RightArgType, typename OutputKernelType>
 struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgType, OutputKernelType>, ThreadPoolDevice> :
     public TensorContractionEvaluatorBase<TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgType, OutputKernelType>, ThreadPoolDevice> > {
@@ -295,14 +124,14 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
     // Again, we don't know number of threads yet, so we use 2.
     Index bm, bn, bk;
     if (shard_by_col) {
-      internal::TensorContractionBlocking<LhsScalar, RhsScalar, Index,
+      internal::TensorContractionBlocking<Scalar, LhsScalar, RhsScalar, Index,
                                           internal::ShardByCol>
           blocking(k, m, n, 2);
       bm = blocking.mc();
       bn = blocking.nc();
       bk = blocking.kc();
     } else {
-      internal::TensorContractionBlocking<LhsScalar, RhsScalar, Index,
+      internal::TensorContractionBlocking<Scalar, LhsScalar, RhsScalar, Index,
                                           internal::ShardByRow>
           blocking(k, m, n, 2);
       bm = blocking.mc();
@@ -332,24 +161,20 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
     // Now that we know number of threads, recalculate sharding and blocking.
     shard_by_col = shardByCol(m, n, num_threads);
     if (shard_by_col) {
-      internal::TensorContractionBlocking<LhsScalar, RhsScalar, Index,
+      internal::TensorContractionBlocking<Scalar, LhsScalar, RhsScalar, Index,
                                           internal::ShardByCol>
           blocking(k, m, n, num_threads);
       bm = blocking.mc();
       bn = blocking.nc();
       bk = blocking.kc();
     } else {
-      internal::TensorContractionBlocking<LhsScalar, RhsScalar, Index,
+      internal::TensorContractionBlocking<Scalar, LhsScalar, RhsScalar, Index,
                                           internal::ShardByRow>
           blocking(k, m, n, num_threads);
       bm = blocking.mc();
       bn = blocking.nc();
       bk = blocking.kc();
     }
-    // Refine blocking choice to work well with contraction kernel.
-    internal::TensorContractionKernelBlocking<Scalar, LhsScalar, RhsScalar,
-                                              Index>::refine(m, n, k, &bm,
-                                                             &bn, &bk);
 
     // Number of kernels for each dimension.
     Index nm0 = divup(m, bm);
