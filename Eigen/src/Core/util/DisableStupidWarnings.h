@@ -45,7 +45,7 @@
 
 #elif defined __GNUC__
 
-  #ifndef EIGEN_PERMANENTLY_DISABLE_STUPID_WARNINGS
+  #if (!defined(EIGEN_PERMANENTLY_DISABLE_STUPID_WARNINGS)) &&  (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6))
     #pragma GCC diagnostic push
   #endif
   // g++ warns about local variables shadowing member functions, which is too strict
