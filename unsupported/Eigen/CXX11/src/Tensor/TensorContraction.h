@@ -672,11 +672,12 @@ struct TensorContractionEvaluatorBase
   }
 
   template <bool lhs_inner_dim_contiguous, bool rhs_inner_dim_contiguous, bool rhs_inner_dim_reordered, int Alignment>
-  EIGEN_DEVICE_FUNC void evalGemmPartial(Scalar* buffer, Index k_start, Index k_end, int /*num_threads*/) const {
+  EIGEN_DEVICE_FUNC void evalGemmPartial(Scalar* buffer, Index k_start, Index k_end, int num_threads) const {
     // columns in left side, rows in right side
     const Index k = this->m_k_size;
 
     eigen_assert(k_end >= k_start && k_start >= 0 && k_end <= k);
+    const Index k_slice = k_end - k_start;
 
     // rows in left side
     const Index m = this->m_i_size;
@@ -722,7 +723,9 @@ struct TensorContractionEvaluatorBase
     OutputMapper output(buffer, m);
 
     // Sizes of the blocks to load in cache. See the Goto paper for details.
-    internal::TensorContractionBlocking<Scalar, LhsScalar, RhsScalar, Index, internal::ShardByCol> blocking(k, m, n, 1);
+    internal::TensorContractionBlocking<Scalar, LhsScalar, RhsScalar,
+                                        Index, internal::ShardByCol>
+        blocking(k_slice, m, n, num_threads);
     const Index kc = blocking.kc();
     const Index mc = numext::mini(m, blocking.mc());
     const Index nc = numext::mini(n, blocking.nc());
