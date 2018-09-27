@@ -127,5 +127,8 @@ static void test_mkldnn_gemm_kernel() {
 
 EIGEN_DECLARE_TEST(cxx11_tensor_contraction_mkldnn) {
   CALL_SUBTEST(test_mkldnn_gemm_pack<float>());
+  CALL_SUBTEST(test_mkldnn_gemm_pack<double>());
+
+  // mkldnn has only sgemm (aka gemm for floats).
   CALL_SUBTEST(test_mkldnn_gemm_kernel<float>());
 }
