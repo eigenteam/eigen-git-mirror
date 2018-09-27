@@ -144,24 +144,88 @@ class TensorBlock {
 
 template <typename Scalar, typename StorageIndex>
 struct TensorBlockCopyOp {
+
+  typedef typename packet_traits<Scalar>::type Packet;
+  enum {
+    Vectorizable = internal::packet_traits<Scalar>::Vectorizable,
+    PacketSize   = internal::packet_traits<Scalar>::size
+  };
+
   static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void Run(
       const StorageIndex num_coeff_to_copy, const StorageIndex dst_index,
       const StorageIndex dst_stride, Scalar* EIGEN_RESTRICT dst_data,
       const StorageIndex src_index, const StorageIndex src_stride,
       const Scalar* EIGEN_RESTRICT src_data) {
-    const Scalar* src_base = &src_data[src_index];
-    Scalar* dst_base = &dst_data[dst_index];
+    const Scalar* src = &src_data[src_index];
+    Scalar* dst = &dst_data[dst_index];
 
-    typedef const Array<Scalar, Dynamic, 1> Src;
-    typedef Array<Scalar, Dynamic, 1> Dst;
+    if (!Vectorizable) {
+      for (Index i = 0; i < num_coeff_to_copy; ++i) {
+        dst[i * dst_stride] = src[i * src_stride];
+      }
+      return;
+    }
 
-    typedef Map<Src, 0, InnerStride<> > SrcMap;
-    typedef Map<Dst, 0, InnerStride<> > DstMap;
-
-    const SrcMap src(src_base, num_coeff_to_copy, InnerStride<>(src_stride));
-    DstMap dst(dst_base, num_coeff_to_copy, InnerStride<>(dst_stride));
-
-    dst = src;
+    if (src_stride == 1) {
+      const Index vectorized_size = (num_coeff_to_copy / PacketSize) * PacketSize;
+      if (dst_stride == 1) {
+        // LINEAR
+        for (Index i = 0; i < vectorized_size; i += PacketSize) {
+          Packet p = internal::ploadu<Packet>(src + i);
+          internal::pstoreu<Scalar, Packet>(dst + i, p);
+        }
+        for (Index i = vectorized_size; i < num_coeff_to_copy; ++i) {
+          dst[i] = src[i];
+        }
+      } else {
+        // SCATTER
+        for (Index i = 0; i < vectorized_size; i += PacketSize) {
+          Packet p = internal::ploadu<Packet>(src + i);
+          internal::pscatter<Scalar, Packet>(dst + i * dst_stride, p, dst_stride);
+        }
+        for (Index i = vectorized_size; i < num_coeff_to_copy; ++i) {
+          dst[i * dst_stride] = src[i];
+        }
+      }
+    } else if (src_stride == 0) {
+      const Index vectorized_size = (num_coeff_to_copy / PacketSize) * PacketSize;
+      if (dst_stride == 1) {
+        // LINEAR
+        for (Index i = 0; i < vectorized_size; i += PacketSize) {
+          Packet p = internal::pload1<Packet>(src);
+          internal::pstoreu<Scalar, Packet>(dst + i, p);
+        }
+        for (Index i = vectorized_size; i < num_coeff_to_copy; ++i) {
+          dst[i] = *src;
+        }
+      } else {
+        // SCATTER
+        for (Index i = 0; i < vectorized_size; i += PacketSize) {
+          Packet p = internal::pload1<Packet>(src);
+          internal::pscatter<Scalar, Packet>(dst + i * dst_stride, p, dst_stride);
+        }
+        for (Index i = vectorized_size; i < num_coeff_to_copy; ++i) {
+          dst[i * dst_stride] = *src;
+        }
+      }
+    } else {
+      if (dst_stride == 1) {
+        // GATHER
+        const Index vectorized_size = (num_coeff_to_copy / PacketSize) * PacketSize;
+        for (Index i = 0; i < vectorized_size; i += PacketSize) {
+          Packet p = internal::pgather<Scalar, Packet>(src + i * src_stride, src_stride);
+          internal::pstoreu<Scalar, Packet>(dst + i, p);
+        }
+        for (Index i = vectorized_size; i < num_coeff_to_copy; ++i) {
+          dst[i] = src[i * src_stride];
+        }
+      } else {
+        // RANDOM
+        for (Index i = 0; i < num_coeff_to_copy; ++i) {
+          dst[i * dst_stride] = src[i * src_stride];
+        }
+      }
+    }
   }
 };
 
