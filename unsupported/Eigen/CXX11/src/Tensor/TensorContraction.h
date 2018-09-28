@@ -683,10 +683,8 @@ struct TensorContractionEvaluatorBase
 
   template <bool lhs_inner_dim_contiguous, bool rhs_inner_dim_contiguous, bool rhs_inner_dim_reordered, int Alignment, bool use_output_kernel = true>
   EIGEN_DEVICE_FUNC void evalGemmPartial(Scalar* buffer, Index k_start, Index k_end, int num_threads) const {
-    // columns in left side, rows in right side
-    const Index k = this->m_k_size;
-
-    eigen_assert(k_end >= k_start && k_start >= 0 && k_end <= k);
+    eigen_assert(k_end >= k_start && k_start >= 0 && k_end <= this->m_k_size);
+    // columns in slice on left side, rows on right side
     const Index k_slice = k_end - k_start;
 
     // rows in left side
