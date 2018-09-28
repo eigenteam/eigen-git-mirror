@@ -306,6 +306,86 @@ static void test_multithread_contraction_with_output_kernel() {
   }
 }
 
+// We are triggering 'evalShardedByInnerDim' optimization.
+template <int DataLayout>
+static void test_sharded_by_inner_dim_contraction()
+{
+  typedef Tensor<float, 1>::DimensionPair DimPair;
+
+  const int num_threads = internal::random<int>(4, 16);
+  ThreadPool threads(num_threads);
+  Eigen::ThreadPoolDevice device(&threads, num_threads);
+
+  Tensor<float, 2, DataLayout> t_left(2, 10000);
+  Tensor<float, 2, DataLayout> t_right(10000, 10);
+  Tensor<float, 2, DataLayout> t_result(2, 10);
+
+  t_left.setRandom();
+  t_right.setRandom();
+  // Put trash in t_result to verify contraction clears output memory.
+  t_result.setRandom();
+
+  // Add a little offset so that the results won't be close to zero.
+  t_left += t_left.constant(1.0f);
+  t_right += t_right.constant(1.0f);
+
+  typedef Map<Eigen::Matrix<float, Dynamic, Dynamic, DataLayout>> MapXf;
+  MapXf m_left(t_left.data(), 2, 10000);
+  MapXf m_right(t_right.data(), 10000, 10);
+  Eigen::Matrix<float, Dynamic, Dynamic, DataLayout> m_result(2, 10);
+
+  // this contraction should be equivalent to a single matrix multiplication
+  Eigen::array<DimPair, 1> dims({{DimPair(1, 0)}});
+
+  // compute results by separate methods
+  t_result.device(device) = t_left.contract(t_right, dims);
+  m_result = m_left * m_right;
+
+  for (Index i = 0; i < t_result.dimensions().TotalSize(); i++) {
+    VERIFY_IS_APPROX(t_result.data()[i], m_result.data()[i]);
+  }
+}
+
+// We are triggering 'evalShardedByInnerDim' optimization with output kernel.
+template <int DataLayout>
+static void test_sharded_by_inner_dim_contraction_with_output_kernel()
+{
+  typedef Tensor<float, 1>::DimensionPair DimPair;
+
+  const int num_threads = internal::random<int>(4, 16);
+  ThreadPool threads(num_threads);
+  Eigen::ThreadPoolDevice device(&threads, num_threads);
+
+  Tensor<float, 2, DataLayout> t_left(2, 10000);
+  Tensor<float, 2, DataLayout> t_right(10000, 10);
+  Tensor<float, 2, DataLayout> t_result(2, 10);
+
+  t_left.setRandom();
+  t_right.setRandom();
+  // Put trash in t_result to verify contraction clears output memory.
+  t_result.setRandom();
+
+  // Add a little offset so that the results won't be close to zero.
+  t_left += t_left.constant(1.0f);
+  t_right += t_right.constant(1.0f);
+
+  typedef Map<Eigen::Matrix<float, Dynamic, Dynamic, DataLayout>> MapXf;
+  MapXf m_left(t_left.data(), 2, 10000);
+  MapXf m_right(t_right.data(), 10000, 10);
+  Eigen::Matrix<float, Dynamic, Dynamic, DataLayout> m_result(2, 10);
+
+  // this contraction should be equivalent to a single matrix multiplication
+  Eigen::array<DimPair, 1> dims({{DimPair(1, 0)}});
+
+  // compute results by separate methods
+  t_result.device(device) = t_left.contract(t_right, dims, SqrtOutputKernel());
+  m_result = m_left * m_right;
+
+  for (Index i = 0; i < t_result.dimensions().TotalSize(); i++) {
+    VERIFY_IS_APPROX(t_result.data()[i], std::sqrt(m_result.data()[i]));
+  }
+}
+
 template<int DataLayout>
 void test_full_contraction() {
   int contract_size1 = internal::random<int>(1, 500);
@@ -446,21 +526,26 @@ EIGEN_DECLARE_TEST(cxx11_tensor_thread_pool)
   CALL_SUBTEST_3(test_multithread_contraction_with_output_kernel<ColMajor>());
   CALL_SUBTEST_3(test_multithread_contraction_with_output_kernel<RowMajor>());
 
+  CALL_SUBTEST_4(test_sharded_by_inner_dim_contraction<ColMajor>());
+  CALL_SUBTEST_4(test_sharded_by_inner_dim_contraction<RowMajor>());
+  CALL_SUBTEST_4(test_sharded_by_inner_dim_contraction_with_output_kernel<ColMajor>());
+  CALL_SUBTEST_4(test_sharded_by_inner_dim_contraction_with_output_kernel<RowMajor>());
+
   // Exercise various cases that have been problematic in the past.
-  CALL_SUBTEST_4(test_contraction_corner_cases<ColMajor>());
-  CALL_SUBTEST_4(test_contraction_corner_cases<RowMajor>());
+  CALL_SUBTEST_5(test_contraction_corner_cases<ColMajor>());
+  CALL_SUBTEST_5(test_contraction_corner_cases<RowMajor>());
 
-  CALL_SUBTEST_4(test_full_contraction<ColMajor>());
-  CALL_SUBTEST_4(test_full_contraction<RowMajor>());
+  CALL_SUBTEST_6(test_full_contraction<ColMajor>());
+  CALL_SUBTEST_6(test_full_contraction<RowMajor>());
 
-  CALL_SUBTEST_5(test_multithreaded_reductions<ColMajor>());
-  CALL_SUBTEST_5(test_multithreaded_reductions<RowMajor>());
+  CALL_SUBTEST_7(test_multithreaded_reductions<ColMajor>());
+  CALL_SUBTEST_7(test_multithreaded_reductions<RowMajor>());
 
-  CALL_SUBTEST_6(test_memcpy());
-  CALL_SUBTEST_6(test_multithread_random());
+  CALL_SUBTEST_7(test_memcpy());
+  CALL_SUBTEST_7(test_multithread_random());
 
   TestAllocator test_allocator;
-  CALL_SUBTEST_6(test_multithread_shuffle<ColMajor>(NULL));
-  CALL_SUBTEST_6(test_multithread_shuffle<RowMajor>(&test_allocator));
-  CALL_SUBTEST_6(test_threadpool_allocate(&test_allocator));
+  CALL_SUBTEST_7(test_multithread_shuffle<ColMajor>(NULL));
+  CALL_SUBTEST_7(test_multithread_shuffle<RowMajor>(&test_allocator));
+  CALL_SUBTEST_7(test_threadpool_allocate(&test_allocator));
 }

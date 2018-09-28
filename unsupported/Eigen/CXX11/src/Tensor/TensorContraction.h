@@ -671,7 +671,17 @@ struct TensorContractionEvaluatorBase
                                                                        0, k, 1);
   }
 
-  template <bool lhs_inner_dim_contiguous, bool rhs_inner_dim_contiguous, bool rhs_inner_dim_reordered, int Alignment>
+  template <bool lhs_inner_dim_contiguous, bool rhs_inner_dim_contiguous,
+      bool rhs_inner_dim_reordered, int Alignment>
+  EIGEN_DEVICE_FUNC void evalGemmPartialWithoutOutputKernel(
+      Scalar* buffer, Index k_start, Index k_end, int num_threads) const {
+    evalGemmPartial<lhs_inner_dim_contiguous, rhs_inner_dim_contiguous,
+                    rhs_inner_dim_reordered, Alignment,
+        /*use_output_kernel*/ false>(buffer, k_start, k_end,
+                                     num_threads);
+  }
+
+  template <bool lhs_inner_dim_contiguous, bool rhs_inner_dim_contiguous, bool rhs_inner_dim_reordered, int Alignment, bool use_output_kernel = true>
   EIGEN_DEVICE_FUNC void evalGemmPartial(Scalar* buffer, Index k_start, Index k_end, int num_threads) const {
     // columns in left side, rows in right side
     const Index k = this->m_k_size;
@@ -740,7 +750,7 @@ struct TensorContractionEvaluatorBase
       const Index actual_mc = numext::mini(i2+mc,m)-i2;
       for (Index k2 = k_start; k2 < k_end; k2 += kc) {
         // make sure we don't overshoot right edge of left matrix, then pack vertical panel
-        const Index actual_kc = numext::mini(k2 + kc, k) - k2;
+        const Index actual_kc = numext::mini(k2 + kc, k_end) - k2;
         TensorContractionKernel::packLhs(blockA, lhs.getSubMapper(i2, k2),
                                          actual_kc, actual_mc);
 
@@ -759,7 +769,7 @@ struct TensorContractionEvaluatorBase
                                           Scalar(1));
 
           // We are done with this [i2, j2] output block.
-          if (k2 + kc >= k) {
+          if (use_output_kernel && k2 + kc >= k_end) {
             m_output_kernel(output_mapper, m_tensor_contraction_params, i2, j2,
                             actual_mc, actual_nc);
           }
