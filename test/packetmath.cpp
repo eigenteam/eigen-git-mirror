@@ -227,6 +227,7 @@ template<typename Scalar> void packetmath()
 
   if(PacketSize>1)
   {
+    // apply different offsets to check that ploaddup is robust to unaligned inputs
     for(int offset=0;offset<4;++offset)
     {
       for(int i=0;i<PacketSize/2;++i)
@@ -238,6 +239,7 @@ template<typename Scalar> void packetmath()
 
   if(PacketSize>2)
   {
+    // apply different offsets to check that ploadquad is robust to unaligned inputs
     for(int offset=0;offset<4;++offset)
     {
       for(int i=0;i<PacketSize/4;++i)
