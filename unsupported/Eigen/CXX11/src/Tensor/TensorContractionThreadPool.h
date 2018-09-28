@@ -791,19 +791,19 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
     // The underlying GEMM kernel assumes that k is a multiple of 8 and
     // subtle breakage occurs if this is violated.
     Index block_size = 8 * divup<Index>(k, 8 * num_threads);
-    int num_blocks = internal::convert_index<int>(divup<Index>(k, block_size));
+    Index num_blocks = divup<Index>(k, block_size);
     // we use 'result' for the first block's partial result.
     MaxSizeVector<Scalar*> block_buffers(num_blocks - 1);
     Barrier barrier(num_blocks);
-    auto process_block = [=, &barrier](Scalar* buf, Index first, Index last) {
+    auto process_block = [=, &barrier](Scalar* buf, Index begin, Index end) {
       ::memset(buf, 0, m * n * sizeof(Scalar));
       TENSOR_CONTRACTION_DISPATCH(
           this->template evalGemmPartialWithoutOutputKernel, Alignment,
-          (buf, first, last, this->m_device.numThreads()));
+          (buf, begin, end, this->m_device.numThreads()));
       barrier.Notify();
     };
     Index start = 0;
-    for (int blocks_left = num_blocks; blocks_left > 0; --blocks_left) {
+    for (Index blocks_left = num_blocks; blocks_left > 0; --blocks_left) {
       // The underlying GEMM kernel assumes that k is a multiple of packet size
       // (currently largest packet size is 8) and subtle breakage occurs if
       // this is violated.
