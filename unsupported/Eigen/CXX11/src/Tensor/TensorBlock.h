@@ -167,61 +167,61 @@ struct TensorBlockCopyOp {
     }
 
     if (src_stride == 1) {
-      const Index vectorized_size = (num_coeff_to_copy / PacketSize) * PacketSize;
+      const StorageIndex vectorized_size = (num_coeff_to_copy / PacketSize) * PacketSize;
       if (dst_stride == 1) {
         // LINEAR
-        for (Index i = 0; i < vectorized_size; i += PacketSize) {
+        for (StorageIndex i = 0; i < vectorized_size; i += PacketSize) {
           Packet p = internal::ploadu<Packet>(src + i);
           internal::pstoreu<Scalar, Packet>(dst + i, p);
         }
-        for (Index i = vectorized_size; i < num_coeff_to_copy; ++i) {
+        for (StorageIndex i = vectorized_size; i < num_coeff_to_copy; ++i) {
           dst[i] = src[i];
         }
       } else {
         // SCATTER
-        for (Index i = 0; i < vectorized_size; i += PacketSize) {
+        for (StorageIndex i = 0; i < vectorized_size; i += PacketSize) {
           Packet p = internal::ploadu<Packet>(src + i);
           internal::pscatter<Scalar, Packet>(dst + i * dst_stride, p, dst_stride);
         }
-        for (Index i = vectorized_size; i < num_coeff_to_copy; ++i) {
+        for (StorageIndex i = vectorized_size; i < num_coeff_to_copy; ++i) {
           dst[i * dst_stride] = src[i];
         }
       }
     } else if (src_stride == 0) {
-      const Index vectorized_size = (num_coeff_to_copy / PacketSize) * PacketSize;
+      const StorageIndex vectorized_size = (num_coeff_to_copy / PacketSize) * PacketSize;
       if (dst_stride == 1) {
         // LINEAR
-        for (Index i = 0; i < vectorized_size; i += PacketSize) {
+        for (StorageIndex i = 0; i < vectorized_size; i += PacketSize) {
           Packet p = internal::pload1<Packet>(src);
           internal::pstoreu<Scalar, Packet>(dst + i, p);
         }
-        for (Index i = vectorized_size; i < num_coeff_to_copy; ++i) {
+        for (StorageIndex i = vectorized_size; i < num_coeff_to_copy; ++i) {
           dst[i] = *src;
         }
       } else {
         // SCATTER
-        for (Index i = 0; i < vectorized_size; i += PacketSize) {
+        for (StorageIndex i = 0; i < vectorized_size; i += PacketSize) {
           Packet p = internal::pload1<Packet>(src);
           internal::pscatter<Scalar, Packet>(dst + i * dst_stride, p, dst_stride);
         }
-        for (Index i = vectorized_size; i < num_coeff_to_copy; ++i) {
+        for (StorageIndex i = vectorized_size; i < num_coeff_to_copy; ++i) {
           dst[i * dst_stride] = *src;
         }
       }
     } else {
       if (dst_stride == 1) {
         // GATHER
-        const Index vectorized_size = (num_coeff_to_copy / PacketSize) * PacketSize;
-        for (Index i = 0; i < vectorized_size; i += PacketSize) {
+        const StorageIndex vectorized_size = (num_coeff_to_copy / PacketSize) * PacketSize;
+        for (StorageIndex i = 0; i < vectorized_size; i += PacketSize) {
           Packet p = internal::pgather<Scalar, Packet>(src + i * src_stride, src_stride);
           internal::pstoreu<Scalar, Packet>(dst + i, p);
         }
-        for (Index i = vectorized_size; i < num_coeff_to_copy; ++i) {
+        for (StorageIndex i = vectorized_size; i < num_coeff_to_copy; ++i) {
           dst[i] = src[i * src_stride];
         }
       } else {
         // RANDOM
-        for (Index i = 0; i < num_coeff_to_copy; ++i) {
+        for (StorageIndex i = 0; i < num_coeff_to_copy; ++i) {
           dst[i * dst_stride] = src[i * src_stride];
         }
       }
