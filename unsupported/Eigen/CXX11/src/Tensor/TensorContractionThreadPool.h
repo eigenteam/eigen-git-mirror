@@ -791,7 +791,7 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
     // The underlying GEMM kernel assumes that k is a multiple of 8 and
     // subtle breakage occurs if this is violated.
     Index block_size = 8 * divup<Index>(k, 8 * num_threads);
-    int num_blocks = divup<Index>(k, block_size);
+    int num_blocks = internal::convert_index<int>(divup<Index>(k, block_size));
     // we use 'result' for the first block's partial result.
     MaxSizeVector<Scalar*> block_buffers(num_blocks - 1);
     Barrier barrier(num_blocks);
@@ -855,7 +855,7 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
     // result.
     double reduction_cost = TensorCostModel<ThreadPoolDevice>::totalCost(
         m * n, TensorOpCost(2, 1, 1, true, output_packet_size));
-    Index num_threads = 1;
+    int num_threads = 1;
     double min_cost = total_parallel_cost;
     double kPerThreadOverHead = 4000;
     double kFixedOverHead = 100000;
