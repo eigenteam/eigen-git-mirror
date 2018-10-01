@@ -96,10 +96,16 @@ inline void throw_std_bad_alloc()
 /** \internal Like malloc, but the returned pointer is guaranteed to be 16-byte aligned.
   * Fast, but wastes 16 additional bytes of memory. Does not throw any exception.
   */
-inline void* handmade_aligned_malloc(std::size_t size, std::size_t alignment = EIGEN_DEFAULT_ALIGN_BYTES)
+EIGEN_DEVICE_FUNC inline void* handmade_aligned_malloc(std::size_t size, std::size_t alignment = EIGEN_DEFAULT_ALIGN_BYTES)
 {
   eigen_assert(alignment >= sizeof(void*) && (alignment & -alignment) == alignment && "Alignment must be at least sizeof(void*) and a power of 2");
+  
+#if defined(EIGEN_HIP_DEVICE_COMPILE)
+  void *original = ::malloc(size+alignment);
+#else
   void *original = std::malloc(size+alignment);
+#endif
+  
   if (original == 0) return 0;
   void *aligned = reinterpret_cast<void*>((reinterpret_cast<std::size_t>(original) & ~(std::size_t(alignment-1))) + alignment);
   *(reinterpret_cast<void**>(aligned) - 1) = original;
@@ -107,9 +113,15 @@ inline void* handmade_aligned_malloc(std::size_t size, std::size_t alignment = E
 }
 
 /** \internal Frees memory allocated with handmade_aligned_malloc */
-inline void handmade_aligned_free(void *ptr)
+EIGEN_DEVICE_FUNC inline void handmade_aligned_free(void *ptr)
 {
-  if (ptr) std::free(*(reinterpret_cast<void**>(ptr) - 1));
+  if (ptr) {
+#if defined(EIGEN_HIP_DEVICE_COMPILE)
+    ::free(*(reinterpret_cast<void**>(ptr) - 1));
+#else
+    std::free(*(reinterpret_cast<void**>(ptr) - 1));
+#endif
+  }
 }
 
 /** \internal

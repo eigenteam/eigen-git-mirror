@@ -186,21 +186,21 @@ struct TensorContractionKernel {
       /*ConjugateLhs*/ false, /*ConjugateRhs*/ false>
       GebpKernel;
 
-  EIGEN_DONT_INLINE
+  EIGEN_DEVICE_FUNC EIGEN_DONT_INLINE
   static void packLhs(LhsScalar* lhsBlock,
                       const typename LhsMapper::SubMapper& data_mapper,
                       const StorageIndex depth, const StorageIndex rows) {
     LhsPacker()(lhsBlock, data_mapper, depth, rows, /*stride*/ 0, /*offset*/ 0);
   }
 
-  EIGEN_DONT_INLINE
+  EIGEN_DEVICE_FUNC EIGEN_DONT_INLINE
   static void packRhs(RhsScalar* rhsBlock,
                       const typename RhsMapper::SubMapper& data_mapper,
                       const StorageIndex depth, const StorageIndex cols) {
     RhsPacker()(rhsBlock, data_mapper, depth, cols);
   }
 
-  EIGEN_DONT_INLINE
+  EIGEN_DEVICE_FUNC EIGEN_DONT_INLINE
   static void invoke(const OutputMapper& output_mapper,
                      const LhsScalar* lhsBlock, const RhsScalar* rhsBlock,
                      const StorageIndex rows, const StorageIndex depth,

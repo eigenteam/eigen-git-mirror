@@ -292,7 +292,7 @@ __global__ void FullReductionKernelHalfFloat(Reducer reducer, const Self input, 
 }
 
 template <typename Op>
-__global__ void ReductionCleanupKernelHalfFloat(Op& reducer, half* output, half2* scratch) {
+__global__ void ReductionCleanupKernelHalfFloat(Op reducer, half* output, half2* scratch) {
   eigen_assert(threadIdx.x == 1);
   half tmp = __low2half(*scratch);
   reducer.reduce(__high2half(*scratch), &tmp);
