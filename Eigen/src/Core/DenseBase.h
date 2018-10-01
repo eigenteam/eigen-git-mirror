@@ -572,6 +572,17 @@ template<typename Derived> class DenseBase
     }
     EIGEN_DEVICE_FUNC void reverseInPlace();
 
+    inline DenseStlIterator<Derived> begin();
+    inline DenseStlIterator<const Derived> begin() const;
+    inline DenseStlIterator<const Derived> cbegin() const;
+    inline DenseStlIterator<Derived> end();
+    inline DenseStlIterator<const Derived> end() const;
+    inline DenseStlIterator<const Derived> cend() const;
+    inline ColsProxy<Derived> allCols();
+    inline ColsProxy<const Derived> allCols() const;
+    inline RowsProxy<Derived> allRows();
+    inline RowsProxy<const Derived> allRows() const;
+
 #define EIGEN_CURRENT_STORAGE_BASE_CLASS Eigen::DenseBase
 #define EIGEN_DOC_BLOCK_ADDONS_NOT_INNER_PANEL
 #define EIGEN_DOC_BLOCK_ADDONS_INNER_PANEL_IF(COND)

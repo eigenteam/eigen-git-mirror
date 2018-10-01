@@ -310,6 +310,7 @@ using std::ptrdiff_t;
 #include "src/Core/Replicate.h"
 #include "src/Core/Reverse.h"
 #include "src/Core/ArrayWrapper.h"
+#include "src/Core/StlIterators.h"
 
 #ifdef EIGEN_USE_BLAS
 #include "src/Core/products/GeneralMatrixMatrix_BLAS.h"

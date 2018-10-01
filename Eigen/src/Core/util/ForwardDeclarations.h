@@ -133,6 +133,9 @@ template<typename ExpressionType> class ArrayWrapper;
 template<typename ExpressionType> class MatrixWrapper;
 template<typename Derived> class SolverBase;
 template<typename XprType> class InnerIterator;
+template<typename XprType> class DenseStlIterator;
+template<typename XprType> class ColsProxy;
+template<typename XprType> class RowsProxy;
 
 namespace internal {
 template<typename DecompositionType> struct kernel_retval_base;
