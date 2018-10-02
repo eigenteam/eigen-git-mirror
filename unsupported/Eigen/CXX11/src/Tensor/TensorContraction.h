@@ -667,8 +667,8 @@ struct TensorContractionEvaluatorBase
     this->m_device.memset(buffer, 0, m * n * sizeof(Scalar));
     this->template evalGemmPartial<lhs_inner_dim_contiguous,
                                    rhs_inner_dim_contiguous,
-                                   rhs_inner_dim_reordered, Alignment>(buffer,
-                                                                       0, k, 1);
+                                   rhs_inner_dim_reordered,
+                                   Alignment, true>(buffer, 0, k, 1);
   }
 
   template <bool lhs_inner_dim_contiguous, bool rhs_inner_dim_contiguous,
@@ -681,7 +681,7 @@ struct TensorContractionEvaluatorBase
                                      num_threads);
   }
 
-  template <bool lhs_inner_dim_contiguous, bool rhs_inner_dim_contiguous, bool rhs_inner_dim_reordered, int Alignment, bool use_output_kernel = true>
+  template <bool lhs_inner_dim_contiguous, bool rhs_inner_dim_contiguous, bool rhs_inner_dim_reordered, int Alignment, bool use_output_kernel>
   EIGEN_DEVICE_FUNC void evalGemmPartial(Scalar* buffer, Index k_start, Index k_end, int num_threads) const {
     eigen_assert(k_end >= k_start && k_start >= 0 && k_end <= this->m_k_size);
     // columns in slice on left side, rows on right side
