@@ -13,7 +13,7 @@ template<typename XprType,typename Derived>
 class DenseStlIteratorBase
 {
 public:
-  typedef std::ptrdiff_t difference_type;
+  typedef Index difference_type;
   typedef std::random_access_iterator_tag iterator_category;
 
   DenseStlIteratorBase() : mp_xpr(0), m_index(0) {}
@@ -30,13 +30,13 @@ public:
   Derived operator++(int) { Derived prev(derived()); operator++(); return prev;}
   Derived operator--(int) { Derived prev(derived()); operator--(); return prev;}
 
-  friend Derived operator+(const DenseStlIteratorBase& a, int b) { Derived ret(a.derived()); ret += b; return ret; }
-  friend Derived operator-(const DenseStlIteratorBase& a, int b) { Derived ret(a.derived()); ret -= b; return ret; }
-  friend Derived operator+(int a, const DenseStlIteratorBase& b) { Derived ret(b.derived()); ret += a; return ret; }
-  friend Derived operator-(int a, const DenseStlIteratorBase& b) { Derived ret(b.derived()); ret -= a; return ret; }
+  friend Derived operator+(const DenseStlIteratorBase& a, Index b) { Derived ret(a.derived()); ret += b; return ret; }
+  friend Derived operator-(const DenseStlIteratorBase& a, Index b) { Derived ret(a.derived()); ret -= b; return ret; }
+  friend Derived operator+(Index a, const DenseStlIteratorBase& b) { Derived ret(b.derived()); ret += a; return ret; }
+  friend Derived operator-(Index a, const DenseStlIteratorBase& b) { Derived ret(b.derived()); ret -= a; return ret; }
   
-  Derived& operator+=(int b) { m_index += b; return derived(); }
-  Derived& operator-=(int b) { m_index -= b; return derived(); }
+  Derived& operator+=(Index b) { m_index += b; return derived(); }
+  Derived& operator-=(Index b) { m_index -= b; return derived(); }
 
   difference_type operator-(const DenseStlIteratorBase& other) const { eigen_assert(mp_xpr == other.mp_xpr);return m_index - other.m_index; }
 
@@ -84,10 +84,9 @@ public:
   DenseStlIterator() : Base() {}
   DenseStlIterator(XprType& xpr, Index index) : Base(xpr,index) {}
 
-  reference operator*()       const { return (*mp_xpr)(m_index); }
-  reference operator[](int i) const { return (*mp_xpr)(i);       }
-  
-  pointer   operator->() const { return &((*mp_xpr)(m_index)); }
+  reference operator*()         const { return   (*mp_xpr)(m_index);   }
+  reference operator[](Index i) const { return   (*mp_xpr)(m_index+i); }
+  pointer   operator->()        const { return &((*mp_xpr)(m_index)); }
 };
 
 template<typename XprType,typename Derived>
@@ -154,10 +153,9 @@ public:
   DenseColStlIterator() : Base() {}
   DenseColStlIterator(XprType& xpr, Index index) : Base(xpr,index) {}
 
-  reference operator*()       const { return (*mp_xpr).col(m_index); }
-  reference operator[](int i) const { return (*mp_xpr).col(i);       }
-  
-  pointer   operator->() const { return &((*mp_xpr).col(m_index)); }
+  reference operator*()         const { return   (*mp_xpr).col(m_index);   }
+  reference operator[](Index i) const { return   (*mp_xpr).col(m_index+i); }
+  pointer   operator->()        const { return &((*mp_xpr).col(m_index)); }
 };
 
 template<typename XprType>
@@ -179,10 +177,9 @@ public:
   DenseRowStlIterator() : Base() {}
   DenseRowStlIterator(XprType& xpr, Index index) : Base(xpr,index) {}
 
-  reference operator*()       const { return (*mp_xpr).row(m_index); }
-  reference operator[](int i) const { return (*mp_xpr).row(i);       }
-  
-  pointer   operator->() const { return &((*mp_xpr).row(m_index)); }
+  reference operator*()         const { return   (*mp_xpr).row(m_index);   }
+  reference operator[](Index i) const { return   (*mp_xpr).row(m_index+i); }
+  pointer   operator->()        const { return &((*mp_xpr).row(m_index)); }
 };
 
 

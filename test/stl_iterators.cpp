@@ -59,6 +59,16 @@ void test_range_for_loop(int rows=Rows, int cols=Cols)
   VERIFY_IS_EQUAL(v,w);
 #endif
 
+  if(rows>=3) {
+    VERIFY_IS_EQUAL((v.begin()+rows/2)[1], v(rows/2+1));
+
+    VERIFY_IS_EQUAL((A.allRows().begin()+rows/2)[1], A.row(rows/2+1));
+  }
+
+  if(cols>=3) {
+    VERIFY_IS_EQUAL((A.allCols().begin()+cols/2)[1], A.col(cols/2+1));
+  }
+
   if(rows>=2)
   {
     v(1) = v(0)-Scalar(1);
@@ -84,11 +94,27 @@ void test_range_for_loop(int rows=Rows, int cols=Cols)
     j = internal::random<Index>(0,A.cols()-1);
     typename ColMatrixType::ColXpr Acol = A.col(j);
     std::partial_sum(begin(Acol), end(Acol), begin(v));
-    VERIFY_IS_APPROX(v(seq(1,last)), v(seq(0,last-1))+Acol(seq(1,last)));
+    VERIFY_IS_EQUAL(v(seq(1,last)), v(seq(0,last-1))+Acol(seq(1,last)));
 
     // inplace
     std::partial_sum(begin(Acol), end(Acol), begin(Acol));
-    VERIFY_IS_APPROX(v, Acol);
+    VERIFY_IS_EQUAL(v, Acol);
+  }
+
+  if(rows>=3)
+  {
+    // stress random access
+    v.setRandom();
+    VectorType v1 = v;
+    std::sort(begin(v1),end(v1));
+    std::nth_element(v.begin(), v.begin()+rows/2, v.end());
+    VERIFY_IS_APPROX(v1(rows/2), v(rows/2));
+
+    v.setRandom();
+    v1 = v;
+    std::sort(begin(v1)+rows/2,end(v1));
+    std::nth_element(v.begin()+rows/2, v.begin()+rows/4, v.end());
+    VERIFY_IS_APPROX(v1(rows/4), v(rows/4));
   }
 
 #if EIGEN_HAS_CXX11
