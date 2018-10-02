@@ -225,11 +225,11 @@ static void test_simple_reductions() {
     Tensor<int, 1> ints(10);
     std::iota(ints.data(), ints.data() + ints.dimension(0), 0);
 
-    TensorFixedSize<bool, Sizes<> > all;
-    all = ints.all();
-    VERIFY(!all());
-    all = (ints >= ints.constant(0)).all();
-    VERIFY(all());
+    TensorFixedSize<bool, Sizes<> > all_;
+    all_ = ints.all();
+    VERIFY(!all_());
+    all_ = (ints >= ints.constant(0)).all();
+    VERIFY(all_());
 
     TensorFixedSize<bool, Sizes<> > any;
     any = (ints > ints.constant(10)).any();
