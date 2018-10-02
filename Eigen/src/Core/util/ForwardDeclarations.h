@@ -134,6 +134,7 @@ template<typename ExpressionType> class MatrixWrapper;
 template<typename Derived> class SolverBase;
 template<typename XprType> class InnerIterator;
 template<typename XprType> class DenseStlIterator;
+template<typename XprType> class PointerBasedStlIterator;
 template<typename XprType, DirectionType Direction> class SubVectorsProxy;
 
 namespace internal {

@@ -57,6 +57,58 @@ protected:
 };
 
 template<typename XprType>
+class PointerBasedStlIterator
+{
+  enum { is_lvalue  = internal::is_lvalue<XprType>::value };
+public:
+  typedef Index difference_type;
+  typedef typename XprType::Scalar value_type;
+  typedef std::random_access_iterator_tag iterator_category;
+  typedef typename internal::conditional<bool(is_lvalue), value_type*, const value_type*>::type pointer;
+  typedef typename internal::conditional<bool(is_lvalue), value_type&, const value_type&>::type reference;
+
+  PointerBasedStlIterator() : m_ptr(0) {}
+  PointerBasedStlIterator(XprType& xpr, Index index) : m_incr(xpr.innerStride())
+  {
+    m_ptr = xpr.data() + index * m_incr.value();
+  }
+
+  reference operator*()         const { return *m_ptr;   }
+  reference operator[](Index i) const { return *(m_ptr+i*m_incr.value()); }
+  pointer   operator->()        const { return m_ptr;    }
+
+  PointerBasedStlIterator& operator++() { m_ptr += m_incr.value(); return *this; }
+  PointerBasedStlIterator& operator--() { m_ptr -= m_incr.value(); return *this; }
+
+  PointerBasedStlIterator operator++(int) { PointerBasedStlIterator prev(*this); operator++(); return prev;}
+  PointerBasedStlIterator operator--(int) { PointerBasedStlIterator prev(*this); operator--(); return prev;}
+
+  friend PointerBasedStlIterator operator+(const PointerBasedStlIterator& a, Index b) { PointerBasedStlIterator ret(a); ret += b; return ret; }
+  friend PointerBasedStlIterator operator-(const PointerBasedStlIterator& a, Index b) { PointerBasedStlIterator ret(a); ret -= b; return ret; }
+  friend PointerBasedStlIterator operator+(Index a, const PointerBasedStlIterator& b) { PointerBasedStlIterator ret(b); ret += a; return ret; }
+  friend PointerBasedStlIterator operator-(Index a, const PointerBasedStlIterator& b) { PointerBasedStlIterator ret(b); ret -= a; return ret; }
+  
+  PointerBasedStlIterator& operator+=(Index b) { m_ptr += b*m_incr.value(); return *this; }
+  PointerBasedStlIterator& operator-=(Index b) { m_ptr -= b*m_incr.value(); return *this; }
+
+  difference_type operator-(const PointerBasedStlIterator& other) const {
+    return (m_ptr - other.m_ptr)/m_incr.value();
+  }
+
+  bool operator==(const PointerBasedStlIterator& other) { return m_ptr == other.m_ptr; }
+  bool operator!=(const PointerBasedStlIterator& other) { return m_ptr != other.m_ptr; }
+  bool operator< (const PointerBasedStlIterator& other) { return m_ptr <  other.m_ptr; }
+  bool operator<=(const PointerBasedStlIterator& other) { return m_ptr <= other.m_ptr; }
+  bool operator> (const PointerBasedStlIterator& other) { return m_ptr >  other.m_ptr; }
+  bool operator>=(const PointerBasedStlIterator& other) { return m_ptr >= other.m_ptr; }
+
+protected:
+
+  pointer m_ptr;
+  internal::variable_if_dynamic<Index, XprType::InnerStrideAtCompileTime> m_incr;
+};
+
+template<typename XprType>
 class DenseStlIterator : public IndexedBasedStlIteratorBase<XprType, DenseStlIterator<XprType> >
 {
 public:
@@ -66,19 +118,22 @@ protected:
 
   enum {
     has_direct_access = (internal::traits<XprType>::Flags & DirectAccessBit) ? 1 : 0,
-    has_write_access  = internal::is_lvalue<XprType>::value
+    is_lvalue  = internal::is_lvalue<XprType>::value
   };
 
   typedef IndexedBasedStlIteratorBase<XprType,DenseStlIterator> Base;
   using Base::m_index;
   using Base::mp_xpr;
 
-  typedef typename internal::conditional<bool(has_direct_access), const value_type&, const value_type>::type read_only_ref_t;
+  // TODO currently const Transpose/Reshape expressions never returns const references,
+  // so lets return by value too.
+  //typedef typename internal::conditional<bool(has_direct_access), const value_type&, const value_type>::type read_only_ref_t;
+  typedef const value_type read_only_ref_t;
 
 public:
   
-  typedef typename internal::conditional<bool(has_write_access), value_type *, const value_type *>::type pointer;
-  typedef typename internal::conditional<bool(has_write_access), value_type&, read_only_ref_t>::type reference;
+  typedef typename internal::conditional<bool(is_lvalue), value_type *, const value_type *>::type pointer;
+  typedef typename internal::conditional<bool(is_lvalue), value_type&, read_only_ref_t>::type reference;
   
   DenseStlIterator() : Base() {}
   DenseStlIterator(XprType& xpr, Index index) : Base(xpr,index) {}
@@ -94,43 +149,43 @@ void swap(IndexedBasedStlIteratorBase<XprType,Derived>& a, IndexedBasedStlIterat
 }
 
 template<typename Derived>
-inline DenseStlIterator<Derived> DenseBase<Derived>::begin()
+inline typename DenseBase<Derived>::iterator DenseBase<Derived>::begin()
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived);
-  return DenseStlIterator<Derived>(derived(), 0);
+  return iterator(derived(), 0);
 }
 
 template<typename Derived>
-inline DenseStlIterator<const Derived> DenseBase<Derived>::begin() const
+inline typename DenseBase<Derived>::const_iterator DenseBase<Derived>::begin() const
 {
   return cbegin();
 }
 
 template<typename Derived>
-inline DenseStlIterator<const Derived> DenseBase<Derived>::cbegin() const
+inline typename DenseBase<Derived>::const_iterator DenseBase<Derived>::cbegin() const
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived);
-  return DenseStlIterator<const Derived>(derived(), 0);
+  return const_iterator(derived(), 0);
 }
 
 template<typename Derived>
-inline DenseStlIterator<Derived> DenseBase<Derived>::end()
+inline typename DenseBase<Derived>::iterator DenseBase<Derived>::end()
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived);
-  return DenseStlIterator<Derived>(derived(), size());
+  return iterator(derived(), size());
 }
 
 template<typename Derived>
-inline DenseStlIterator<const Derived> DenseBase<Derived>::end() const
+inline typename DenseBase<Derived>::const_iterator DenseBase<Derived>::end() const
 {
   return cend();
 }
 
 template<typename Derived>
-inline DenseStlIterator<const Derived> DenseBase<Derived>::cend() const
+inline typename DenseBase<Derived>::const_iterator DenseBase<Derived>::cend() const
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived);
-  return DenseStlIterator<const Derived>(derived(), size());
+  return const_iterator(derived(), size());
 }
 
 template<typename XprType, DirectionType Direction>

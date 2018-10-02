@@ -572,12 +572,21 @@ template<typename Derived> class DenseBase
     }
     EIGEN_DEVICE_FUNC void reverseInPlace();
 
-    inline DenseStlIterator<Derived> begin();
-    inline DenseStlIterator<const Derived> begin() const;
-    inline DenseStlIterator<const Derived> cbegin() const;
-    inline DenseStlIterator<Derived> end();
-    inline DenseStlIterator<const Derived> end() const;
-    inline DenseStlIterator<const Derived> cend() const;
+    typedef typename internal::conditional< (Flags&DirectAccessBit)==DirectAccessBit,
+                                            PointerBasedStlIterator<Derived>,
+                                            DenseStlIterator<Derived>
+                                          >::type iterator;
+
+    typedef typename internal::conditional< (Flags&DirectAccessBit)==DirectAccessBit,
+                                            PointerBasedStlIterator<const Derived>,
+                                            DenseStlIterator<const Derived>
+                                          >::type const_iterator;
+    inline iterator begin();
+    inline const_iterator begin() const;
+    inline const_iterator cbegin() const;
+    inline iterator end();
+    inline const_iterator end() const;
+    inline const_iterator cend() const;
     inline SubVectorsProxy<Derived,Vertical> allCols();
     inline SubVectorsProxy<const Derived,Vertical> allCols() const;
     inline SubVectorsProxy<Derived,Horizontal> allRows();
