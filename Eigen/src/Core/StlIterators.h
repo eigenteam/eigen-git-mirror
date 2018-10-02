@@ -10,16 +10,16 @@
 namespace Eigen {
 
 template<typename XprType,typename Derived>
-class DenseStlIteratorBase
+class IndexedBasedStlIteratorBase
 {
 public:
   typedef Index difference_type;
   typedef std::random_access_iterator_tag iterator_category;
 
-  DenseStlIteratorBase() : mp_xpr(0), m_index(0) {}
-  DenseStlIteratorBase(XprType& xpr, Index index) : mp_xpr(&xpr), m_index(index) {}
+  IndexedBasedStlIteratorBase() : mp_xpr(0), m_index(0) {}
+  IndexedBasedStlIteratorBase(XprType& xpr, Index index) : mp_xpr(&xpr), m_index(index) {}
 
-  void swap(DenseStlIteratorBase& other) {
+  void swap(IndexedBasedStlIteratorBase& other) {
     std::swap(mp_xpr,other.mp_xpr);
     std::swap(m_index,other.m_index);
   }
@@ -30,22 +30,22 @@ public:
   Derived operator++(int) { Derived prev(derived()); operator++(); return prev;}
   Derived operator--(int) { Derived prev(derived()); operator--(); return prev;}
 
-  friend Derived operator+(const DenseStlIteratorBase& a, Index b) { Derived ret(a.derived()); ret += b; return ret; }
-  friend Derived operator-(const DenseStlIteratorBase& a, Index b) { Derived ret(a.derived()); ret -= b; return ret; }
-  friend Derived operator+(Index a, const DenseStlIteratorBase& b) { Derived ret(b.derived()); ret += a; return ret; }
-  friend Derived operator-(Index a, const DenseStlIteratorBase& b) { Derived ret(b.derived()); ret -= a; return ret; }
+  friend Derived operator+(const IndexedBasedStlIteratorBase& a, Index b) { Derived ret(a.derived()); ret += b; return ret; }
+  friend Derived operator-(const IndexedBasedStlIteratorBase& a, Index b) { Derived ret(a.derived()); ret -= b; return ret; }
+  friend Derived operator+(Index a, const IndexedBasedStlIteratorBase& b) { Derived ret(b.derived()); ret += a; return ret; }
+  friend Derived operator-(Index a, const IndexedBasedStlIteratorBase& b) { Derived ret(b.derived()); ret -= a; return ret; }
   
   Derived& operator+=(Index b) { m_index += b; return derived(); }
   Derived& operator-=(Index b) { m_index -= b; return derived(); }
 
-  difference_type operator-(const DenseStlIteratorBase& other) const { eigen_assert(mp_xpr == other.mp_xpr);return m_index - other.m_index; }
+  difference_type operator-(const IndexedBasedStlIteratorBase& other) const { eigen_assert(mp_xpr == other.mp_xpr);return m_index - other.m_index; }
 
-  bool operator==(const DenseStlIteratorBase& other) { eigen_assert(mp_xpr == other.mp_xpr); return m_index == other.m_index; }
-  bool operator!=(const DenseStlIteratorBase& other) { eigen_assert(mp_xpr == other.mp_xpr); return m_index != other.m_index; }
-  bool operator< (const DenseStlIteratorBase& other) { eigen_assert(mp_xpr == other.mp_xpr); return m_index <  other.m_index; }
-  bool operator<=(const DenseStlIteratorBase& other) { eigen_assert(mp_xpr == other.mp_xpr); return m_index <= other.m_index; }
-  bool operator> (const DenseStlIteratorBase& other) { eigen_assert(mp_xpr == other.mp_xpr); return m_index >  other.m_index; }
-  bool operator>=(const DenseStlIteratorBase& other) { eigen_assert(mp_xpr == other.mp_xpr); return m_index >= other.m_index; }
+  bool operator==(const IndexedBasedStlIteratorBase& other) { eigen_assert(mp_xpr == other.mp_xpr); return m_index == other.m_index; }
+  bool operator!=(const IndexedBasedStlIteratorBase& other) { eigen_assert(mp_xpr == other.mp_xpr); return m_index != other.m_index; }
+  bool operator< (const IndexedBasedStlIteratorBase& other) { eigen_assert(mp_xpr == other.mp_xpr); return m_index <  other.m_index; }
+  bool operator<=(const IndexedBasedStlIteratorBase& other) { eigen_assert(mp_xpr == other.mp_xpr); return m_index <= other.m_index; }
+  bool operator> (const IndexedBasedStlIteratorBase& other) { eigen_assert(mp_xpr == other.mp_xpr); return m_index >  other.m_index; }
+  bool operator>=(const IndexedBasedStlIteratorBase& other) { eigen_assert(mp_xpr == other.mp_xpr); return m_index >= other.m_index; }
 
 protected:
 
@@ -57,7 +57,7 @@ protected:
 };
 
 template<typename XprType>
-class DenseStlIterator : public DenseStlIteratorBase<XprType, DenseStlIterator<XprType> >
+class DenseStlIterator : public IndexedBasedStlIteratorBase<XprType, DenseStlIterator<XprType> >
 {
 public:
   typedef typename XprType::Scalar value_type;
@@ -69,7 +69,7 @@ protected:
     has_write_access  = internal::is_lvalue<XprType>::value
   };
 
-  typedef DenseStlIteratorBase<XprType,DenseStlIterator> Base;
+  typedef IndexedBasedStlIteratorBase<XprType,DenseStlIterator> Base;
   using Base::m_index;
   using Base::mp_xpr;
 
@@ -80,7 +80,6 @@ public:
   typedef typename internal::conditional<bool(has_write_access), value_type *, const value_type *>::type pointer;
   typedef typename internal::conditional<bool(has_write_access), value_type&, read_only_ref_t>::type reference;
   
-
   DenseStlIterator() : Base() {}
   DenseStlIterator(XprType& xpr, Index index) : Base(xpr,index) {}
 
@@ -90,7 +89,7 @@ public:
 };
 
 template<typename XprType,typename Derived>
-void swap(DenseStlIteratorBase<XprType,Derived>& a, DenseStlIteratorBase<XprType,Derived>& b) {
+void swap(IndexedBasedStlIteratorBase<XprType,Derived>& a, IndexedBasedStlIteratorBase<XprType,Derived>& b) {
   a.swap(b);
 }
 
@@ -134,99 +133,66 @@ inline DenseStlIterator<const Derived> DenseBase<Derived>::cend() const
   return DenseStlIterator<const Derived>(derived(), size());
 }
 
-template<typename XprType>
-class DenseColStlIterator : public DenseStlIteratorBase<XprType, DenseColStlIterator<XprType> >
+template<typename XprType, DirectionType Direction>
+class SubVectorStlIterator : public IndexedBasedStlIteratorBase<XprType, SubVectorStlIterator<XprType,Direction> >
 {
 protected:
 
   enum { is_lvalue  = internal::is_lvalue<XprType>::value };
 
-  typedef DenseStlIteratorBase<XprType,DenseColStlIterator> Base;
+  typedef IndexedBasedStlIteratorBase<XprType,SubVectorStlIterator> Base;
   using Base::m_index;
   using Base::mp_xpr;
 
+  typedef typename internal::conditional<Direction==Vertical,typename XprType::ColXpr,typename XprType::RowXpr>::type SubVectorType;
+  typedef typename internal::conditional<Direction==Vertical,typename XprType::ConstColXpr,typename XprType::ConstRowXpr>::type ConstSubVectorType;
+
 public:
-  typedef typename internal::conditional<bool(is_lvalue), typename XprType::ColXpr, typename XprType::ConstColXpr>::type value_type;
+  typedef typename internal::conditional<bool(is_lvalue), SubVectorType, ConstSubVectorType>::type value_type;
   typedef value_type* pointer;
   typedef value_type  reference;
   
-  DenseColStlIterator() : Base() {}
-  DenseColStlIterator(XprType& xpr, Index index) : Base(xpr,index) {}
+  SubVectorStlIterator() : Base() {}
+  SubVectorStlIterator(XprType& xpr, Index index) : Base(xpr,index) {}
 
-  reference operator*()         const { return   (*mp_xpr).col(m_index);   }
-  reference operator[](Index i) const { return   (*mp_xpr).col(m_index+i); }
-  pointer   operator->()        const { return &((*mp_xpr).col(m_index)); }
+  reference operator*()         const { return   (*mp_xpr).template subVector<Direction>(m_index);   }
+  reference operator[](Index i) const { return   (*mp_xpr).template subVector<Direction>(m_index+i); }
+  pointer   operator->()        const { return &((*mp_xpr).template subVector<Direction>(m_index)); }
 };
 
-template<typename XprType>
-class DenseRowStlIterator : public DenseStlIteratorBase<XprType, DenseRowStlIterator<XprType> >
-{
-protected:
-
-  enum { is_lvalue  = internal::is_lvalue<XprType>::value };
-
-  typedef DenseStlIteratorBase<XprType,DenseRowStlIterator> Base;
-  using Base::m_index;
-  using Base::mp_xpr;
-
-public:
-  typedef typename internal::conditional<bool(is_lvalue), typename XprType::RowXpr, typename XprType::ConstRowXpr>::type value_type;
-  typedef value_type* pointer;
-  typedef value_type  reference;
-  
-  DenseRowStlIterator() : Base() {}
-  DenseRowStlIterator(XprType& xpr, Index index) : Base(xpr,index) {}
-
-  reference operator*()         const { return   (*mp_xpr).row(m_index);   }
-  reference operator[](Index i) const { return   (*mp_xpr).row(m_index+i); }
-  pointer   operator->()        const { return &((*mp_xpr).row(m_index)); }
-};
-
-
-template<typename Xpr>
-class ColsProxy
+template<typename XprType, DirectionType Direction>
+class SubVectorsProxy
 {
 public:
-  ColsProxy(Xpr& xpr) : m_xpr(xpr) {}
-  DenseColStlIterator<Xpr>       begin()  const { return DenseColStlIterator<Xpr>(m_xpr, 0); }
-  DenseColStlIterator<const Xpr> cbegin() const { return DenseColStlIterator<const Xpr>(m_xpr, 0); }
+  typedef SubVectorStlIterator<XprType,       Direction> iterator;
+  typedef SubVectorStlIterator<const XprType, Direction> const_iterator;
 
-  DenseColStlIterator<Xpr>       end()    const { return DenseColStlIterator<Xpr>(m_xpr, m_xpr.cols()); }
-  DenseColStlIterator<const Xpr> cend()   const { return DenseColStlIterator<const Xpr>(m_xpr, m_xpr.cols()); }
+  SubVectorsProxy(XprType& xpr) : m_xpr(xpr) {}
 
-protected:
-  Xpr& m_xpr;
-};
+  iterator        begin() const { return iterator      (m_xpr, 0); }
+  const_iterator cbegin() const { return const_iterator(m_xpr, 0); }
 
-template<typename Xpr>
-class RowsProxy
-{
-public:
-  RowsProxy(Xpr& xpr) : m_xpr(xpr) {}
-  DenseRowStlIterator<Xpr>       begin()  const { return DenseRowStlIterator<Xpr>(m_xpr, 0); }
-  DenseRowStlIterator<const Xpr> cbegin() const { return DenseRowStlIterator<const Xpr>(m_xpr, 0); }
-
-  DenseRowStlIterator<Xpr>       end()    const { return DenseRowStlIterator<Xpr>(m_xpr, m_xpr.rows()); }
-  DenseRowStlIterator<const Xpr> cend()   const { return DenseRowStlIterator<const Xpr>(m_xpr, m_xpr.rows()); }
+  iterator        end()   const { return iterator      (m_xpr, m_xpr.template subVectors<Direction>()); }
+  const_iterator cend()   const { return const_iterator(m_xpr, m_xpr.template subVectors<Direction>()); }
 
 protected:
-  Xpr& m_xpr;
+  XprType& m_xpr;
 };
 
 template<typename Derived>
-ColsProxy<Derived> DenseBase<Derived>::allCols()
-{ return ColsProxy<Derived>(derived()); }
+SubVectorsProxy<Derived,Vertical> DenseBase<Derived>::allCols()
+{ return SubVectorsProxy<Derived,Vertical>(derived()); }
 
 template<typename Derived>
-ColsProxy<const Derived> DenseBase<Derived>::allCols() const
-{ return ColsProxy<const Derived>(derived()); }
+SubVectorsProxy<const Derived,Vertical> DenseBase<Derived>::allCols() const
+{ return SubVectorsProxy<const Derived,Vertical>(derived()); }
 
 template<typename Derived>
-RowsProxy<Derived> DenseBase<Derived>::allRows()
-{ return RowsProxy<Derived>(derived()); }
+SubVectorsProxy<Derived,Horizontal> DenseBase<Derived>::allRows()
+{ return SubVectorsProxy<Derived,Horizontal>(derived()); }
 
 template<typename Derived>
-RowsProxy<const Derived> DenseBase<Derived>::allRows() const
-{ return RowsProxy<const Derived>(derived()); }
+SubVectorsProxy<const Derived,Horizontal> DenseBase<Derived>::allRows() const
+{ return SubVectorsProxy<const Derived,Horizontal>(derived()); }
 
 } // namespace Eigen

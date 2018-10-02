@@ -134,8 +134,7 @@ template<typename ExpressionType> class MatrixWrapper;
 template<typename Derived> class SolverBase;
 template<typename XprType> class InnerIterator;
 template<typename XprType> class DenseStlIterator;
-template<typename XprType> class ColsProxy;
-template<typename XprType> class RowsProxy;
+template<typename XprType, DirectionType Direction> class SubVectorsProxy;
 
 namespace internal {
 template<typename DecompositionType> struct kernel_retval_base;
