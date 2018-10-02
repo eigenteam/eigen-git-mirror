@@ -195,6 +195,14 @@ struct TensorEvaluator<const TensorReshapingOp<NewDimensions, ArgType>, Device>
     m_impl.getResourceRequirements(resources);
   }
 
+  // required in block(OutputTensorBlock* output_block) const
+  // For C++03 compatibility this must be defined outside the method
+  struct BlockIteratorState {
+    Index stride;
+    Index span;
+    Index size;
+    Index count;
+  };
   // TODO(andydavis) Reduce the overhead of this function.
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void block(
       OutputTensorBlock* output_block) const {
@@ -219,12 +227,6 @@ struct TensorEvaluator<const TensorReshapingOp<NewDimensions, ArgType>, Device>
     }
 
     // Initialize output block iterator state.
-    struct BlockIteratorState {
-      Index stride;
-      Index span;
-      Index size;
-      Index count;
-    };
     array<BlockIteratorState, NumOutputDims> block_iter_state;
 
     for (Index i = 0; i < NumOutputDims; ++i) {
