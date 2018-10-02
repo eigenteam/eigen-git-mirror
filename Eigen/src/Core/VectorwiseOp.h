@@ -186,24 +186,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
     };
 
   protected:
-
-    typedef typename internal::conditional<isVertical,
-                               typename ExpressionType::ColXpr,
-                               typename ExpressionType::RowXpr>::type SubVector;
-    /** \internal
-      * \returns the i-th subvector according to the \c Direction */
-    EIGEN_DEVICE_FUNC
-    SubVector subVector(Index i)
-    {
-      return SubVector(m_matrix.derived(),i);
-    }
-
-    /** \internal
-      * \returns the number of subvectors in the direction \c Direction */
-    EIGEN_DEVICE_FUNC
-    Index subVectors() const
-    { return isVertical?m_matrix.cols():m_matrix.rows(); }
-
+  
     template<typename OtherDerived> struct ExtendedType {
       typedef Replicate<OtherDerived,
                         isVertical   ? 1 : ExpressionType::RowsAtCompileTime,

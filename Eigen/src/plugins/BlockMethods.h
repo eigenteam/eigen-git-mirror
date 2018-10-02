@@ -1399,3 +1399,32 @@ innerVectors(Index outerStart, Index outerSize) const
                                                   IsRowMajor ? outerSize : rows(), IsRowMajor ? cols() : outerSize);
 
 }
+
+/** \returns the i-th subvector (column or vector) according to the \c Direction
+  * \sa subVectors()
+  */
+EIGEN_DEVICE_FUNC
+template<DirectionType Direction>
+typename internal::conditional<Direction==Vertical,ColXpr,RowXpr>::type
+subVector(Index i)
+{
+  return typename internal::conditional<Direction==Vertical,ColXpr,RowXpr>::type(derived(),i);
+}
+
+/** This is the const version of subVector(Index) */
+EIGEN_DEVICE_FUNC
+template<DirectionType Direction>
+typename internal::conditional<Direction==Vertical,ConstColXpr,ConstRowXpr>::type
+subVector(Index i) const
+{
+  return typename internal::conditional<Direction==Vertical,ConstColXpr,ConstRowXpr>::type(derived(),i);
+}
+
+/** \returns the number of subvectors (rows or columns) in the direction \c Direction
+  * \sa subVector(Index)
+  */
+EIGEN_DEVICE_FUNC
+template<DirectionType Direction>
+Index subVectors() const
+{ return (Direction==Vertical)?cols():rows(); }
+

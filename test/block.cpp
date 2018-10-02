@@ -220,6 +220,13 @@ template<typename MatrixType> void block(const MatrixType& m)
     VERIFY_RAISES_ASSERT( m1.array() *= m1.col(0).array() );
     VERIFY_RAISES_ASSERT( m1.array() /= m1.col(0).array() );
   }
+
+  VERIFY_IS_EQUAL( m1.template subVector<Horizontal>(r1), m1.row(r1) );
+  VERIFY_IS_APPROX( (m1+m1).template subVector<Horizontal>(r1), (m1+m1).row(r1) );
+  VERIFY_IS_EQUAL( m1.template subVector<Vertical>(c1), m1.col(c1) );
+  VERIFY_IS_APPROX( (m1+m1).template subVector<Vertical>(c1), (m1+m1).col(c1) );
+  VERIFY_IS_EQUAL( m1.template subVectors<Horizontal>(), m1.rows() );
+  VERIFY_IS_EQUAL( m1.template subVectors<Vertical>(), m1.cols() );
 }
 
 
