@@ -794,7 +794,7 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
     Index num_blocks = divup<Index>(k, block_size);
     // we use 'result' for the first block's partial result.
     MaxSizeVector<Scalar*> block_buffers(num_blocks - 1);
-    Barrier barrier(num_blocks);
+    Barrier barrier(internal::convert_index<int>(num_blocks));
     auto process_block = [=, &barrier](Scalar* buf, Index begin, Index end) {
       ::memset(buf, 0, m * n * sizeof(Scalar));
       TENSOR_CONTRACTION_DISPATCH(
