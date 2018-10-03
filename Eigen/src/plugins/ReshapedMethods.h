@@ -43,11 +43,11 @@ reshaped(NRowsType nRows, NColsType nCols) const;
 /// \tparam Order specifies whether the coefficients should be processed in column-major-order (ColMajor), in row-major-order (RowMajor),
 ///               or follows the \em natural order of the nested expression (AutoOrder). The default is ColMajor.
 ///
-/// This overloads is essentially a shortcut for `A.reshaped<Order>(AutoSize,fix<1>).
+/// This overloads is essentially a shortcut for `A.reshaped<Order>(AutoSize,fix<1>)`.
 ///
-/// - If Order==ColMajor (the default), then it returns a column-vector from the stacked columns of \c *this.
-/// - If Order==RowMajor, then it returns a column-vector from the stacked rows of \c *this.
-/// - If Order==AutoOrder, then it returns a column-vector with elements stacked following the storage order of \c *this.
+/// - If `Order==ColMajor` (the default), then it returns a column-vector from the stacked columns of \c *this.
+/// - If `Order==RowMajor`, then it returns a column-vector from the stacked rows of \c *this.
+/// - If `Order==AutoOrder`, then it returns a column-vector with elements stacked following the storage order of \c *this.
 ///   This mode is the recommended one when the particular ordering of the element is not relevant.
 ///
 /// Example:

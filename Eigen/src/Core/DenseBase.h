@@ -572,15 +572,25 @@ template<typename Derived> class DenseBase
     }
     EIGEN_DEVICE_FUNC void reverseInPlace();
 
+    #ifdef EIGEN_PARSED_BY_DOXYGEN
+    /** STL-like \link https://en.cppreference.com/w/cpp/named_req/RandomAccessIterator RandomAccessIterator \endlink
+      * iterator type as returned by the begin() and end() methods.
+      */
+    typedef random_access_iterator_type iterator;
+    /** This is the const version of iterator (aka read-only) */
+    typedef random_access_iterator_type const_iterator;
+    #else
     typedef typename internal::conditional< (Flags&DirectAccessBit)==DirectAccessBit,
-                                            PointerBasedStlIterator<Derived>,
-                                            DenseStlIterator<Derived>
+                                            internal::pointer_based_stl_iterator<Derived>,
+                                            internal::generic_randaccess_stl_iterator<Derived>
                                           >::type iterator;
 
     typedef typename internal::conditional< (Flags&DirectAccessBit)==DirectAccessBit,
-                                            PointerBasedStlIterator<const Derived>,
-                                            DenseStlIterator<const Derived>
+                                            internal::pointer_based_stl_iterator<const Derived>,
+                                            internal::generic_randaccess_stl_iterator<const Derived>
                                           >::type const_iterator;
+    #endif
+
     inline iterator begin();
     inline const_iterator begin() const;
     inline const_iterator cbegin() const;

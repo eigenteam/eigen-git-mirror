@@ -17,20 +17,42 @@ make_reverse_iterator( Iterator i )
   return std::reverse_iterator<Iterator>(i);
 }
 
-template<typename XprType>
-bool is_PointerBasedStlIterator(const PointerBasedStlIterator<XprType> &) { return true; }
+#if !EIGEN_HAS_CXX11
+template<class ForwardIt>
+ForwardIt is_sorted_until(ForwardIt firstIt, ForwardIt lastIt)
+{
+    if (firstIt != lastIt) {
+        ForwardIt next = firstIt;
+        while (++next != lastIt) {
+            if (*next < *firstIt)
+                return next;
+            firstIt = next;
+        }
+    }
+    return lastIt;
+}
+template<class ForwardIt>
+bool is_sorted(ForwardIt firstIt, ForwardIt lastIt)
+{
+    return ::is_sorted_until(firstIt, lastIt) == lastIt;
+}
+#else
+using std::is_sorted;
+#endif
 
 template<typename XprType>
-bool is_DenseStlIterator(const DenseStlIterator<XprType> &) { return true; }
+bool is_pointer_based_stl_iterator(const internal::pointer_based_stl_iterator<XprType> &) { return true; }
+
+template<typename XprType>
+bool is_generic_randaccess_stl_iterator(const internal::generic_randaccess_stl_iterator<XprType> &) { return true; }
 
 template<typename Scalar, int Rows, int Cols>
-void test_range_for_loop(int rows=Rows, int cols=Cols)
+void test_stl_iterators(int rows=Rows, int cols=Cols)
 {
-  using std::begin;
-  using std::end;
-
   typedef Matrix<Scalar,Rows,1> VectorType;
+  #if EIGEN_HAS_CXX11
   typedef Matrix<Scalar,1,Cols> RowVectorType;
+  #endif
   typedef Matrix<Scalar,Rows,Cols,ColMajor> ColMatrixType;
   typedef Matrix<Scalar,Rows,Cols,RowMajor> RowMatrixType;
   VectorType v = VectorType::Random(rows);
@@ -41,53 +63,90 @@ void test_range_for_loop(int rows=Rows, int cols=Cols)
   
   Index i, j;
 
-  VERIFY( is_PointerBasedStlIterator(v.begin()) );
-  VERIFY( is_PointerBasedStlIterator(v.end()) );
-  VERIFY( is_PointerBasedStlIterator(cv.begin()) );
-  VERIFY( is_PointerBasedStlIterator(cv.end()) );
+  // Check we got a fast pointer-based iterator when expected
+  {
+    VERIFY( is_pointer_based_stl_iterator(v.begin()) );
+    VERIFY( is_pointer_based_stl_iterator(v.end()) );
+    VERIFY( is_pointer_based_stl_iterator(cv.begin()) );
+    VERIFY( is_pointer_based_stl_iterator(cv.end()) );
 
-  j = internal::random<Index>(0,A.cols()-1);
-  VERIFY( is_PointerBasedStlIterator(A.col(j).begin()) );
-  VERIFY( is_PointerBasedStlIterator(A.col(j).end()) );
-  VERIFY( is_PointerBasedStlIterator(cA.col(j).begin()) );
-  VERIFY( is_PointerBasedStlIterator(cA.col(j).end()) );
+    j = internal::random<Index>(0,A.cols()-1);
+    VERIFY( is_pointer_based_stl_iterator(A.col(j).begin()) );
+    VERIFY( is_pointer_based_stl_iterator(A.col(j).end()) );
+    VERIFY( is_pointer_based_stl_iterator(cA.col(j).begin()) );
+    VERIFY( is_pointer_based_stl_iterator(cA.col(j).end()) );
 
-  i = internal::random<Index>(0,A.rows()-1);
-  VERIFY( is_PointerBasedStlIterator(A.row(i).begin()) );
-  VERIFY( is_PointerBasedStlIterator(A.row(i).end()) );
-  VERIFY( is_PointerBasedStlIterator(cA.row(i).begin()) );
-  VERIFY( is_PointerBasedStlIterator(cA.row(i).end()) );
+    i = internal::random<Index>(0,A.rows()-1);
+    VERIFY( is_pointer_based_stl_iterator(A.row(i).begin()) );
+    VERIFY( is_pointer_based_stl_iterator(A.row(i).end()) );
+    VERIFY( is_pointer_based_stl_iterator(cA.row(i).begin()) );
+    VERIFY( is_pointer_based_stl_iterator(cA.row(i).end()) );
 
-  VERIFY( is_PointerBasedStlIterator(A.reshaped().begin()) );
-  VERIFY( is_PointerBasedStlIterator(A.reshaped().end()) );
-  VERIFY( is_PointerBasedStlIterator(cA.reshaped().begin()) );
-  VERIFY( is_PointerBasedStlIterator(cA.reshaped().end()) );
+    VERIFY( is_pointer_based_stl_iterator(A.reshaped().begin()) );
+    VERIFY( is_pointer_based_stl_iterator(A.reshaped().end()) );
+    VERIFY( is_pointer_based_stl_iterator(cA.reshaped().begin()) );
+    VERIFY( is_pointer_based_stl_iterator(cA.reshaped().end()) );
 
-  VERIFY( is_PointerBasedStlIterator(B.template reshaped<AutoOrder>().begin()) );
-  VERIFY( is_PointerBasedStlIterator(B.template reshaped<AutoOrder>().end()) );
+    VERIFY( is_pointer_based_stl_iterator(B.template reshaped<AutoOrder>().begin()) );
+    VERIFY( is_pointer_based_stl_iterator(B.template reshaped<AutoOrder>().end()) );
 
-  VERIFY( is_DenseStlIterator(A.template reshaped<RowMajor>().begin()) );
-  VERIFY( is_DenseStlIterator(A.template reshaped<RowMajor>().end()) );
-  
+    VERIFY( is_generic_randaccess_stl_iterator(A.template reshaped<RowMajor>().begin()) );
+    VERIFY( is_generic_randaccess_stl_iterator(A.template reshaped<RowMajor>().end()) );
+  }
+
 #if EIGEN_HAS_CXX11
-  i = 0;
-  for(auto x : v) { VERIFY_IS_EQUAL(x,v[i++]); }
+  // check swappable
+  {
+    using std::swap;
+    // pointer-based
+    {
+      VectorType v_copy = v;
+      auto a = v.begin();
+      auto b = v.end()-1;
+      swap(a,b);
+      VERIFY_IS_EQUAL(v,v_copy);
+      VERIFY_IS_EQUAL(*b,*v.begin());
+      VERIFY_IS_EQUAL(*b,v(0));
+      VERIFY_IS_EQUAL(*a,v.end()[-1]);
+      VERIFY_IS_EQUAL(*a,v(last));
+    }
 
-  j = internal::random<Index>(0,A.cols()-1);
-  i = 0;
-  for(auto x : A.col(j)) { VERIFY_IS_EQUAL(x,A(i++,j)); }
+    // generic
+    {
+      RowMatrixType B_copy = B;
+      auto Br = B.reshaped();
+      auto a = Br.begin();
+      auto b = Br.end()-1;
+      swap(a,b);
+      VERIFY_IS_EQUAL(B,B_copy);
+      VERIFY_IS_EQUAL(*b,*Br.begin());
+      VERIFY_IS_EQUAL(*b,Br(0));
+      VERIFY_IS_EQUAL(*a,Br.end()[-1]);
+      VERIFY_IS_EQUAL(*a,Br(last));
+    }
+  }
 
-  i = 0;
-  for(auto x : (v+A.col(j))) { VERIFY_IS_APPROX(x,v(i)+A(i,j)); ++i; }
+  // check non-const iterator with for-range loops
+  {
+    i = 0;
+    for(auto x : v) { VERIFY_IS_EQUAL(x,v[i++]); }
 
-  j = 0;
-  i = internal::random<Index>(0,A.rows()-1);
-  for(auto x : A.row(i)) { VERIFY_IS_EQUAL(x,A(i,j++)); }
+    j = internal::random<Index>(0,A.cols()-1);
+    i = 0;
+    for(auto x : A.col(j)) { VERIFY_IS_EQUAL(x,A(i++,j)); }
 
-  i = 0;
-  for(auto x : A.reshaped()) { VERIFY_IS_EQUAL(x,A(i++)); }
+    i = 0;
+    for(auto x : (v+A.col(j))) { VERIFY_IS_APPROX(x,v(i)+A(i,j)); ++i; }
 
-  // check const_iterator
+    j = 0;
+    i = internal::random<Index>(0,A.rows()-1);
+    for(auto x : A.row(i)) { VERIFY_IS_EQUAL(x,A(i,j++)); }
+
+    i = 0;
+    for(auto x : A.reshaped()) { VERIFY_IS_EQUAL(x,A(i++)); }
+  }
+
+  // same for const_iterator
   {
     i = 0;
     for(auto x : cv) { VERIFY_IS_EQUAL(x,v[i++]); }
@@ -100,49 +159,51 @@ void test_range_for_loop(int rows=Rows, int cols=Cols)
     for(auto x : cA.row(i)) { VERIFY_IS_EQUAL(x,A(i,j++)); }
   }
 
-  Matrix<Scalar,Dynamic,Dynamic,ColMajor> Bc = B;
-  i = 0;
-  for(auto x : B.reshaped()) { VERIFY_IS_EQUAL(x,Bc(i++)); }
-
-  VectorType w(v.size());
-  i = 0;
-  for(auto& x : w) { x = v(i++); }
-  VERIFY_IS_EQUAL(v,w);
-
+  // check reshaped() on row-major
   {
-    j = internal::random<Index>(0,A.cols()-1);
-    auto it = A.col(j).begin();
-    for(i=0;i<rows;++i) {
-      VERIFY_IS_EQUAL(it[i],A(i,j));
+    i = 0;
+    Matrix<Scalar,Dynamic,Dynamic,ColMajor> Bc = B;
+    for(auto x : B.reshaped()) { VERIFY_IS_EQUAL(x,Bc(i++)); }
+  }
+
+  // check write access
+  {
+    VectorType w(v.size());
+    i = 0;
+    for(auto& x : w) { x = v(i++); }
+    VERIFY_IS_EQUAL(v,w);
+  }
+
+  // check for dangling pointers
+  {
+    // no dangling because pointer-based
+    {
+      j = internal::random<Index>(0,A.cols()-1);
+      auto it = A.col(j).begin();
+      for(i=0;i<rows;++i) {
+        VERIFY_IS_EQUAL(it[i],A(i,j));
+      }
+    }
+
+    // no dangling because pointer-based
+    {
+      i = internal::random<Index>(0,A.rows()-1);
+      auto it = A.row(i).begin();
+      for(j=0;j<cols;++j) { VERIFY_IS_EQUAL(it[j],A(i,j)); }
+    }
+
+    {
+      j = internal::random<Index>(0,A.cols()-1);
+      // this would produce a dangling pointer:
+      // auto it = (A+2*A).col(j).begin(); 
+      // we need to name the temporary expression:
+      auto tmp = (A+2*A).col(j);
+      auto it = tmp.begin();
+      for(i=0;i<rows;++i) {
+        VERIFY_IS_APPROX(it[i],3*A(i,j));
+      }
     }
   }
-
-  {
-    i = internal::random<Index>(0,A.rows()-1);
-    auto it = A.row(i).begin();
-    for(j=0;j<cols;++j) { VERIFY_IS_EQUAL(it[j],A(i,j)); }
-  }
-
-  {
-    j = internal::random<Index>(0,A.cols()-1);
-    // this would produce a dangling pointer:
-    // auto it = (A+2*A).col(j).begin(); 
-    // we need to name the temporary expression:
-    auto tmp = (A+2*A).col(j);
-    auto it = tmp.begin();
-    for(i=0;i<rows;++i) {
-      VERIFY_IS_APPROX(it[i],3*A(i,j));
-    }
-  }
-
-  
-  // {
-  //   j = internal::random<Index>(0,A.cols()-1);
-  //   auto it = (A+2*A).col(j).begin();
-  //   for(i=0;i<rows;++i) {
-  //     VERIFY_IS_APPROX(it[i],3*A(i,j));
-  //   }
-  // }
 #endif
 
   if(rows>=3) {
@@ -155,108 +216,125 @@ void test_range_for_loop(int rows=Rows, int cols=Cols)
     VERIFY_IS_EQUAL((A.allCols().begin()+cols/2)[1], A.col(cols/2+1));
   }
 
-  if(rows>=2)
+  // check std::sort
   {
-    v(1) = v(0)-Scalar(1);
-    VERIFY(!std::is_sorted(begin(v),end(v)));
-  }
-  std::sort(begin(v),end(v));
-  VERIFY(std::is_sorted(begin(v),end(v)));
-  VERIFY(!std::is_sorted(make_reverse_iterator(end(v)),make_reverse_iterator(begin(v))));
+    // first check that is_sorted returns false when required
+    if(rows>=2)
+    {
+      v(1) = v(0)-Scalar(1);
+      #if EIGEN_HAS_CXX11
+      VERIFY(!is_sorted(std::begin(v),std::end(v)));
+      #else
+      VERIFY(!is_sorted(v.cbegin(),v.cend()));
+      #endif
+    }
 
-  // std::sort with pointer-based iterator and default increment
+    // on a vector
+    {
+      std::sort(v.begin(),v.end());
+      VERIFY(is_sorted(v.begin(),v.end()));
+      VERIFY(!::is_sorted(make_reverse_iterator(v.end()),make_reverse_iterator(v.begin())));
+    }
+
+    // on a column of a column-major matrix -> pointer-based iterator and default increment
+    {
+      j = internal::random<Index>(0,A.cols()-1);
+      // std::sort(begin(A.col(j)),end(A.col(j))); // does not compile because this returns const iterators
+      typename ColMatrixType::ColXpr Acol = A.col(j);
+      std::sort(Acol.begin(),Acol.end());
+      VERIFY(is_sorted(Acol.cbegin(),Acol.cend()));
+      A.setRandom();
+
+      std::sort(A.col(j).begin(),A.col(j).end());
+      VERIFY(is_sorted(A.col(j).cbegin(),A.col(j).cend()));
+      A.setRandom();
+    }
+
+    // on a row of a rowmajor matrix -> pointer-based iterator and runtime increment
+    {
+      i = internal::random<Index>(0,A.rows()-1);
+      typename ColMatrixType::RowXpr Arow = A.row(i);
+      VERIFY_IS_EQUAL( std::distance(Arow.begin(),Arow.end()), cols);
+      std::sort(Arow.begin(),Arow.end());
+      VERIFY(is_sorted(Arow.cbegin(),Arow.cend()));
+      A.setRandom();
+
+      std::sort(A.row(i).begin(),A.row(i).end());
+      VERIFY(is_sorted(A.row(i).cbegin(),A.row(i).cend()));
+      A.setRandom();
+    }
+
+    // with a generic iterator
+    {
+      Reshaped<RowMatrixType,RowMatrixType::SizeAtCompileTime,1> B1 = B.reshaped();
+      std::sort(B1.begin(),B1.end());
+      VERIFY(is_sorted(B1.cbegin(),B1.cend()));
+      B.setRandom();
+
+      // assertion because nested expressions are different
+      // std::sort(B.reshaped().begin(),B.reshaped().end());
+      // VERIFY(is_sorted(B.reshaped().cbegin(),B.reshaped().cend()));
+      // B.setRandom();
+    }
+  }
+
+  // check with partial_sum
   {
     j = internal::random<Index>(0,A.cols()-1);
-    // std::sort(begin(A.col(j)),end(A.col(j))); // does not compile because this returns const iterators
     typename ColMatrixType::ColXpr Acol = A.col(j);
-    std::sort(begin(Acol),end(Acol));
-    VERIFY(std::is_sorted(Acol.cbegin(),Acol.cend()));
-    A.setRandom();
-
-    std::sort(A.col(j).begin(),A.col(j).end());
-    VERIFY(std::is_sorted(A.col(j).cbegin(),A.col(j).cend()));
-    A.setRandom();
-  }
-
-  // std::sort with pointer-based iterator and runtime increment
-  {
-    i = internal::random<Index>(0,A.rows()-1);
-    typename ColMatrixType::RowXpr Arow = A.row(i);
-    VERIFY_IS_EQUAL( std::distance(begin(Arow),end(Arow)), cols);
-    std::sort(begin(Arow),end(Arow));
-    VERIFY(std::is_sorted(Arow.cbegin(),Arow.cend()));
-    A.setRandom();
-
-    std::sort(A.row(i).begin(),A.row(i).end());
-    VERIFY(std::is_sorted(A.row(i).cbegin(),A.row(i).cend()));
-    A.setRandom();
-  }
-
-  // std::sort with generic iterator
-  {
-    auto B1 = B.reshaped();
-    std::sort(begin(B1),end(B1));
-    VERIFY(std::is_sorted(B1.cbegin(),B1.cend()));
-    B.setRandom();
-
-    // assertion because nested expressions are different
-    // std::sort(B.reshaped().begin(),B.reshaped().end());
-    // VERIFY(std::is_sorted(B.reshaped().cbegin(),B.reshaped().cend()));
-    // B.setRandom();
-  }
-
-  {
-    j = internal::random<Index>(0,A.cols()-1);
-    typename ColMatrixType::ColXpr Acol = A.col(j);
-    std::partial_sum(begin(Acol), end(Acol), begin(v));
+    std::partial_sum(Acol.begin(), Acol.end(), v.begin());
     VERIFY_IS_EQUAL(v(seq(1,last)), v(seq(0,last-1))+Acol(seq(1,last)));
 
     // inplace
-    std::partial_sum(begin(Acol), end(Acol), begin(Acol));
+    std::partial_sum(Acol.begin(), Acol.end(), Acol.begin());
     VERIFY_IS_EQUAL(v, Acol);
   }
 
+  // stress random access as required by std::nth_element
   if(rows>=3)
   {
-    // stress random access
     v.setRandom();
     VectorType v1 = v;
-    std::sort(begin(v1),end(v1));
+    std::sort(v1.begin(),v1.end());
     std::nth_element(v.begin(), v.begin()+rows/2, v.end());
     VERIFY_IS_APPROX(v1(rows/2), v(rows/2));
 
     v.setRandom();
     v1 = v;
-    std::sort(begin(v1)+rows/2,end(v1));
+    std::sort(v1.begin()+rows/2,v1.end());
     std::nth_element(v.begin()+rows/2, v.begin()+rows/4, v.end());
     VERIFY_IS_APPROX(v1(rows/4), v(rows/4));
   }
 
 #if EIGEN_HAS_CXX11
-  j = 0;
-  for(auto c : A.allCols()) { VERIFY_IS_APPROX(c.sum(), A.col(j).sum()); ++j; }
-  j = 0;
-  for(auto c : B.allCols()) { VERIFY_IS_APPROX(c.sum(), B.col(j).sum()); ++j; }
+  // check rows/cols iterators with range-for loops
+  {
+    j = 0;
+    for(auto c : A.allCols()) { VERIFY_IS_APPROX(c.sum(), A.col(j).sum()); ++j; }
+    j = 0;
+    for(auto c : B.allCols()) { VERIFY_IS_APPROX(c.sum(), B.col(j).sum()); ++j; }
 
-  j = 0;
-  for(auto c : B.allCols()) {
-    i = 0;
-    for(auto& x : c) {
-      VERIFY_IS_EQUAL(x, B(i,j));
-      x = A(i,j);
-      ++i;
+    j = 0;
+    for(auto c : B.allCols()) {
+      i = 0;
+      for(auto& x : c) {
+        VERIFY_IS_EQUAL(x, B(i,j));
+        x = A(i,j);
+        ++i;
+      }
+      ++j;
     }
-    ++j;
+    VERIFY_IS_APPROX(A,B);
+    B.setRandom();
+    
+    i = 0;
+    for(auto r : A.allRows()) { VERIFY_IS_APPROX(r.sum(), A.row(i).sum()); ++i; }
+    i = 0;
+    for(auto r : B.allRows()) { VERIFY_IS_APPROX(r.sum(), B.row(i).sum()); ++i; }
   }
-  VERIFY_IS_APPROX(A,B);
-  B = Bc; // restore B
-  
-  i = 0;
-  for(auto r : A.allRows()) { VERIFY_IS_APPROX(r.sum(), A.row(i).sum()); ++i; }
-  i = 0;
-  for(auto r : B.allRows()) { VERIFY_IS_APPROX(r.sum(), B.row(i).sum()); ++i; }
 
 
+  // check rows/cols iterators with STL algorithms
   {
     RowVectorType row = RowVectorType::Random(cols);
     A.rowwise() = row;
@@ -265,6 +343,16 @@ void test_range_for_loop(int rows=Rows, int cols=Cols)
     VectorType col = VectorType::Random(rows);
     A.colwise() = col;
     VERIFY( std::all_of(A.allCols().begin(), A.allCols().end(), [&col](typename ColMatrixType::ColXpr x) { return internal::isApprox(x.norm(),col.norm()); }) );
+
+    i = internal::random<Index>(0,A.rows()-1);
+    A.setRandom();
+    A.row(i).setZero();
+    VERIFY_IS_EQUAL( std::find_if(A.allRows().begin(), A.allRows().end(), [](typename ColMatrixType::RowXpr x) { return x.norm() == Scalar(0); })-A.allRows().begin(), i );
+
+    j = internal::random<Index>(0,A.cols()-1);
+    A.setRandom();
+    A.col(j).setZero();
+    VERIFY_IS_EQUAL( std::find_if(A.allCols().begin(), A.allCols().end(), [](typename ColMatrixType::ColXpr x) { return x.norm() == Scalar(0); })-A.allCols().begin(), j );
   }
 
 #endif
@@ -273,9 +361,9 @@ void test_range_for_loop(int rows=Rows, int cols=Cols)
 EIGEN_DECLARE_TEST(stl_iterators)
 {
   for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST_1(( test_range_for_loop<double,2,3>() ));
-    CALL_SUBTEST_1(( test_range_for_loop<float,7,5>() ));
-    CALL_SUBTEST_1(( test_range_for_loop<int,Dynamic,Dynamic>(internal::random<int>(5,10), internal::random<int>(5,10)) ));
-    CALL_SUBTEST_1(( test_range_for_loop<int,Dynamic,Dynamic>(internal::random<int>(10,200), internal::random<int>(10,200)) ));
+    CALL_SUBTEST_1(( test_stl_iterators<double,2,3>() ));
+    CALL_SUBTEST_1(( test_stl_iterators<float,7,5>() ));
+    CALL_SUBTEST_1(( test_stl_iterators<int,Dynamic,Dynamic>(internal::random<int>(5,10), internal::random<int>(5,10)) ));
+    CALL_SUBTEST_1(( test_stl_iterators<int,Dynamic,Dynamic>(internal::random<int>(10,200), internal::random<int>(10,200)) ));
   }
 }

@@ -133,11 +133,11 @@ template<typename ExpressionType> class ArrayWrapper;
 template<typename ExpressionType> class MatrixWrapper;
 template<typename Derived> class SolverBase;
 template<typename XprType> class InnerIterator;
-template<typename XprType> class DenseStlIterator;
-template<typename XprType> class PointerBasedStlIterator;
 template<typename XprType, DirectionType Direction> class SubVectorsProxy;
 
 namespace internal {
+template<typename XprType> class generic_randaccess_stl_iterator;
+template<typename XprType> class pointer_based_stl_iterator;
 template<typename DecompositionType> struct kernel_retval_base;
 template<typename DecompositionType> struct kernel_retval;
 template<typename DecompositionType> struct image_retval_base;
