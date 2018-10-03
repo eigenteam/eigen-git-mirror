@@ -125,7 +125,7 @@ template<typename XprType, int Rows, int Cols, int Order> class Reshaped
     }
 };
 
-// The generic default implementation for dense reshape simplu forward to the internal::ReshapedImpl_dense
+// The generic default implementation for dense reshape simply forward to the internal::ReshapedImpl_dense
 // that must be specialized for direct and non-direct access...
 template<typename XprType, int Rows, int Cols, int Order>
 class ReshapedImpl<XprType, Rows, Cols, Order, Dense>

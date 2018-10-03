@@ -157,8 +157,9 @@ void reshape4x4(MatType m)
   VERIFY_IS_EQUAL(m.reshaped().reshaped(8,2), m.reshaped(8,2));
 
   VERIFY_IS_EQUAL(m.reshaped(), m.template reshaped<ColMajor>());
-  VERIFY_IS_EQUAL(m.transpose().reshaped().transpose(), m.template reshaped<RowMajor>());
-  VERIFY_IS_EQUAL(m.template reshaped<RowMajor>(fix<1>, AutoSize), m.template reshaped<RowMajor>());
+  VERIFY_IS_EQUAL(m.transpose().reshaped(), m.template reshaped<RowMajor>());
+  VERIFY_IS_EQUAL(m.template reshaped<RowMajor>(AutoSize,fix<1>), m.template reshaped<RowMajor>());
+  VERIFY_IS_EQUAL(m.template reshaped<AutoOrder>(AutoSize,fix<1>), m.template reshaped<AutoOrder>());
 
   VERIFY(is_same_eq(m.reshaped(AutoSize,fix<1>), m.reshaped()));
   VERIFY_IS_EQUAL(m.template reshaped<RowMajor>(fix<1>,AutoSize), m.transpose().reshaped().transpose());
