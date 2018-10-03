@@ -30,6 +30,7 @@ void test_range_for_loop(int rows=Rows, int cols=Cols)
   using std::end;
 
   typedef Matrix<Scalar,Rows,1> VectorType;
+  typedef Matrix<Scalar,1,Cols> RowVectorType;
   typedef Matrix<Scalar,Rows,Cols,ColMajor> ColMatrixType;
   typedef Matrix<Scalar,Rows,Cols,RowMajor> RowMatrixType;
   VectorType v = VectorType::Random(rows);
@@ -61,6 +62,9 @@ void test_range_for_loop(int rows=Rows, int cols=Cols)
   VERIFY( is_PointerBasedStlIterator(A.reshaped().end()) );
   VERIFY( is_PointerBasedStlIterator(cA.reshaped().begin()) );
   VERIFY( is_PointerBasedStlIterator(cA.reshaped().end()) );
+
+  VERIFY( is_PointerBasedStlIterator(B.template reshaped<AutoOrder>().begin()) );
+  VERIFY( is_PointerBasedStlIterator(B.template reshaped<AutoOrder>().end()) );
 
   VERIFY( is_DenseStlIterator(A.template reshaped<RowMajor>().begin()) );
   VERIFY( is_DenseStlIterator(A.template reshaped<RowMajor>().end()) );
@@ -251,6 +255,17 @@ void test_range_for_loop(int rows=Rows, int cols=Cols)
   for(auto r : A.allRows()) { VERIFY_IS_APPROX(r.sum(), A.row(i).sum()); ++i; }
   i = 0;
   for(auto r : B.allRows()) { VERIFY_IS_APPROX(r.sum(), B.row(i).sum()); ++i; }
+
+
+  {
+    RowVectorType row = RowVectorType::Random(cols);
+    A.rowwise() = row;
+    VERIFY( std::all_of(A.allRows().begin(), A.allRows().end(), [&row](typename ColMatrixType::RowXpr x) { return internal::isApprox(x.norm(),row.norm()); }) );
+
+    VectorType col = VectorType::Random(rows);
+    A.colwise() = col;
+    VERIFY( std::all_of(A.allCols().begin(), A.allCols().end(), [&col](typename ColMatrixType::ColXpr x) { return internal::isApprox(x.norm(),col.norm()); }) );
+  }
 
 #endif
 }
