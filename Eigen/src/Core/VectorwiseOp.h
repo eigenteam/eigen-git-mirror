@@ -139,18 +139,30 @@ struct member_redux {
 /** \class VectorwiseOp
   * \ingroup Core_Module
   *
-  * \brief Pseudo expression providing partial reduction operations
+  * \brief Pseudo expression providing broadcasting and partial reduction operations
   *
   * \tparam ExpressionType the type of the object on which to do partial reductions
-  * \tparam Direction indicates the direction of the redux (#Vertical or #Horizontal)
+  * \tparam Direction indicates whether to operate on columns (#Vertical) or rows (#Horizontal)
   *
-  * This class represents a pseudo expression with partial reduction features.
+  * This class represents a pseudo expression with broadcasting and partial reduction features.
   * It is the return type of DenseBase::colwise() and DenseBase::rowwise()
-  * and most of the time this is the only way it is used.
+  * and most of the time this is the only way it is explicitly used.
   *
+  * To understand the logic of rowwise/colwise expression, let's consider a generic case `A.colwise().foo()`
+  * where `foo` is any method of `VectorwiseOp`. This expression is equivalent to applying `foo()` to each
+  * column of `A` and then re-assemble the outputs in a matrix expression:
+  * \code [A.col(0).foo(), A.col(1).foo(), ..., A.col(A.cols()-1).foo()] \endcode
+  * 
   * Example: \include MatrixBase_colwise.cpp
   * Output: \verbinclude MatrixBase_colwise.out
   *
+  * The begin() and end() methods are obviously exceptions to the previous rule as they
+  * return STL-compatible begin/end iterators to the rows or columns of the nested expression.
+  * Typical use cases include for-range-loop and calls to STL algorithms:
+  * 
+  * Example: \include MatrixBase_colwise_iterator_cxx11.cpp
+  * Output: \verbinclude MatrixBase_colwise_iterator_cxx11.out
+  * 
   * \sa DenseBase::colwise(), DenseBase::rowwise(), class PartialReduxExpr
   */
 template<typename ExpressionType, int Direction> class VectorwiseOp

@@ -498,7 +498,7 @@ template<typename Derived> class DenseBase
     typedef VectorwiseOp<Derived, Vertical> ColwiseReturnType;
     typedef const VectorwiseOp<const Derived, Vertical> ConstColwiseReturnType;
 
-    /** \returns a VectorwiseOp wrapper of *this providing additional partial reduction operations
+    /** \returns a VectorwiseOp wrapper of *this for broadcasting and partial reductions
     *
     * Example: \include MatrixBase_rowwise.cpp
     * Output: \verbinclude MatrixBase_rowwise.out
@@ -511,7 +511,7 @@ template<typename Derived> class DenseBase
     }
     EIGEN_DEVICE_FUNC RowwiseReturnType rowwise();
 
-    /** \returns a VectorwiseOp wrapper of *this providing additional partial reduction operations
+    /** \returns a VectorwiseOp wrapper of *this broadcasting and partial reductions
     *
     * Example: \include MatrixBase_colwise.cpp
     * Output: \verbinclude MatrixBase_colwise.out
