@@ -241,6 +241,32 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
     EIGEN_DEVICE_FUNC
     inline const ExpressionType& _expression() const { return m_matrix; }
 
+    #ifdef EIGEN_PARSED_BY_DOXYGEN
+    /** STL-like \link https://en.cppreference.com/w/cpp/named_req/RandomAccessIterator RandomAccessIterator \endlink
+      * iterator type over the columns of rows as returned by the begin() and end() methods.
+      */
+    random_access_iterator_type iterator;
+    /** This is the const version of iterator (aka read-only) */
+    random_access_iterator_type const_iterator;
+    #else
+    typedef internal::subvector_stl_iterator<ExpressionType,       DirectionType(Direction)> iterator;
+    typedef internal::subvector_stl_iterator<const ExpressionType, DirectionType(Direction)> const_iterator;
+    #endif
+
+    /** returns an iterator to the first row (rowwise) or column (colwise) of the nested expression.
+      * \sa end(), cbegin()
+      */
+    iterator        begin() const { return iterator      (m_matrix, 0); }
+    /** const version of begin() */
+    const_iterator cbegin() const { return const_iterator(m_matrix, 0); }
+
+    /** returns an iterator to the row (resp. column) following the last row (resp. column) of the nested expression
+      * \sa begin(), cend()
+      */
+    iterator        end()   const { return iterator      (m_matrix, m_matrix.template subVectors<DirectionType(Direction)>()); }
+    /** const version of end() */
+    const_iterator cend()   const { return const_iterator(m_matrix, m_matrix.template subVectors<DirectionType(Direction)>()); }
+
     /** \returns a row or column vector expression of \c *this reduxed by \a func
       *
       * The template parameter \a BinaryOp is the type of the functor

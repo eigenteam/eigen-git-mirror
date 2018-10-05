@@ -597,10 +597,6 @@ template<typename Derived> class DenseBase
     inline iterator end();
     inline const_iterator end() const;
     inline const_iterator cend() const;
-    inline SubVectorsProxy<Derived,Vertical> allCols();
-    inline SubVectorsProxy<const Derived,Vertical> allCols() const;
-    inline SubVectorsProxy<Derived,Horizontal> allRows();
-    inline SubVectorsProxy<const Derived,Horizontal> allRows() const;
 
 #define EIGEN_CURRENT_STORAGE_BASE_CLASS Eigen::DenseBase
 #define EIGEN_DOC_BLOCK_ADDONS_NOT_INNER_PANEL

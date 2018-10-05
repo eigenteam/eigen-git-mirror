@@ -228,39 +228,4 @@ inline typename DenseBase<Derived>::const_iterator DenseBase<Derived>::cend() co
   return const_iterator(derived(), size());
 }
 
-template<typename XprType, DirectionType Direction>
-class SubVectorsProxy
-{
-public:
-  typedef internal::subvector_stl_iterator<XprType,       Direction> iterator;
-  typedef internal::subvector_stl_iterator<const XprType, Direction> const_iterator;
-
-  SubVectorsProxy(XprType& xpr) : m_xpr(xpr) {}
-
-  iterator        begin() const { return iterator      (m_xpr, 0); }
-  const_iterator cbegin() const { return const_iterator(m_xpr, 0); }
-
-  iterator        end()   const { return iterator      (m_xpr, m_xpr.template subVectors<Direction>()); }
-  const_iterator cend()   const { return const_iterator(m_xpr, m_xpr.template subVectors<Direction>()); }
-
-protected:
-  XprType& m_xpr;
-};
-
-template<typename Derived>
-SubVectorsProxy<Derived,Vertical> DenseBase<Derived>::allCols()
-{ return SubVectorsProxy<Derived,Vertical>(derived()); }
-
-template<typename Derived>
-SubVectorsProxy<const Derived,Vertical> DenseBase<Derived>::allCols() const
-{ return SubVectorsProxy<const Derived,Vertical>(derived()); }
-
-template<typename Derived>
-SubVectorsProxy<Derived,Horizontal> DenseBase<Derived>::allRows()
-{ return SubVectorsProxy<Derived,Horizontal>(derived()); }
-
-template<typename Derived>
-SubVectorsProxy<const Derived,Horizontal> DenseBase<Derived>::allRows() const
-{ return SubVectorsProxy<const Derived,Horizontal>(derived()); }
-
 } // namespace Eigen

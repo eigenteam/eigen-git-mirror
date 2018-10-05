@@ -209,11 +209,11 @@ void test_stl_iterators(int rows=Rows, int cols=Cols)
   if(rows>=3) {
     VERIFY_IS_EQUAL((v.begin()+rows/2)[1], v(rows/2+1));
 
-    VERIFY_IS_EQUAL((A.allRows().begin()+rows/2)[1], A.row(rows/2+1));
+    VERIFY_IS_EQUAL((A.rowwise().begin()+rows/2)[1], A.row(rows/2+1));
   }
 
   if(cols>=3) {
-    VERIFY_IS_EQUAL((A.allCols().begin()+cols/2)[1], A.col(cols/2+1));
+    VERIFY_IS_EQUAL((A.colwise().begin()+cols/2)[1], A.col(cols/2+1));
   }
 
   // check std::sort
@@ -310,12 +310,12 @@ void test_stl_iterators(int rows=Rows, int cols=Cols)
   // check rows/cols iterators with range-for loops
   {
     j = 0;
-    for(auto c : A.allCols()) { VERIFY_IS_APPROX(c.sum(), A.col(j).sum()); ++j; }
+    for(auto c : A.colwise()) { VERIFY_IS_APPROX(c.sum(), A.col(j).sum()); ++j; }
     j = 0;
-    for(auto c : B.allCols()) { VERIFY_IS_APPROX(c.sum(), B.col(j).sum()); ++j; }
+    for(auto c : B.colwise()) { VERIFY_IS_APPROX(c.sum(), B.col(j).sum()); ++j; }
 
     j = 0;
-    for(auto c : B.allCols()) {
+    for(auto c : B.colwise()) {
       i = 0;
       for(auto& x : c) {
         VERIFY_IS_EQUAL(x, B(i,j));
@@ -328,9 +328,9 @@ void test_stl_iterators(int rows=Rows, int cols=Cols)
     B.setRandom();
     
     i = 0;
-    for(auto r : A.allRows()) { VERIFY_IS_APPROX(r.sum(), A.row(i).sum()); ++i; }
+    for(auto r : A.rowwise()) { VERIFY_IS_APPROX(r.sum(), A.row(i).sum()); ++i; }
     i = 0;
-    for(auto r : B.allRows()) { VERIFY_IS_APPROX(r.sum(), B.row(i).sum()); ++i; }
+    for(auto r : B.rowwise()) { VERIFY_IS_APPROX(r.sum(), B.row(i).sum()); ++i; }
   }
 
 
@@ -338,21 +338,21 @@ void test_stl_iterators(int rows=Rows, int cols=Cols)
   {
     RowVectorType row = RowVectorType::Random(cols);
     A.rowwise() = row;
-    VERIFY( std::all_of(A.allRows().begin(), A.allRows().end(), [&row](typename ColMatrixType::RowXpr x) { return internal::isApprox(x.norm(),row.norm()); }) );
+    VERIFY( std::all_of(A.rowwise().begin(), A.rowwise().end(), [&row](typename ColMatrixType::RowXpr x) { return internal::isApprox(x.norm(),row.norm()); }) );
 
     VectorType col = VectorType::Random(rows);
     A.colwise() = col;
-    VERIFY( std::all_of(A.allCols().begin(), A.allCols().end(), [&col](typename ColMatrixType::ColXpr x) { return internal::isApprox(x.norm(),col.norm()); }) );
+    VERIFY( std::all_of(A.colwise().begin(), A.colwise().end(), [&col](typename ColMatrixType::ColXpr x) { return internal::isApprox(x.norm(),col.norm()); }) );
 
     i = internal::random<Index>(0,A.rows()-1);
     A.setRandom();
     A.row(i).setZero();
-    VERIFY_IS_EQUAL( std::find_if(A.allRows().begin(), A.allRows().end(), [](typename ColMatrixType::RowXpr x) { return x.norm() == Scalar(0); })-A.allRows().begin(), i );
+    VERIFY_IS_EQUAL( std::find_if(A.rowwise().begin(), A.rowwise().end(), [](typename ColMatrixType::RowXpr x) { return x.norm() == Scalar(0); })-A.rowwise().begin(), i );
 
     j = internal::random<Index>(0,A.cols()-1);
     A.setRandom();
     A.col(j).setZero();
-    VERIFY_IS_EQUAL( std::find_if(A.allCols().begin(), A.allCols().end(), [](typename ColMatrixType::ColXpr x) { return x.norm() == Scalar(0); })-A.allCols().begin(), j );
+    VERIFY_IS_EQUAL( std::find_if(A.colwise().begin(), A.colwise().end(), [](typename ColMatrixType::ColXpr x) { return x.norm() == Scalar(0); })-A.colwise().begin(), j );
   }
 
 #endif
