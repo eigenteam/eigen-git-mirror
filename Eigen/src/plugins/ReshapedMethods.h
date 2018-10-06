@@ -106,7 +106,7 @@ EIGEN_DEVICE_FUNC
 inline Reshaped<EIGEN_RESHAPED_METHOD_CONST Derived,
                 internal::get_compiletime_reshape_size<NRowsType,NColsType,SizeAtCompileTime>::value,
                 internal::get_compiletime_reshape_size<NColsType,NRowsType,SizeAtCompileTime>::value,
-                Order==AutoOrder?Flags&RowMajorBit:Order>
+                (Order==AutoOrder?Flags&RowMajorBit:Order)>
 reshaped(NRowsType nRows, NColsType nCols) EIGEN_RESHAPED_METHOD_CONST
 {
   return Reshaped<EIGEN_RESHAPED_METHOD_CONST Derived,
@@ -130,9 +130,9 @@ reshaped() EIGEN_RESHAPED_METHOD_CONST
 template<int Order>
 EIGEN_DEVICE_FUNC
 inline Reshaped<EIGEN_RESHAPED_METHOD_CONST Derived,
-                Order==RowMajor ? 1 : SizeAtCompileTime,
-                Order==RowMajor ? SizeAtCompileTime : 1,
-                Order==AutoOrder?Flags&RowMajorBit:Order>
+                (Order==RowMajor ? 1 : SizeAtCompileTime),
+                (Order==RowMajor ? SizeAtCompileTime : 1),
+                (Order==AutoOrder?Flags&RowMajorBit:Order)>
 reshaped() EIGEN_RESHAPED_METHOD_CONST
 {
   EIGEN_STATIC_ASSERT(Order==RowMajor || Order==ColMajor, INVALID_TEMPLATE_PARAMETER);
