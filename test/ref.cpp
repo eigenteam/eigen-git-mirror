@@ -255,8 +255,8 @@ void test_ref_overloads()
 
 void test_ref_fixed_size_assert()
 {
-  Vector4f v4;
-  VectorXf vx(10);
+  Vector4f v4 = Vector4f::Random();
+  VectorXf vx = VectorXf::Random(10);
   VERIFY_RAISES_STATIC_ASSERT( Ref<Vector3f> y = v4; (void)y; );
   VERIFY_RAISES_STATIC_ASSERT( Ref<Vector3f> y = vx.head<4>(); (void)y; );
   VERIFY_RAISES_STATIC_ASSERT( Ref<const Vector3f> y = v4; (void)y; );
