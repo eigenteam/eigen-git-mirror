@@ -17,7 +17,7 @@ void check_stdvector_matrix(const MatrixType& m)
   Index rows = m.rows();
   Index cols = m.cols();
   MatrixType x = MatrixType::Random(rows,cols), y = MatrixType::Random(rows,cols);
-  std::vector<MatrixType,Eigen::aligned_allocator<MatrixType> > v(10, MatrixType(rows,cols)), w(20, y);
+  std::vector<MatrixType,Eigen::aligned_allocator<MatrixType> > v(10, MatrixType::Zero(rows,cols)), w(20, y);
   v[5] = x;
   w[6] = v[5];
   VERIFY_IS_APPROX(w[6], v[5]);
@@ -86,8 +86,8 @@ template<typename QuaternionType>
 void check_stdvector_quaternion(const QuaternionType&)
 {
   typedef typename QuaternionType::Coefficients Coefficients;
-  QuaternionType x(Coefficients::Random()), y(Coefficients::Random());
-  std::vector<QuaternionType,Eigen::aligned_allocator<QuaternionType> > v(10), w(20, y);
+  QuaternionType x(Coefficients::Random()), y(Coefficients::Random()), qi=QuaternionType::Identity();
+  std::vector<QuaternionType,Eigen::aligned_allocator<QuaternionType> > v(10,qi), w(20, y);
   v[5] = x;
   w[6] = v[5];
   VERIFY_IS_APPROX(w[6], v[5]);
@@ -115,6 +115,16 @@ void check_stdvector_quaternion(const QuaternionType&)
   {
     VERIFY(v[i].coeffs()==w[(i-23)%w.size()].coeffs());
   }
+}
+
+// the code below triggered an invalid warning with gcc >= 7
+// eigen/Eigen/src/Core/util/Memory.h:189:12: warning: argument 1 value '18446744073709551612' exceeds maximum object size 9223372036854775807
+// This has been reported to gcc there: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=87544
+void std_vector_gcc_warning()
+{
+  typedef Eigen::Vector3f T;
+  std::vector<T, Eigen::aligned_allocator<T> > v;
+  v.push_back(T());
 }
 
 EIGEN_DECLARE_TEST(stdvector)

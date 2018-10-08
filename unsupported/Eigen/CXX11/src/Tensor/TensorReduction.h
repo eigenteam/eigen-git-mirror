@@ -218,6 +218,7 @@ struct InnerMostDimReducer<Self, Op, false, true> {
   }
 };
 
+#if !defined(EIGEN_HIPCC) 
 template <typename Self, typename Op>
 struct InnerMostDimReducer<Self, Op, true, true> {
   static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE typename Self::CoeffReturnType
@@ -257,7 +258,8 @@ struct InnerMostDimReducer<Self, Op, true, true> {
     }
   }
 };
-
+#endif
+ 
 template <int DimIndex, typename Self, typename Op, bool vectorizable = (Self::InputPacketAccess && Self::ReducerTraits::PacketAccess)>
 struct InnerMostDimPreserver {
   static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void reduce(const Self&, typename Self::Index, Op&, typename Self::PacketReturnType*) {

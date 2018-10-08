@@ -186,21 +186,21 @@ struct TensorContractionKernel {
       /*ConjugateLhs*/ false, /*ConjugateRhs*/ false>
       GebpKernel;
 
-  EIGEN_DONT_INLINE
+  EIGEN_DEVICE_FUNC EIGEN_DONT_INLINE
   static void packLhs(LhsScalar* lhsBlock,
                       const typename LhsMapper::SubMapper& data_mapper,
                       const StorageIndex depth, const StorageIndex rows) {
     LhsPacker()(lhsBlock, data_mapper, depth, rows, /*stride*/ 0, /*offset*/ 0);
   }
 
-  EIGEN_DONT_INLINE
+  EIGEN_DEVICE_FUNC EIGEN_DONT_INLINE
   static void packRhs(RhsScalar* rhsBlock,
                       const typename RhsMapper::SubMapper& data_mapper,
                       const StorageIndex depth, const StorageIndex cols) {
     RhsPacker()(rhsBlock, data_mapper, depth, cols);
   }
 
-  EIGEN_DONT_INLINE
+  EIGEN_DEVICE_FUNC EIGEN_DONT_INLINE
   static void invoke(const OutputMapper& output_mapper,
                      const LhsScalar* lhsBlock, const RhsScalar* rhsBlock,
                      const StorageIndex rows, const StorageIndex depth,
@@ -667,8 +667,8 @@ struct TensorContractionEvaluatorBase
     this->m_device.memset(buffer, 0, m * n * sizeof(Scalar));
     this->template evalGemmPartial<lhs_inner_dim_contiguous,
                                    rhs_inner_dim_contiguous,
-                                   rhs_inner_dim_reordered, Alignment>(buffer,
-                                                                       0, k, 1);
+                                   rhs_inner_dim_reordered,
+                                   Alignment, true>(buffer, 0, k, 1);
   }
 
   template <bool lhs_inner_dim_contiguous, bool rhs_inner_dim_contiguous,
@@ -681,7 +681,7 @@ struct TensorContractionEvaluatorBase
                                      num_threads);
   }
 
-  template <bool lhs_inner_dim_contiguous, bool rhs_inner_dim_contiguous, bool rhs_inner_dim_reordered, int Alignment, bool use_output_kernel = true>
+  template <bool lhs_inner_dim_contiguous, bool rhs_inner_dim_contiguous, bool rhs_inner_dim_reordered, int Alignment, bool use_output_kernel>
   EIGEN_DEVICE_FUNC void evalGemmPartial(Scalar* buffer, Index k_start, Index k_end, int num_threads) const {
     eigen_assert(k_end >= k_start && k_start >= 0 && k_end <= this->m_k_size);
     // columns in slice on left side, rows on right side

@@ -55,7 +55,9 @@ public:
   operator int() const { return value; }
   FixedInt() {}
   FixedInt( VariableAndFixedInt<N> other) {
-    EIGEN_ONLY_USED_FOR_DEBUG(other);
+    #ifndef EIGEN_INTERNAL_DEBUGGING
+    EIGEN_UNUSED_VARIABLE(other);
+    #endif
     eigen_internal_assert(int(other)==N);
   }
 

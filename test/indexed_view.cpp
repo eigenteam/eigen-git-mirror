@@ -15,6 +15,14 @@
 #ifdef EIGEN_TEST_PART_3
 // Make sure we also check c++98 max implementation
 #define EIGEN_MAX_CPP_VER 03
+
+// We need to disable this warning when compiling with c++11 while limiting Eigen to c++98
+// Ideally we would rather configure the compiler to build in c++98 mode but this needs
+// to be done at the CMakeLists.txt level.
+#if defined(__GNUC__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 8))
+  #pragma GCC diagnostic ignored "-Wdeprecated"
+#endif
+
 #endif
 
 #include <valarray>
