@@ -9,6 +9,12 @@
 
 #ifdef EIGEN_TEST_PART_2
 #define EIGEN_MAX_CPP_VER 03
+
+// see indexed_view.cpp
+#if defined(__GNUC__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 8))
+  #pragma GCC diagnostic ignored "-Wdeprecated"
+#endif
+
 #endif
 
 #include "main.h"
