@@ -124,7 +124,11 @@ struct TensorEvaluator<const TensorScanOp<Op, ArgType>, Device> {
         m_stride = m_stride * dims[i];
       }
     } else {
-      for (int i = NumDims - 1; i > op.axis(); --i) {
+      // dims can only be indexed through unsigned integers,
+      // so let's use an unsigned type to let the compiler knows.
+      // This prevents stupid warnings: ""'*((void*)(& evaluator)+64)[18446744073709551615]' may be used uninitialized in this function"
+      unsigned int axis = internal::convert_index<unsigned int>(op.axis());
+      for (unsigned int i = NumDims - 1; i > axis; --i) {
         m_stride = m_stride * dims[i];
       }
     }
