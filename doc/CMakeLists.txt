@@ -10,6 +10,9 @@ if(CMAKE_COMPILER_IS_GNUCXX)
   endif(CMAKE_SYSTEM_NAME MATCHES Linux)
 endif(CMAKE_COMPILER_IS_GNUCXX)
 
+# some examples and snippets needs c++11, so let's check it once
+check_cxx_compiler_flag("-std=c++11" EIGEN_COMPILER_SUPPORT_CPP11)
+
 option(EIGEN_INTERNAL_DOCUMENTATION "Build internal documentation" OFF)
 
 
