@@ -358,6 +358,59 @@ void test_stl_iterators(int rows=Rows, int cols=Cols)
 #endif
 }
 
+
+#if EIGEN_HAS_CXX11
+// When the compiler sees expression IsContainerTest<C>(0), if C is an
+// STL-style container class, the first overload of IsContainerTest
+// will be viable (since both C::iterator* and C::const_iterator* are
+// valid types and NULL can be implicitly converted to them).  It will
+// be picked over the second overload as 'int' is a perfect match for
+// the type of argument 0.  If C::iterator or C::const_iterator is not
+// a valid type, the first overload is not viable, and the second
+// overload will be picked.
+template <class C,
+    class Iterator = decltype(::std::declval<const C&>().begin()),
+    class = decltype(::std::declval<const C&>().end()),
+    class = decltype(++::std::declval<Iterator&>()),
+    class = decltype(*::std::declval<Iterator>()),
+    class = typename C::const_iterator>
+bool IsContainerType(int /* dummy */) { return true; }
+
+template <class C>
+bool IsContainerType(long /* dummy */) { return false; }
+#endif // EIGEN_HAS_CXX11
+
+template <typename Scalar, int Rows, int Cols>
+void test_stl_container_detection(int rows=Rows, int cols=Cols)
+{
+#if EIGEN_HAS_CXX11
+  typedef Matrix<Scalar,Rows,1> VectorType;
+  typedef Matrix<Scalar,Rows,Cols,ColMajor> ColMatrixType;
+  typedef Matrix<Scalar,Rows,Cols,RowMajor> RowMatrixType;
+
+  ColMatrixType A = ColMatrixType::Random(rows, cols);
+  RowMatrixType B = RowMatrixType::Random(rows, cols);
+
+  Index i;
+
+  using ColMatrixColType = decltype(A.col(i));
+  using ColMatrixRowType = decltype(A.row(i));
+  using RowMatrixColType = decltype(B.col(i));
+  using RowMatrixRowType = decltype(B.row(i));
+
+  // Vector and matrix col/row are valid Stl-style container.
+  VERIFY_IS_EQUAL(IsContainerType<VectorType>(0), true);
+  VERIFY_IS_EQUAL(IsContainerType<ColMatrixColType>(0), true);
+  VERIFY_IS_EQUAL(IsContainerType<ColMatrixRowType>(0), true);
+  VERIFY_IS_EQUAL(IsContainerType<RowMatrixColType>(0), true);
+  VERIFY_IS_EQUAL(IsContainerType<RowMatrixRowType>(0), true);
+
+  // But the matrix itself is not a valid Stl-style container.
+  VERIFY_IS_EQUAL(IsContainerType<ColMatrixType>(0), rows == 1 || cols == 1);
+  VERIFY_IS_EQUAL(IsContainerType<RowMatrixType>(0), rows == 1 || cols == 1);
+#endif
+}
+
 EIGEN_DECLARE_TEST(stl_iterators)
 {
   for(int i = 0; i < g_repeat; i++) {
@@ -366,4 +419,7 @@ EIGEN_DECLARE_TEST(stl_iterators)
     CALL_SUBTEST_1(( test_stl_iterators<int,Dynamic,Dynamic>(internal::random<int>(5,10), internal::random<int>(5,10)) ));
     CALL_SUBTEST_1(( test_stl_iterators<int,Dynamic,Dynamic>(internal::random<int>(10,200), internal::random<int>(10,200)) ));
   }
+
+  CALL_SUBTEST_1(( test_stl_container_detection<float,1,1>() ));
+  CALL_SUBTEST_1(( test_stl_container_detection<float,5,5>() ));
 }

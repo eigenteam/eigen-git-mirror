@@ -583,11 +583,23 @@ template<typename Derived> class DenseBase
     typedef typename internal::conditional< (Flags&DirectAccessBit)==DirectAccessBit,
                                             internal::pointer_based_stl_iterator<Derived>,
                                             internal::generic_randaccess_stl_iterator<Derived>
-                                          >::type iterator;
+                                          >::type iterator_type;
 
     typedef typename internal::conditional< (Flags&DirectAccessBit)==DirectAccessBit,
                                             internal::pointer_based_stl_iterator<const Derived>,
                                             internal::generic_randaccess_stl_iterator<const Derived>
+                                          >::type const_iterator_type;
+
+    // Stl-style iterators are supported only for vectors.
+
+    typedef typename internal::conditional< IsVectorAtCompileTime,
+                                            iterator_type,
+                                            internal::not_an_iterator<const Derived>
+                                          >::type iterator;
+
+    typedef typename internal::conditional< IsVectorAtCompileTime,
+                                            const_iterator_type,
+                                            internal::not_an_iterator<const Derived>
                                           >::type const_iterator;
     #endif
 
