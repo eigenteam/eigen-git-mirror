@@ -57,7 +57,14 @@ template<typename MatrixType> void array_for_matrix(const MatrixType& m)
   VERIFY_IS_APPROX(m3.rowwise() -= rv1, m1.rowwise() - rv1);
   
   // empty objects
-  VERIFY_IS_APPROX(m1.block(0,0,0,cols).colwise().sum(),  RowVectorType::Zero(cols));
+  VERIFY_IS_APPROX((m1.template block<0,Dynamic>(0,0,0,cols).colwise().sum()), RowVectorType::Zero(cols));
+  VERIFY_IS_APPROX((m1.template block<Dynamic,0>(0,0,rows,0).rowwise().sum()), ColVectorType::Zero(rows));
+  VERIFY_IS_APPROX((m1.template block<0,Dynamic>(0,0,0,cols).colwise().prod()), RowVectorType::Ones(cols));
+  VERIFY_IS_APPROX((m1.template block<Dynamic,0>(0,0,rows,0).rowwise().prod()), ColVectorType::Ones(rows));
+
+  VERIFY_IS_APPROX(m1.block(0,0,0,cols).colwise().sum(), RowVectorType::Zero(cols));
+  VERIFY_IS_APPROX(m1.block(0,0,rows,0).rowwise().sum(), ColVectorType::Zero(rows));
+  VERIFY_IS_APPROX(m1.block(0,0,0,cols).colwise().prod(), RowVectorType::Ones(cols));
   VERIFY_IS_APPROX(m1.block(0,0,rows,0).rowwise().prod(), ColVectorType::Ones(rows));
   
   // verify the const accessors exist

@@ -197,11 +197,24 @@ template<typename MatrixType> void vectorwiseop_matrix(const MatrixType& m)
     VERIFY_RAISES_ASSERT(m1.rowwise() - rowvec.transpose());
   }
 
+  // ------ partial reductions ------
+
   // test norm
-  rrres = m1.colwise().norm();
-  VERIFY_IS_APPROX(rrres(c), m1.col(c).norm());
-  rcres = m1.rowwise().norm();
-  VERIFY_IS_APPROX(rcres(r), m1.row(r).norm());
+  #define TEST_PARTIAL_REDUX_BASIC(FUNC,ROW,COL,PREPROCESS) {                         \
+    ROW = m1 PREPROCESS .colwise().FUNC ;                                              \
+    for(Index k=0; k<cols; ++k) VERIFY_IS_APPROX(ROW(k), m1.col(k) PREPROCESS .FUNC ); \
+    COL = m1 PREPROCESS .rowwise().FUNC ;                                              \
+    for(Index k=0; k<rows; ++k) VERIFY_IS_APPROX(COL(k), m1.row(k) PREPROCESS .FUNC ); \
+  }
+
+  TEST_PARTIAL_REDUX_BASIC(sum(),rowvec,colvec,);
+  TEST_PARTIAL_REDUX_BASIC(prod(),rowvec,colvec,);
+  TEST_PARTIAL_REDUX_BASIC(mean(),rowvec,colvec,);
+  TEST_PARTIAL_REDUX_BASIC(minCoeff(),rrres,rcres,.real());
+  TEST_PARTIAL_REDUX_BASIC(maxCoeff(),rrres,rcres,.real());
+  TEST_PARTIAL_REDUX_BASIC(norm(),rrres,rcres,);
+  TEST_PARTIAL_REDUX_BASIC(squaredNorm(),rrres,rcres,);
+  TEST_PARTIAL_REDUX_BASIC(redux(internal::scalar_sum_op<Scalar,Scalar>()),rowvec,colvec,);
 
   VERIFY_IS_APPROX(m1.cwiseAbs().colwise().sum(), m1.colwise().template lpNorm<1>());
   VERIFY_IS_APPROX(m1.cwiseAbs().rowwise().sum(), m1.rowwise().template lpNorm<1>());
