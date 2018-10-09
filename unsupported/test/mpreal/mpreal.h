@@ -2206,7 +2206,11 @@ inline const mpreal sqrt(const int v, mp_rnd_t rnd_mode)
 inline const mpreal root(const mpreal& x, unsigned long int k, mp_rnd_t r = mpreal::get_default_rnd())
 {
     mpreal y(0, mpfr_get_prec(x.mpfr_srcptr())); 
-    mpfr_rootn_ui(y.mpfr_ptr(), x.mpfr_srcptr(), k, r);  
+    #if (MPFR_VERSION >= MPFR_VERSION_NUM(4,0,0))
+    mpfr_rootn_ui(y.mpfr_ptr(), x.mpfr_srcptr(), k, r);
+    #else
+    mpfr_root(y.mpfr_ptr(), x.mpfr_srcptr(), k, r);
+    #endif
     return y; 
 }
 
