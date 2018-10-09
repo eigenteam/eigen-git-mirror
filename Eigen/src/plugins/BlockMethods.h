@@ -1403,8 +1403,8 @@ innerVectors(Index outerStart, Index outerSize) const
 /** \returns the i-th subvector (column or vector) according to the \c Direction
   * \sa subVectors()
   */
-EIGEN_DEVICE_FUNC
 template<DirectionType Direction>
+EIGEN_DEVICE_FUNC
 typename internal::conditional<Direction==Vertical,ColXpr,RowXpr>::type
 subVector(Index i)
 {
@@ -1412,8 +1412,8 @@ subVector(Index i)
 }
 
 /** This is the const version of subVector(Index) */
-EIGEN_DEVICE_FUNC
 template<DirectionType Direction>
+EIGEN_DEVICE_FUNC
 typename internal::conditional<Direction==Vertical,ConstColXpr,ConstRowXpr>::type
 subVector(Index i) const
 {
@@ -1423,8 +1423,8 @@ subVector(Index i) const
 /** \returns the number of subvectors (rows or columns) in the direction \c Direction
   * \sa subVector(Index)
   */
-EIGEN_DEVICE_FUNC
 template<DirectionType Direction>
+EIGEN_DEVICE_FUNC
 Index subVectors() const
 { return (Direction==Vertical)?cols():rows(); }
 
