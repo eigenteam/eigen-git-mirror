@@ -34,7 +34,7 @@ struct StaticIf<true, T> {
 
 /// \struct Tuple
 /// \brief is a fixed-size collection of heterogeneous values
-/// \ztparam Ts...	-	the types of the elements that the tuple stores.
+/// \tparam Ts...	-	the types of the elements that the tuple stores.
 /// Empty list is supported.
 template <class... Ts>
 struct Tuple {};

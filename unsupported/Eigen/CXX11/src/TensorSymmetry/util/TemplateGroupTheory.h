@@ -17,7 +17,7 @@ namespace internal {
 namespace group_theory {
 
 /** \internal
-  * \file CXX11/Tensor/util/TemplateGroupTheory.h
+  * \file CXX11/src/TensorSymmetry/util/TemplateGroupTheory.h
   * This file contains C++ templates that implement group theory algorithms.
   *
   * The algorithms allow for a compile-time analysis of finite groups.
