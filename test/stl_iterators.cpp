@@ -378,12 +378,10 @@ bool IsContainerType(int /* dummy */) { return true; }
 
 template <class C>
 bool IsContainerType(long /* dummy */) { return false; }
-#endif // EIGEN_HAS_CXX11
 
 template <typename Scalar, int Rows, int Cols>
 void test_stl_container_detection(int rows=Rows, int cols=Cols)
 {
-#if EIGEN_HAS_CXX11
   typedef Matrix<Scalar,Rows,1> VectorType;
   typedef Matrix<Scalar,Rows,Cols,ColMajor> ColMatrixType;
   typedef Matrix<Scalar,Rows,Cols,RowMajor> RowMatrixType;
@@ -391,7 +389,7 @@ void test_stl_container_detection(int rows=Rows, int cols=Cols)
   ColMatrixType A = ColMatrixType::Random(rows, cols);
   RowMatrixType B = RowMatrixType::Random(rows, cols);
 
-  Index i;
+  Index i = 1;
 
   using ColMatrixColType = decltype(A.col(i));
   using ColMatrixRowType = decltype(A.row(i));
@@ -408,8 +406,8 @@ void test_stl_container_detection(int rows=Rows, int cols=Cols)
   // But the matrix itself is not a valid Stl-style container.
   VERIFY_IS_EQUAL(IsContainerType<ColMatrixType>(0), rows == 1 || cols == 1);
   VERIFY_IS_EQUAL(IsContainerType<RowMatrixType>(0), rows == 1 || cols == 1);
-#endif
 }
+#endif
 
 EIGEN_DECLARE_TEST(stl_iterators)
 {
@@ -419,7 +417,9 @@ EIGEN_DECLARE_TEST(stl_iterators)
     CALL_SUBTEST_1(( test_stl_iterators<int,Dynamic,Dynamic>(internal::random<int>(5,10), internal::random<int>(5,10)) ));
     CALL_SUBTEST_1(( test_stl_iterators<int,Dynamic,Dynamic>(internal::random<int>(10,200), internal::random<int>(10,200)) ));
   }
-
+  
+#if EIGEN_HAS_CXX11
   CALL_SUBTEST_1(( test_stl_container_detection<float,1,1>() ));
   CALL_SUBTEST_1(( test_stl_container_detection<float,5,5>() ));
+#endif  
 }
