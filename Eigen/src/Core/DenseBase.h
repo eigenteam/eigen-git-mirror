@@ -573,7 +573,7 @@ template<typename Derived> class DenseBase
     EIGEN_DEVICE_FUNC void reverseInPlace();
 
     #ifdef EIGEN_PARSED_BY_DOXYGEN
-    /** STL-like \link https://en.cppreference.com/w/cpp/named_req/RandomAccessIterator RandomAccessIterator \endlink
+    /** STL-like <a href="https://en.cppreference.com/w/cpp/named_req/RandomAccessIterator">RandomAccessIterator</a>
       * iterator type as returned by the begin() and end() methods.
       */
     typedef random_access_iterator_type iterator;

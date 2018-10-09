@@ -254,8 +254,8 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
     inline const ExpressionType& _expression() const { return m_matrix; }
 
     #ifdef EIGEN_PARSED_BY_DOXYGEN
-    /** STL-like \link https://en.cppreference.com/w/cpp/named_req/RandomAccessIterator RandomAccessIterator \endlink
-      * iterator type over the columns of rows as returned by the begin() and end() methods.
+    /** STL-like <a href="https://en.cppreference.com/w/cpp/named_req/RandomAccessIterator">RandomAccessIterator</a>
+      * iterator type over the columns or rows as returned by the begin() and end() methods.
       */
     random_access_iterator_type iterator;
     /** This is the const version of iterator (aka read-only) */
