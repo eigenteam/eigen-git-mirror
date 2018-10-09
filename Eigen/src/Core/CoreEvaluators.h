@@ -1325,64 +1325,6 @@ protected:
   const variable_if_dynamic<Index, ArgType::ColsAtCompileTime> m_cols;
 };
 
-
-// -------------------- PartialReduxExpr --------------------
-
-template< typename ArgType, typename MemberOp, int Direction>
-struct evaluator<PartialReduxExpr<ArgType, MemberOp, Direction> >
-  : evaluator_base<PartialReduxExpr<ArgType, MemberOp, Direction> >
-{
-  typedef PartialReduxExpr<ArgType, MemberOp, Direction> XprType;
-  typedef typename internal::nested_eval<ArgType,1>::type ArgTypeNested;
-  typedef typename internal::remove_all<ArgTypeNested>::type ArgTypeNestedCleaned;
-  typedef typename ArgType::Scalar InputScalar;
-  typedef typename XprType::Scalar Scalar;
-  enum {
-    TraversalSize = Direction==int(Vertical) ? int(ArgType::RowsAtCompileTime) :  int(ArgType::ColsAtCompileTime)
-  };
-  typedef typename MemberOp::template Cost<InputScalar,int(TraversalSize)> CostOpType;
-  enum {
-    CoeffReadCost = TraversalSize==Dynamic ? HugeCost
-                  : TraversalSize * evaluator<ArgType>::CoeffReadCost + int(CostOpType::value),
-    
-    Flags = (traits<XprType>::Flags&RowMajorBit) | (evaluator<ArgType>::Flags&(HereditaryBits&(~RowMajorBit))) | LinearAccessBit,
-    
-    Alignment = 0 // FIXME this will need to be improved once PartialReduxExpr is vectorized
-  };
-
-  EIGEN_DEVICE_FUNC explicit evaluator(const XprType xpr)
-    : m_arg(xpr.nestedExpression()), m_functor(xpr.functor())
-  {
-    EIGEN_INTERNAL_CHECK_COST_VALUE(TraversalSize==Dynamic ? HugeCost : int(CostOpType::value));
-    EIGEN_INTERNAL_CHECK_COST_VALUE(CoeffReadCost);
-  }
-
-  typedef typename XprType::CoeffReturnType CoeffReturnType;
-
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-  const Scalar coeff(Index i, Index j) const
-  {
-    if (Direction==Vertical)
-      return m_functor(m_arg.col(j));
-    else
-      return m_functor(m_arg.row(i));
-  }
-
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-  const Scalar coeff(Index index) const
-  {
-    if (Direction==Vertical)
-      return m_functor(m_arg.col(index));
-    else
-      return m_functor(m_arg.row(index));
-  }
-
-protected:
-  typename internal::add_const_on_value_type<ArgTypeNested>::type m_arg;
-  const MemberOp m_functor;
-};
-
-
 // -------------------- MatrixWrapper and ArrayWrapper --------------------
 //
 // evaluator_wrapper_base<T> is a common base class for the

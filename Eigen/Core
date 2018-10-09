@@ -306,6 +306,7 @@ using std::ptrdiff_t;
 #include "src/Core/BooleanRedux.h"
 #include "src/Core/Select.h"
 #include "src/Core/VectorwiseOp.h"
+#include "src/Core/PartialReduxEvaluator.h"
 #include "src/Core/Random.h"
 #include "src/Core/Replicate.h"
 #include "src/Core/Reverse.h"

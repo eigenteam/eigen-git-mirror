@@ -256,6 +256,7 @@ EIGEN_DECLARE_TEST(vectorwiseop)
   CALL_SUBTEST_2( vectorwiseop_array(Array<double, 3, 2>()) );
   CALL_SUBTEST_3( vectorwiseop_array(ArrayXXf(3, 4)) );
   CALL_SUBTEST_4( vectorwiseop_matrix(Matrix4cf()) );
+  CALL_SUBTEST_5( vectorwiseop_matrix(Matrix4f()) );
   CALL_SUBTEST_5( vectorwiseop_matrix(Matrix<float,4,5>()) );
   CALL_SUBTEST_6( vectorwiseop_matrix(MatrixXd(internal::random<int>(1,EIGEN_TEST_MAX_SIZE), internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
   CALL_SUBTEST_7( vectorwiseop_matrix(VectorXd(internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
