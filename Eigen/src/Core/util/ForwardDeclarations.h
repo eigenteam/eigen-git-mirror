@@ -135,7 +135,6 @@ template<typename Derived> class SolverBase;
 template<typename XprType> class InnerIterator;
 
 namespace internal {
-template<typename XprType> class not_an_iterator;
 template<typename XprType> class generic_randaccess_stl_iterator;
 template<typename XprType> class pointer_based_stl_iterator;
 template<typename XprType, DirectionType Direction> class subvector_stl_iterator;

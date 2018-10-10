@@ -594,12 +594,12 @@ template<typename Derived> class DenseBase
 
     typedef typename internal::conditional< IsVectorAtCompileTime,
                                             iterator_type,
-                                            internal::not_an_iterator<const Derived>
+                                            void
                                           >::type iterator;
 
     typedef typename internal::conditional< IsVectorAtCompileTime,
                                             const_iterator_type,
-                                            internal::not_an_iterator<const Derived>
+                                            void
                                           >::type const_iterator;
     #endif
 

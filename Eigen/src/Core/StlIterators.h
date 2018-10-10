@@ -11,19 +11,6 @@ namespace Eigen {
 
 namespace internal {
 
-// Iterator type for XprType that do not support stl-style iterators. Allows to
-// detect that expression does not support stl iterators at compile time.
-template<typename XprType>
-class not_an_iterator
-{
-  not_an_iterator() : mp_xpr(0), m_index(0) {}
-  not_an_iterator(XprType& xpr, Index index) : mp_xpr(&xpr), m_index(index) {}
-
- protected:
-  XprType *mp_xpr;
-  Index m_index;
-};
-
 template<typename XprType,typename Derived>
 class indexed_based_stl_iterator_base
 {
