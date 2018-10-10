@@ -12,6 +12,11 @@
 static long g_realloc_count = 0;
 #define EIGEN_SPARSE_COMPRESSED_STORAGE_REALLOCATE_PLUGIN g_realloc_count++;
 
+static long g_dense_op_sparse_count = 0;
+#define EIGEN_SPARSE_ASSIGNMENT_FROM_DENSE_OP_SPARSE_PLUGIN g_dense_op_sparse_count++;
+#define EIGEN_SPARSE_ASSIGNMENT_FROM_SPARSE_ADD_DENSE_PLUGIN g_dense_op_sparse_count+=10;
+#define EIGEN_SPARSE_ASSIGNMENT_FROM_SPARSE_SUB_DENSE_PLUGIN g_dense_op_sparse_count+=20;
+
 #include "sparse.h"
 
 template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& ref)
@@ -194,6 +199,7 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
     VERIFY_IS_APPROX(refM4.cwiseProduct(m3), refM4.cwiseProduct(refM3));
 //     VERIFY_IS_APPROX(m3.cwise()/refM4, refM3.cwise()/refM4);
 
+    // mixed sparse-dense
     VERIFY_IS_APPROX(refM4 + m3, refM4 + refM3);
     VERIFY_IS_APPROX(m3 + refM4, refM3 + refM4);
     VERIFY_IS_APPROX(refM4 - m3, refM4 - refM3);
@@ -221,6 +227,26 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
 
     VERIFY_IS_APPROX(m1+=m2, refM1+=refM2);
     VERIFY_IS_APPROX(m1-=m2, refM1-=refM2);
+
+    refM3 = refM1;
+    
+    VERIFY_IS_APPROX(refM1+=m2, refM3+=refM2);
+    VERIFY_IS_APPROX(refM1-=m2, refM3-=refM2);
+
+    g_dense_op_sparse_count=0; VERIFY_IS_APPROX(refM1 =m2+refM4, refM3 =refM2+refM4);  VERIFY_IS_EQUAL(g_dense_op_sparse_count,10);
+    g_dense_op_sparse_count=0; VERIFY_IS_APPROX(refM1+=m2+refM4, refM3+=refM2+refM4);  VERIFY_IS_EQUAL(g_dense_op_sparse_count,1);
+    g_dense_op_sparse_count=0; VERIFY_IS_APPROX(refM1-=m2+refM4, refM3-=refM2+refM4);  VERIFY_IS_EQUAL(g_dense_op_sparse_count,1);
+    g_dense_op_sparse_count=0; VERIFY_IS_APPROX(refM1 =refM4+m2, refM3 =refM2+refM4);  VERIFY_IS_EQUAL(g_dense_op_sparse_count,1);
+    g_dense_op_sparse_count=0; VERIFY_IS_APPROX(refM1+=refM4+m2, refM3+=refM2+refM4);  VERIFY_IS_EQUAL(g_dense_op_sparse_count,1);
+    g_dense_op_sparse_count=0; VERIFY_IS_APPROX(refM1-=refM4+m2, refM3-=refM2+refM4);  VERIFY_IS_EQUAL(g_dense_op_sparse_count,1);
+
+    g_dense_op_sparse_count=0; VERIFY_IS_APPROX(refM1 =m2-refM4, refM3 =refM2-refM4);  VERIFY_IS_EQUAL(g_dense_op_sparse_count,20);
+    g_dense_op_sparse_count=0; VERIFY_IS_APPROX(refM1+=m2-refM4, refM3+=refM2-refM4);  VERIFY_IS_EQUAL(g_dense_op_sparse_count,1);
+    g_dense_op_sparse_count=0; VERIFY_IS_APPROX(refM1-=m2-refM4, refM3-=refM2-refM4);  VERIFY_IS_EQUAL(g_dense_op_sparse_count,1);
+    g_dense_op_sparse_count=0; VERIFY_IS_APPROX(refM1 =refM4-m2, refM3 =refM4-refM2);  VERIFY_IS_EQUAL(g_dense_op_sparse_count,1);
+    g_dense_op_sparse_count=0; VERIFY_IS_APPROX(refM1+=refM4-m2, refM3+=refM4-refM2);  VERIFY_IS_EQUAL(g_dense_op_sparse_count,1);
+    g_dense_op_sparse_count=0; VERIFY_IS_APPROX(refM1-=refM4-m2, refM3-=refM4-refM2);  VERIFY_IS_EQUAL(g_dense_op_sparse_count,1);
+    refM3 = m3;
 
     if (rows>=2 && cols>=2)
     {
