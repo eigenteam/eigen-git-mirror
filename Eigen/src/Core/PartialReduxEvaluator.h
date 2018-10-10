@@ -134,6 +134,8 @@ struct evaluator<PartialReduxExpr<ArgType, MemberOp, Direction> >
 {
   typedef PartialReduxExpr<ArgType, MemberOp, Direction> XprType;
   typedef typename internal::nested_eval<ArgType,1>::type ArgTypeNested;
+  typedef typename internal::add_const_on_value_type<ArgTypeNested>::type ConstArgTypeNested;
+  typedef typename internal::remove_all<ArgTypeNested>::type ArgTypeNestedCleaned;
   typedef typename ArgType::Scalar InputScalar;
   typedef typename XprType::Scalar Scalar;
   enum {
@@ -193,7 +195,7 @@ struct evaluator<PartialReduxExpr<ArgType, MemberOp, Direction> >
   PacketType packet(Index idx) const
   {
     enum { PacketSize = internal::unpacket_traits<PacketType>::size };
-    typedef Block<typename internal::add_const_on_value_type<ArgTypeNested>::type,
+    typedef Block<const ArgTypeNestedCleaned,
                   Direction==Vertical ? int(ArgType::RowsAtCompileTime) : int(PacketSize),
                   Direction==Vertical ? int(PacketSize) : int(ArgType::ColsAtCompileTime),
                   true /* InnerPanel */> PanelType;
@@ -212,7 +214,7 @@ struct evaluator<PartialReduxExpr<ArgType, MemberOp, Direction> >
   }
 
 protected:
-  typename internal::add_const_on_value_type<ArgTypeNested>::type m_arg;
+  ConstArgTypeNested m_arg;
   const MemberOp m_functor;
 };
 
