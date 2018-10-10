@@ -126,6 +126,16 @@ template<typename MatrixType> void permutationmatrices(const MatrixType& m)
   VERIFY_IS_APPROX(m_permuted, lp*m_original*rp.transpose());
   
   VERIFY_IS_APPROX(lt.inverse()*m_permuted*rt.inverse(), m_original);
+
+  // Check inplace transpositions
+  m_permuted = m_original;
+  VERIFY_IS_APPROX(m_permuted = lt * m_permuted, lp * m_original);
+  m_permuted = m_original;
+  VERIFY_IS_APPROX(m_permuted = lt.inverse() * m_permuted, lp.inverse() * m_original);
+  m_permuted = m_original;
+  VERIFY_IS_APPROX(m_permuted = m_permuted * rt, m_original * rt);
+  m_permuted = m_original;
+  VERIFY_IS_APPROX(m_permuted = m_permuted * rt.inverse(), m_original * rt.inverse());
 }
 
 template<typename T>
@@ -147,7 +157,7 @@ void bug890()
 
   MapType(v1.data(),2,1,S(1,1)) = P * MapType(rhs.data(),2,1,S(1,1));
   VERIFY_IS_APPROX(v1, (P * rhs).eval());
-  
+
   MapType(v1.data(),2,1,S(1,1)) = P.inverse() * MapType(rhs.data(),2,1,S(1,1));
   VERIFY_IS_APPROX(v1, (P.inverse() * rhs).eval());
 }
@@ -160,8 +170,8 @@ EIGEN_DECLARE_TEST(permutationmatrices)
     CALL_SUBTEST_3( permutationmatrices(Matrix<double,3,3,RowMajor>()) );
     CALL_SUBTEST_4( permutationmatrices(Matrix4d()) );
     CALL_SUBTEST_5( permutationmatrices(Matrix<double,40,60>()) );
-    CALL_SUBTEST_6( permutationmatrices(Matrix<double,Dynamic,Dynamic,RowMajor>(20, 30)) );
-    CALL_SUBTEST_7( permutationmatrices(MatrixXcf(15, 10)) );
+    CALL_SUBTEST_6( permutationmatrices(Matrix<double,Dynamic,Dynamic,RowMajor>(internal::random<int>(1,EIGEN_TEST_MAX_SIZE), internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
+    CALL_SUBTEST_7( permutationmatrices(MatrixXcf(internal::random<int>(1,EIGEN_TEST_MAX_SIZE), internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
   }
   CALL_SUBTEST_5( bug890<double>() );
 }
