@@ -55,7 +55,7 @@ template<> struct packet_traits<float>  : default_packet_traits
     size = 16,
     HasHalfPacket = 1,
     HasBlend = 0,
-#if EIGEN_GNUC_AT_LEAST(5, 3)
+#if EIGEN_GNUC_AT_LEAST(5, 3) || EIGEN_COMP_CLANG
 #ifdef EIGEN_VECTORIZE_AVX512DQ
     HasLog = 1,
 #endif
