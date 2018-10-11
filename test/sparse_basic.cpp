@@ -9,6 +9,7 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+#ifndef EIGEN_SPARSE_TEST_INCLUDED_FROM_SPARSE_EXTRA
 static long g_realloc_count = 0;
 #define EIGEN_SPARSE_COMPRESSED_STORAGE_REALLOCATE_PLUGIN g_realloc_count++;
 
@@ -16,6 +17,7 @@ static long g_dense_op_sparse_count = 0;
 #define EIGEN_SPARSE_ASSIGNMENT_FROM_DENSE_OP_SPARSE_PLUGIN g_dense_op_sparse_count++;
 #define EIGEN_SPARSE_ASSIGNMENT_FROM_SPARSE_ADD_DENSE_PLUGIN g_dense_op_sparse_count+=10;
 #define EIGEN_SPARSE_ASSIGNMENT_FROM_SPARSE_SUB_DENSE_PLUGIN g_dense_op_sparse_count+=20;
+#endif
 
 #include "sparse.h"
 
@@ -681,6 +683,8 @@ void bug1105()
   }
 }
 
+#ifndef EIGEN_SPARSE_TEST_INCLUDED_FROM_SPARSE_EXTRA
+
 EIGEN_DECLARE_TEST(sparse_basic)
 {
   for(int i = 0; i < g_repeat; i++) {
@@ -713,3 +717,4 @@ EIGEN_DECLARE_TEST(sparse_basic)
 
   CALL_SUBTEST_7( bug1105<0>() );
 }
+#endif
