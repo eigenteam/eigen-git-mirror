@@ -283,11 +283,11 @@ void test_stl_iterators(int rows=Rows, int cols=Cols)
     j = internal::random<Index>(0,A.cols()-1);
     typename ColMatrixType::ColXpr Acol = A.col(j);
     std::partial_sum(Acol.begin(), Acol.end(), v.begin());
-    VERIFY_IS_EQUAL(v(seq(1,last)), v(seq(0,last-1))+Acol(seq(1,last)));
+    VERIFY_IS_APPROX(v(seq(1,last)), v(seq(0,last-1))+Acol(seq(1,last)));
 
     // inplace
     std::partial_sum(Acol.begin(), Acol.end(), Acol.begin());
-    VERIFY_IS_EQUAL(v, Acol);
+    VERIFY_IS_APPROX(v, Acol);
   }
 
   // stress random access as required by std::nth_element
