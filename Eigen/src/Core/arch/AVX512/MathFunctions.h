@@ -64,11 +64,9 @@ plog<Packet16f>(const Packet16f& _x) {
   _EIGEN_DECLARE_CONST_Packet16f(cephes_log_q2, 0.693359375f);
 
   // invalid_mask is set to true when x is NaN
-  __mmask16 invalid_mask =
-      _mm512_cmp_ps_mask(x, _mm512_setzero_ps(), _CMP_NGE_UQ);
-  __mmask16 iszero_mask =
-      _mm512_cmp_ps_mask(x, _mm512_setzero_ps(), _CMP_EQ_UQ);
-
+  __mmask16 invalid_mask =  _mm512_cmp_ps_mask(x, _mm512_setzero_ps(), _CMP_NGE_UQ);
+  __mmask16 iszero_mask  =  _mm512_cmp_ps_mask(x, _mm512_setzero_ps(), _CMP_EQ_OQ);
+      
   // Truncate input values to the minimum positive normal.
   x = pmax(x, p16f_min_norm_pos);
 
