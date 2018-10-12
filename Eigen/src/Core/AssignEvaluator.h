@@ -699,6 +699,26 @@ protected:
   DstXprType& m_dstExpr;
 };
 
+// Special kernel used when computing small products whose operands have dynamic dimensions.  It ensures that the
+// PacketSize used is no larger than 4, thereby increasing the chance that vectorized instructions will be used
+// when computing the product.
+
+template<typename DstEvaluatorTypeT, typename SrcEvaluatorTypeT, typename Functor>
+class restricted_packet_dense_assignment_kernel : public generic_dense_assignment_kernel<DstEvaluatorTypeT, SrcEvaluatorTypeT, Functor, BuiltIn>
+{
+protected:
+  typedef generic_dense_assignment_kernel<DstEvaluatorTypeT, SrcEvaluatorTypeT, Functor, BuiltIn> Base;
+ public:
+    typedef typename Base::Scalar Scalar;
+    typedef typename Base::DstXprType DstXprType;
+    typedef typename find_best_packet<Scalar, 4>::type PacketType;
+    
+    EIGEN_DEVICE_FUNC restricted_packet_dense_assignment_kernel(DstEvaluatorTypeT &dst, const SrcEvaluatorTypeT &src, const Functor &func, DstXprType& dstExpr)
+    : Base(dst, src, func, dstExpr)
+  {
+  }
+ };
+ 
 /***************************************************************************
 * Part 5 : Entry point for dense rectangular assignment
 ***************************************************************************/
@@ -837,6 +857,27 @@ void call_assignment_no_alias(Dst& dst, const Src& src, const Func& func)
   
   Assignment<ActualDstTypeCleaned,Src,Func>::run(actualDst, src, func);
 }
+
+template<typename Dst, typename Src, typename Func>
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+void call_restricted_packet_assignment_no_alias(Dst& dst, const Src& src, const Func& func)
+{
+    typedef evaluator<Dst> DstEvaluatorType;
+    typedef evaluator<Src> SrcEvaluatorType;
+    typedef restricted_packet_dense_assignment_kernel<DstEvaluatorType,SrcEvaluatorType,Func> Kernel;
+
+    EIGEN_STATIC_ASSERT_LVALUE(Dst)
+    EIGEN_CHECK_BINARY_COMPATIBILIY(Func,typename Dst::Scalar,typename Src::Scalar);
+
+    SrcEvaluatorType srcEvaluator(src);
+    resize_if_allowed(dst, src, func);
+    
+    DstEvaluatorType dstEvaluator(dst);
+    Kernel kernel(dstEvaluator, srcEvaluator, func, dst.const_cast_derived());
+
+    dense_assignment_loop<Kernel>::run(kernel);
+}
+
 template<typename Dst, typename Src>
 EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
 void call_assignment_no_alias(Dst& dst, const Src& src)

@@ -424,7 +424,7 @@ struct generic_product_impl<Lhs,Rhs,DenseShape,DenseShape,CoeffBasedProductMode>
   void eval_dynamic(Dst& dst, const CwiseBinaryOp<internal::scalar_product_op<Scalar1,Scalar2>,
                                            const CwiseNullaryOp<internal::scalar_constant_op<Scalar1>, Plain1>, Xpr2>& lhs, const Rhs& rhs, const Func &func)
   {
-    call_assignment_no_alias(dst, lhs.lhs().functor().m_other * lhs.rhs().lazyProduct(rhs), func);
+    call_restricted_packet_assignment_no_alias(dst, lhs.lhs().functor().m_other * lhs.rhs().lazyProduct(rhs), func);
   }
 
   // Here, we we always have LhsT==Lhs, but we need to make it a template type to make the above
@@ -433,7 +433,7 @@ struct generic_product_impl<Lhs,Rhs,DenseShape,DenseShape,CoeffBasedProductMode>
   static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
   void eval_dynamic(Dst& dst, const LhsT& lhs, const Rhs& rhs, const Func &func)
   {
-    call_assignment_no_alias(dst, lhs.lazyProduct(rhs), func);
+    call_restricted_packet_assignment_no_alias(dst, lhs.lazyProduct(rhs), func);
   }
   
   
