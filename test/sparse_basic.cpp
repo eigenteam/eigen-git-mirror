@@ -645,6 +645,7 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
 
 template<typename SparseMatrixType>
 void big_sparse_triplet(Index rows, Index cols, double density) {
+  g_dense_op_sparse_count = 0;  // Suppresses compiler warning.
   typedef typename SparseMatrixType::StorageIndex StorageIndex;
   typedef typename SparseMatrixType::Scalar Scalar;
   typedef Triplet<Scalar,Index> TripletType;
