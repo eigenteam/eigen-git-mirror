@@ -233,7 +233,7 @@ namespace Eigen {
 
         /** \internal */
         template<typename Rhs,typename Dest>
-        void _solve_with_guess_impl(const Rhs& b, Dest& x) const
+        void _solve_vector_with_guess_impl(const Rhs& b, Dest& x) const
         {
             typedef typename Base::MatrixWrapper MatrixWrapper;
             typedef typename Base::ActualMatrixType ActualMatrixType;
@@ -253,26 +253,9 @@ namespace Eigen {
             m_iterations = Base::maxIterations();
             m_error = Base::m_tolerance;
             RowMajorWrapper row_mat(matrix());
-            for(int j=0; j<b.cols(); ++j)
-            {
-                m_iterations = Base::maxIterations();
-                m_error = Base::m_tolerance;
-                
-                typename Dest::ColXpr xj(x,j);
-                internal::minres(SelfAdjointWrapper(row_mat), b.col(j), xj,
-                                 Base::m_preconditioner, m_iterations, m_error);
-            }
-            
-            m_isInitialized = true;
+            internal::minres(SelfAdjointWrapper(row_mat), b, x,
+                             Base::m_preconditioner, m_iterations, m_error);
             m_info = m_error <= Base::m_tolerance ? Success : NoConvergence;
-        }
-        
-        /** \internal */
-        template<typename Rhs,typename Dest>
-        void _solve_impl(const Rhs& b, MatrixBase<Dest> &x) const
-        {
-            x.setZero();
-            _solve_with_guess_impl(b,x.derived());
         }
         
     protected:

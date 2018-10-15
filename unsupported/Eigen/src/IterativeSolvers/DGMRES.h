@@ -109,6 +109,7 @@ class DGMRES : public IterativeSolverBase<DGMRES<_MatrixType,_Preconditioner> >
     using Base::m_tolerance; 
   public:
     using Base::_solve_impl;
+    using Base::_solve_with_guess_impl;
     typedef _MatrixType MatrixType;
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::StorageIndex StorageIndex;
@@ -141,30 +142,16 @@ class DGMRES : public IterativeSolverBase<DGMRES<_MatrixType,_Preconditioner> >
   
   /** \internal */
   template<typename Rhs,typename Dest>
-  void _solve_with_guess_impl(const Rhs& b, Dest& x) const
-  {    
-    bool failed = false;
-    for(Index j=0; j<b.cols(); ++j)
-    {
-      m_iterations = Base::maxIterations();
-      m_error = Base::m_tolerance;
-      
-      typename Dest::ColXpr xj(x,j);
-      dgmres(matrix(), b.col(j), xj, Base::m_preconditioner);
-    }
-    m_info = failed ? NumericalIssue
-           : m_error <= Base::m_tolerance ? Success
-           : NoConvergence;
-    m_isInitialized = true;
+  void _solve_vector_with_guess_impl(const Rhs& b, Dest& x) const
+  {
+    EIGEN_STATIC_ASSERT(Rhs::ColsAtCompileTime==1 || Dest::ColsAtCompileTime==1, YOU_TRIED_CALLING_A_VECTOR_METHOD_ON_A_MATRIX);
+    
+    m_iterations = Base::maxIterations();
+    m_error = Base::m_tolerance;
+    
+    dgmres(matrix(), b, x, Base::m_preconditioner);
   }
 
-  /** \internal */
-  template<typename Rhs,typename Dest>
-  void _solve_impl(const Rhs& b, MatrixBase<Dest>& x) const
-  {
-    x = b;
-    _solve_with_guess_impl(b,x.derived());
-  }
   /** 
    * Get the restart value
     */

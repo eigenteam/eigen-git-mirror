@@ -331,7 +331,7 @@ public:
   
   /** \internal */
   template<typename Rhs, typename DestDerived>
-  void _solve_impl(const Rhs& b, SparseMatrixBase<DestDerived> &aDest) const
+  void _solve_with_guess_impl(const Rhs& b, SparseMatrixBase<DestDerived> &aDest) const
   {
     eigen_assert(rows()==b.rows());
     
@@ -344,13 +344,64 @@ public:
     // We do not directly fill dest because sparse expressions have to be free of aliasing issue.
     // For non square least-square problems, b and dest might not have the same size whereas they might alias each-other.
     typename DestDerived::PlainObject tmp(cols(),rhsCols);
+    ComputationInfo global_info = Success;
     for(Index k=0; k<rhsCols; ++k)
     {
       tb = b.col(k);
-      tx = derived().solve(tb);
+      tx = dest.col(k);
+      derived()._solve_vector_with_guess_impl(tb,tx);
       tmp.col(k) = tx.sparseView(0);
+
+      // The call to _solve_vector_with_guess_impl updates m_info, so if it failed for a previous column
+      // we need to restore it to the worst value.
+      if(m_info==NumericalIssue)
+        global_info = NumericalIssue;
+      else if(m_info==NoConvergence)
+        global_info = NoConvergence;
     }
+    m_info = global_info;
     dest.swap(tmp);
+  }
+
+  template<typename Rhs, typename DestDerived>
+  typename internal::enable_if<Rhs::ColsAtCompileTime!=1 && DestDerived::ColsAtCompileTime!=1>::type
+  _solve_with_guess_impl(const Rhs& b, MatrixBase<DestDerived> &aDest) const
+  {
+    eigen_assert(rows()==b.rows());
+    
+    Index rhsCols = b.cols();
+    DestDerived& dest(aDest.derived());
+    ComputationInfo global_info = Success;
+    for(Index k=0; k<rhsCols; ++k)
+    {
+      typename DestDerived::ColXpr xk(dest,k);
+      typename Rhs::ConstColXpr bk(b,k);
+      derived()._solve_vector_with_guess_impl(bk,xk);
+
+      // The call to _solve_vector_with_guess updates m_info, so if it failed for a previous column
+      // we need to restore it to the worst value.
+      if(m_info==NumericalIssue)
+        global_info = NumericalIssue;
+      else if(m_info==NoConvergence)
+        global_info = NoConvergence;
+    }
+    m_info = global_info;
+  }
+
+  template<typename Rhs, typename DestDerived>
+  typename internal::enable_if<Rhs::ColsAtCompileTime==1 || DestDerived::ColsAtCompileTime==1>::type
+  _solve_with_guess_impl(const Rhs& b, MatrixBase<DestDerived> &dest) const
+  {
+    derived()._solve_vector_with_guess_impl(b,dest.derived());
+  }
+
+  /** \internal default initial guess = 0 */
+  template<typename Rhs,typename Dest>
+  void _solve_impl(const Rhs& b, Dest& x) const
+  {
+    x.resize(this->rows(),b.cols());
+    x.setZero();
+    derived()._solve_with_guess_impl(b,x);
   }
 
 protected:
