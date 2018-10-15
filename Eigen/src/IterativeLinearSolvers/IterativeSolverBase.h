@@ -399,7 +399,6 @@ public:
   template<typename Rhs,typename Dest>
   void _solve_impl(const Rhs& b, Dest& x) const
   {
-    x.resize(this->rows(),b.cols());
     x.setZero();
     derived()._solve_with_guess_impl(b,x);
   }
