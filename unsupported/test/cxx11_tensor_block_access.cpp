@@ -367,6 +367,116 @@ static void test_block_io_copy_using_reordered_dimensions() {
   delete[] output_data;
 }
 
+// This is the special case for reading data with reordering, when dimensions
+// before/after reordering are the same. Squeezing reads along inner dimensions
+// in this case is illegal, because we reorder innermost dimension.
+template <int Layout>
+static void test_block_io_copy_using_reordered_dimensions_do_not_squeeze()
+{
+  typedef internal::TensorBlock<float, Index, 3, Layout> TensorBlock;
+  typedef internal::TensorBlockReader<float, Index, 3, Layout>
+      TensorBlockReader;
+
+  DSizes<Index, 3> tensor_dims;
+  tensor_dims[0] = 7;
+  tensor_dims[1] = 9;
+  tensor_dims[2] = 7;
+
+  DSizes<Index, 3> block_dims = tensor_dims;
+
+  DSizes<Index, 3> tensor_to_block_dim_map;
+  tensor_to_block_dim_map[0] = 2;
+  tensor_to_block_dim_map[1] = 1;
+  tensor_to_block_dim_map[2] = 0;
+
+  DSizes<Index, 3> tensor_strides(ComputeStrides<Layout, 3>(tensor_dims));
+  DSizes<Index, 3> block_strides(ComputeStrides<Layout, 3>(block_dims));
+
+  const Index tensor_size = tensor_dims.TotalSize();
+  float* tensor_data = GenerateRandomData<float>(tensor_size);
+  float* block_data = new float[tensor_size];
+
+  TensorBlock block(0, block_dims, block_strides, tensor_strides, block_data);
+  TensorBlockReader::Run(&block,
+                         0,
+                         tensor_to_block_dim_map,
+                         tensor_strides,
+                         tensor_data);
+
+  TensorMap<Tensor<float, 3, Layout> > block_tensor(block_data, block_dims);
+  TensorMap<Tensor<float, 3, Layout> > tensor_tensor(tensor_data, tensor_dims);
+
+  for (Index d0 = 0; d0 < tensor_dims[0]; ++d0) {
+    for (Index d1 = 0; d1 < tensor_dims[1]; ++d1) {
+      for (Index d2 = 0; d2 < tensor_dims[2]; ++d2) {
+        float block_value = block_tensor(d2, d1, d0);
+        float tensor_value = tensor_tensor(d0, d1, d2);
+        VERIFY_IS_EQUAL(block_value, tensor_value);
+      }
+    }
+  }
+
+  delete[] block_data;
+  delete[] tensor_data;
+}
+
+// This is the special case for reading data with reordering, when dimensions
+// before/after reordering are the same. Squeezing reads in this case is allowed
+// because we reorder outer dimensions.
+template <int Layout>
+static void test_block_io_copy_using_reordered_dimensions_squeeze()
+{
+  typedef internal::TensorBlock<float, Index, 4, Layout> TensorBlock;
+  typedef internal::TensorBlockReader<float, Index, 4, Layout>
+      TensorBlockReader;
+
+  DSizes<Index, 4> tensor_dims;
+  tensor_dims[0] = 7;
+  tensor_dims[1] = 5;
+  tensor_dims[2] = 9;
+  tensor_dims[3] = 9;
+
+  DSizes<Index, 4> block_dims = tensor_dims;
+
+  DSizes<Index, 4> tensor_to_block_dim_map;
+  tensor_to_block_dim_map[0] = 0;
+  tensor_to_block_dim_map[1] = 1;
+  tensor_to_block_dim_map[2] = 3;
+  tensor_to_block_dim_map[3] = 2;
+
+  DSizes<Index, 4> tensor_strides(ComputeStrides<Layout, 4>(tensor_dims));
+  DSizes<Index, 4> block_strides(ComputeStrides<Layout, 4>(block_dims));
+
+  const Index tensor_size = tensor_dims.TotalSize();
+  float* tensor_data = GenerateRandomData<float>(tensor_size);
+  float* block_data = new float[tensor_size];
+
+  TensorBlock block(0, block_dims, block_strides, tensor_strides, block_data);
+  TensorBlockReader::Run(&block,
+                         0,
+                         tensor_to_block_dim_map,
+                         tensor_strides,
+                         tensor_data);
+
+  TensorMap<Tensor<float, 4, Layout> > block_tensor(block_data, block_dims);
+  TensorMap<Tensor<float, 4, Layout> > tensor_tensor(tensor_data, tensor_dims);
+
+  for (Index d0 = 0; d0 < tensor_dims[0]; ++d0) {
+    for (Index d1 = 0; d1 < tensor_dims[1]; ++d1) {
+      for (Index d2 = 0; d2 < tensor_dims[2]; ++d2) {
+        for (Index d3 = 0; d3 < tensor_dims[3]; ++d3) {
+          float block_value = block_tensor(d0, d1, d3, d2);
+          float tensor_value = tensor_tensor(d0, d1, d2, d3);
+          VERIFY_IS_EQUAL(block_value, tensor_value);
+        }
+      }
+    }
+  }
+
+  delete[] block_data;
+  delete[] tensor_data;
+}
+
 template<typename Scalar, typename StorageIndex, int Dim>
 class EqualityChecker
 {
@@ -399,7 +509,6 @@ public:
         check_recursive(input_data, output_data);
     }
 };
-
 
 template <int Layout>
 static void test_block_io_zero_stride()
@@ -1092,6 +1201,8 @@ EIGEN_DECLARE_TEST(cxx11_tensor_block_access) {
   TEST_LAYOUTS_AND_DIMS(Data, test_block_io_copy_data_from_source_to_target);
   TEST_LAYOUTS_AND_DIMS(float, test_block_io_copy_using_reordered_dimensions);
   TEST_LAYOUTS_AND_DIMS(Data, test_block_io_copy_using_reordered_dimensions);
+  TEST_LAYOUTS(test_block_io_copy_using_reordered_dimensions_do_not_squeeze);
+  TEST_LAYOUTS(test_block_io_copy_using_reordered_dimensions_squeeze);
   TEST_LAYOUTS(test_block_io_zero_stride);
   TEST_LAYOUTS(test_block_io_squeeze_ones);
   TEST_LAYOUTS_AND_DIMS(float, test_block_cwise_unary_io_basic);
