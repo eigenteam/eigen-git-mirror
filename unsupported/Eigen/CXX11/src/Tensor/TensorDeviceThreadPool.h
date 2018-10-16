@@ -109,26 +109,30 @@ struct ThreadPoolDevice {
   }
 
   template <class Function, class... Args>
-  EIGEN_STRONG_INLINE Notification* enqueue(Function&& f, Args&&... args) const {
+  EIGEN_STRONG_INLINE Notification* enqueue(Function&& f,
+                                            Args&&... args) const {
     Notification* n = new Notification();
-    pool_->Schedule(std::bind(&FunctionWrapperWithNotification<Function, Args...>::run, n, f, args...));
+    pool_->Schedule(
+        std::bind(&FunctionWrapperWithNotification<Function, Args...>::run, n,
+                  std::move(f), args...));
     return n;
   }
 
   template <class Function, class... Args>
-  EIGEN_STRONG_INLINE void enqueue_with_barrier(Barrier* b,
-                                                Function&& f,
+  EIGEN_STRONG_INLINE void enqueue_with_barrier(Barrier* b, Function&& f,
                                                 Args&&... args) const {
-    pool_->Schedule(std::bind(
-        &FunctionWrapperWithBarrier<Function, Args...>::run, b, f, args...));
+    pool_->Schedule(
+        std::bind(&FunctionWrapperWithBarrier<Function, Args...>::run, b,
+                  std::move(f), args...));
   }
 
   template <class Function, class... Args>
-  EIGEN_STRONG_INLINE void enqueueNoNotification(Function&& f, Args&&... args) const {
+  EIGEN_STRONG_INLINE void enqueueNoNotification(Function&& f,
+                                                 Args&&... args) const {
     if (sizeof...(args) > 0) {
-      pool_->Schedule(std::bind(f, args...));
+      pool_->Schedule(std::bind(std::move(f), args...));
     } else {
-      pool_->Schedule(f);
+      pool_->Schedule(std::move(f));
     }
   }
 
