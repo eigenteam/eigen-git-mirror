@@ -102,6 +102,9 @@ typedef unsigned __int64 uint64_t;
 #include "src/Tensor/TensorDeviceDefault.h"
 #include "src/Tensor/TensorDeviceThreadPool.h"
 #include "src/Tensor/TensorDeviceGpu.h"
+#ifndef gpu_assert
+#define gpu_assert(x)
+#endif
 #include "src/Tensor/TensorDeviceSycl.h"
 #include "src/Tensor/TensorIndexList.h"
 #include "src/Tensor/TensorDimensionList.h"
