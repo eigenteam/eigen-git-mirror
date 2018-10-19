@@ -654,12 +654,9 @@
     #ifdef __CUDACC_RELAXED_CONSTEXPR__
       #define EIGEN_CONSTEXPR_ARE_DEVICE_FUNC
     #endif
-    // See bug 1580: clang/CUDA fails to make the following calls
-    // to constexpr bool std::equal_to::operator() even when
-    // EIGEN_CONSTEXPR_ARE_DEVICE_FUNC is defined in c++14 only.
-    // #elif defined(__clang__) && defined(__CUDA__) && EIGEN_HAS_CONSTEXPR == 1
-    //   // clang++ always considers constexpr functions as implicitly __host__ __device__
-    //   #define EIGEN_CONSTEXPR_ARE_DEVICE_FUNC
+  #elif defined(__clang__) && defined(__CUDA__) && __has_feature(cxx_relaxed_constexpr)
+    // clang++ always considers constexpr functions as implicitly __host__ __device__
+    #define EIGEN_CONSTEXPR_ARE_DEVICE_FUNC
   #endif
 #endif
 
