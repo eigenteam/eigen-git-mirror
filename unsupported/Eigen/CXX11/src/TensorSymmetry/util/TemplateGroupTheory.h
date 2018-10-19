@@ -167,7 +167,9 @@ template<
   typename elements,
   bool dont_add_current_element   // = false
 >
-struct dimino_first_step_elements_helper :
+struct dimino_first_step_elements_helper
+#ifndef EIGEN_PARSED_BY_DOXYGEN
+  : // recursive inheritance is too difficult for Doxygen
   public dimino_first_step_elements_helper<
     Multiply,
     Equality,
@@ -187,6 +189,7 @@ template<
   typename elements
 >
 struct dimino_first_step_elements_helper<Multiply, Equality, id, g, current_element, elements, true>
+#endif // EIGEN_PARSED_BY_DOXYGEN
 {
   typedef elements type;
   constexpr static int global_flags = Equality<current_element, id>::global_flags;
