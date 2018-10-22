@@ -617,7 +617,7 @@ T div_ceil(const T &a, const T &b)
 template<typename X, typename Y> EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC
 bool equal_strict(const X& x,const Y& y) { return x == y; }
 
-#if !defined(EIGEN_GPU_COMPILE_PHASE) || defined(EIGEN_CONSTEXPR_ARE_DEVICE_FUNC)
+#if !defined(EIGEN_GPU_COMPILE_PHASE) || (!defined(EIGEN_CUDA_ARCH) && defined(EIGEN_CONSTEXPR_ARE_DEVICE_FUNC))
 template<> EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC
 bool equal_strict(const float& x,const float& y) { return std::equal_to<float>()(x,y); }
 
@@ -628,7 +628,7 @@ bool equal_strict(const double& x,const double& y) { return std::equal_to<double
 template<typename X, typename Y> EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC
 bool not_equal_strict(const X& x,const Y& y) { return x != y; }
 
-#if !defined(EIGEN_GPU_COMPILE_PHASE) || defined(EIGEN_CONSTEXPR_ARE_DEVICE_FUNC)
+#if !defined(EIGEN_GPU_COMPILE_PHASE) || (!defined(EIGEN_CUDA_ARCH) && defined(EIGEN_CONSTEXPR_ARE_DEVICE_FUNC))
 template<> EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC
 bool not_equal_strict(const float& x,const float& y) { return std::not_equal_to<float>()(x,y); }
 
