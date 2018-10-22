@@ -645,7 +645,6 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
 
 template<typename SparseMatrixType>
 void big_sparse_triplet(Index rows, Index cols, double density) {
-  g_dense_op_sparse_count = 0;  // Suppresses compiler warning.
   typedef typename SparseMatrixType::StorageIndex StorageIndex;
   typedef typename SparseMatrixType::Scalar Scalar;
   typedef Triplet<Scalar,Index> TripletType;
@@ -688,6 +687,7 @@ void bug1105()
 
 EIGEN_DECLARE_TEST(sparse_basic)
 {
+  g_dense_op_sparse_count = 0;  // Suppresses compiler warning.
   for(int i = 0; i < g_repeat; i++) {
     int r = Eigen::internal::random<int>(1,200), c = Eigen::internal::random<int>(1,200);
     if(Eigen::internal::random<int>(0,4) == 0) {
