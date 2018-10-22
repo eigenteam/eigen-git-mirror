@@ -607,10 +607,12 @@ EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC half (max)(const half& a, const half& b) {
 #endif
 }
 
+#ifndef EIGEN_NO_IO
 EIGEN_ALWAYS_INLINE std::ostream& operator << (std::ostream& os, const half& v) {
   os << static_cast<float>(v);
   return os;
 }
+#endif
 
 } // end namespace half_impl
 
