@@ -820,8 +820,8 @@ static void test_block_cwise_binary_io_zero_strides() {
   left_strides[4] = 0;
 
   DSizes<Index, 5> right_sizes = rnd_dims;
-  right_sizes[1] = 0;
-  right_sizes[3] = 0;
+  right_sizes[1] = 1;
+  right_sizes[3] = 1;
 
   DSizes<Index, 5> right_strides(ComputeStrides<Layout, 5>(right_sizes));
   right_strides[1] = 0;
