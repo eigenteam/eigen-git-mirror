@@ -78,6 +78,7 @@ functions by defining EIGEN_HAS_C99_MATH=1.
    Automatic detection disabled if EIGEN_MAX_CPP_VER<11.
  - \b EIGEN_HAS_CXX11_NOEXCEPT - defines whether noexcept is supported
    Automatic detection disabled if EIGEN_MAX_CPP_VER<11.
+ - \b EIGEN_NO_IO - Disables any usage and support for `<iostreams>`.
 
 \section TopicPreprocessorDirectivesAssertions Assertions
 
