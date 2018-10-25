@@ -50,7 +50,7 @@ For instance, one can skip every P elements in a vector:
 \verbinclude Tutorial_SlicingVec.out
 </td></tr></table>
 
-One can olso take one column over three using an adequate outer-stride or inner-stride depending on the actual storage order:
+One can also take one column over three using an adequate outer-stride or inner-stride depending on the actual storage order:
 <table class="example">
 <tr><th>Example:</th><th>Output:</th></tr>
 <tr><td>
