@@ -57,6 +57,10 @@ template<typename MatrixType> void lu_non_invertible()
   // The image of the zero matrix should consist of a single (zero) column vector
   VERIFY((MatrixType::Zero(rows,cols).fullPivLu().image(MatrixType::Zero(rows,cols)).cols() == 1));
 
+  // The kernel of the zero matrix is the entire space, and thus is an invertible matrix of dimensions cols.
+  KernelMatrixType kernel = MatrixType::Zero(rows,cols).fullPivLu().kernel();
+  VERIFY((kernel.fullPivLu().isInvertible()));
+
   MatrixType m1(rows, cols), m3(rows, cols2);
   CMatrixType m2(cols, cols2);
   createRandomPIMatrixOfRank(rank, rows, cols, m1);
