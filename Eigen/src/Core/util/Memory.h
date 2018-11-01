@@ -98,7 +98,7 @@ inline void throw_std_bad_alloc()
   */
 EIGEN_DEVICE_FUNC inline void* handmade_aligned_malloc(std::size_t size, std::size_t alignment = EIGEN_DEFAULT_ALIGN_BYTES)
 {
-  eigen_assert(alignment >= sizeof(void*) && (alignment & -alignment) == alignment && "Alignment must be at least sizeof(void*) and a power of 2");
+  eigen_assert(alignment >= sizeof(void*) && (alignment & (alignment-1)) == 0 && "Alignment must be at least sizeof(void*) and a power of 2");
   
 #if defined(EIGEN_HIP_DEVICE_COMPILE)
   void *original = ::malloc(size+alignment);
