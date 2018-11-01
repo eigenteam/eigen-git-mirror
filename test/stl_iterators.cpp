@@ -46,6 +46,50 @@ bool is_pointer_based_stl_iterator(const internal::pointer_based_stl_iterator<Xp
 template<typename XprType>
 bool is_generic_randaccess_stl_iterator(const internal::generic_randaccess_stl_iterator<XprType> &) { return true; }
 
+template<typename Xpr>
+void check_begin_end_for_loop(Xpr xpr)
+{
+  const Xpr& cxpr(xpr);
+  Index i = 0;
+
+  i = 0;
+  for(typename Xpr::iterator it = xpr.begin(); it!=xpr.end(); ++it) { VERIFY_IS_EQUAL(*it,xpr[i++]); }
+
+  i = 0;
+  for(typename Xpr::const_iterator it = xpr.cbegin(); it!=xpr.cend(); ++it) { VERIFY_IS_EQUAL(*it,xpr[i++]); }
+
+  i = 0;
+  for(typename Xpr::const_iterator it = cxpr.begin(); it!=cxpr.end(); ++it) { VERIFY_IS_EQUAL(*it,xpr[i++]); }
+
+  // Needs to be uncommented while fixing bug 1619
+  // i = 0;
+  // for(typename Xpr::const_iterator it = xpr.begin(); it!=xpr.end(); ++it) { VERIFY_IS_EQUAL(*it,xpr[i++]); }
+
+  if(xpr.size()>0) {
+    VERIFY(xpr.begin() != xpr.end());
+    VERIFY(xpr.begin() < xpr.end());
+    VERIFY(xpr.begin() <= xpr.end());
+    VERIFY(!(xpr.begin() == xpr.end()));
+    VERIFY(!(xpr.begin() < xpr.end()));
+    VERIFY(!(xpr.begin() <= xpr.end()));
+    
+    // Needs to be uncommented while fixing bug 1619
+    // VERIFY(xpr.cbegin() != xpr.end());
+    // VERIFY(xpr.cbegin() < xpr.end());
+    // VERIFY(xpr.cbegin() <= xpr.end());
+    // VERIFY(!(xpr.cbegin() == xpr.end()));
+    // VERIFY(!(xpr.cbegin() < xpr.end()));
+    // VERIFY(!(xpr.cbegin() <= xpr.end()));
+
+    // VERIFY(xpr.begin() != xpr.cend());
+    // VERIFY(xpr.begin() < xpr.cend());
+    // VERIFY(xpr.begin() <= xpr.cend());
+    // VERIFY(!(xpr.begin() == xpr.cend()));
+    // VERIFY(!(xpr.begin() < xpr.cend()));
+    // VERIFY(!(xpr.begin() <= xpr.cend()));
+  }
+}
+
 template<typename Scalar, int Rows, int Cols>
 void test_stl_iterators(int rows=Rows, int cols=Cols)
 {
@@ -92,6 +136,12 @@ void test_stl_iterators(int rows=Rows, int cols=Cols)
 
     VERIFY( is_generic_randaccess_stl_iterator(A.template reshaped<RowMajor>().begin()) );
     VERIFY( is_generic_randaccess_stl_iterator(A.template reshaped<RowMajor>().end()) );
+  }
+
+  {
+    check_begin_end_for_loop(v);
+    check_begin_end_for_loop(v.col(internal::random<Index>(0,A.cols()-1)));
+    check_begin_end_for_loop(v.row(internal::random<Index>(0,A.rows()-1)));
   }
 
 #if EIGEN_HAS_CXX11
