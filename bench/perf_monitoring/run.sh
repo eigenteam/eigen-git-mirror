@@ -14,21 +14,29 @@
 # Options:
 #   -up : enforce the recomputation of existing data, and keep best results as a merging strategy
 #   -s  : recompute selected changesets only and keep bests
+#   -np : no plotting of results, just generate the data
 
 bench=$1
 settings_file=$2
 
-if echo "$*" | grep '\-up' > /dev/null; then
+if [[ "$*" =~ '-up' ]]; then
   update=true
 else
   update=false
 fi
 
-if echo "$*" | grep '\-s' > /dev/null; then
+if [[ "$*" =~ '-s' ]]; then
   selected=true
 else
   selected=false
 fi
+
+if [[ "$*" =~ '-np' ]]; then
+  do_plot=false
+else
+  do_plot=true
+fi
+
 
 WORKING_DIR=${PREFIX:?"default"}
 
@@ -42,9 +50,9 @@ mkdir -p $WORKING_DIR
 
 global_args="$*"
 
-if [ $selected == true ]; then
+if $selected ; then
  echo "Recompute selected changesets only and keep bests"
-elif [ $update == true ]; then
+elif $update ; then
  echo "(Re-)Compute all changesets and keep bests"
 else
  echo "Skip previously computed changesets"
@@ -111,7 +119,7 @@ function test_current
   fi
 #  echo $update et $selected et $rev_found because $rev et "$global_args"
 #  echo $count_rev et $count_ref
-  if [ $update == true ] || [ $count_rev != $count_ref ] || ([ $selected == true ] &&  [ $rev_found == true ]); then
+  if $update || [ $count_rev != $count_ref ] || ( $selected &&  $rev_found ); then
     echo "RUN: $CXX -O3 -DNDEBUG -march=native $CXX_FLAGS -I eigen_src $bench.cpp -DSCALAR=$scalar -o $name"
     if $CXX -O3 -DNDEBUG -march=native $CXX_FLAGS -I eigen_src $bench.cpp -DSCALAR=$scalar -o $name; then
       curr=`./$name $settings_file`
@@ -165,8 +173,10 @@ echo "Complex:"
 cat $WORKING_DIR_PREFIX"c""$bench.out"
 echo ""
 
+if $do_plot ; then
+
 ./make_plot.sh $WORKING_DIR_PREFIX"s"$bench $bench $settings_file
 ./make_plot.sh $WORKING_DIR_PREFIX"d"$bench $bench $settings_file
 ./make_plot.sh $WORKING_DIR_PREFIX"c"$bench $bench $settings_file
 
-
+fi
