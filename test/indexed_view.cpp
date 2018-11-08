@@ -408,6 +408,13 @@ void check_indexed_view()
   VERIFY_IS_EQUAL( A(i,i), A.coeff(i_sizet, i_short) );
   VERIFY_IS_EQUAL( A(i,i), A.coeff(5, i_sizet) );
 
+  // Regression test for Max{Rows,Cols}AtCompileTime
+  {
+    Matrix3i A3 = Matrix3i::Random();
+    ArrayXi ind(5); ind << 1,1,1,1,1;
+    VERIFY_IS_EQUAL( A3(ind,ind).eval(), MatrixXi::Constant(5,5,A3(1,1)) );
+  }
+
 }
 
 EIGEN_DECLARE_TEST(indexed_view)
