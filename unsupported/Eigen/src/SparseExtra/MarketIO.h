@@ -17,8 +17,8 @@ namespace Eigen {
 
 namespace internal 
 {
-  template <typename Scalar>
-  inline bool GetMarketLine (std::stringstream& line, Index& M, Index& N, Index& i, Index& j, Scalar& value)
+  template <typename Scalar,typename IndexType>
+  inline bool GetMarketLine (std::stringstream& line, IndexType& M, IndexType& N, IndexType& i, IndexType& j, Scalar& value)
   {
     line >> i >> j >> value;
     i--;
@@ -30,8 +30,8 @@ namespace internal
     else
       return false;
   }
-  template <typename Scalar>
-  inline bool GetMarketLine (std::stringstream& line, Index& M, Index& N, Index& i, Index& j, std::complex<Scalar>& value)
+  template <typename Scalar,typename IndexType>
+  inline bool GetMarketLine (std::stringstream& line, IndexType& M, IndexType& N, IndexType& i, IndexType& j, std::complex<Scalar>& value)
   {
     Scalar valR, valI;
     line >> i >> j >> valR >> valI;
