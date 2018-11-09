@@ -165,6 +165,8 @@ div.toc {
   bottom:0;
   border-radius:0px;
   border-style: solid none none none;
+  max-height:50%;
+  overflow-y: scroll;
 }
 
 div.toc h3 {
