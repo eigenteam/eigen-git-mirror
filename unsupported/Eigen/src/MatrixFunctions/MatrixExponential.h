@@ -314,7 +314,7 @@ struct matrix_exp_computeUV<MatrixType, long double>
       matrix_exp_pade17(A, U, V);
     }
   
-#elif LDBL_MANT_DIG <= 112  // quadruple precision
+#elif LDBL_MANT_DIG <= 113  // quadruple precision
   
     if (l1norm < 1.639394610288918690547467954466970e-005L) {
       matrix_exp_pade3(arg, U, V);
@@ -347,7 +347,7 @@ struct matrix_exp_computeUV<MatrixType, long double>
 template<typename T> struct is_exp_known_type : false_type {};
 template<> struct is_exp_known_type<float> : true_type {};
 template<> struct is_exp_known_type<double> : true_type {};
-#if LDBL_MANT_DIG <= 112
+#if LDBL_MANT_DIG <= 113
 template<> struct is_exp_known_type<long double> : true_type {};
 #endif
 

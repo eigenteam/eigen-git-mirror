@@ -18,18 +18,18 @@ namespace Eigen {
 class Barrier {
  public:
   Barrier(unsigned int count) : state_(count << 1), notified_(false) {
-    eigen_assert(((count << 1) >> 1) == count);
+    eigen_plain_assert(((count << 1) >> 1) == count);
   }
   ~Barrier() { eigen_plain_assert((state_ >> 1) == 0); }
 
   void Notify() {
     unsigned int v = state_.fetch_sub(2, std::memory_order_acq_rel) - 2;
     if (v != 1) {
-      eigen_assert(((v + 2) & ~1) != 0);
+      eigen_plain_assert(((v + 2) & ~1) != 0);
       return;  // either count has not dropped to 0, or waiter is not waiting
     }
     std::unique_lock<std::mutex> l(mu_);
-    eigen_assert(!notified_);
+    eigen_plain_assert(!notified_);
     notified_ = true;
     cv_.notify_all();
   }

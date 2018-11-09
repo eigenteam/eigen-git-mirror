@@ -51,7 +51,7 @@ class EventCount {
   class Waiter;
 
   EventCount(MaxSizeVector<Waiter>& waiters) : waiters_(waiters) {
-    eigen_assert(waiters.size() < (1 << kWaiterBits) - 1);
+    eigen_plain_assert(waiters.size() < (1 << kWaiterBits) - 1);
     // Initialize epoch to something close to overflow to test overflow.
     state_ = kStackMask | (kEpochMask - kEpochInc * waiters.size() * 2);
   }
@@ -88,7 +88,7 @@ class EventCount {
       // We've already been notified.
       if (int64_t((state & kEpochMask) - epoch) > 0) return;
       // Remove this thread from prewait counter and add it to the waiter list.
-      eigen_assert((state & kWaiterMask) != 0);
+      eigen_plain_assert((state & kWaiterMask) != 0);
       uint64_t newstate = state - kWaiterInc + kEpochInc;
       newstate = (newstate & ~kStackMask) | (w - &waiters_[0]);
       if ((state & kStackMask) == kStackMask)
@@ -119,7 +119,7 @@ class EventCount {
       // We've already been notified.
       if (int64_t((state & kEpochMask) - epoch) > 0) return;
       // Remove this thread from prewait counter.
-      eigen_assert((state & kWaiterMask) != 0);
+      eigen_plain_assert((state & kWaiterMask) != 0);
       if (state_.compare_exchange_weak(state, state - kWaiterInc + kEpochInc,
                                        std::memory_order_relaxed))
         return;

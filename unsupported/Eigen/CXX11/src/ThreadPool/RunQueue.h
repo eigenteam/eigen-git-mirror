@@ -39,9 +39,9 @@ class RunQueue {
  public:
   RunQueue() : front_(0), back_(0) {
     // require power-of-two for fast masking
-    eigen_assert((kSize & (kSize - 1)) == 0);
-    eigen_assert(kSize > 2);            // why would you do this?
-    eigen_assert(kSize <= (64 << 10));  // leave enough space for counter
+    eigen_plain_assert((kSize & (kSize - 1)) == 0);
+    eigen_plain_assert(kSize > 2);            // why would you do this?
+    eigen_plain_assert(kSize <= (64 << 10));  // leave enough space for counter
     for (unsigned i = 0; i < kSize; i++)
       array_[i].state.store(kEmpty, std::memory_order_relaxed);
   }
@@ -137,7 +137,7 @@ class RunQueue {
       } else {
         // Note: no need to store temporal kBusy, we exclusively own these
         // elements.
-        eigen_assert(s == kReady);
+        eigen_plain_assert(s == kReady);
       }
       result->push_back(std::move(e->w));
       e->state.store(kEmpty, std::memory_order_release);
