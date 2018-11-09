@@ -507,7 +507,8 @@ This also means that, unless specified, if the function \c std::foo is available
 <tr>
   <td class="code">
   \anchor cwisetable_zeta
-  \link Eigen::zeta zeta\endlink(a,b);
+  \link Eigen::zeta zeta\endlink(a,b); \n
+  a.\link ArrayBase::zeta zeta\endlink(b);
   </td>
   <td><a href="https://en.wikipedia.org/wiki/Hurwitz_zeta_function">Hurwitz zeta function</a>
   \n \f$ \zeta(a_i,b_i)=\sum_{k=0}^{\infty}(b_i+k)^{\text{-}a_i} \f$</td>
