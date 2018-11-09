@@ -61,32 +61,42 @@ void check_begin_end_for_loop(Xpr xpr)
   i = 0;
   for(typename Xpr::const_iterator it = cxpr.begin(); it!=cxpr.end(); ++it) { VERIFY_IS_EQUAL(*it,xpr[i++]); }
 
-  // Needs to be uncommented while fixing bug 1619
-  // i = 0;
-  // for(typename Xpr::const_iterator it = xpr.begin(); it!=xpr.end(); ++it) { VERIFY_IS_EQUAL(*it,xpr[i++]); }
+  i = 0;
+  for(typename Xpr::const_iterator it = xpr.begin(); it!=xpr.end(); ++it) { VERIFY_IS_EQUAL(*it,xpr[i++]); }
+
+  {
+    // simple API check
+    typename Xpr::const_iterator cit;
+    cit = xpr.begin();
+    cit = xpr.cbegin();
+  }
+
+  VERIFY( xpr.end() -xpr.begin()  == xpr.size() );
+  VERIFY( xpr.cend()-xpr.begin()  == xpr.size() );
+  VERIFY( xpr.end() -xpr.cbegin() == xpr.size() );
+  VERIFY( xpr.cend()-xpr.cbegin() == xpr.size() );
 
   if(xpr.size()>0) {
     VERIFY(xpr.begin() != xpr.end());
     VERIFY(xpr.begin() < xpr.end());
     VERIFY(xpr.begin() <= xpr.end());
     VERIFY(!(xpr.begin() == xpr.end()));
-    VERIFY(!(xpr.begin() < xpr.end()));
-    VERIFY(!(xpr.begin() <= xpr.end()));
+    VERIFY(!(xpr.begin() > xpr.end()));
+    VERIFY(!(xpr.begin() >= xpr.end()));
     
-    // Needs to be uncommented while fixing bug 1619
-    // VERIFY(xpr.cbegin() != xpr.end());
-    // VERIFY(xpr.cbegin() < xpr.end());
-    // VERIFY(xpr.cbegin() <= xpr.end());
-    // VERIFY(!(xpr.cbegin() == xpr.end()));
-    // VERIFY(!(xpr.cbegin() < xpr.end()));
-    // VERIFY(!(xpr.cbegin() <= xpr.end()));
+    VERIFY(xpr.cbegin() != xpr.end());
+    VERIFY(xpr.cbegin() < xpr.end());
+    VERIFY(xpr.cbegin() <= xpr.end());
+    VERIFY(!(xpr.cbegin() == xpr.end()));
+    VERIFY(!(xpr.cbegin() > xpr.end()));
+    VERIFY(!(xpr.cbegin() >= xpr.end()));
 
-    // VERIFY(xpr.begin() != xpr.cend());
-    // VERIFY(xpr.begin() < xpr.cend());
-    // VERIFY(xpr.begin() <= xpr.cend());
-    // VERIFY(!(xpr.begin() == xpr.cend()));
-    // VERIFY(!(xpr.begin() < xpr.cend()));
-    // VERIFY(!(xpr.begin() <= xpr.cend()));
+    VERIFY(xpr.begin() != xpr.cend());
+    VERIFY(xpr.begin() < xpr.cend());
+    VERIFY(xpr.begin() <= xpr.cend());
+    VERIFY(!(xpr.begin() == xpr.cend()));
+    VERIFY(!(xpr.begin() > xpr.cend()));
+    VERIFY(!(xpr.begin() >= xpr.cend()));
   }
 }
 
@@ -419,11 +429,11 @@ void test_stl_iterators(int rows=Rows, int cols=Cols)
 // a valid type, the first overload is not viable, and the second
 // overload will be picked.
 template <class C,
-    class Iterator = decltype(::std::declval<const C&>().begin()),
-    class = decltype(::std::declval<const C&>().end()),
-    class = decltype(++::std::declval<Iterator&>()),
-    class = decltype(*::std::declval<Iterator>()),
-    class = typename C::const_iterator>
+          class Iterator = decltype(::std::declval<const C&>().begin()),
+          class = decltype(::std::declval<const C&>().end()),
+          class = decltype(++::std::declval<Iterator&>()),
+          class = decltype(*::std::declval<Iterator>()),
+          class = typename C::const_iterator>
 bool IsContainerType(int /* dummy */) { return true; }
 
 template <class C>

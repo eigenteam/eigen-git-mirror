@@ -57,6 +57,11 @@ template<typename XprType>
 class pointer_based_stl_iterator
 {
   enum { is_lvalue  = internal::is_lvalue<XprType>::value };
+  typedef pointer_based_stl_iterator<typename internal::remove_const<XprType>::type > non_const_iterator;
+  typedef pointer_based_stl_iterator<typename internal::add_const<XprType>::type > const_iterator;
+  typedef typename internal::conditional<internal::is_const<XprType>::value,non_const_iterator,const_iterator>::type other_iterator;
+  friend const_iterator;
+  friend non_const_iterator;
 public:
   typedef Index difference_type;
   typedef typename XprType::Scalar value_type;
@@ -64,10 +69,22 @@ public:
   typedef typename internal::conditional<bool(is_lvalue), value_type*, const value_type*>::type pointer;
   typedef typename internal::conditional<bool(is_lvalue), value_type&, const value_type&>::type reference;
 
+
   pointer_based_stl_iterator() : m_ptr(0) {}
   pointer_based_stl_iterator(XprType& xpr, Index index) : m_incr(xpr.innerStride())
   {
     m_ptr = xpr.data() + index * m_incr.value();
+  }
+
+  pointer_based_stl_iterator(const non_const_iterator& other)
+    : m_ptr(other.m_ptr), m_incr(other.m_incr)
+  {}
+
+  pointer_based_stl_iterator& operator=(const non_const_iterator& other)
+  {
+    m_ptr = other.m_ptr;
+    m_incr.setValue(other.m_incr);
+    return *this;
   }
 
   reference operator*()         const { return *m_ptr;   }
@@ -92,12 +109,23 @@ public:
     return (m_ptr - other.m_ptr)/m_incr.value();
   }
 
-  bool operator==(const pointer_based_stl_iterator& other) { return m_ptr == other.m_ptr; }
-  bool operator!=(const pointer_based_stl_iterator& other) { return m_ptr != other.m_ptr; }
-  bool operator< (const pointer_based_stl_iterator& other) { return m_ptr <  other.m_ptr; }
-  bool operator<=(const pointer_based_stl_iterator& other) { return m_ptr <= other.m_ptr; }
-  bool operator> (const pointer_based_stl_iterator& other) { return m_ptr >  other.m_ptr; }
-  bool operator>=(const pointer_based_stl_iterator& other) { return m_ptr >= other.m_ptr; }
+  difference_type operator-(const other_iterator& other) const {
+    return (m_ptr - other.m_ptr)/m_incr.value();
+  }
+
+  bool operator==(const pointer_based_stl_iterator& other) const { return m_ptr == other.m_ptr; }
+  bool operator!=(const pointer_based_stl_iterator& other) const { return m_ptr != other.m_ptr; }
+  bool operator< (const pointer_based_stl_iterator& other) const { return m_ptr <  other.m_ptr; }
+  bool operator<=(const pointer_based_stl_iterator& other) const { return m_ptr <= other.m_ptr; }
+  bool operator> (const pointer_based_stl_iterator& other) const { return m_ptr >  other.m_ptr; }
+  bool operator>=(const pointer_based_stl_iterator& other) const { return m_ptr >= other.m_ptr; }
+
+  bool operator==(const other_iterator& other) const { return m_ptr == other.m_ptr; }
+  bool operator!=(const other_iterator& other) const { return m_ptr != other.m_ptr; }
+  bool operator< (const other_iterator& other) const { return m_ptr <  other.m_ptr; }
+  bool operator<=(const other_iterator& other) const { return m_ptr <= other.m_ptr; }
+  bool operator> (const other_iterator& other) const { return m_ptr >  other.m_ptr; }
+  bool operator>=(const other_iterator& other) const { return m_ptr >= other.m_ptr; }
 
 protected:
 
