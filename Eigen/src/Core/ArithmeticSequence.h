@@ -320,7 +320,7 @@ seq(const symbolic::BaseExpr<FirstTypeDerived> &f, const symbolic::BaseExpr<Last
 #endif // EIGEN_PARSED_BY_DOXYGEN
 
 
-#if EIGEN_HAS_CXX11
+#if EIGEN_HAS_CXX11 || defined(EIGEN_PARSED_BY_DOXYGEN)
 /** \cpp11
   * \returns a symbolic ArithmeticSequence representing the last \a size elements with increment \a incr.
   *
