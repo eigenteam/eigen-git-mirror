@@ -64,13 +64,15 @@ namespace Eigen {
     \ingroup DenseMatrixManipulation_chapter */
 /** \addtogroup TutorialBlockOperations
     \ingroup DenseMatrixManipulation_chapter */
+/** \addtogroup TutorialSlicingIndexing
+    \ingroup DenseMatrixManipulation_chapter */
 /** \addtogroup TutorialAdvancedInitialization
     \ingroup DenseMatrixManipulation_chapter */
 /** \addtogroup TutorialReductionsVisitorsBroadcasting
     \ingroup DenseMatrixManipulation_chapter */
 /** \addtogroup TutorialMapClass
     \ingroup DenseMatrixManipulation_chapter */
-/** \addtogroup TutorialReshapeSlicing
+/** \addtogroup TutorialReshape
     \ingroup DenseMatrixManipulation_chapter */
 /** \addtogroup TopicAliasing
     \ingroup DenseMatrixManipulation_chapter */
