@@ -66,9 +66,15 @@ void check_begin_end_for_loop(Xpr xpr)
 
   {
     // simple API check
-    typename Xpr::const_iterator cit;
-    cit = xpr.begin();
+    typename Xpr::const_iterator cit = xpr.begin();
     cit = xpr.cbegin();
+
+    #if EIGEN_HAS_CXX11
+    auto tmp1 = xpr.begin();
+    VERIFY(tmp1==xpr.begin());
+    auto tmp2 = xpr.cbegin();
+    VERIFY(tmp2==xpr.cbegin());
+    #endif
   }
 
   VERIFY( xpr.end() -xpr.begin()  == xpr.size() );
@@ -150,8 +156,9 @@ void test_stl_iterators(int rows=Rows, int cols=Cols)
 
   {
     check_begin_end_for_loop(v);
-    check_begin_end_for_loop(v.col(internal::random<Index>(0,A.cols()-1)));
-    check_begin_end_for_loop(v.row(internal::random<Index>(0,A.rows()-1)));
+    check_begin_end_for_loop(A.col(internal::random<Index>(0,A.cols()-1)));
+    check_begin_end_for_loop(A.row(internal::random<Index>(0,A.rows()-1)));
+    check_begin_end_for_loop(v+v);
   }
 
 #if EIGEN_HAS_CXX11
