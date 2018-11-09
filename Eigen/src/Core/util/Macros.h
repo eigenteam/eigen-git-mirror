@@ -487,7 +487,9 @@
 
 // Some old compilers do not support template specializations like:
 // template<typename T,int N> void foo(const T x[N]);
-#if !( EIGEN_COMP_CLANG && ((EIGEN_COMP_CLANG<309) || defined(__apple_build_version__)) || EIGEN_COMP_GNUC_STRICT && EIGEN_COMP_GNUC<49)
+#if !(   EIGEN_COMP_CLANG && (   (EIGEN_COMP_CLANG<309)                                                       \
+                              || (defined(__apple_build_version__) && (__apple_build_version__ < 9000000)))  \
+      || EIGEN_COMP_GNUC_STRICT && EIGEN_COMP_GNUC<49)
 #define EIGEN_HAS_STATIC_ARRAY_TEMPLATE 1
 #else
 #define EIGEN_HAS_STATIC_ARRAY_TEMPLATE 0
