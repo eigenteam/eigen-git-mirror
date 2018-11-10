@@ -23,8 +23,9 @@ protected:
   typedef indexed_based_stl_iterator_base<typename traits::non_const_iterator> non_const_iterator;
   typedef indexed_based_stl_iterator_base<typename traits::const_iterator> const_iterator;
   typedef typename internal::conditional<internal::is_const<XprType>::value,non_const_iterator,const_iterator>::type other_iterator;
-  friend const_iterator;
-  friend non_const_iterator;
+  // NOTE: in C++03 we cannot declare friend classes through typedefs because we need to write friend class:
+  friend class indexed_based_stl_iterator_base<typename traits::const_iterator>;
+  friend class indexed_based_stl_iterator_base<typename traits::non_const_iterator>;
 public:
   typedef Index difference_type;
   typedef std::random_access_iterator_tag iterator_category;
@@ -99,8 +100,9 @@ class pointer_based_stl_iterator
   typedef pointer_based_stl_iterator<typename internal::remove_const<XprType>::type> non_const_iterator;
   typedef pointer_based_stl_iterator<typename internal::add_const<XprType>::type> const_iterator;
   typedef typename internal::conditional<internal::is_const<XprType>::value,non_const_iterator,const_iterator>::type other_iterator;
-  friend const_iterator;
-  friend non_const_iterator;
+  // NOTE: in C++03 we cannot declare friend classes through typedefs because we need to write friend class:
+  friend class pointer_based_stl_iterator<typename internal::add_const<XprType>::type>;
+  friend class pointer_based_stl_iterator<typename internal::remove_const<XprType>::type>;
 public:
   typedef Index difference_type;
   typedef typename XprType::Scalar value_type;
