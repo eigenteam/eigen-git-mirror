@@ -221,7 +221,7 @@ i = ind[i];
 \endcode
 
 This means you can easily build your own fancy sequence generator and pass it to `operator()`.
-Here is an exemple enlarging a given matrix while padding the first rows and columns through repetition:
+Here is an exemple enlarging a given matrix while padding the additional first rows and columns through repetition:
 
 <table class="example">
 <tr><th>Example:</th><th>Output:</th></tr>

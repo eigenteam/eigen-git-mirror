@@ -56,58 +56,35 @@ namespace Eigen {
 /** \defgroup DenseMatrixManipulation_Alignement Alignment issues */
 /** \defgroup DenseMatrixManipulation_Reference Reference */
 
-/** \addtogroup TutorialMatrixClass
-    \ingroup DenseMatrixManipulation_chapter */
-/** \addtogroup TutorialMatrixArithmetic
-    \ingroup DenseMatrixManipulation_chapter */
-/** \addtogroup TutorialArrayClass
-    \ingroup DenseMatrixManipulation_chapter */
-/** \addtogroup TutorialBlockOperations
-    \ingroup DenseMatrixManipulation_chapter */
-/** \addtogroup TutorialSlicingIndexing
-    \ingroup DenseMatrixManipulation_chapter */
-/** \addtogroup TutorialAdvancedInitialization
-    \ingroup DenseMatrixManipulation_chapter */
-/** \addtogroup TutorialReductionsVisitorsBroadcasting
-    \ingroup DenseMatrixManipulation_chapter */
-/** \addtogroup TutorialMapClass
-    \ingroup DenseMatrixManipulation_chapter */
-/** \addtogroup TutorialReshape
-    \ingroup DenseMatrixManipulation_chapter */
-/** \addtogroup TopicAliasing
-    \ingroup DenseMatrixManipulation_chapter */
-/** \addtogroup TopicStorageOrders
-    \ingroup DenseMatrixManipulation_chapter */
-    
-/** \addtogroup DenseMatrixManipulation_Alignement
-    \ingroup DenseMatrixManipulation_chapter */
-/** \addtogroup TopicUnalignedArrayAssert
-    \ingroup DenseMatrixManipulation_Alignement */
-/** \addtogroup TopicFixedSizeVectorizable
-    \ingroup DenseMatrixManipulation_Alignement */
-/** \addtogroup TopicStructHavingEigenMembers
-    \ingroup DenseMatrixManipulation_Alignement */
-/** \addtogroup TopicStlContainers
-    \ingroup DenseMatrixManipulation_Alignement */
-/** \addtogroup TopicPassingByValue
-    \ingroup DenseMatrixManipulation_Alignement */
-/** \addtogroup TopicWrongStackAlignment
-    \ingroup DenseMatrixManipulation_Alignement */
-    
-/** \addtogroup DenseMatrixManipulation_Reference
-    \ingroup DenseMatrixManipulation_chapter */
-/** \addtogroup Core_Module
-    \ingroup DenseMatrixManipulation_Reference */  
-/** \addtogroup Jacobi_Module
-    \ingroup DenseMatrixManipulation_Reference */ 
-/** \addtogroup Householder_Module
-    \ingroup DenseMatrixManipulation_Reference */ 
+/** \addtogroup TutorialMatrixClass                     \ingroup DenseMatrixManipulation_chapter */
+/** \addtogroup TutorialMatrixArithmetic                \ingroup DenseMatrixManipulation_chapter */
+/** \addtogroup TutorialArrayClass                      \ingroup DenseMatrixManipulation_chapter */
+/** \addtogroup TutorialBlockOperations                 \ingroup DenseMatrixManipulation_chapter */
+/** \addtogroup TutorialSlicingIndexing                 \ingroup DenseMatrixManipulation_chapter */
+/** \addtogroup TutorialAdvancedInitialization          \ingroup DenseMatrixManipulation_chapter */
+/** \addtogroup TutorialReductionsVisitorsBroadcasting  \ingroup DenseMatrixManipulation_chapter */
+/** \addtogroup TutorialReshape                         \ingroup DenseMatrixManipulation_chapter */
+/** \addtogroup TutorialSTL                             \ingroup DenseMatrixManipulation_chapter */
+/** \addtogroup TutorialMapClass                        \ingroup DenseMatrixManipulation_chapter */
+/** \addtogroup TopicAliasing                           \ingroup DenseMatrixManipulation_chapter */
+/** \addtogroup TopicStorageOrders                      \ingroup DenseMatrixManipulation_chapter */
 
-/** \addtogroup CoeffwiseMathFunctions
-    \ingroup DenseMatrixManipulation_chapter */
+/** \addtogroup DenseMatrixManipulation_Alignement      \ingroup DenseMatrixManipulation_chapter */
+/**     \addtogroup TopicUnalignedArrayAssert           \ingroup DenseMatrixManipulation_Alignement */
+/**     \addtogroup TopicFixedSizeVectorizable          \ingroup DenseMatrixManipulation_Alignement */
+/**     \addtogroup TopicStructHavingEigenMembers       \ingroup DenseMatrixManipulation_Alignement */
+/**     \addtogroup TopicStlContainers                  \ingroup DenseMatrixManipulation_Alignement */
+/**     \addtogroup TopicPassingByValue                 \ingroup DenseMatrixManipulation_Alignement */
+/**     \addtogroup TopicWrongStackAlignment            \ingroup DenseMatrixManipulation_Alignement */
+    
+/** \addtogroup DenseMatrixManipulation_Reference       \ingroup DenseMatrixManipulation_chapter */
+/**     \addtogroup Core_Module                         \ingroup DenseMatrixManipulation_Reference */  
+/**     \addtogroup Jacobi_Module                       \ingroup DenseMatrixManipulation_Reference */ 
+/**     \addtogroup Householder_Module                  \ingroup DenseMatrixManipulation_Reference */ 
 
-/** \addtogroup QuickRefPage
-    \ingroup DenseMatrixManipulation_chapter */
+/** \addtogroup CoeffwiseMathFunctions                  \ingroup DenseMatrixManipulation_chapter */
+
+/** \addtogroup QuickRefPage                            \ingroup DenseMatrixManipulation_chapter */
 
 
 /** \defgroup DenseLinearSolvers_chapter Dense linear problems and decompositions */
