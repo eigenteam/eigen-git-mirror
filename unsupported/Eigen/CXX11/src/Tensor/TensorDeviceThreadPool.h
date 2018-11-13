@@ -199,7 +199,7 @@ struct ThreadPoolDevice {
     const Index max_block_size = numext::mini(n, 2 * block_size);
     if (block_align) {
       Index new_block_size = block_align(block_size);
-      eigen_plain_assert(new_block_size >= block_size);
+      eigen_assert(new_block_size >= block_size);
       block_size = numext::mini(n, new_block_size);
     }
     Index block_count = divup(n, block_size);
@@ -217,7 +217,7 @@ struct ThreadPoolDevice {
       Index coarser_block_size = divup(n, prev_block_count - 1);
       if (block_align) {
         Index new_block_size = block_align(coarser_block_size);
-        eigen_plain_assert(new_block_size >= coarser_block_size);
+        eigen_assert(new_block_size >= coarser_block_size);
         coarser_block_size = numext::mini(n, new_block_size);
       }
       if (coarser_block_size > max_block_size) {
@@ -225,7 +225,7 @@ struct ThreadPoolDevice {
       }
       // Recalculate parallel efficiency.
       const Index coarser_block_count = divup(n, coarser_block_size);
-      eigen_plain_assert(coarser_block_count < prev_block_count);
+      eigen_assert(coarser_block_count < prev_block_count);
       prev_block_count = coarser_block_count;
       const double coarser_efficiency =
           static_cast<double>(coarser_block_count) /
@@ -267,8 +267,6 @@ struct ThreadPoolDevice {
     }
     barrier.Wait();
   }
-
-
 
   // Convenience wrapper for parallelFor that does not align blocks.
   void parallelFor(Index n, const TensorOpCost& cost,
