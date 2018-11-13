@@ -77,7 +77,35 @@ struct ThreadPoolDevice {
   }
 
   EIGEN_STRONG_INLINE void memcpy(void* dst, const void* src, size_t n) const {
+#ifdef __ANDROID__
     ::memcpy(dst, src, n);
+#else
+    // TODO(rmlarsen): Align blocks on cache lines.
+    // We have observed that going beyond 4 threads usually just wastes
+    // CPU cycles due to the threads competing for memory bandwidth, so we
+    // statically schedule at most 4 block copies here.
+    const size_t kMinBlockSize = 32768;
+    typedef TensorCostModel<ThreadPoolDevice> CostModel;
+    const size_t num_threads = CostModel::numThreads(n, TensorOpCost(1.0, 1.0, 0), 4);
+    if (n <= kMinBlockSize || num_threads == 1) {
+      ::memcpy(dst, src, n);
+    } else {
+      const char* src_ptr = static_cast<const char*>(src);
+      char* dst_ptr = static_cast<char*>(dst);
+      const size_t blocksize = (n + (num_threads - 1)) / num_threads;
+      Barrier barrier(num_threads - 1);
+      // Launch the last 3 blocks on worker threads.
+      for (size_t i = 1; i < num_threads; ++i) {
+        enqueue_with_barrier(&barrier, [n, i, src_ptr, dst_ptr, blocksize] {
+          ::memcpy(dst_ptr + i * blocksize, src_ptr + i * blocksize,
+                   numext::mini(blocksize, n - (i * blocksize)));
+        });
+      }
+      // Launch the first block on the main thread.
+      ::memcpy(dst_ptr, src_ptr, blocksize);
+      barrier.Wait();
+    }
+#endif
   }
   EIGEN_STRONG_INLINE void memcpyHostToDevice(void* dst, const void* src, size_t n) const {
     memcpy(dst, src, n);
@@ -171,7 +199,7 @@ struct ThreadPoolDevice {
     const Index max_block_size = numext::mini(n, 2 * block_size);
     if (block_align) {
       Index new_block_size = block_align(block_size);
-      eigen_assert(new_block_size >= block_size);
+      eigen_plain_assert(new_block_size >= block_size);
       block_size = numext::mini(n, new_block_size);
     }
     Index block_count = divup(n, block_size);
@@ -189,7 +217,7 @@ struct ThreadPoolDevice {
       Index coarser_block_size = divup(n, prev_block_count - 1);
       if (block_align) {
         Index new_block_size = block_align(coarser_block_size);
-        eigen_assert(new_block_size >= coarser_block_size);
+        eigen_plain_assert(new_block_size >= coarser_block_size);
         coarser_block_size = numext::mini(n, new_block_size);
       }
       if (coarser_block_size > max_block_size) {
@@ -197,7 +225,7 @@ struct ThreadPoolDevice {
       }
       // Recalculate parallel efficiency.
       const Index coarser_block_count = divup(n, coarser_block_size);
-      eigen_assert(coarser_block_count < prev_block_count);
+      eigen_plain_assert(coarser_block_count < prev_block_count);
       prev_block_count = coarser_block_count;
       const double coarser_efficiency =
           static_cast<double>(coarser_block_count) /
@@ -239,6 +267,8 @@ struct ThreadPoolDevice {
     }
     barrier.Wait();
   }
+
+
 
   // Convenience wrapper for parallelFor that does not align blocks.
   void parallelFor(Index n, const TensorOpCost& cost,
