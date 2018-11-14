@@ -105,7 +105,12 @@ class CwiseNullaryOp : public internal::dense_xpr_base< CwiseNullaryOp<NullaryOp
   */
 template<typename Derived>
 template<typename CustomNullaryOp>
-EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const CwiseNullaryOp<CustomNullaryOp, typename DenseBase<Derived>::PlainObject>
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+#ifndef EIGEN_PARSED_BY_DOXYGEN
+const CwiseNullaryOp<CustomNullaryOp,typename DenseBase<Derived>::PlainObject>
+#else
+const CwiseNullaryOp<CustomNullaryOp,PlainObject>
+#endif
 DenseBase<Derived>::NullaryExpr(Index rows, Index cols, const CustomNullaryOp& func)
 {
   return CwiseNullaryOp<CustomNullaryOp, PlainObject>(rows, cols, func);
@@ -131,7 +136,12 @@ DenseBase<Derived>::NullaryExpr(Index rows, Index cols, const CustomNullaryOp& f
   */
 template<typename Derived>
 template<typename CustomNullaryOp>
-EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const CwiseNullaryOp<CustomNullaryOp, typename DenseBase<Derived>::PlainObject>
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+#ifndef EIGEN_PARSED_BY_DOXYGEN
+const CwiseNullaryOp<CustomNullaryOp, typename DenseBase<Derived>::PlainObject>
+#else
+const CwiseNullaryOp<CustomNullaryOp, PlainObject>
+#endif
 DenseBase<Derived>::NullaryExpr(Index size, const CustomNullaryOp& func)
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
@@ -150,7 +160,12 @@ DenseBase<Derived>::NullaryExpr(Index size, const CustomNullaryOp& func)
   */
 template<typename Derived>
 template<typename CustomNullaryOp>
-EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const CwiseNullaryOp<CustomNullaryOp, typename DenseBase<Derived>::PlainObject>
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+#ifndef EIGEN_PARSED_BY_DOXYGEN
+const CwiseNullaryOp<CustomNullaryOp, typename DenseBase<Derived>::PlainObject>
+#else
+const CwiseNullaryOp<CustomNullaryOp, PlainObject>
+#endif
 DenseBase<Derived>::NullaryExpr(const CustomNullaryOp& func)
 {
   return CwiseNullaryOp<CustomNullaryOp, PlainObject>(RowsAtCompileTime, ColsAtCompileTime, func);
