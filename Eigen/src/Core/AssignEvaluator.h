@@ -532,7 +532,7 @@ struct dense_assignment_loop<Kernel, SliceVectorizedTraversal, NoUnrolling>
     const Scalar *dst_ptr = kernel.dstDataPtr();
     if((!bool(dstIsAligned)) && (UIntPtr(dst_ptr) % sizeof(Scalar))>0)
     {
-      // the pointer is not aligend-on scalar, so alignment is not possible
+      // the pointer is not aligned-on scalar, so alignment is not possible
       return dense_assignment_loop<Kernel,DefaultTraversal,NoUnrolling>::run(kernel);
     }
     const Index packetAlignedMask = packetSize - 1;

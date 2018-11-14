@@ -314,7 +314,7 @@ polygamma(const EIGEN_CURRENT_STORAGE_BASE_CLASS<DerivedN> &n) const
   *
   * It returns the Riemann zeta function of two arguments \c *this and \a q:
   *
-  * \param *this is the exposent, it must be > 1
+  * \param *this is the exponent, it must be > 1
   * \param q is the shift, it must be > 0
   *
   * \note This function supports only float and double scalar types. To support other scalar types, the user has
