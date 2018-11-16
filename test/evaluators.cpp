@@ -503,6 +503,7 @@ EIGEN_DECLARE_TEST(evaluators)
     VERIFY_IS_EQUAL( get_cost(a.lazyProduct(a+b)), 15);
   }
 
+  // regression test for PR 544 and bug 1622 (introduced in #71609c4)
   {
     // test restricted_packet_assignment with an unaligned destination
     const size_t M = 2;

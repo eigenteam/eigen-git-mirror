@@ -8,6 +8,7 @@
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #include "product.h"
+#include <Eigen/LU>
 
 template<typename T>
 void test_aliasing()
@@ -87,6 +88,16 @@ void product_large_regressions()
   }
 }
 
+template<int>
+void bug_1622() {
+  typedef Matrix<double, 2, -1, 0, 2, -1> Mat2X;
+  Mat2X x(2,2); x.setRandom();
+  MatrixXd y(2,2); y.setRandom();
+  const Mat2X K1 = x * y.inverse();
+  const Matrix2d K2 = x * y.inverse();
+  VERIFY_IS_APPROX(K1,K2);
+}
+
 EIGEN_DECLARE_TEST(product_large)
 {
   for(int i = 0; i < g_repeat; i++) {
@@ -99,6 +110,8 @@ EIGEN_DECLARE_TEST(product_large)
     CALL_SUBTEST_5( product(Matrix<float,Dynamic,Dynamic,RowMajor>(internal::random<int>(1,EIGEN_TEST_MAX_SIZE), internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
 
     CALL_SUBTEST_1( test_aliasing<float>() );
+
+    CALL_SUBTEST_6( bug_1622<1>() );
   }
 
   CALL_SUBTEST_6( product_large_regressions<0>() );
