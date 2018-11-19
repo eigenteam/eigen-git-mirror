@@ -45,8 +45,8 @@ static EIGEN_STRONG_INLINE void wait_until_ready(SyncType* n) {
 class Allocator {
  public:
   virtual ~Allocator() {}
-  EIGEN_DEVICE_FUNC virtual void* allocate(size_t num_bytes) const = 0;
-  EIGEN_DEVICE_FUNC virtual void deallocate(void* buffer) const = 0;
+  virtual void* allocate(size_t num_bytes) const = 0;
+  virtual void deallocate(void* buffer) const = 0;
 };
 
 // Build a thread pool device on top the an existing pool of threads.

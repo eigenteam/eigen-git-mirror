@@ -99,12 +99,9 @@ inline void throw_std_bad_alloc()
 EIGEN_DEVICE_FUNC inline void* handmade_aligned_malloc(std::size_t size, std::size_t alignment = EIGEN_DEFAULT_ALIGN_BYTES)
 {
   eigen_assert(alignment >= sizeof(void*) && (alignment & (alignment-1)) == 0 && "Alignment must be at least sizeof(void*) and a power of 2");
-  
-#if defined(EIGEN_HIP_DEVICE_COMPILE)
-  void *original = ::malloc(size+alignment);
-#else
-  void *original = std::malloc(size+alignment);
-#endif
+
+  EIGEN_USING_STD(malloc)
+  void *original = malloc(size+alignment);
   
   if (original == 0) return 0;
   void *aligned = reinterpret_cast<void*>((reinterpret_cast<std::size_t>(original) & ~(std::size_t(alignment-1))) + alignment);
@@ -116,11 +113,8 @@ EIGEN_DEVICE_FUNC inline void* handmade_aligned_malloc(std::size_t size, std::si
 EIGEN_DEVICE_FUNC inline void handmade_aligned_free(void *ptr)
 {
   if (ptr) {
-#if defined(EIGEN_HIP_DEVICE_COMPILE)
-    ::free(*(reinterpret_cast<void**>(ptr) - 1));
-#else
-    std::free(*(reinterpret_cast<void**>(ptr) - 1));
-#endif
+    EIGEN_USING_STD(free)
+    free(*(reinterpret_cast<void**>(ptr) - 1));
   }
 }
 
@@ -183,11 +177,8 @@ EIGEN_DEVICE_FUNC inline void* aligned_malloc(std::size_t size)
   void *result;
   #if (EIGEN_DEFAULT_ALIGN_BYTES==0) || EIGEN_MALLOC_ALREADY_ALIGNED
 
-    #if defined(EIGEN_HIP_DEVICE_COMPILE)
-    result = ::malloc(size);
-    #else
-    result = std::malloc(size);
-    #endif
+    EIGEN_USING_STD(malloc)
+    result = malloc(size);
 
     #if EIGEN_DEFAULT_ALIGN_BYTES==16
     eigen_assert((size<16 || (std::size_t(result)%16)==0) && "System's malloc returned an unaligned pointer. Compile with EIGEN_MALLOC_ALREADY_ALIGNED=0 to fallback to handmade aligned memory allocator.");
@@ -207,11 +198,8 @@ EIGEN_DEVICE_FUNC inline void aligned_free(void *ptr)
 {
   #if (EIGEN_DEFAULT_ALIGN_BYTES==0) || EIGEN_MALLOC_ALREADY_ALIGNED
 
-    #if defined(EIGEN_HIP_DEVICE_COMPILE)
-    ::free(ptr);
-    #else
-    std::free(ptr);
-    #endif
+    EIGEN_USING_STD(free)
+    free(ptr);
 
   #else
     handmade_aligned_free(ptr);
@@ -256,11 +244,8 @@ template<> EIGEN_DEVICE_FUNC inline void* conditional_aligned_malloc<false>(std:
 {
   check_that_malloc_is_allowed();
 
-  #if defined(EIGEN_HIP_DEVICE_COMPILE)
-  void *result = ::malloc(size);
-  #else
-  void *result = std::malloc(size);
-  #endif
+  EIGEN_USING_STD(malloc)
+  void *result = malloc(size);
 
   if(!result && size)
     throw_std_bad_alloc();
@@ -275,11 +260,8 @@ template<bool Align> EIGEN_DEVICE_FUNC inline void conditional_aligned_free(void
 
 template<> EIGEN_DEVICE_FUNC inline void conditional_aligned_free<false>(void *ptr)
 {
-  #if defined(EIGEN_HIP_DEVICE_COMPILE)
-  ::free(ptr);
-  #else
-  std::free(ptr);
-  #endif
+  EIGEN_USING_STD(free)
+  free(ptr);
 }
 
 template<bool Align> inline void* conditional_aligned_realloc(void* ptr, std::size_t new_size, std::size_t old_size)
@@ -540,11 +522,8 @@ template<typename T> struct smart_copy_helper<T,true> {
     IntPtr size = IntPtr(end)-IntPtr(start);
     if(size==0) return;
     eigen_internal_assert(start!=0 && end!=0 && target!=0);
-    #if defined(EIGEN_HIP_DEVICE_COMPILE)
-    ::memcpy(target, start, size);
-    #else
-    std::memcpy(target, start, size);
-    #endif
+    EIGEN_USING_STD(memcpy)
+    memcpy(target, start, size);
   }
 };
 

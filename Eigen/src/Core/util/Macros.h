@@ -896,6 +896,19 @@ namespace Eigen {
 #endif
 
 
+// When compiling HIP device code with HIPCC, certain functions
+// from the stdlib need to be pulled in from the global namespace
+// (as opposed to from the std:: namespace). This is because HIPCC
+// does not natively support all the std:: routines in device code.
+// Instead it contains header files that declare the corresponding
+// routines in the global namespace such they can be used in device code.
+#if defined(EIGEN_HIP_DEVICE_COMPILE)
+  #define EIGEN_USING_STD(FUNC) using ::FUNC;
+#else
+  #define EIGEN_USING_STD(FUNC) using std::FUNC;
+#endif
+
+
 #if EIGEN_COMP_MSVC_STRICT && (EIGEN_COMP_MSVC < 1900 || EIGEN_CUDACC_VER>0)
   // for older MSVC versions, as well as 1900 && CUDA 8, using the base operator is sufficient (cf Bugs 1000, 1324)
   #define EIGEN_INHERIT_ASSIGNMENT_EQUAL_OPERATOR(Derived) \

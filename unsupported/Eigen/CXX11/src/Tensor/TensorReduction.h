@@ -195,6 +195,7 @@ struct InnerMostDimReducer<Self, Op, true, false> {
   }
 };
 
+#if !defined(EIGEN_HIPCC) 
 static const int kLeafSize = 1024;
 
 template <typename Self, typename Op>
@@ -218,7 +219,6 @@ struct InnerMostDimReducer<Self, Op, false, true> {
   }
 };
 
-#if !defined(EIGEN_HIPCC) 
 template <typename Self, typename Op>
 struct InnerMostDimReducer<Self, Op, true, true> {
   static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE typename Self::CoeffReturnType

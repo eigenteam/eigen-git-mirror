@@ -52,7 +52,9 @@ namespace half_impl {
 #if !defined(EIGEN_HAS_GPU_FP16)
 // Make our own __half_raw definition that is similar to CUDA's.
 struct __half_raw {
-  EIGEN_DEVICE_FUNC __half_raw() : x(0) {}
+  // The default constructor cannot initialize its member, otherwise the
+  // derived class Eigen::Half cannot be used as __shared__ variable in HIPCC.
+  EIGEN_DEVICE_FUNC __half_raw() {}
   explicit EIGEN_DEVICE_FUNC __half_raw(unsigned short raw) : x(raw) {}
   unsigned short x;
 };
@@ -70,7 +72,9 @@ struct __half_raw {
 // so we need to implicitly convert "__half_raw" to "__half" to avoid having to explicitly make 
 // that conversiion in each call to a "__h*" routine...that is why we have "operator __half" routine
 struct __half_raw {
-  EIGEN_DEVICE_FUNC __half_raw() : x(0) {}
+  // The default constructor cannot initialize its member, otherwise the
+  // derived class Eigen::Half cannot be used as __shared__ variable in HIPCC.
+  EIGEN_DEVICE_FUNC __half_raw() {}
   explicit EIGEN_DEVICE_FUNC __half_raw(unsigned short raw) : x(raw) {}
   union {
     unsigned short x;
