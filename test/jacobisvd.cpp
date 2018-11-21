@@ -69,6 +69,19 @@ void jacobisvd_method()
   VERIFY_IS_APPROX(m.jacobiSvd(ComputeFullU|ComputeFullV).solve(m), m);
 }
 
+namespace Foo {
+class Bar {};
+bool operator<(const Bar&, const Bar&) { return true; }
+}
+// regression test for a very strange MSVC issue for which simply
+// including SVDBase.h messes up with std::max and custom scalar type
+void msvc_workaround()
+{
+  const Foo::Bar a;
+  const Foo::Bar b;
+  std::max EIGEN_NOT_A_MACRO (a,b);
+}
+
 void test_jacobisvd()
 {
   CALL_SUBTEST_3(( jacobisvd_verify_assert(Matrix3f()) ));
@@ -122,4 +135,6 @@ void test_jacobisvd()
   CALL_SUBTEST_9( svd_preallocate<void>() );
 
   CALL_SUBTEST_2( svd_underoverflow<void>() );
+
+  msvc_workaround();
 }
