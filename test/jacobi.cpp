@@ -57,6 +57,19 @@ void jacobi(const MatrixType& m = MatrixType())
   }
 }
 
+namespace Foo {
+class Bar {};
+bool operator<(const Bar&, const Bar&) { return true; }
+}
+// regression test for a very strange MSVC issue for which simply
+// including SVDBase.h messes up with std::max and custom scalar type
+void msvc_workaround()
+{
+  const Foo::Bar a;
+  const Foo::Bar b;
+  std::max EIGEN_NOT_A_MACRO (a,b);
+}
+
 EIGEN_DECLARE_TEST(jacobi)
 {
   for(int i = 0; i < g_repeat; i++) {
@@ -77,4 +90,6 @@ EIGEN_DECLARE_TEST(jacobi)
     TEST_SET_BUT_UNUSED_VARIABLE(r);
     TEST_SET_BUT_UNUSED_VARIABLE(c);
   }
+
+  msvc_workaround();
 }
