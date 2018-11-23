@@ -122,7 +122,8 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
           m_eivalues(),
           m_subdiag(),
           m_info(InvalidInput),
-          m_isInitialized(false)
+          m_isInitialized(false),
+          m_eigenvectorsOk(false)
     { }
 
     /** \brief Constructor, pre-allocates memory for dynamic-size matrices.
@@ -142,7 +143,8 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
         : m_eivec(size, size),
           m_eivalues(size),
           m_subdiag(size > 1 ? size - 1 : 1),
-          m_isInitialized(false)
+          m_isInitialized(false),
+          m_eigenvectorsOk(false)
     {}
 
     /** \brief Constructor; computes eigendecomposition of given matrix.
@@ -166,7 +168,8 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
       : m_eivec(matrix.rows(), matrix.cols()),
         m_eivalues(matrix.cols()),
         m_subdiag(matrix.rows() > 1 ? matrix.rows() - 1 : 1),
-        m_isInitialized(false)
+        m_isInitialized(false),
+        m_eigenvectorsOk(false)
     {
       compute(matrix.derived(), options);
     }

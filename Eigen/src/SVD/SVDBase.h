@@ -245,6 +245,10 @@ protected:
     : m_isInitialized(false),
       m_isAllocated(false),
       m_usePrescribedThreshold(false),
+      m_computeFullU(false),
+      m_computeThinU(false),
+      m_computeFullV(false),
+      m_computeThinV(false),
       m_computationOptions(0),
       m_rows(-1), m_cols(-1), m_diagSize(0)
   {

@@ -110,7 +110,7 @@ template<typename _MatrixType> class EigenSolver
       *
       * \sa compute() for an example.
       */
-    EigenSolver() : m_eivec(), m_eivalues(), m_isInitialized(false), m_realSchur(), m_matT(), m_tmp() {}
+    EigenSolver() : m_eivec(), m_eivalues(), m_isInitialized(false), m_eigenvectorsOk(false), m_realSchur(), m_matT(), m_tmp() {}
 
     /** \brief Default constructor with memory preallocation
       *

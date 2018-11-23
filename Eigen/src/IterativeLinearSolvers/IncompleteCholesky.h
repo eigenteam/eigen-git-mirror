@@ -76,12 +76,12 @@ class IncompleteCholesky : public SparseSolverBase<IncompleteCholesky<Scalar,_Up
       *
       * \sa IncompleteCholesky(const MatrixType&)
       */
-    IncompleteCholesky() : m_initialShift(1e-3),m_factorizationIsOk(false) {}
+    IncompleteCholesky() : m_initialShift(1e-3),m_analysisIsOk(false),m_factorizationIsOk(false) {}
     
     /** Constructor computing the incomplete factorization for the given matrix \a matrix.
       */
     template<typename MatrixType>
-    IncompleteCholesky(const MatrixType& matrix) : m_initialShift(1e-3),m_factorizationIsOk(false)
+    IncompleteCholesky(const MatrixType& matrix) : m_initialShift(1e-3),m_analysisIsOk(false),m_factorizationIsOk(false)
     {
       compute(matrix);
     }
