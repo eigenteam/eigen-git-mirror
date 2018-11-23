@@ -70,7 +70,9 @@ void jacobisvd_method()
 }
 
 namespace Foo {
-class Bar {};
+// older compiler require a default constructor for Bar
+// cf: https://stackoverflow.com/questions/7411515/
+class Bar {public: Bar() {}};
 bool operator<(const Bar&, const Bar&) { return true; }
 }
 // regression test for a very strange MSVC issue for which simply
