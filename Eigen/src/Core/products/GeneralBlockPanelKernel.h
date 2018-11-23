@@ -15,7 +15,7 @@ namespace Eigen {
 
 namespace internal {
 
-template<typename _LhsScalar, typename _RhsScalar, bool _ConjLhs=false, bool _ConjRhs=false>
+template<typename _LhsScalar, typename _RhsScalar, bool _ConjLhs=false, bool _ConjRhs=false, int Arch=Architecture::Target>
 class gebp_traits;
 
 
@@ -347,7 +347,7 @@ inline void computeProductBlockingSizes(Index& k, Index& m, Index& n, Index num_
  *  cplx*real : unpack rhs to constant packets, ...
  *  real*cplx : load lhs as (a0,a0,a1,a1), and mul as usual
  */
-template<typename _LhsScalar, typename _RhsScalar, bool _ConjLhs, bool _ConjRhs>
+template<typename _LhsScalar, typename _RhsScalar, bool _ConjLhs, bool _ConjRhs, int Arch>
 class gebp_traits
 {
 public:
@@ -461,8 +461,8 @@ public:
 
 };
 
-template<typename RealScalar, bool _ConjLhs>
-class gebp_traits<std::complex<RealScalar>, RealScalar, _ConjLhs, false>
+template<typename RealScalar, bool _ConjLhs, int Arch>
+class gebp_traits<std::complex<RealScalar>, RealScalar, _ConjLhs, false, Arch>
 {
 public:
   typedef std::complex<RealScalar> LhsScalar;
@@ -597,8 +597,8 @@ template<typename Packet> struct unpacket_traits<DoublePacket<Packet> > { typede
 //   return res;
 // }
 
-template<typename RealScalar, bool _ConjLhs, bool _ConjRhs>
-class gebp_traits<std::complex<RealScalar>, std::complex<RealScalar>, _ConjLhs, _ConjRhs >
+template<typename RealScalar, bool _ConjLhs, bool _ConjRhs, int Arch>
+class gebp_traits<std::complex<RealScalar>, std::complex<RealScalar>, _ConjLhs, _ConjRhs,Arch>
 {
 public:
   typedef std::complex<RealScalar>  Scalar;
@@ -746,8 +746,8 @@ protected:
   conj_helper<LhsScalar,RhsScalar,ConjLhs,ConjRhs> cj;
 };
 
-template<typename RealScalar, bool _ConjRhs>
-class gebp_traits<RealScalar, std::complex<RealScalar>, false, _ConjRhs >
+template<typename RealScalar, bool _ConjRhs, int Arch>
+class gebp_traits<RealScalar, std::complex<RealScalar>, false, _ConjRhs, Arch>
 {
 public:
   typedef std::complex<RealScalar>  Scalar;
@@ -852,7 +852,42 @@ protected:
   conj_helper<ResPacket,ResPacket,false,ConjRhs> cj;
 };
 
-/* optimized GEneral packed Block * packed Panel product kernel
+
+#if EIGEN_ARCH_ARM64
+
+template<>
+struct gebp_traits <float, float, false, false,Architecture::NEON>
+ : gebp_traits<float,float,false,false,Architecture::Generic>
+{
+  typedef float32x2_t RhsPacket;
+
+  EIGEN_STRONG_INLINE void broadcastRhs(const RhsScalar* b, RhsPacket& b0, RhsPacket& b1, RhsPacket& b2, RhsPacket& b3)
+  {
+    loadRhs(b+0, b0);
+    loadRhs(b+1, b1);
+    loadRhs(b+2, b2);
+    loadRhs(b+3, b3);
+  }
+
+  EIGEN_STRONG_INLINE void loadRhs(const RhsScalar* b, RhsPacket& dest) const
+  {
+     dest = vld1_f32(b);
+  }
+
+  EIGEN_STRONG_INLINE void loadRhsQuad(const RhsScalar* b, RhsPacket& dest) const
+  {
+    loadRhs(b,dest);
+  }
+
+  EIGEN_STRONG_INLINE void madd(const LhsPacket& a, const RhsPacket& b, AccPacket& c, RhsPacket& /*tmp*/) const
+  {
+    c = vfmaq_lane_f32(c, a, b, 0);
+  }
+};
+
+#endif
+
+/* optimized General packed Block * packed Panel product kernel
  *
  * Mixing type logic: C += A * B
  *  |  A  |  B  | comments
