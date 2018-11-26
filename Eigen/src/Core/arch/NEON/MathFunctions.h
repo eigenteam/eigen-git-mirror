@@ -91,6 +91,7 @@ Packet4f plog<Packet4f>(const Packet4f& _x)
   _EIGEN_DECLARE_CONST_Packet4f(1 , 1.0f);
   _EIGEN_DECLARE_CONST_Packet4f(half, 0.5f);
   _EIGEN_DECLARE_CONST_Packet4i(0x7f, 0x7f);
+  const Packet4f p4f_minus_inf = vreinterpretq_f32_s32(pset1<Packet4i>(0xff800000));
 
   _EIGEN_DECLARE_CONST_Packet4i(inv_mant_mask, ~0x7f800000);
 
@@ -111,7 +112,8 @@ Packet4f plog<Packet4f>(const Packet4f& _x)
   _EIGEN_DECLARE_CONST_Packet4f(cephes_log_q2, 0.693359375f);
 
   x = vmaxq_f32(x, vdupq_n_f32(0)); /* force flush to zero on denormal values */
-  Packet4ui invalid_mask = vcleq_f32(x, vdupq_n_f32(0));
+  Packet4f iszero_mask  = vreinterpretq_f32_u32(vceqq_f32(_x, vdupq_n_f32(0)));
+  Packet4f invalid_mask = vreinterpretq_f32_u32(vmvnq_u32(vcgeq_f32(_x, vdupq_n_f32(0))));
 
   Packet4i ux = vreinterpretq_s32_f32(x);
 
@@ -172,7 +174,8 @@ Packet4f plog<Packet4f>(const Packet4f& _x)
   tmp = vmulq_f32(e, p4f_cephes_log_q2);
   x = vaddq_f32(x, y);
   x = vaddq_f32(x, tmp);
-  x = vreinterpretq_f32_u32(vorrq_u32(vreinterpretq_u32_f32(x), invalid_mask)); // negative arg will be NAN
+  x = por(x, invalid_mask);
+  x = por(pandnot(x,iszero_mask), pand(iszero_mask, p4f_minus_inf)); 
   return x;
 }
 
