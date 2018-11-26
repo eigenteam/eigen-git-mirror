@@ -83,7 +83,7 @@ template<> struct is_arithmetic<__m128d> { enum { value = true }; };
   const Packet2d p2d_##NAME = pset1<Packet2d>(X)
 
 #define _EIGEN_DECLARE_CONST_Packet4f_FROM_INT(NAME,X) \
-  const Packet4f p4f_##NAME = _mm_castsi128_ps(pset1<Packet4i>(X))
+  const Packet4f p4f_##NAME = pset1frombits<Packet4f>(X)
 
 #define _EIGEN_DECLARE_CONST_Packet4i(NAME,X) \
   const Packet4i p4i_##NAME = pset1<Packet4i>(X)
@@ -179,6 +179,11 @@ template<> EIGEN_STRONG_INLINE Packet4f pset1<Packet4f>(const float&  from) { re
 template<> EIGEN_STRONG_INLINE Packet2d pset1<Packet2d>(const double& from) { return _mm_set1_pd(from); }
 template<> EIGEN_STRONG_INLINE Packet4i pset1<Packet4i>(const int&    from) { return _mm_set1_epi32(from); }
 #endif
+
+template<> EIGEN_STRONG_INLINE Packet4f pset1frombits<Packet4f>(unsigned int from) { return _mm_castsi128_ps(pset1<Packet4i>(from)); }
+
+template<> EIGEN_STRONG_INLINE Packet4f pzero(const Packet4f& /*a*/) { return _mm_setzero_ps(); }
+template<> EIGEN_STRONG_INLINE Packet2d pzero(const Packet2d& /*a*/) { return _mm_setzero_pd(); }
 
 // GCC generates a shufps instruction for _mm_set1_ps/_mm_load1_ps instead of the more efficient pshufd instruction.
 // However, using inrinsics for pset1 makes gcc to generate crappy code in some cases (see bug 203)
@@ -327,6 +332,12 @@ template<> EIGEN_STRONG_INLINE Packet4i pmax<Packet4i>(const Packet4i& a, const 
   return _mm_or_si128(_mm_and_si128(mask,a),_mm_andnot_si128(mask,b));
 #endif
 }
+
+template<> EIGEN_STRONG_INLINE Packet4f pcmp_le(const Packet4f& a, const Packet4f& b) { return _mm_cmple_ps(a,b); }
+template<> EIGEN_STRONG_INLINE Packet4f pcmp_lt(const Packet4f& a, const Packet4f& b) { return _mm_cmplt_ps(a,b); }
+template<> EIGEN_STRONG_INLINE Packet4f pcmp_eq(const Packet4f& a, const Packet4f& b) { return _mm_cmpeq_ps(a,b); }
+template<> EIGEN_STRONG_INLINE Packet4f pcmp_lt_or_nan(const Packet4f& a, const Packet4f& b) { return _mm_cmpnge_ps(a,b); }
+
 
 #ifdef EIGEN_VECTORIZE_SSE4_1
 template<> EIGEN_STRONG_INLINE Packet4f pround<Packet4f>(const Packet4f& a) { return _mm_round_ps(a, 0); }
@@ -515,6 +526,14 @@ template<> EIGEN_STRONG_INLINE Packet4i pabs(const Packet4i& a)
   Packet4i aux = _mm_srai_epi32(a,31);
   return _mm_sub_epi32(_mm_xor_si128(a,aux),aux);
   #endif
+}
+
+template<> EIGEN_STRONG_INLINE Packet4f pshiftright_and_cast(Packet4f a, int n) {
+  return _mm_cvtepi32_ps(_mm_srli_epi32(_mm_castps_si128(a),n));
+}
+
+template<> EIGEN_STRONG_INLINE Packet4f pfrexp<Packet4f>(const Packet4f& a, Packet4f& exponent) {
+  return pfrexp_float(a,exponent);
 }
 
 // with AVX, the default implementations based on pload1 are faster

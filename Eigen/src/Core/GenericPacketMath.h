@@ -214,6 +214,38 @@ pxor(const Packet& a, const Packet& b) { return a ^ b; }
 template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
 pandnot(const Packet& a, const Packet& b) { return a & (!b); }
 
+/** \internal \returns the significant and exponent of the underlying floating point numbers
+  * See https://en.cppreference.com/w/cpp/numeric/math/frexp
+  */
+template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
+pfrexp(const Packet &a, Packet &exponent) { return std::frexp(a,&exponent); }
+
+/** \internal \returns zeros */
+template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
+pzero(const Packet& a) { return pxor(a,a); }
+
+/** \internal \returns bits of \a or \b according to the input bit mask \a mask */
+template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
+pselect(const Packet& mask, const Packet& a, const Packet& b) {
+  return por(pand(a,mask),pandnot(b,mask));
+}
+
+/** \internal \returns a <= b as a bit mask */
+template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
+pcmp_le(const Packet& a, const Packet& b); /* { return a<=b ? pnot(pxor(a,a)) : pxor(a,a); } */
+
+/** \internal \returns a < b as a bit mask */
+template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
+pcmp_lt(const Packet& a, const Packet& b); /* { return a<b  ? pnot(pxor(a,a)) : pxor(a,a); } */
+
+/** \internal \returns a == b as a bit mask */
+template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
+pcmp_eq(const Packet& a, const Packet& b); /* { return a==b ? pnot(pxor(a,a)) : pxor(a,a); } */
+
+/** \internal \returns a < b or a==NaN or b==NaN as a bit mask */
+template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
+pcmp_lt_or_nan(const Packet& a, const Packet& b); /* { return pnot(pcmp_le(b,a)); } */
+
 /** \internal \returns a packet version of \a *from, from must be 16 bytes aligned */
 template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
 pload(const typename unpacket_traits<Packet>::type* from) { return *from; }
@@ -225,6 +257,10 @@ ploadu(const typename unpacket_traits<Packet>::type* from) { return *from; }
 /** \internal \returns a packet with constant coefficients \a a, e.g.: (a,a,a,a) */
 template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
 pset1(const typename unpacket_traits<Packet>::type& a) { return a; }
+
+/** \internal \returns a packet with constant coefficients set from bits */
+template<typename Packet,typename BitsType> EIGEN_DEVICE_FUNC inline Packet
+pset1frombits(BitsType a);
 
 /** \internal \returns a packet with constant coefficients \a a[0], e.g.: (a[0],a[0],a[0],a[0]) */
 template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
@@ -595,6 +631,29 @@ pinsertlast(const Packet& a, typename unpacket_traits<Packet>::type b)
     mask.select[i] = false;
   mask.select[unpacket_traits<Packet>::size-1] = true;
   return pblend(mask, pset1<Packet>(b), a);
+}
+
+/***************************************************************************
+ * Some generic implementations to be used by implementors
+***************************************************************************/
+
+/** \internal shift the bits by n and cast the result to the initial type, i.e.:
+  *   return float(reinterpret_cast<uint>(a) >> n)
+  */
+template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
+pshiftright_and_cast(Packet a, int n);
+
+/** Default implementation of pfrexp for float.
+  * It is expected to be called by implementers of template<> pfrexp,
+  * and the above pshiftright_and_cast function must be implemented.
+  */
+template<typename Packet> EIGEN_STRONG_INLINE Packet
+pfrexp_float(const Packet& a, Packet& exponent) {
+  const Packet cst_126f = pset1<Packet>(126.0f);
+  const Packet cst_half = pset1<Packet>(0.5f);
+  const Packet cst_inv_mant_mask  = pset1frombits<Packet>(~0x7f800000u);
+  exponent = psub(pshiftright_and_cast(a,23), cst_126f);
+  return por(pand(a, cst_inv_mant_mask), cst_half);
 }
 
 } // end namespace internal
