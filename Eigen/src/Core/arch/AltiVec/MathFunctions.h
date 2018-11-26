@@ -102,45 +102,7 @@ Packet4f plog<Packet4f>(const Packet4f& _x)
 template<> EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED
 Packet4f pexp<Packet4f>(const Packet4f& _x)
 {
-  Packet4f x = _x;
-
-  Packet4f tmp, fx;
-  Packet4i emm0;
-
-  // clamp x
-  x = pmax(pmin(x, p4f_exp_hi), p4f_exp_lo);
-
-  // express exp(x) as exp(g + n*log(2))
-  fx = pmadd(x, p4f_cephes_LOG2EF, p4f_half);
-
-  fx = pfloor(fx);
-
-  tmp = pmul(fx, p4f_cephes_exp_C1);
-  Packet4f z = pmul(fx, p4f_cephes_exp_C2);
-  x = psub(x, tmp);
-  x = psub(x, z);
-
-  z = pmul(x,x);
-
-  Packet4f y = p4f_cephes_exp_p0;
-  y = pmadd(y, x, p4f_cephes_exp_p1);
-  y = pmadd(y, x, p4f_cephes_exp_p2);
-  y = pmadd(y, x, p4f_cephes_exp_p3);
-  y = pmadd(y, x, p4f_cephes_exp_p4);
-  y = pmadd(y, x, p4f_cephes_exp_p5);
-  y = pmadd(y, z, x);
-  y = padd(y, p4f_1);
-
-  // build 2^n
-  emm0 = vec_cts(fx, 0);
-  emm0 = vec_add(emm0, p4i_0x7f);
-  emm0 = vec_sl(emm0, reinterpret_cast<Packet4ui>(p4i_23));
-
-  // Altivec's max & min operators just drop silent NaNs. Check NaNs in 
-  // inputs and return them unmodified.
-  Packet4ui isnumber_mask = reinterpret_cast<Packet4ui>(vec_cmpeq(_x, _x));
-  return vec_sel(_x, pmax(pmul(y, reinterpret_cast<Packet4f>(emm0)), _x),
-                 isnumber_mask);
+  return pexp_float(_x);
 }
 
 #ifndef EIGEN_COMP_CLANG

@@ -576,6 +576,16 @@ template<> EIGEN_STRONG_INLINE Packet4f pfrexp<Packet4f>(const Packet4f& a, Pack
   return pfrexp_float(a,exponent);
 }
 
+template<> EIGEN_STRONG_INLINE Packet4f pcast_and_shiftleft<Packet4f>(Packet4f v, int n)
+{
+  Packet4i vi = vec_cts(v,0);
+  return reinterpret_cast<Packet4f>(vec_sl(vi, reinterpret_cast<Packet4ui>(pset1<Packet4i>(n))));
+}
+
+template<> EIGEN_STRONG_INLINE Packet4f pldexp<Packet4f>(const Packet4f& a, const Packet4f& exponent) {
+  return pldexp_float(a,exponent);
+}
+
 template<> EIGEN_STRONG_INLINE float predux<Packet4f>(const Packet4f& a)
 {
   Packet4f b, sum;
