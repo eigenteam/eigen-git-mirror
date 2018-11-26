@@ -148,7 +148,7 @@ template<> struct packet_traits<float>  : default_packet_traits
     HasAbs  = 1,
     HasSin  = 0,
     HasCos  = 0,
-    HasLog  = 0,
+    HasLog  = 1,
     HasExp  = 1,
 #ifdef __VSX__
     HasSqrt = 1,
@@ -285,6 +285,11 @@ template<> EIGEN_STRONG_INLINE Packet4i pset1<Packet4i>(const int&    from)   {
   Packet4i v = {from, from, from, from};
   return v;
 }
+
+template<> EIGEN_STRONG_INLINE Packet4f pset1frombits<Packet4f>(unsigned int from) {
+  return reinterpret_cast<Packet4f>(pset1<Packet4i>(from));
+}
+
 template<> EIGEN_STRONG_INLINE void
 pbroadcast4<Packet4f>(const float *a,
                       Packet4f& a0, Packet4f& a1, Packet4f& a2, Packet4f& a3)
@@ -414,6 +419,14 @@ template<> EIGEN_STRONG_INLINE Packet4f pmax<Packet4f>(const Packet4f& a, const 
 }
 template<> EIGEN_STRONG_INLINE Packet4i pmax<Packet4i>(const Packet4i& a, const Packet4i& b) { return vec_max(a, b); }
 
+template<> EIGEN_STRONG_INLINE Packet4f pcmp_le(const Packet4f& a, const Packet4f& b) { return reinterpret_cast<Packet4f>(vec_cmple(a,b)); }
+template<> EIGEN_STRONG_INLINE Packet4f pcmp_lt(const Packet4f& a, const Packet4f& b) { return reinterpret_cast<Packet4f>(vec_cmplt(a,b)); }
+template<> EIGEN_STRONG_INLINE Packet4f pcmp_eq(const Packet4f& a, const Packet4f& b) { return reinterpret_cast<Packet4f>(vec_cmpeq(a,b)); }
+template<> EIGEN_STRONG_INLINE Packet4f pcmp_lt_or_nan(const Packet4f& a, const Packet4f& b) {
+  Packet4f c = reinterpret_cast<Packet4f>(vec_cmpge(a,b));
+  return vec_nor(c,c);
+}
+
 template<> EIGEN_STRONG_INLINE Packet4f pand<Packet4f>(const Packet4f& a, const Packet4f& b) { return vec_and(a, b); }
 template<> EIGEN_STRONG_INLINE Packet4i pand<Packet4i>(const Packet4i& a, const Packet4i& b) { return vec_and(a, b); }
 
@@ -425,6 +438,10 @@ template<> EIGEN_STRONG_INLINE Packet4i pxor<Packet4i>(const Packet4i& a, const 
 
 template<> EIGEN_STRONG_INLINE Packet4f pandnot<Packet4f>(const Packet4f& a, const Packet4f& b) { return vec_and(a, vec_nor(b, b)); }
 template<> EIGEN_STRONG_INLINE Packet4i pandnot<Packet4i>(const Packet4i& a, const Packet4i& b) { return vec_and(a, vec_nor(b, b)); }
+
+template<> EIGEN_STRONG_INLINE Packet4f pselect(const Packet4f& mask, const Packet4f& a, const Packet4f& b) {
+  return vec_sel(b, a, mask);
+}
 
 template<> EIGEN_STRONG_INLINE Packet4f pround<Packet4f>(const Packet4f& a) { return vec_round(a); }
 template<> EIGEN_STRONG_INLINE Packet4f pceil<Packet4f>(const  Packet4f& a) { return vec_ceil(a); }
@@ -549,6 +566,15 @@ template<> EIGEN_STRONG_INLINE Packet4i preverse(const Packet4i& a)
 
 template<> EIGEN_STRONG_INLINE Packet4f pabs(const Packet4f& a) { return vec_abs(a); }
 template<> EIGEN_STRONG_INLINE Packet4i pabs(const Packet4i& a) { return vec_abs(a); }
+
+template<> EIGEN_STRONG_INLINE Packet4f pshiftright_and_cast(Packet4f a, int n) {
+  return vec_ctf(vec_sr(reinterpret_cast<Packet4i>(a),
+                        reinterpret_cast<Packet4ui>(pset1<Packet4i>(n))),0);
+}
+
+template<> EIGEN_STRONG_INLINE Packet4f pfrexp<Packet4f>(const Packet4f& a, Packet4f& exponent) {
+  return pfrexp_float(a,exponent);
+}
 
 template<> EIGEN_STRONG_INLINE float predux<Packet4f>(const Packet4f& a)
 {

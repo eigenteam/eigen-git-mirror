@@ -9,12 +9,14 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-/* The sin, cos, exp, and log functions of this file come from
+/* The sin, cos, and exp functions of this file come from
  * Julien Pommier's sse math library: http://gruntthepeon.free.fr/ssemath/
  */
 
 #ifndef EIGEN_MATH_FUNCTIONS_ALTIVEC_H
 #define EIGEN_MATH_FUNCTIONS_ALTIVEC_H
+
+#include "../Default/GenericPacketMathFunctions.h"
 
 namespace Eigen {
 
@@ -94,62 +96,7 @@ static Packet2ul p2ul_52 = { 52, 52 };
 template<> EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED
 Packet4f plog<Packet4f>(const Packet4f& _x)
 {
-  Packet4f x = _x;
-
-  Packet4i emm0;
-
-  /* isvalid_mask is 0 if x < 0 or x is NaN. */
-  Packet4ui isvalid_mask = reinterpret_cast<Packet4ui>(vec_cmpge(x, p4f_ZERO));
-  Packet4ui iszero_mask = reinterpret_cast<Packet4ui>(vec_cmpeq(x, p4f_ZERO));
-
-  x = pmax(x, p4f_min_norm_pos);  /* cut off denormalized stuff */
-  emm0 = vec_sr(reinterpret_cast<Packet4i>(x),
-                reinterpret_cast<Packet4ui>(p4i_23));
-
-  /* keep only the fractional part */
-  x = pand(x, p4f_inv_mant_mask);
-  x = por(x, p4f_half);
-
-  emm0 = psub(emm0, p4i_0x7f);
-  Packet4f e = padd(vec_ctf(emm0, 0), p4f_1);
-
-  /* part2:
-     if( x < SQRTHF ) {
-       e -= 1;
-       x = x + x - 1.0;
-     } else { x = x - 1.0; }
-  */
-  Packet4f mask = reinterpret_cast<Packet4f>(vec_cmplt(x, p4f_cephes_SQRTHF));
-  Packet4f tmp = pand(x, mask);
-  x = psub(x, p4f_1);
-  e = psub(e, pand(p4f_1, mask));
-  x = padd(x, tmp);
-
-  Packet4f x2 = pmul(x,x);
-  Packet4f x3 = pmul(x2,x);
-
-  Packet4f y, y1, y2;
-  y  = pmadd(p4f_cephes_log_p0, x, p4f_cephes_log_p1);
-  y1 = pmadd(p4f_cephes_log_p3, x, p4f_cephes_log_p4);
-  y2 = pmadd(p4f_cephes_log_p6, x, p4f_cephes_log_p7);
-  y  = pmadd(y , x, p4f_cephes_log_p2);
-  y1 = pmadd(y1, x, p4f_cephes_log_p5);
-  y2 = pmadd(y2, x, p4f_cephes_log_p8);
-  y = pmadd(y, x3, y1);
-  y = pmadd(y, x3, y2);
-  y = pmul(y, x3);
-
-  y1 = pmul(e, p4f_cephes_log_q1);
-  tmp = pmul(x2, p4f_half);
-  y = padd(y, y1);
-  x = psub(x, tmp);
-  y2 = pmul(e, p4f_cephes_log_q2);
-  x = padd(x, y);
-  x = padd(x, y2);
-  // negative arg will be NAN, 0 will be -INF
-  x = vec_sel(x, p4f_minus_inf, iszero_mask);
-  x = vec_sel(p4f_minus_nan, x, isvalid_mask);
-  return x;
+  return plog_float(_x);
 }
 
 template<> EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED
