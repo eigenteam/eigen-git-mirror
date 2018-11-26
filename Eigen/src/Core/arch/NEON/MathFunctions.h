@@ -5,10 +5,6 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-/* The exp function of this file come from
- * Julien Pommier's sse math library: http://gruntthepeon.free.fr/ssemath/
- */
-
 #ifndef EIGEN_MATH_FUNCTIONS_NEON_H
 #define EIGEN_MATH_FUNCTIONS_NEON_H
 

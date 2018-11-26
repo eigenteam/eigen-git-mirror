@@ -9,7 +9,7 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-/* The sin, cos, and exp functions of this file come from
+/* The exp function of this file comes from
  * Julien Pommier's sse math library: http://gruntthepeon.free.fr/ssemath/
  */
 
@@ -21,48 +21,6 @@
 namespace Eigen {
 
 namespace internal {
-
-static _EIGEN_DECLARE_CONST_Packet4f(1 , 1.0f);
-static _EIGEN_DECLARE_CONST_Packet4f(half, 0.5f);
-static _EIGEN_DECLARE_CONST_Packet4i(0x7f, 0x7f);
-static _EIGEN_DECLARE_CONST_Packet4i(23, 23);
-
-static _EIGEN_DECLARE_CONST_Packet4f_FROM_INT(inv_mant_mask, ~0x7f800000);
-
-/* the smallest non denormalized float number */
-static _EIGEN_DECLARE_CONST_Packet4f_FROM_INT(min_norm_pos,  0x00800000);
-static _EIGEN_DECLARE_CONST_Packet4f_FROM_INT(minus_inf,     0xff800000); // -1.f/0.f
-static _EIGEN_DECLARE_CONST_Packet4f_FROM_INT(minus_nan,     0xffffffff);
-  
-/* natural logarithm computed for 4 simultaneous float
-  return NaN for x <= 0
-*/
-static _EIGEN_DECLARE_CONST_Packet4f(cephes_SQRTHF, 0.707106781186547524f);
-static _EIGEN_DECLARE_CONST_Packet4f(cephes_log_p0, 7.0376836292E-2f);
-static _EIGEN_DECLARE_CONST_Packet4f(cephes_log_p1, - 1.1514610310E-1f);
-static _EIGEN_DECLARE_CONST_Packet4f(cephes_log_p2, 1.1676998740E-1f);
-static _EIGEN_DECLARE_CONST_Packet4f(cephes_log_p3, - 1.2420140846E-1f);
-static _EIGEN_DECLARE_CONST_Packet4f(cephes_log_p4, + 1.4249322787E-1f);
-static _EIGEN_DECLARE_CONST_Packet4f(cephes_log_p5, - 1.6668057665E-1f);
-static _EIGEN_DECLARE_CONST_Packet4f(cephes_log_p6, + 2.0000714765E-1f);
-static _EIGEN_DECLARE_CONST_Packet4f(cephes_log_p7, - 2.4999993993E-1f);
-static _EIGEN_DECLARE_CONST_Packet4f(cephes_log_p8, + 3.3333331174E-1f);
-static _EIGEN_DECLARE_CONST_Packet4f(cephes_log_q1, -2.12194440e-4f);
-static _EIGEN_DECLARE_CONST_Packet4f(cephes_log_q2, 0.693359375f);
-
-static _EIGEN_DECLARE_CONST_Packet4f(exp_hi,  88.3762626647950f);
-static _EIGEN_DECLARE_CONST_Packet4f(exp_lo, -88.3762626647949f);
-
-static _EIGEN_DECLARE_CONST_Packet4f(cephes_LOG2EF, 1.44269504088896341f);
-static _EIGEN_DECLARE_CONST_Packet4f(cephes_exp_C1, 0.693359375f);
-static _EIGEN_DECLARE_CONST_Packet4f(cephes_exp_C2, -2.12194440e-4f);
-
-static _EIGEN_DECLARE_CONST_Packet4f(cephes_exp_p0, 1.9875691500E-4f);
-static _EIGEN_DECLARE_CONST_Packet4f(cephes_exp_p1, 1.3981999507E-3f);
-static _EIGEN_DECLARE_CONST_Packet4f(cephes_exp_p2, 8.3334519073E-3f);
-static _EIGEN_DECLARE_CONST_Packet4f(cephes_exp_p3, 4.1665795894E-2f);
-static _EIGEN_DECLARE_CONST_Packet4f(cephes_exp_p4, 1.6666665459E-1f);
-static _EIGEN_DECLARE_CONST_Packet4f(cephes_exp_p5, 5.0000001201E-1f);
 
 #ifdef __VSX__
 static _EIGEN_DECLARE_CONST_Packet2d(1 , 1.0);
