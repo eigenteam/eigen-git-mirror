@@ -110,12 +110,12 @@ template<> struct packet_traits<float>  : default_packet_traits
     HasSqrt = 1,
     HasRsqrt = 1,
     HasTanh  = EIGEN_FAST_MATH,
-    HasBlend = 1
+    HasBlend = 1,
+    HasFloor = 1
 
 #ifdef EIGEN_VECTORIZE_SSE4_1
     ,
     HasRound = 1,
-    HasFloor = 1,
     HasCeil = 1
 #endif
   };
@@ -348,6 +348,17 @@ template<> EIGEN_STRONG_INLINE Packet2d pceil<Packet2d>(const Packet2d& a) { ret
 
 template<> EIGEN_STRONG_INLINE Packet4f pfloor<Packet4f>(const Packet4f& a) { return _mm_floor_ps(a); }
 template<> EIGEN_STRONG_INLINE Packet2d pfloor<Packet2d>(const Packet2d& a) { return _mm_floor_pd(a); }
+#else
+template<> EIGEN_STRONG_INLINE Packet4f pfloor<Packet4f>(const Packet4f& a)
+{
+  const Packet4f cst_1 = pset1<Packet4f>(1.0f);
+  Packet4i emm0 = _mm_cvttps_epi32(a);
+  Packet4f tmp  = _mm_cvtepi32_ps(emm0);
+  /* if greater, substract 1 */
+  Packet4f mask = _mm_cmpgt_ps(tmp, a);
+  mask = _mm_and_ps(mask, cst_1);
+  return psub(tmp, mask);
+}
 #endif
 
 template<> EIGEN_STRONG_INLINE Packet4f pand<Packet4f>(const Packet4f& a, const Packet4f& b) { return _mm_and_ps(a,b); }
@@ -534,6 +545,16 @@ template<> EIGEN_STRONG_INLINE Packet4f pshiftright_and_cast(Packet4f a, int n) 
 
 template<> EIGEN_STRONG_INLINE Packet4f pfrexp<Packet4f>(const Packet4f& a, Packet4f& exponent) {
   return pfrexp_float(a,exponent);
+}
+
+template<> EIGEN_STRONG_INLINE Packet4f pcast_and_shiftleft<Packet4f>(Packet4f v, int n)
+{
+  Packet4i vi = _mm_cvttps_epi32(v);
+  return _mm_castsi128_ps(_mm_slli_epi32(vi, n));
+}
+
+template<> EIGEN_STRONG_INLINE Packet4f pldexp<Packet4f>(const Packet4f& a, const Packet4f& exponent) {
+  return pldexp_float(a,exponent);
 }
 
 // with AVX, the default implementations based on pload1 are faster

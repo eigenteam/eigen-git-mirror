@@ -389,6 +389,22 @@ template<> EIGEN_STRONG_INLINE Packet8f pfrexp<Packet8f>(const Packet8f& a, Pack
   return pfrexp_float(a,exponent);
 }
 
+template<> EIGEN_STRONG_INLINE Packet8f pcast_and_shiftleft<Packet8f>(Packet8f v, int n)
+{
+  Packet8i vi = _mm256_cvttps_epi32(v);
+#ifdef EIGEN_VECTORIZE_AVX2
+  return _mm256_castsi256_ps(_mm256_slli_epi32(vi, n));
+#else
+  __m128i lo = _mm_slli_epi32(_mm256_extractf128_si256(vi, 0), n);
+  __m128i hi = _mm_slli_epi32(_mm256_extractf128_si256(vi, 1), n);
+  return _mm256_castsi256_ps(_mm256_insertf128_si256(_mm256_castsi128_si256(lo), (hi), 1));
+#endif
+}
+
+template<> EIGEN_STRONG_INLINE Packet8f pldexp<Packet8f>(const Packet8f& a, const Packet8f& exponent) {
+  return pldexp_float(a,exponent);
+}
+
 // preduxp should be ok
 // FIXME: why is this ok? why isn't the simply implementation working as expected?
 template<> EIGEN_STRONG_INLINE Packet8f preduxp<Packet8f>(const Packet8f* vecs)

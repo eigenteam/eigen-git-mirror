@@ -30,67 +30,7 @@ Packet4f plog<Packet4f>(const Packet4f& _x)
 template<> EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED
 Packet4f pexp<Packet4f>(const Packet4f& _x)
 {
-  Packet4f x = _x;
-  _EIGEN_DECLARE_CONST_Packet4f(1 , 1.0f);
-  _EIGEN_DECLARE_CONST_Packet4f(half, 0.5f);
-  _EIGEN_DECLARE_CONST_Packet4i(0x7f, 0x7f);
-
-
-  _EIGEN_DECLARE_CONST_Packet4f(exp_hi,  88.3762626647950f);
-  _EIGEN_DECLARE_CONST_Packet4f(exp_lo, -88.3762626647949f);
-
-  _EIGEN_DECLARE_CONST_Packet4f(cephes_LOG2EF, 1.44269504088896341f);
-  _EIGEN_DECLARE_CONST_Packet4f(cephes_exp_C1, 0.693359375f);
-  _EIGEN_DECLARE_CONST_Packet4f(cephes_exp_C2, -2.12194440e-4f);
-
-  _EIGEN_DECLARE_CONST_Packet4f(cephes_exp_p0, 1.9875691500E-4f);
-  _EIGEN_DECLARE_CONST_Packet4f(cephes_exp_p1, 1.3981999507E-3f);
-  _EIGEN_DECLARE_CONST_Packet4f(cephes_exp_p2, 8.3334519073E-3f);
-  _EIGEN_DECLARE_CONST_Packet4f(cephes_exp_p3, 4.1665795894E-2f);
-  _EIGEN_DECLARE_CONST_Packet4f(cephes_exp_p4, 1.6666665459E-1f);
-  _EIGEN_DECLARE_CONST_Packet4f(cephes_exp_p5, 5.0000001201E-1f);
-
-  Packet4f tmp, fx;
-  Packet4i emm0;
-
-  // clamp x
-  x = pmax(pmin(x, p4f_exp_hi), p4f_exp_lo);
-
-  /* express exp(x) as exp(g + n*log(2)) */
-  fx = pmadd(x, p4f_cephes_LOG2EF, p4f_half);
-
-#ifdef EIGEN_VECTORIZE_SSE4_1
-  fx = _mm_floor_ps(fx);
-#else
-  emm0 = _mm_cvttps_epi32(fx);
-  tmp  = _mm_cvtepi32_ps(emm0);
-  /* if greater, substract 1 */
-  Packet4f mask = _mm_cmpgt_ps(tmp, fx);
-  mask = _mm_and_ps(mask, p4f_1);
-  fx = psub(tmp, mask);
-#endif
-
-  tmp = pmul(fx, p4f_cephes_exp_C1);
-  Packet4f z = pmul(fx, p4f_cephes_exp_C2);
-  x = psub(x, tmp);
-  x = psub(x, z);
-
-  z = pmul(x,x);
-
-  Packet4f y = p4f_cephes_exp_p0;
-  y = pmadd(y, x, p4f_cephes_exp_p1);
-  y = pmadd(y, x, p4f_cephes_exp_p2);
-  y = pmadd(y, x, p4f_cephes_exp_p3);
-  y = pmadd(y, x, p4f_cephes_exp_p4);
-  y = pmadd(y, x, p4f_cephes_exp_p5);
-  y = pmadd(y, z, x);
-  y = padd(y, p4f_1);
-
-  // build 2^n
-  emm0 = _mm_cvttps_epi32(fx);
-  emm0 = _mm_add_epi32(emm0, p4i_0x7f);
-  emm0 = _mm_slli_epi32(emm0, 23);
-  return pmax(pmul(y, Packet4f(_mm_castsi128_ps(emm0))), _x);
+  return pexp_float(_x);
 }
 template<> EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED
 Packet2d pexp<Packet2d>(const Packet2d& _x)

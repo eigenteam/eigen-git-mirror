@@ -220,6 +220,12 @@ pandnot(const Packet& a, const Packet& b) { return a & (!b); }
 template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
 pfrexp(const Packet &a, Packet &exponent) { return std::frexp(a,&exponent); }
 
+/** \internal \returns a * 2^exponent
+  * See https://en.cppreference.com/w/cpp/numeric/math/ldexp
+  */
+template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
+pldexp(const Packet &a, const Packet &exponent) { return std::ldexp(a,exponent); }
+
 /** \internal \returns zeros */
 template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
 pzero(const Packet& a) { return pxor(a,a); }
@@ -654,6 +660,23 @@ pfrexp_float(const Packet& a, Packet& exponent) {
   const Packet cst_inv_mant_mask  = pset1frombits<Packet>(~0x7f800000u);
   exponent = psub(pshiftright_and_cast(a,23), cst_126f);
   return por(pand(a, cst_inv_mant_mask), cst_half);
+}
+
+/** \internal shift the bits by n and cast the result to the initial type, i.e.:
+  *   return reinterpret_cast<float>(int(a) >> n)
+  */
+template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
+pcast_and_shiftleft(Packet a, int n);
+
+/** Default implementation of pldexp for float.
+  * It is expected to be called by implementers of template<> pldexp,
+  * and the above pcast_and_shiftleft function must be implemented.
+  */
+template<typename Packet> EIGEN_STRONG_INLINE Packet
+pldexp_float(Packet a, Packet exponent) {
+  const Packet cst_127 = pset1<Packet>(127.f);
+  // return a * 2^exponent
+  return pmul(a, pcast_and_shiftleft(padd(exponent, cst_127), 23));
 }
 
 } // end namespace internal

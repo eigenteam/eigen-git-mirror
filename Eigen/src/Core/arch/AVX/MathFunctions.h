@@ -111,62 +111,7 @@ plog<Packet8f>(const Packet8f& _x) {
 template <>
 EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED Packet8f
 pexp<Packet8f>(const Packet8f& _x) {
-  _EIGEN_DECLARE_CONST_Packet8f(1, 1.0f);
-  _EIGEN_DECLARE_CONST_Packet8f(half, 0.5f);
-  _EIGEN_DECLARE_CONST_Packet8f(127, 127.0f);
-
-  _EIGEN_DECLARE_CONST_Packet8f(exp_hi, 88.3762626647950f);
-  _EIGEN_DECLARE_CONST_Packet8f(exp_lo, -88.3762626647949f);
-
-  _EIGEN_DECLARE_CONST_Packet8f(cephes_LOG2EF, 1.44269504088896341f);
-
-  _EIGEN_DECLARE_CONST_Packet8f(cephes_exp_p0, 1.9875691500E-4f);
-  _EIGEN_DECLARE_CONST_Packet8f(cephes_exp_p1, 1.3981999507E-3f);
-  _EIGEN_DECLARE_CONST_Packet8f(cephes_exp_p2, 8.3334519073E-3f);
-  _EIGEN_DECLARE_CONST_Packet8f(cephes_exp_p3, 4.1665795894E-2f);
-  _EIGEN_DECLARE_CONST_Packet8f(cephes_exp_p4, 1.6666665459E-1f);
-  _EIGEN_DECLARE_CONST_Packet8f(cephes_exp_p5, 5.0000001201E-1f);
-
-  // Clamp x.
-  Packet8f x = pmax(pmin(_x, p8f_exp_hi), p8f_exp_lo);
-
-  // Express exp(x) as exp(m*ln(2) + r), start by extracting
-  // m = floor(x/ln(2) + 0.5).
-  Packet8f m = _mm256_floor_ps(pmadd(x, p8f_cephes_LOG2EF, p8f_half));
-
-// Get r = x - m*ln(2). If no FMA instructions are available, m*ln(2) is
-// subtracted out in two parts, m*C1+m*C2 = m*ln(2), to avoid accumulating
-// truncation errors. Note that we don't use the "pmadd" function here to
-// ensure that a precision-preserving FMA instruction is used.
-#ifdef EIGEN_VECTORIZE_FMA
-  _EIGEN_DECLARE_CONST_Packet8f(nln2, -0.6931471805599453f);
-  Packet8f r = _mm256_fmadd_ps(m, p8f_nln2, x);
-#else
-  _EIGEN_DECLARE_CONST_Packet8f(cephes_exp_C1, 0.693359375f);
-  _EIGEN_DECLARE_CONST_Packet8f(cephes_exp_C2, -2.12194440e-4f);
-  Packet8f r = psub(x, pmul(m, p8f_cephes_exp_C1));
-  r = psub(r, pmul(m, p8f_cephes_exp_C2));
-#endif
-
-  Packet8f r2 = pmul(r, r);
-
-  // TODO(gonnet): Split into odd/even polynomials and try to exploit
-  //               instruction-level parallelism.
-  Packet8f y = p8f_cephes_exp_p0;
-  y = pmadd(y, r, p8f_cephes_exp_p1);
-  y = pmadd(y, r, p8f_cephes_exp_p2);
-  y = pmadd(y, r, p8f_cephes_exp_p3);
-  y = pmadd(y, r, p8f_cephes_exp_p4);
-  y = pmadd(y, r, p8f_cephes_exp_p5);
-  y = pmadd(y, r2, r);
-  y = padd(y, p8f_1);
-
-  // Build emm0 = 2^m.
-  Packet8i emm0 = _mm256_cvttps_epi32(padd(m, p8f_127));
-  emm0 = pshiftleft(emm0, 23);
-
-  // Return 2^m * exp(r).
-  return pmax(pmul(y, _mm256_castsi256_ps(emm0)), _x);
+  return pexp_float(_x);
 }
 
 // Hyperbolic Tangent function.
