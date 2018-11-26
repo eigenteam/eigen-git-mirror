@@ -108,7 +108,8 @@ template<> struct packet_traits<float>  : default_packet_traits
     size = 4,
     HasHalfPacket=0, // Packet2f intrinsics not implemented yet
    
-    HasDiv  = 1,
+    HasDiv   = 1,
+    HasFloor = 1,
     // FIXME check the Has*
     HasSin  = 0,
     HasCos  = 0,
@@ -256,6 +257,18 @@ template<> EIGEN_STRONG_INLINE Packet4f pcmp_lt(const Packet4f& a, const Packet4
 template<> EIGEN_STRONG_INLINE Packet4f pcmp_eq(const Packet4f& a, const Packet4f& b) { return vreinterpretq_f32_u32(vceqq_f32(a,b)); }
 template<> EIGEN_STRONG_INLINE Packet4f pcmp_lt_or_nan(const Packet4f& a, const Packet4f& b) { return vreinterpretq_f32_u32(vmvnq_u32(vcgeq_f32(a,b))); }
 
+template<> EIGEN_STRONG_INLINE Packet4f pfloor<Packet4f>(const Packet4f& a)
+{
+  const Packet4f cst_1 = pset1<Packet4f>(1.0f);
+  /* perform a floorf */
+  Packet4f tmp = vcvtq_f32_s32(vcvtq_s32_f32(a));
+
+  /* if greater, substract 1 */
+  Packet4ui mask = vcgtq_f32(tmp, a);
+  mask = vandq_u32(mask, vreinterpretq_u32_f32(cst_1));
+  return vsubq_f32(tmp, vreinterpretq_f32_u32(mask));
+}
+
 // Logical Operations are not supported for float, so we have to reinterpret casts using NEON intrinsics
 template<> EIGEN_STRONG_INLINE Packet4f pand<Packet4f>(const Packet4f& a, const Packet4f& b)
 {
@@ -377,6 +390,16 @@ template<> EIGEN_STRONG_INLINE Packet4f pshiftright_and_cast(Packet4f a, int n) 
 
 template<> EIGEN_STRONG_INLINE Packet4f pfrexp<Packet4f>(const Packet4f& a, Packet4f& exponent) {
   return pfrexp_float(a,exponent);
+}
+
+template<> EIGEN_STRONG_INLINE Packet4f pcast_and_shiftleft<Packet4f>(Packet4f v, int n)
+{
+  Packet4i vi = vcvtq_s32_f32(v);
+  return vreinterpretq_f32_s32(vshlq_n_s32(vi, n));
+}
+
+template<> EIGEN_STRONG_INLINE Packet4f pldexp<Packet4f>(const Packet4f& a, const Packet4f& exponent) {
+  return pldexp_float(a,exponent);
 }
 
 template<> EIGEN_STRONG_INLINE float predux<Packet4f>(const Packet4f& a)
