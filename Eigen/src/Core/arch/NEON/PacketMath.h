@@ -145,6 +145,8 @@ template<> struct unpacket_traits<Packet4i> { typedef int32_t type; enum {size=4
 template<> EIGEN_STRONG_INLINE Packet4f pset1<Packet4f>(const float&  from) { return vdupq_n_f32(from); }
 template<> EIGEN_STRONG_INLINE Packet4i pset1<Packet4i>(const int32_t&    from)   { return vdupq_n_s32(from); }
 
+template<> EIGEN_STRONG_INLINE Packet4f pset1frombits<Packet4f>(unsigned int from) { return vreinterpretq_f32_u32(vdupq_n_u32(from)); }
+
 template<> EIGEN_STRONG_INLINE Packet4f plset<Packet4f>(const float& a)
 {
   const float f[] = {0, 1, 2, 3};
@@ -248,6 +250,11 @@ template<> EIGEN_STRONG_INLINE Packet4i pmin<Packet4i>(const Packet4i& a, const 
 
 template<> EIGEN_STRONG_INLINE Packet4f pmax<Packet4f>(const Packet4f& a, const Packet4f& b) { return vmaxq_f32(a,b); }
 template<> EIGEN_STRONG_INLINE Packet4i pmax<Packet4i>(const Packet4i& a, const Packet4i& b) { return vmaxq_s32(a,b); }
+
+template<> EIGEN_STRONG_INLINE Packet4f pcmp_le(const Packet4f& a, const Packet4f& b) { return vreinterpretq_f32_u32(vcleq_f32(a,b)); }
+template<> EIGEN_STRONG_INLINE Packet4f pcmp_lt(const Packet4f& a, const Packet4f& b) { return vreinterpretq_f32_u32(vcltq_f32(a,b)); }
+template<> EIGEN_STRONG_INLINE Packet4f pcmp_eq(const Packet4f& a, const Packet4f& b) { return vreinterpretq_f32_u32(vceqq_f32(a,b)); }
+template<> EIGEN_STRONG_INLINE Packet4f pcmp_lt_or_nan(const Packet4f& a, const Packet4f& b) { return vreinterpretq_f32_u32(vmvnq_u32(vcgeq_f32(a,b))); }
 
 // Logical Operations are not supported for float, so we have to reinterpret casts using NEON intrinsics
 template<> EIGEN_STRONG_INLINE Packet4f pand<Packet4f>(const Packet4f& a, const Packet4f& b)
@@ -363,6 +370,14 @@ template<> EIGEN_STRONG_INLINE Packet4i preverse(const Packet4i& a) {
 
 template<> EIGEN_STRONG_INLINE Packet4f pabs(const Packet4f& a) { return vabsq_f32(a); }
 template<> EIGEN_STRONG_INLINE Packet4i pabs(const Packet4i& a) { return vabsq_s32(a); }
+
+template<> EIGEN_STRONG_INLINE Packet4f pshiftright_and_cast(Packet4f a, int n) {
+  return vcvtq_f32_s32(vshrq_n_s32(vreinterpretq_s32_f32(a),n));
+}
+
+template<> EIGEN_STRONG_INLINE Packet4f pfrexp<Packet4f>(const Packet4f& a, Packet4f& exponent) {
+  return pfrexp_float(a,exponent);
+}
 
 template<> EIGEN_STRONG_INLINE float predux<Packet4f>(const Packet4f& a)
 {
