@@ -10,6 +10,7 @@
 
 #include "main.h"
 #include "unsupported/Eigen/SpecialFunctions"
+#include <typeinfo>
 
 #if defined __GNUC__ && __GNUC__>=6
   #pragma GCC diagnostic ignored "-Wignored-attributes"
@@ -21,6 +22,8 @@ const bool g_vectorize_sse = true;
 #else
 const bool g_vectorize_sse = false;
 #endif
+
+bool g_first_pass = true;
 
 namespace Eigen {
 namespace internal {
@@ -109,13 +112,17 @@ struct packet_helper<false,Packet>
 #define REF_MUL(a,b) ((a)*(b))
 #define REF_DIV(a,b) ((a)/(b))
 
-template<typename Scalar> void packetmath()
+template<typename Scalar,typename Packet> void packetmath()
 {
   using std::abs;
   typedef internal::packet_traits<Scalar> PacketTraits;
-  typedef typename PacketTraits::type Packet;
-  const int PacketSize = PacketTraits::size;
+  const int PacketSize = internal::unpacket_traits<Packet>::size;
   typedef typename NumTraits<Scalar>::Real RealScalar;
+
+  if (g_first_pass)
+    std::cerr << "=== Testing packet of type '" << typeid(Packet).name()
+              << "' and scalar type '" << typeid(Scalar).name()
+              << "' and size '" << PacketSize << "' ===\n" ;
 
   const int max_size = PacketSize > 4 ? PacketSize : 4;
   const int size = PacketSize*max_size;
@@ -254,7 +261,7 @@ template<typename Scalar> void packetmath()
     ref[0] += data1[i];
   VERIFY(isApproxAbs(ref[0], internal::predux(internal::pload<Packet>(data1)), refvalue) && "internal::predux");
 
-  if(PacketSize==8 && internal::unpacket_traits<typename internal::unpacket_traits<Packet>::half>::size ==4) // so far, predux_half_dowto4 is only required in such a case
+  if(PacketSize==8 && internal::unpacket_traits<typename internal::unpacket_traits<Packet>::half>::size ==4) // so far, predux_half_downto4 is only required in such a case
   {
     int HalfPacketSize = PacketSize>4 ? PacketSize/2 : PacketSize;
     for (int i=0; i<HalfPacketSize; ++i)
@@ -334,17 +341,16 @@ template<typename Scalar> void packetmath()
   }
 }
 
-template<typename Scalar> void packetmath_real()
+template<typename Scalar,typename Packet> void packetmath_real()
 {
   using std::abs;
   typedef internal::packet_traits<Scalar> PacketTraits;
-  typedef typename PacketTraits::type Packet;
-  const int PacketSize = PacketTraits::size;
+  const int PacketSize = internal::unpacket_traits<Packet>::size;
 
   const int size = PacketSize*4;
-  EIGEN_ALIGN_MAX Scalar data1[PacketTraits::size*4];
-  EIGEN_ALIGN_MAX Scalar data2[PacketTraits::size*4];
-  EIGEN_ALIGN_MAX Scalar ref[PacketTraits::size*4];
+  EIGEN_ALIGN_MAX Scalar data1[PacketSize*4];
+  EIGEN_ALIGN_MAX Scalar data2[PacketSize*4];
+  EIGEN_ALIGN_MAX Scalar ref[PacketSize*4];
 
   for (int i=0; i<size; ++i)
   {
@@ -379,7 +385,7 @@ template<typename Scalar> void packetmath_real()
     data2[i] = internal::random<Scalar>(-1,1) * std::pow(Scalar(10), internal::random<Scalar>(-6,6));
   }
   CHECK_CWISE1_IF(PacketTraits::HasTanh, std::tanh, internal::ptanh);
-  if(PacketTraits::HasExp && PacketTraits::size>=2)
+  if(PacketTraits::HasExp && PacketSize>=2)
   {
     data1[0] = std::numeric_limits<Scalar>::quiet_NaN();
     data1[1] = std::numeric_limits<Scalar>::epsilon();
@@ -455,7 +461,7 @@ template<typename Scalar> void packetmath_real()
   CHECK_CWISE1_IF(internal::packet_traits<Scalar>::HasErfc, std::erfc, internal::perfc);
 #endif
 
-  if(PacketTraits::HasLog && PacketTraits::size>=2)
+  if(PacketTraits::HasLog && PacketSize>=2)
   {
     data1[0] = std::numeric_limits<Scalar>::quiet_NaN();
     data1[1] = std::numeric_limits<Scalar>::epsilon();
@@ -497,18 +503,17 @@ template<typename Scalar> void packetmath_real()
   }
 }
 
-template<typename Scalar> void packetmath_notcomplex()
+template<typename Scalar,typename Packet> void packetmath_notcomplex()
 {
   using std::abs;
   typedef internal::packet_traits<Scalar> PacketTraits;
-  typedef typename PacketTraits::type Packet;
-  const int PacketSize = PacketTraits::size;
+  const int PacketSize = internal::unpacket_traits<Packet>::size;
 
-  EIGEN_ALIGN_MAX Scalar data1[PacketTraits::size*4];
-  EIGEN_ALIGN_MAX Scalar data2[PacketTraits::size*4];
-  EIGEN_ALIGN_MAX Scalar ref[PacketTraits::size*4];
+  EIGEN_ALIGN_MAX Scalar data1[PacketSize*4];
+  EIGEN_ALIGN_MAX Scalar data2[PacketSize*4];
+  EIGEN_ALIGN_MAX Scalar ref[PacketSize*4];
 
-  Array<Scalar,Dynamic,1>::Map(data1, PacketTraits::size*4).setRandom();
+  Array<Scalar,Dynamic,1>::Map(data1, PacketSize*4).setRandom();
 
   ref[0] = data1[0];
   for (int i=0; i<PacketSize; ++i)
@@ -533,11 +538,9 @@ template<typename Scalar> void packetmath_notcomplex()
   VERIFY(areApprox(ref, data2, PacketSize) && "internal::plset");
 }
 
-template<typename Scalar,bool ConjLhs,bool ConjRhs> void test_conj_helper(Scalar* data1, Scalar* data2, Scalar* ref, Scalar* pval)
+template<typename Scalar,typename Packet,bool ConjLhs,bool ConjRhs> void test_conj_helper(Scalar* data1, Scalar* data2, Scalar* ref, Scalar* pval)
 {
-  typedef internal::packet_traits<Scalar> PacketTraits;
-  typedef typename PacketTraits::type Packet;
-  const int PacketSize = PacketTraits::size;
+  const int PacketSize = internal::unpacket_traits<Packet>::size;
 
   internal::conj_if<ConjLhs> cj0;
   internal::conj_if<ConjRhs> cj1;
@@ -562,11 +565,9 @@ template<typename Scalar,bool ConjLhs,bool ConjRhs> void test_conj_helper(Scalar
   VERIFY(areApprox(ref, pval, PacketSize) && "conj_helper pmadd");
 }
 
-template<typename Scalar> void packetmath_complex()
+template<typename Scalar,typename Packet> void packetmath_complex()
 {
-  typedef internal::packet_traits<Scalar> PacketTraits;
-  typedef typename PacketTraits::type Packet;
-  const int PacketSize = PacketTraits::size;
+  const int PacketSize = internal::unpacket_traits<Packet>::size;
 
   const int size = PacketSize*4;
   EIGEN_ALIGN_MAX Scalar data1[PacketSize*4];
@@ -580,10 +581,10 @@ template<typename Scalar> void packetmath_complex()
     data2[i] = internal::random<Scalar>() * Scalar(1e2);
   }
 
-  test_conj_helper<Scalar,false,false> (data1,data2,ref,pval);
-  test_conj_helper<Scalar,false,true>  (data1,data2,ref,pval);
-  test_conj_helper<Scalar,true,false>  (data1,data2,ref,pval);
-  test_conj_helper<Scalar,true,true>   (data1,data2,ref,pval);
+  test_conj_helper<Scalar,Packet,false,false> (data1,data2,ref,pval);
+  test_conj_helper<Scalar,Packet,false,true>  (data1,data2,ref,pval);
+  test_conj_helper<Scalar,Packet,true,false>  (data1,data2,ref,pval);
+  test_conj_helper<Scalar,Packet,true,true>   (data1,data2,ref,pval);
 
   {
     for(int i=0;i<PacketSize;++i)
@@ -593,12 +594,10 @@ template<typename Scalar> void packetmath_complex()
   }
 }
 
-template<typename Scalar> void packetmath_scatter_gather()
+template<typename Scalar,typename Packet> void packetmath_scatter_gather()
 {
-  typedef internal::packet_traits<Scalar> PacketTraits;
-  typedef typename PacketTraits::type Packet;
   typedef typename NumTraits<Scalar>::Real RealScalar;
-  const int PacketSize = PacketTraits::size;
+  const int PacketSize = internal::unpacket_traits<Packet>::size;
   EIGEN_ALIGN_MAX Scalar data1[PacketSize];
   RealScalar refvalue = 0;
   for (int i=0; i<PacketSize; ++i) {
@@ -630,30 +629,86 @@ template<typename Scalar> void packetmath_scatter_gather()
   }
 }
 
+
+template<
+  typename Scalar,
+  typename PacketType,
+  bool IsComplex = NumTraits<Scalar>::IsComplex,
+  bool IsInteger = NumTraits<Scalar>::IsInteger>
+struct runall;
+
+template<typename Scalar,typename PacketType>
+struct runall<Scalar,PacketType,false,false> { // i.e. float or double
+  static void run() {
+    packetmath<Scalar,PacketType>();
+    packetmath_scatter_gather<Scalar,PacketType>();
+    packetmath_notcomplex<Scalar,PacketType>();
+    packetmath_real<Scalar,PacketType>();
+  }
+};
+
+template<typename Scalar,typename PacketType>
+struct runall<Scalar,PacketType,false,true> { // i.e. int
+  static void run() {
+    packetmath<Scalar,PacketType>();
+    packetmath_scatter_gather<Scalar,PacketType>();
+    packetmath_notcomplex<Scalar,PacketType>();
+  }
+};
+
+template<typename Scalar,typename PacketType>
+struct runall<Scalar,PacketType,true,false> { // i.e. complex
+  static void run() {
+    packetmath<Scalar,PacketType>();
+    packetmath_scatter_gather<Scalar,PacketType>();
+    packetmath_complex<Scalar,PacketType>();
+  }
+};
+
+template<
+  typename Scalar,
+  typename PacketType = typename internal::packet_traits<Scalar>::type,
+  bool Vectorized = internal::packet_traits<Scalar>::Vectorizable,
+  bool HasHalf = !internal::is_same<typename internal::unpacket_traits<PacketType>::half,PacketType>::value >
+struct runner;
+
+template<typename Scalar,typename PacketType>
+struct runner<Scalar,PacketType,true,true>
+{
+  static void run() {
+    runall<Scalar,PacketType>::run();
+    runner<Scalar,typename internal::unpacket_traits<PacketType>::half>::run();
+  }
+};
+
+template<typename Scalar,typename PacketType>
+struct runner<Scalar,PacketType,true,false>
+{
+  static void run() {
+    runall<Scalar,PacketType>::run();
+    runall<Scalar,Scalar>::run();
+  }
+};
+
+template<typename Scalar,typename PacketType>
+struct runner<Scalar,PacketType,false,false>
+{
+  static void run() {
+    runall<Scalar,PacketType>::run();
+  }
+};
+
 EIGEN_DECLARE_TEST(packetmath)
 {
+  g_first_pass = true;
   for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST_1( packetmath<float>() );
-    CALL_SUBTEST_2( packetmath<double>() );
-    CALL_SUBTEST_3( packetmath<int>() );
-    CALL_SUBTEST_4( packetmath<std::complex<float> >() );
-    CALL_SUBTEST_5( packetmath<std::complex<double> >() );
-    CALL_SUBTEST_6( packetmath<half>() );
-
-    CALL_SUBTEST_1( packetmath_notcomplex<float>() );
-    CALL_SUBTEST_2( packetmath_notcomplex<double>() );
-    CALL_SUBTEST_3( packetmath_notcomplex<int>() );
-
-    CALL_SUBTEST_1( packetmath_real<float>() );
-    CALL_SUBTEST_2( packetmath_real<double>() );
-
-    CALL_SUBTEST_4( packetmath_complex<std::complex<float> >() );
-    CALL_SUBTEST_5( packetmath_complex<std::complex<double> >() );
-
-    CALL_SUBTEST_1( packetmath_scatter_gather<float>() );
-    CALL_SUBTEST_2( packetmath_scatter_gather<double>() );
-    CALL_SUBTEST_3( packetmath_scatter_gather<int>() );
-    CALL_SUBTEST_4( packetmath_scatter_gather<std::complex<float> >() );
-    CALL_SUBTEST_5( packetmath_scatter_gather<std::complex<double> >() );
+    
+    CALL_SUBTEST_1( runner<float>::run() );
+    CALL_SUBTEST_2( runner<double>::run() );
+    CALL_SUBTEST_3( runner<int>::run() );
+    CALL_SUBTEST_4( runner<std::complex<float> >::run() );
+    CALL_SUBTEST_5( runner<std::complex<double> >::run() );
+    CALL_SUBTEST_6(( packetmath<half,internal::packet_traits<half>::type>() ));
+    g_first_pass = false;
   }
 }
