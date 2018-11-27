@@ -219,7 +219,13 @@ pxor(const Packet& a, const Packet& b) { return a ^ b; }
 template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
 pandnot(const Packet& a, const Packet& b) { return a & (!b); }
 
-/** \internal \returns \a a shifted by N bits */
+/** \internal \returns \a a shifted by N bits to the right */
+template<int N> EIGEN_DEVICE_FUNC inline int
+pshiftright(const int& a) { return a >> N; }
+template<int N> EIGEN_DEVICE_FUNC inline long int
+pshiftright(const long int& a) { return a >> N; }
+
+/** \internal \returns \a a shifted by N bits to the left */
 template<int N> EIGEN_DEVICE_FUNC inline int
 pshiftleft(const int& a) { return a << N; }
 template<int N> EIGEN_DEVICE_FUNC inline long int
@@ -654,41 +660,17 @@ pinsertlast(const Packet& a, typename unpacket_traits<Packet>::type b)
  * Some generic implementations to be used by implementors
 ***************************************************************************/
 
-/** \internal shift the bits by n and cast the result to the initial type, i.e.:
-  *   return float(reinterpret_cast<uint>(a) >> n)
-  */
-template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
-pshiftright_and_cast(Packet a, int n);
-
 /** Default implementation of pfrexp for float.
-  * It is expected to be called by implementers of template<> pfrexp,
-  * and the above pshiftright_and_cast function must be implemented.
+  * It is expected to be called by implementers of template<> pfrexp.
   */
 template<typename Packet> EIGEN_STRONG_INLINE Packet
-pfrexp_float(const Packet& a, Packet& exponent) {
-  const Packet cst_126f = pset1<Packet>(126.0f);
-  const Packet cst_half = pset1<Packet>(0.5f);
-  const Packet cst_inv_mant_mask  = pset1frombits<Packet>(~0x7f800000u);
-  exponent = psub(pshiftright_and_cast(a,23), cst_126f);
-  return por(pand(a, cst_inv_mant_mask), cst_half);
-}
-
-/** \internal shift the bits by n and cast the result to the initial type, i.e.:
-  *   return reinterpret_cast<float>(int(a) >> n)
-  */
-template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
-pcast_and_shiftleft(Packet a, int n);
+pfrexp_float(const Packet& a, Packet& exponent);
 
 /** Default implementation of pldexp for float.
-  * It is expected to be called by implementers of template<> pldexp,
-  * and the above pcast_and_shiftleft function must be implemented.
+  * It is expected to be called by implementers of template<> pldexp.
   */
 template<typename Packet> EIGEN_STRONG_INLINE Packet
-pldexp_float(Packet a, Packet exponent) {
-  const Packet cst_127 = pset1<Packet>(127.f);
-  // return a * 2^exponent
-  return pmul(a, pcast_and_shiftleft(padd(exponent, cst_127), 23));
-}
+pldexp_float(Packet a, Packet exponent);
 
 } // end namespace internal
 

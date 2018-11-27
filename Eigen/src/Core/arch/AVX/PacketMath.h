@@ -256,7 +256,17 @@ template<> EIGEN_STRONG_INLINE Packet8f pselect<Packet8f>(const Packet8f& mask, 
 template<> EIGEN_STRONG_INLINE Packet4d pselect<Packet4d>(const Packet4d& mask, const Packet4d& a, const Packet4d& b)
 { return _mm256_blendv_pd(b,a,mask); }
 
-template<int N> EIGEN_STRONG_INLINE Packet8i pshiftleft(const Packet8i& a) {
+template<int N> EIGEN_STRONG_INLINE Packet8i pshiftright(Packet8i a) {
+#ifdef EIGEN_VECTORIZE_AVX2
+  return _mm256_srli_epi32(a, N);
+#else
+  __m128i lo = _mm_srli_epi32(_mm256_extractf128_si256(a, 0), N);
+  __m128i hi = _mm_srli_epi32(_mm256_extractf128_si256(a, 1), N);
+  return _mm256_insertf128_si256(_mm256_castsi128_si256(lo), (hi), 1);
+#endif
+}
+
+template<int N> EIGEN_STRONG_INLINE Packet8i pshiftleft(Packet8i a) {
 #ifdef EIGEN_VECTORIZE_AVX2
   return _mm256_slli_epi32(a, N);
 #else
@@ -409,31 +419,8 @@ template<> EIGEN_STRONG_INLINE Packet4d pabs(const Packet4d& a)
   return _mm256_and_pd(a,mask);
 }
 
-template<> EIGEN_STRONG_INLINE Packet8f pshiftright_and_cast<Packet8f>(Packet8f v, int n)
-{
-#ifdef EIGEN_VECTORIZE_AVX2
-  return _mm256_cvtepi32_ps(_mm256_srli_epi32(_mm256_castps_si256(v), n));
-#else
-  __m128i lo = _mm_srli_epi32(_mm256_extractf128_si256(_mm256_castps_si256(v), 0), n);
-  __m128i hi = _mm_srli_epi32(_mm256_extractf128_si256(_mm256_castps_si256(v), 1), n);
-  return _mm256_cvtepi32_ps(_mm256_insertf128_si256(_mm256_castsi128_si256(lo), (hi), 1));
-#endif
-}
-
 template<> EIGEN_STRONG_INLINE Packet8f pfrexp<Packet8f>(const Packet8f& a, Packet8f& exponent) {
   return pfrexp_float(a,exponent);
-}
-
-template<> EIGEN_STRONG_INLINE Packet8f pcast_and_shiftleft<Packet8f>(Packet8f v, int n)
-{
-  Packet8i vi = _mm256_cvttps_epi32(v);
-#ifdef EIGEN_VECTORIZE_AVX2
-  return _mm256_castsi256_ps(_mm256_slli_epi32(vi, n));
-#else
-  __m128i lo = _mm_slli_epi32(_mm256_extractf128_si256(vi, 0), n);
-  __m128i hi = _mm_slli_epi32(_mm256_extractf128_si256(vi, 1), n);
-  return _mm256_castsi256_ps(_mm256_insertf128_si256(_mm256_castsi128_si256(lo), (hi), 1));
-#endif
 }
 
 template<> EIGEN_STRONG_INLINE Packet8f pldexp<Packet8f>(const Packet8f& a, const Packet8f& exponent) {

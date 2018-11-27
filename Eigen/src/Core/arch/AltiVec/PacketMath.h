@@ -187,8 +187,19 @@ template<> struct packet_traits<int>    : default_packet_traits
 };
 
 
-template<> struct unpacket_traits<Packet4f> { typedef float  type; enum {size=4, alignment=Aligned16}; typedef Packet4f half; };
-template<> struct unpacket_traits<Packet4i> { typedef int    type; enum {size=4, alignment=Aligned16}; typedef Packet4i half; };
+template<> struct unpacket_traits<Packet4f>
+{
+  typedef float     type;
+  typedef Packet4f  half;
+  typedef Packet4i  integer_packet;
+  enum {size=4, alignment=Aligned16};
+};
+template<> struct unpacket_traits<Packet4i>
+{
+  typedef int       type;
+  typedef Packet4i  half;
+  enum {size=4, alignment=Aligned16};
+};
 
 inline std::ostream & operator <<(std::ostream & s, const Packet16uc & v)
 {
@@ -567,19 +578,13 @@ template<> EIGEN_STRONG_INLINE Packet4i preverse(const Packet4i& a)
 template<> EIGEN_STRONG_INLINE Packet4f pabs(const Packet4f& a) { return vec_abs(a); }
 template<> EIGEN_STRONG_INLINE Packet4i pabs(const Packet4i& a) { return vec_abs(a); }
 
-template<> EIGEN_STRONG_INLINE Packet4f pshiftright_and_cast(Packet4f a, int n) {
-  return vec_ctf(vec_sr(reinterpret_cast<Packet4i>(a),
-                        reinterpret_cast<Packet4ui>(pset1<Packet4i>(n))),0);
-}
+template<int N> EIGEN_STRONG_INLINE Packet4i pshiftright(Packet4i a)
+{ return vec_sr(a,reinterpret_cast<Packet4ui>(pset1<Packet4i>(N))); }
+template<int N> EIGEN_STRONG_INLINE Packet4i pshiftleft(Packet4i a)
+{ return vec_sl(a,reinterpret_cast<Packet4ui>(pset1<Packet4i>(N))); }
 
 template<> EIGEN_STRONG_INLINE Packet4f pfrexp<Packet4f>(const Packet4f& a, Packet4f& exponent) {
   return pfrexp_float(a,exponent);
-}
-
-template<> EIGEN_STRONG_INLINE Packet4f pcast_and_shiftleft<Packet4f>(Packet4f v, int n)
-{
-  Packet4i vi = vec_cts(v,0);
-  return reinterpret_cast<Packet4f>(vec_sl(vi, reinterpret_cast<Packet4ui>(pset1<Packet4i>(n))));
 }
 
 template<> EIGEN_STRONG_INLINE Packet4f pldexp<Packet4f>(const Packet4f& a, const Packet4f& exponent) {
@@ -805,6 +810,43 @@ template<> EIGEN_STRONG_INLINE Packet4f pblend(const Selector<4>& ifPacket, cons
   Packet4ui mask = reinterpret_cast<Packet4ui>(vec_cmpeq(reinterpret_cast<Packet4ui>(select), reinterpret_cast<Packet4ui>(p4i_ONE)));
   return vec_sel(elsePacket, thenPacket, mask);
 }
+
+
+template <>
+struct type_casting_traits<float, int> {
+  enum {
+    VectorizedCast = 1,
+    SrcCoeffRatio = 1,
+    TgtCoeffRatio = 1
+  };
+};
+
+template <>
+struct type_casting_traits<int, float> {
+  enum {
+    VectorizedCast = 1,
+    SrcCoeffRatio = 1,
+    TgtCoeffRatio = 1
+  };
+};
+
+
+template<> EIGEN_STRONG_INLINE Packet4i pcast<Packet4f, Packet4i>(const Packet4f& a) {
+  return vec_cts(a,0);
+}
+
+template<> EIGEN_STRONG_INLINE Packet4f pcast<Packet4i, Packet4f>(const Packet4i& a) {
+  return vec_ctf(a,0);
+}
+
+template<> EIGEN_STRONG_INLINE Packet4i preinterpret<Packet4i,Packet4f>(const Packet4f& a) {
+  return reinterpret_cast<Packet4i>(a);
+}
+
+template<> EIGEN_STRONG_INLINE Packet4f preinterpret<Packet4f,Packet4i>(const Packet4i& a) {
+  return reinterpret_cast<Packet4f>(a);
+}
+
 
 
 //---------- double ----------

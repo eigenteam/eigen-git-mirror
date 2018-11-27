@@ -16,6 +16,26 @@
 namespace Eigen {
 namespace internal {
 
+template<typename Packet> EIGEN_STRONG_INLINE Packet
+pfrexp_float(const Packet& a, Packet& exponent) {
+  typedef typename unpacket_traits<Packet>::integer_packet PacketI;
+  const Packet cst_126f = pset1<Packet>(126.0f);
+  const Packet cst_half = pset1<Packet>(0.5f);
+  const Packet cst_inv_mant_mask  = pset1frombits<Packet>(~0x7f800000u);
+  exponent = psub(pcast<PacketI,Packet>(pshiftright<23>(preinterpret<PacketI>(a))), cst_126f);
+  return por(pand(a, cst_inv_mant_mask), cst_half);
+}
+
+template<typename Packet> EIGEN_STRONG_INLINE Packet
+pldexp_float(Packet a, Packet exponent)
+{
+  typedef typename unpacket_traits<Packet>::integer_packet PacketI;
+  const Packet cst_127 = pset1<Packet>(127.f);
+  // return a * 2^exponent
+  PacketI ei = pcast<Packet,PacketI>(padd(exponent, cst_127));
+  return pmul(a, preinterpret<Packet>(pshiftleft<23>(ei)));
+}
+
 // Natural logarithm
 // Computes log(x) as log(2^e * m) = C*e + log(m), where the constant C =log(2)
 // and m is in the range [sqrt(1/2),sqrt(2)). In this range, the logarithm can

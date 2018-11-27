@@ -370,7 +370,8 @@ template<> EIGEN_STRONG_INLINE Packet4f pandnot<Packet4f>(const Packet4f& a, con
 template<> EIGEN_STRONG_INLINE Packet2d pandnot<Packet2d>(const Packet2d& a, const Packet2d& b) { return _mm_andnot_pd(b,a); }
 template<> EIGEN_STRONG_INLINE Packet4i pandnot<Packet4i>(const Packet4i& a, const Packet4i& b) { return _mm_andnot_si128(b,a); }
 
-template<int N> EIGEN_STRONG_INLINE Packet4i pshiftleft(const Packet4i& a) { return _mm_slli_epi32(a,N); }
+template<int N> EIGEN_STRONG_INLINE Packet4i pshiftright(Packet4i a) { return _mm_srli_epi32(a,N); }
+template<int N> EIGEN_STRONG_INLINE Packet4i pshiftleft(Packet4i a) { return _mm_slli_epi32(a,N); }
 
 #ifdef EIGEN_VECTORIZE_SSE4_1
 template<> EIGEN_STRONG_INLINE Packet4f pround<Packet4f>(const Packet4f& a) { return _mm_round_ps(a, 0); }
@@ -569,18 +570,8 @@ template<> EIGEN_STRONG_INLINE Packet4i pabs(const Packet4i& a)
   #endif
 }
 
-template<> EIGEN_STRONG_INLINE Packet4f pshiftright_and_cast(Packet4f a, int n) {
-  return _mm_cvtepi32_ps(_mm_srli_epi32(_mm_castps_si128(a),n));
-}
-
 template<> EIGEN_STRONG_INLINE Packet4f pfrexp<Packet4f>(const Packet4f& a, Packet4f& exponent) {
   return pfrexp_float(a,exponent);
-}
-
-template<> EIGEN_STRONG_INLINE Packet4f pcast_and_shiftleft<Packet4f>(Packet4f v, int n)
-{
-  Packet4i vi = _mm_cvttps_epi32(v);
-  return _mm_castsi128_ps(_mm_slli_epi32(vi, n));
 }
 
 template<> EIGEN_STRONG_INLINE Packet4f pldexp<Packet4f>(const Packet4f& a, const Packet4f& exponent) {
