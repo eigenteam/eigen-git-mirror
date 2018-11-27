@@ -859,7 +859,7 @@ template<>
 struct gebp_traits <float, float, false, false,Architecture::NEON>
  : gebp_traits<float,float,false,false,Architecture::Generic>
 {
-  typedef float32x2_t RhsPacket;
+  typedef float RhsPacket;
 
   EIGEN_STRONG_INLINE void broadcastRhs(const RhsScalar* b, RhsPacket& b0, RhsPacket& b1, RhsPacket& b2, RhsPacket& b3)
   {
@@ -871,7 +871,7 @@ struct gebp_traits <float, float, false, false,Architecture::NEON>
 
   EIGEN_STRONG_INLINE void loadRhs(const RhsScalar* b, RhsPacket& dest) const
   {
-     dest = vld1_f32(b);
+     dest = *b;
   }
 
   EIGEN_STRONG_INLINE void loadRhsQuad(const RhsScalar* b, RhsPacket& dest) const
@@ -881,7 +881,7 @@ struct gebp_traits <float, float, false, false,Architecture::NEON>
 
   EIGEN_STRONG_INLINE void madd(const LhsPacket& a, const RhsPacket& b, AccPacket& c, RhsPacket& /*tmp*/) const
   {
-    c = vfmaq_lane_f32(c, a, b, 0);
+    c = vfmaq_n_f32(c, a, b);
   }
 };
 
