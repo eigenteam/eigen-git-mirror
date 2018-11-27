@@ -370,7 +370,7 @@ template<> EIGEN_STRONG_INLINE Packet4f pandnot<Packet4f>(const Packet4f& a, con
 template<> EIGEN_STRONG_INLINE Packet2d pandnot<Packet2d>(const Packet2d& a, const Packet2d& b) { return _mm_andnot_pd(b,a); }
 template<> EIGEN_STRONG_INLINE Packet4i pandnot<Packet4i>(const Packet4i& a, const Packet4i& b) { return _mm_andnot_si128(b,a); }
 
-template<> EIGEN_STRONG_INLINE Packet4i pshiftleft<Packet4i>(const Packet4i& a, int n) { return _mm_slli_epi32(a,n); }
+template<int N> EIGEN_STRONG_INLINE Packet4i pshiftleft(const Packet4i& a) { return _mm_slli_epi32(a,N); }
 
 #ifdef EIGEN_VECTORIZE_SSE4_1
 template<> EIGEN_STRONG_INLINE Packet4f pround<Packet4f>(const Packet4f& a) { return _mm_round_ps(a, 0); }

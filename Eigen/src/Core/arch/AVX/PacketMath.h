@@ -256,12 +256,12 @@ template<> EIGEN_STRONG_INLINE Packet8f pselect<Packet8f>(const Packet8f& mask, 
 template<> EIGEN_STRONG_INLINE Packet4d pselect<Packet4d>(const Packet4d& mask, const Packet4d& a, const Packet4d& b)
 { return _mm256_blendv_pd(b,a,mask); }
 
-template<> EIGEN_STRONG_INLINE Packet8i pshiftleft<Packet8i>(const Packet8i& a, int n) {
+template<int N> EIGEN_STRONG_INLINE Packet8i pshiftleft(const Packet8i& a) {
 #ifdef EIGEN_VECTORIZE_AVX2
-  return _mm256_slli_epi32(a, n);
+  return _mm256_slli_epi32(a, N);
 #else
-  __m128i lo = _mm_slli_epi32(_mm256_extractf128_si256(a, 0), n);
-  __m128i hi = _mm_slli_epi32(_mm256_extractf128_si256(a, 1), n);
+  __m128i lo = _mm_slli_epi32(_mm256_extractf128_si256(a, 0), N);
+  __m128i hi = _mm_slli_epi32(_mm256_extractf128_si256(a, 1), N);
   return _mm256_insertf128_si256(_mm256_castsi128_si256(lo), (hi), 1);
 #endif
 }

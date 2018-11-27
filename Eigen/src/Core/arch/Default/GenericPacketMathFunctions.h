@@ -270,7 +270,7 @@ Packet psin_float(const Packet& _x)
 
   // Compute the sign to apply to the polynomial.
   // sign = third_bit(y_int1) xor signbit(_x)
-  Packet sign_bit = pxor(_x, preinterpret<Packet>(pshiftleft(y_int1, 29)));
+  Packet sign_bit = pxor(_x, preinterpret<Packet>(pshiftleft<29>(y_int1)));
   sign_bit = pand(sign_bit, cst_sign_mask); // clear all but left most bit
 
   // Get the polynomial selection mask from the second bit of y_int1

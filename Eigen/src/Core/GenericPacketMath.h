@@ -219,9 +219,11 @@ pxor(const Packet& a, const Packet& b) { return a ^ b; }
 template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
 pandnot(const Packet& a, const Packet& b) { return a & (!b); }
 
-/** \internal \returns \a a shifted by n bits */
-template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
-pshiftleft(const Packet& a, int n); /* { return a << n; } */
+/** \internal \returns \a a shifted by N bits */
+template<int N> EIGEN_DEVICE_FUNC inline int
+pshiftleft(const int& a) { return a << N; }
+template<int N> EIGEN_DEVICE_FUNC inline long int
+pshiftleft(const long int& a) { return a << N; }
 
 /** \internal \returns the significant and exponent of the underlying floating point numbers
   * See https://en.cppreference.com/w/cpp/numeric/math/frexp
