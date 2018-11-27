@@ -1024,6 +1024,59 @@ template<> EIGEN_STRONG_INLINE Packet2d preverse(const Packet2d& a)
 }
 template<> EIGEN_STRONG_INLINE Packet2d pabs(const Packet2d& a) { return vec_abs(a); }
 
+// VSX support varies between different compilers and even different
+// versions of the same compiler.  For gcc version >= 4.9.3, we can use
+// vec_cts to efficiently convert Packet2d to Packet2l.  Otherwise, use
+// a slow version that works with older compilers. 
+// Update: apparently vec_cts/vec_ctf intrinsics for 64-bit doubles
+// are buggy, https://gcc.gnu.org/bugzilla/show_bug.cgi?id=70963
+static inline Packet2l ConvertToPacket2l(const Packet2d& x) {
+#if EIGEN_GNUC_AT_LEAST(5, 4) || \
+    (EIGEN_GNUC_AT(6, 1) && __GNUC_PATCHLEVEL__ >= 1)
+  return vec_cts(x, 0);    // TODO: check clang version.
+#else
+  double tmp[2];
+  memcpy(tmp, &x, sizeof(tmp));
+  Packet2l l = { static_cast<long long>(tmp[0]),
+                 static_cast<long long>(tmp[1]) };
+  return l;
+#endif
+}
+
+template<> EIGEN_STRONG_INLINE Packet2d pldexp<Packet2d>(const Packet2d& a, const Packet2d& exponent) {
+  
+  // build 2^n
+  Packet2l emm0 = ConvertToPacket2l(exponent);
+
+#ifdef __POWER8_VECTOR__ 
+  const Packet2l  p2l_1023 = { 1023, 1023 };
+  const Packet2ul p2ul_52 = { 52, 52 };
+  emm0 = vec_add(emm0, p2l_1023);
+  emm0 = vec_sl(emm0, p2ul_52);
+#else
+  // Code is a bit complex for POWER7.  There is actually a
+  // vec_xxsldi intrinsic but it is not supported by some gcc versions.
+  // So we shift (52-32) bits and do a word swap with zeros.
+  const Packet4i p4i_1023 = pset1<Packet4i>(1023);
+  const Packet4i p4i_20 = pset1<Packet4i>(20);    // 52 - 32
+
+  Packet4i emm04i = reinterpret_cast<Packet4i>(emm0);
+  emm04i = vec_add(emm04i, p4i_1023);
+  emm04i = vec_sl(emm04i, reinterpret_cast<Packet4ui>(p4i_20));
+  static const Packet16uc perm = {
+    0x14, 0x15, 0x16, 0x17, 0x00, 0x01, 0x02, 0x03, 
+    0x1c, 0x1d, 0x1e, 0x1f, 0x08, 0x09, 0x0a, 0x0b };
+#ifdef  _BIG_ENDIAN
+  emm0 = reinterpret_cast<Packet2l>(vec_perm(p4i_ZERO, emm04i, perm));
+#else
+  emm0 = reinterpret_cast<Packet2l>(vec_perm(emm04i, p4i_ZERO, perm));
+#endif
+
+#endif
+
+  return pmul(a, reinterpret_cast<Packet2d>(emm0));
+}
+
 template<> EIGEN_STRONG_INLINE double predux<Packet2d>(const Packet2d& a)
 {
   Packet2d b, sum;
