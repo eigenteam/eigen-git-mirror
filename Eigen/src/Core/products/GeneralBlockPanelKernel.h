@@ -853,7 +853,7 @@ protected:
 };
 
 
-#if EIGEN_ARCH_ARM64
+#if EIGEN_ARCH_ARM64 && defined EIGEN_VECTORIZE_NEON
 
 template<>
 struct gebp_traits <float, float, false, false,Architecture::NEON>
