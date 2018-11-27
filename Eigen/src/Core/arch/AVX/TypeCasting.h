@@ -37,11 +37,19 @@ struct type_casting_traits<int, float> {
 
 
 template<> EIGEN_STRONG_INLINE Packet8i pcast<Packet8f, Packet8i>(const Packet8f& a) {
-  return _mm256_cvtps_epi32(a);
+  return _mm256_cvttps_epi32(a);
 }
 
 template<> EIGEN_STRONG_INLINE Packet8f pcast<Packet8i, Packet8f>(const Packet8i& a) {
   return _mm256_cvtepi32_ps(a);
+}
+
+template<> EIGEN_STRONG_INLINE Packet8i preinterpret<Packet8i,Packet8f>(const Packet8f& a) {
+  return _mm256_castps_si256(a);
+}
+
+template<> EIGEN_STRONG_INLINE Packet8f preinterpret<Packet8f,Packet8i>(const Packet8i& a) {
+  return _mm256_castsi256_ps(a);
 }
 
 } // end namespace internal

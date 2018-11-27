@@ -151,6 +151,11 @@ pcast(const SrcPacket& a, const SrcPacket& /*b*/, const SrcPacket& /*c*/, const 
   return static_cast<TgtPacket>(a);
 }
 
+/** \internal \returns reinterpret_cast<Target>(a) */
+template <typename Target, typename Packet>
+EIGEN_DEVICE_FUNC inline Target
+preinterpret(const Packet& a); /* { return reinterpret_cast<const Target&>(a); } */
+
 /** \internal \returns a + b (coeff-wise) */
 template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
 padd(const Packet& a,
@@ -213,6 +218,10 @@ pxor(const Packet& a, const Packet& b) { return a ^ b; }
 /** \internal \returns the bitwise andnot of \a a and \a b */
 template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
 pandnot(const Packet& a, const Packet& b) { return a & (!b); }
+
+/** \internal \returns \a a shifted by n bits */
+template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
+pshiftleft(const Packet& a, int n); /* { return a << n; } */
 
 /** \internal \returns the significant and exponent of the underlying floating point numbers
   * See https://en.cppreference.com/w/cpp/numeric/math/frexp

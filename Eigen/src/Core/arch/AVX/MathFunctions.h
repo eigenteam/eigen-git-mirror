@@ -36,67 +36,7 @@ inline Packet8i pshiftleft(Packet8i v, int n)
 template <>
 EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED Packet8f
 psin<Packet8f>(const Packet8f& _x) {
-  Packet8f x = _x;
-
-  // Some useful values.
-  _EIGEN_DECLARE_CONST_Packet8i(one, 1);
-  _EIGEN_DECLARE_CONST_Packet8f(one, 1.0f);
-  _EIGEN_DECLARE_CONST_Packet8f(two, 2.0f);
-  _EIGEN_DECLARE_CONST_Packet8f(one_over_four, 0.25f);
-  _EIGEN_DECLARE_CONST_Packet8f(one_over_pi, 3.183098861837907e-01f);
-  _EIGEN_DECLARE_CONST_Packet8f(neg_pi_first, -3.140625000000000e+00f);
-  _EIGEN_DECLARE_CONST_Packet8f(neg_pi_second, -9.670257568359375e-04f);
-  _EIGEN_DECLARE_CONST_Packet8f(neg_pi_third, -6.278329571784980e-07f);
-  _EIGEN_DECLARE_CONST_Packet8f(four_over_pi, 1.273239544735163e+00f);
-
-  // Map x from [-Pi/4,3*Pi/4] to z in [-1,3] and subtract the shifted period.
-  Packet8f z = pmul(x, p8f_one_over_pi);
-  Packet8f shift = _mm256_floor_ps(padd(z, p8f_one_over_four));
-  x = pmadd(shift, p8f_neg_pi_first, x);
-  x = pmadd(shift, p8f_neg_pi_second, x);
-  x = pmadd(shift, p8f_neg_pi_third, x);
-  z = pmul(x, p8f_four_over_pi);
-
-  // Make a mask for the entries that need flipping, i.e. wherever the shift
-  // is odd.
-  Packet8i shift_ints = _mm256_cvtps_epi32(shift);
-  Packet8i shift_isodd = _mm256_castps_si256(_mm256_and_ps(_mm256_castsi256_ps(shift_ints), _mm256_castsi256_ps(p8i_one)));
-  Packet8i sign_flip_mask = pshiftleft(shift_isodd, 31);
-
-  // Create a mask for which interpolant to use, i.e. if z > 1, then the mask
-  // is set to ones for that entry.
-  Packet8f ival_mask = _mm256_cmp_ps(z, p8f_one, _CMP_GT_OQ);
-
-  // Evaluate the polynomial for the interval [1,3] in z.
-  _EIGEN_DECLARE_CONST_Packet8f(coeff_right_0, 9.999999724233232e-01f);
-  _EIGEN_DECLARE_CONST_Packet8f(coeff_right_2, -3.084242535619928e-01f);
-  _EIGEN_DECLARE_CONST_Packet8f(coeff_right_4, 1.584991525700324e-02f);
-  _EIGEN_DECLARE_CONST_Packet8f(coeff_right_6, -3.188805084631342e-04f);
-  Packet8f z_minus_two = psub(z, p8f_two);
-  Packet8f z_minus_two2 = pmul(z_minus_two, z_minus_two);
-  Packet8f right = pmadd(p8f_coeff_right_6, z_minus_two2, p8f_coeff_right_4);
-  right = pmadd(right, z_minus_two2, p8f_coeff_right_2);
-  right = pmadd(right, z_minus_two2, p8f_coeff_right_0);
-
-  // Evaluate the polynomial for the interval [-1,1] in z.
-  _EIGEN_DECLARE_CONST_Packet8f(coeff_left_1, 7.853981525427295e-01f);
-  _EIGEN_DECLARE_CONST_Packet8f(coeff_left_3, -8.074536727092352e-02f);
-  _EIGEN_DECLARE_CONST_Packet8f(coeff_left_5, 2.489871967827018e-03f);
-  _EIGEN_DECLARE_CONST_Packet8f(coeff_left_7, -3.587725841214251e-05f);
-  Packet8f z2 = pmul(z, z);
-  Packet8f left = pmadd(p8f_coeff_left_7, z2, p8f_coeff_left_5);
-  left = pmadd(left, z2, p8f_coeff_left_3);
-  left = pmadd(left, z2, p8f_coeff_left_1);
-  left = pmul(left, z);
-
-  // Assemble the results, i.e. select the left and right polynomials.
-  left = _mm256_andnot_ps(ival_mask, left);
-  right = _mm256_and_ps(ival_mask, right);
-  Packet8f res = _mm256_or_ps(left, right);
-
-  // Flip the sign on the odd intervals and return the result.
-  res = _mm256_xor_ps(res, _mm256_castsi256_ps(sign_flip_mask));
-  return res;
+  return psin_float(_x);
 }
 
 template <>

@@ -229,5 +229,85 @@ Packet pexp_double(const Packet _x)
   return pmax(pldexp(x,fx), _x);
 }
 
+template<typename Packet>
+EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
+EIGEN_UNUSED
+Packet psin_float(const Packet& _x)
+{
+  typedef typename unpacket_traits<Packet>::integer_packet PacketI;
+  const Packet cst_1          = pset1<Packet>(1.0f);
+  const Packet cst_half       = pset1<Packet>(0.5f);
+
+  const PacketI csti_1        = pset1<PacketI>(1);
+  const PacketI csti_not1     = pset1<PacketI>(~1);
+  const PacketI csti_2        = pset1<PacketI>(2);
+
+  const Packet cst_sign_mask  = pset1frombits<Packet>(0x80000000u);
+
+  const Packet cst_minus_cephes_DP1 = pset1<Packet>(-0.78515625f);
+  const Packet cst_minus_cephes_DP2 = pset1<Packet>(-2.4187564849853515625e-4f);
+  const Packet cst_minus_cephes_DP3 = pset1<Packet>(-3.77489497744594108e-8f);
+  const Packet cst_sincof_p0        = pset1<Packet>(-1.9515295891E-4f);
+  const Packet cst_sincof_p1        = pset1<Packet>( 8.3321608736E-3f);
+  const Packet cst_sincof_p2        = pset1<Packet>(-1.6666654611E-1f);
+  const Packet cst_coscof_p0        = pset1<Packet>( 2.443315711809948E-005f);
+  const Packet cst_coscof_p1        = pset1<Packet>(-1.388731625493765E-003f);
+  const Packet cst_coscof_p2        = pset1<Packet>( 4.166664568298827E-002f);
+  const Packet cst_cephes_FOPI      = pset1<Packet>( 1.27323954473516f); // 4 / M_PI
+
+  Packet x = pabs(_x);
+
+  // Scale x by 4/Pi to find x's octant.
+  Packet y = pmul(x, cst_cephes_FOPI);
+
+  // Get the octant. We'll reduce x by this number of octants or by one more than it.
+  PacketI y_int = pcast<Packet,PacketI>(y);
+  // x's from even-numbered octants will translate to octant 0: [0, +Pi/4].
+  // x's from odd-numbered octants will translate to octant -1: [-Pi/4, 0].
+  // Adjustment for odd-numbered octants: octant = (octant + 1) & (~1).
+  PacketI y_int1 = pand(padd(y_int, csti_1), csti_not1); // could be pbitclear<0>(...)
+  y = pcast<PacketI,Packet>(y_int1);
+
+  // Compute the sign to apply to the polynomial.
+  // sign = third_bit(y_int1) xor signbit(_x)
+  Packet sign_bit = pxor(_x, preinterpret<Packet>(pshiftleft(y_int1, 29)));
+  sign_bit = pand(sign_bit, cst_sign_mask); // clear all but left most bit
+
+  // Get the polynomial selection mask from the second bit of y_int1
+  // We'll calculate both (sin and cos) polynomials and then select from the two.
+  Packet poly_mask = preinterpret<Packet>(pcmp_eq(pand(y_int1, csti_2), pzero(y_int1)));
+
+  // Reduce x by y octants to get: -Pi/4 <= x <= +Pi/4.
+  // The magic pass: "Extended precision modular arithmetic"
+  // x = ((x - y * DP1) - y * DP2) - y * DP3
+  x = pmadd(y, cst_minus_cephes_DP1, x);
+  x = pmadd(y, cst_minus_cephes_DP2, x);
+  x = pmadd(y, cst_minus_cephes_DP3, x);
+
+  Packet x2 = pmul(x,x);
+
+  // Evaluate the cos(x) polynomial. (0 <= x <= Pi/4)
+  Packet y1 = cst_coscof_p0;
+  y1 = pmadd(y1, x2, cst_coscof_p1);
+  y1 = pmadd(y1, x2, cst_coscof_p2);
+  y1 = pmul(y1, x2);
+  y1 = pmul(y1, x2);
+  y1 = psub(y1, pmul(x2, cst_half));
+  y1 = padd(y1, cst_1);
+
+  // Evaluate the sin(x) polynomial. (Pi/4 <= x <= 0) 
+  Packet y2 = cst_sincof_p0;
+  y2 = pmadd(y2, x2, cst_sincof_p1);
+  y2 = pmadd(y2, x2, cst_sincof_p2);
+  y2 = pmul(y2, x2);
+  y2 = pmadd(y2, x, x);
+
+  // Select the correct result from the two polynoms.
+  y = pselect(poly_mask,y2,y1);
+
+  // Update the sign
+  return pxor(y, sign_bit);
+}
+
 } // end namespace internal
 } // end namespace Eigen

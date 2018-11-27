@@ -69,6 +69,13 @@ template<> EIGEN_STRONG_INLINE Packet2d pcast<Packet4f, Packet2d>(const Packet4f
   return _mm_cvtps_pd(a);
 }
 
+template<> EIGEN_STRONG_INLINE Packet4i preinterpret<Packet4i,Packet4f>(const Packet4f& a) {
+  return _mm_castps_si128(a);
+}
+
+template<> EIGEN_STRONG_INLINE Packet4f preinterpret<Packet4f,Packet4i>(const Packet4i& a) {
+  return _mm_castsi128_ps(a);
+}
 
 } // end namespace internal
 
