@@ -247,6 +247,14 @@ void bug79()
 }
 
 template<int>
+void bug1630()
+{
+  Array4d x4 = Array4d::LinSpaced(0.0, 1.0);
+  Array3d x3(Array4d::LinSpaced(0.0, 1.0).head(3));
+  VERIFY_IS_APPROX(x4.head(3), x3);
+}
+
+template<int>
 void nullary_overflow()
 {
   // Check possible overflow issue
@@ -272,10 +280,10 @@ void nullary_internal_logic()
   VERIFY((  internal::has_binary_operator<internal::scalar_identity_op<double> >::value ));
   VERIFY(( !internal::functor_has_linear_access<internal::scalar_identity_op<double> >::ret ));
 
-  VERIFY(( !internal::has_nullary_operator<internal::linspaced_op<float,float> >::value ));
-  VERIFY((  internal::has_unary_operator<internal::linspaced_op<float,float> >::value ));
-  VERIFY(( !internal::has_binary_operator<internal::linspaced_op<float,float> >::value ));
-  VERIFY((  internal::functor_has_linear_access<internal::linspaced_op<float,float> >::ret ));
+  VERIFY(( !internal::has_nullary_operator<internal::linspaced_op<float> >::value ));
+  VERIFY((  internal::has_unary_operator<internal::linspaced_op<float> >::value ));
+  VERIFY(( !internal::has_binary_operator<internal::linspaced_op<float> >::value ));
+  VERIFY((  internal::functor_has_linear_access<internal::linspaced_op<float> >::ret ));
 
   // Regression unit test for a weird MSVC bug.
   // Search "nullary_wrapper_workaround_msvc" in CoreEvaluators.h for the details.
@@ -296,10 +304,10 @@ void nullary_internal_logic()
     VERIFY(( !internal::has_binary_operator<internal::scalar_constant_op<float> >::value ));
     VERIFY((  internal::functor_has_linear_access<internal::scalar_constant_op<float> >::ret ));
 
-    VERIFY(( !internal::has_nullary_operator<internal::linspaced_op<int,int> >::value ));
-    VERIFY((  internal::has_unary_operator<internal::linspaced_op<int,int> >::value ));
-    VERIFY(( !internal::has_binary_operator<internal::linspaced_op<int,int> >::value ));
-    VERIFY((  internal::functor_has_linear_access<internal::linspaced_op<int,int> >::ret ));
+    VERIFY(( !internal::has_nullary_operator<internal::linspaced_op<int> >::value ));
+    VERIFY((  internal::has_unary_operator<internal::linspaced_op<int> >::value ));
+    VERIFY(( !internal::has_binary_operator<internal::linspaced_op<int> >::value ));
+    VERIFY((  internal::functor_has_linear_access<internal::linspaced_op<int> >::ret ));
   }
 }
 
@@ -325,6 +333,7 @@ EIGEN_DECLARE_TEST(nullary)
   }
 
   CALL_SUBTEST_6( bug79<0>() );
+  CALL_SUBTEST_6( bug1630<0>() );
   CALL_SUBTEST_9( nullary_overflow<0>() );
   CALL_SUBTEST_10( nullary_internal_logic<0>() );
 }
