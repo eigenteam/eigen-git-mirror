@@ -270,13 +270,18 @@ template<> EIGEN_STRONG_INLINE Packet2d pmadd(const Packet2d& a, const Packet2d&
 #endif
 
 template<> EIGEN_STRONG_INLINE Packet4f pmin<Packet4f>(const Packet4f& a, const Packet4f& b) {
-#if EIGEN_COMP_GNUC
+#if EIGEN_COMP_GNUC && EIGEN_COMP_GNUC < 63
   // There appears to be a bug in GCC, by which the optimizer may
   // flip the argument order in calls to _mm_min_ps, so we have to
   // resort to inline ASM here. This is supposed to be fixed in gcc6.3,
   // see also: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=72867
+  #ifdef EIGEN_VECTORIZE_AVX
+  Packet4f res;
+  asm("vminps %[a], %[b], %[res]" : [res] "=x" (res) : [a] "x" (a), [b] "x" (b));
+  #else
   Packet4f res = b;
   asm("minps %[a], %[res]" : [res] "+x" (res) : [a] "x" (a));
+  #endif
   return res;
 #else
   // Arguments are reversed to match NaN propagation behavior of std::min.
@@ -284,13 +289,18 @@ template<> EIGEN_STRONG_INLINE Packet4f pmin<Packet4f>(const Packet4f& a, const 
 #endif
 }
 template<> EIGEN_STRONG_INLINE Packet2d pmin<Packet2d>(const Packet2d& a, const Packet2d& b) {
-#if EIGEN_COMP_GNUC
+#if EIGEN_COMP_GNUC && EIGEN_COMP_GNUC < 63
   // There appears to be a bug in GCC, by which the optimizer may
   // flip the argument order in calls to _mm_min_pd, so we have to
   // resort to inline ASM here. This is supposed to be fixed in gcc6.3,
   // see also: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=72867
+  #ifdef EIGEN_VECTORIZE_AVX
+  Packet2d res;
+  asm("vminpd %[a], %[b], %[res]" : [res] "=x" (res) : [a] "x" (a), [b] "x" (b));
+  #else
   Packet2d res = b;
   asm("minpd %[a], %[res]" : [res] "+x" (res) : [a] "x" (a));
+  #endif
   return res;
 #else
   // Arguments are reversed to match NaN propagation behavior of std::min.
