@@ -579,7 +579,7 @@ template<> EIGEN_STRONG_INLINE Packet4f pldexp<Packet4f>(const Packet4f& a, cons
 }
 
 template<> EIGEN_STRONG_INLINE Packet2d pldexp<Packet2d>(const Packet2d& a, const Packet2d& exponent) {
-  const __m128i cst_1023_0 = _mm_setr_epi32(1023, 1023, 0, 0);
+  const Packet4i cst_1023_0 = _mm_setr_epi32(1023, 1023, 0, 0);
   Packet4i emm0 = _mm_cvttpd_epi32(exponent);
   emm0 = padd(emm0, cst_1023_0);
   emm0 = _mm_slli_epi32(emm0, 20);
