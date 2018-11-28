@@ -319,13 +319,18 @@ template<> EIGEN_STRONG_INLINE Packet4i pmin<Packet4i>(const Packet4i& a, const 
 }
 
 template<> EIGEN_STRONG_INLINE Packet4f pmax<Packet4f>(const Packet4f& a, const Packet4f& b) {
-#if EIGEN_COMP_GNUC
+#if EIGEN_COMP_GNUC && EIGEN_COMP_GNUC < 63
   // There appears to be a bug in GCC, by which the optimizer may
   // flip the argument order in calls to _mm_max_ps, so we have to
   // resort to inline ASM here. This is supposed to be fixed in gcc6.3,
   // see also: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=72867
+  #ifdef EIGEN_VECTORIZE_AVX
+  Packet4f res;
+  asm("vmaxps %[a], %[b], %[res]" : [res] "=x" (res) : [a] "x" (a), [b] "x" (b));
+  #else
   Packet4f res = b;
   asm("maxps %[a], %[res]" : [res] "+x" (res) : [a] "x" (a));
+  #endif
   return res;
 #else
   // Arguments are reversed to match NaN propagation behavior of std::max.
@@ -333,13 +338,18 @@ template<> EIGEN_STRONG_INLINE Packet4f pmax<Packet4f>(const Packet4f& a, const 
 #endif
 }
 template<> EIGEN_STRONG_INLINE Packet2d pmax<Packet2d>(const Packet2d& a, const Packet2d& b) {
-#if EIGEN_COMP_GNUC
+#if EIGEN_COMP_GNUC && EIGEN_COMP_GNUC < 63
   // There appears to be a bug in GCC, by which the optimizer may
   // flip the argument order in calls to _mm_max_pd, so we have to
   // resort to inline ASM here. This is supposed to be fixed in gcc6.3,
   // see also: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=72867
+  #ifdef EIGEN_VECTORIZE_AVX
+  Packet2d res;
+  asm("vmaxpd %[a], %[b], %[res]" : [res] "=x" (res) : [a] "x" (a), [b] "x" (b));
+  #else
   Packet2d res = b;
   asm("maxpd %[a], %[res]" : [res] "+x" (res) : [a] "x" (a));
+  #endif
   return res;
 #else
   // Arguments are reversed to match NaN propagation behavior of std::max.
