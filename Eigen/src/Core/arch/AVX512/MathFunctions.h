@@ -373,6 +373,19 @@ EIGEN_STRONG_INLINE Packet16f prsqrt<Packet16f>(const Packet16f& x) {
 #endif
 #endif
 
+
+template <>
+EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED Packet16f
+psin<Packet16f>(const Packet16f& _x) {
+  return psin_float(_x);
+}
+
+template <>
+EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED Packet16f
+pcos<Packet16f>(const Packet16f& _x) {
+  return pcos_float(_x);
+}
+
 }  // end namespace internal
 
 }  // end namespace Eigen

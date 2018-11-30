@@ -55,6 +55,8 @@ template<> struct packet_traits<float>  : default_packet_traits
     size = 16,
     HasHalfPacket = 1,
     HasBlend = 0,
+    HasSin = EIGEN_FAST_MATH,
+    HasCos = EIGEN_FAST_MATH,
 #if EIGEN_GNUC_AT_LEAST(5, 3) || EIGEN_COMP_CLANG
 #ifdef EIGEN_VECTORIZE_AVX512DQ
     HasLog = 1,
@@ -99,6 +101,7 @@ template <>
 struct unpacket_traits<Packet16f> {
   typedef float type;
   typedef Packet8f half;
+  typedef Packet16i integer_packet;
   enum { size = 16, alignment=Aligned64 };
 };
 template <>
@@ -125,6 +128,11 @@ EIGEN_STRONG_INLINE Packet8d pset1<Packet8d>(const double& from) {
 template <>
 EIGEN_STRONG_INLINE Packet16i pset1<Packet16i>(const int& from) {
   return _mm512_set1_epi32(from);
+}
+
+template <>
+EIGEN_STRONG_INLINE Packet16f pset1frombits<Packet16f>(unsigned int from) {
+  return _mm512_castsi512_ps(_mm512_set1_epi32(from));
 }
 
 template <>
@@ -252,6 +260,12 @@ EIGEN_STRONG_INLINE Packet8d pmax<Packet8d>(const Packet8d& a,
                                             const Packet8d& b) {
   // Arguments are reversed to match NaN propagation behavior of std::max.
   return _mm512_max_pd(b, a);
+}
+
+template<> EIGEN_STRONG_INLINE Packet16i pcmp_eq(const Packet16i& a, const Packet16i& b) {
+  __m256i lo = _mm256_cmpeq_epi32(_mm512_extracti64x4_epi64(a, 0), _mm512_extracti64x4_epi64(b, 0));
+  __m256i hi = _mm256_cmpeq_epi32(_mm512_extracti64x4_epi64(a, 1), _mm512_extracti64x4_epi64(b, 1));
+  return _mm512_inserti64x4(_mm512_castsi256_si512(lo), hi, 1);
 }
 
 template <>
@@ -432,6 +446,10 @@ EIGEN_STRONG_INLINE Packet8d pandnot<Packet8d>(const Packet8d& a,
 
   return res;
 #endif
+}
+
+template<int N> EIGEN_STRONG_INLINE Packet16i pshiftleft(Packet16i a) {
+  return _mm512_slli_epi32(a, N);
 }
 
 template <>
@@ -1320,6 +1338,22 @@ template<> EIGEN_STRONG_INLINE Packet16f pinsertlast(const Packet16f& a, float b
 template<> EIGEN_STRONG_INLINE Packet8d pinsertlast(const Packet8d& a, double b)
 {
   return _mm512_mask_broadcastsd_pd(a, (1<<7), _mm_load_sd(&b));
+}
+
+template<> EIGEN_STRONG_INLINE Packet16i pcast<Packet16f, Packet16i>(const Packet16f& a) {
+  return _mm512_cvttps_epi32(a);
+}
+
+template<> EIGEN_STRONG_INLINE Packet16f pcast<Packet16i, Packet16f>(const Packet16i& a) {
+  return _mm512_cvtepi32_ps(a);
+}
+
+template<> EIGEN_STRONG_INLINE Packet16i preinterpret<Packet16i,Packet16f>(const Packet16f& a) {
+  return _mm512_castps_si512(a);
+}
+
+template<> EIGEN_STRONG_INLINE Packet16f preinterpret<Packet16f,Packet16i>(const Packet16i& a) {
+  return _mm512_castsi512_ps(a);
 }
 
 } // end namespace internal
