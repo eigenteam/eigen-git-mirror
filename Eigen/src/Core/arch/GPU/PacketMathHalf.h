@@ -640,6 +640,19 @@ EIGEN_STRONG_INLINE Packet16h float2half(const Packet16f& a) {
 #endif
 }
 
+template<> EIGEN_STRONG_INLINE Packet16h por(const Packet16h& a,const Packet16h& b) {
+  Packet16h r; r.x = por(a.x,b.x); return r;
+}
+template<> EIGEN_STRONG_INLINE Packet16h pxor(const Packet16h& a,const Packet16h& b) {
+  Packet16h r; r.x = pxor(a.x,b.x); return r;
+}
+template<> EIGEN_STRONG_INLINE Packet16h pand(const Packet16h& a,const Packet16h& b) {
+  Packet16h r; r.x = pand(a.x,b.x); return r;
+}
+template<> EIGEN_STRONG_INLINE Packet16h pandnot(const Packet16h& a,const Packet16h& b) {
+  Packet16h r; r.x = pandnot(a.x,b.x); return r;
+}
+
 template<> EIGEN_STRONG_INLINE Packet16h pnegate(const Packet16h& a) {
   // FIXME we could do that with bit manipulation
   Packet16f af = half2float(a);
@@ -1061,6 +1074,19 @@ EIGEN_STRONG_INLINE Packet8h float2half(const Packet8f& a) {
   result.x = _mm_set_epi16(h7.x, h6.x, h5.x, h4.x, h3.x, h2.x, h1.x, h0.x);
   return result;
 #endif
+}
+
+template<> EIGEN_STRONG_INLINE Packet8h por(const Packet8h& a,const Packet8h& b) {
+  Packet8h r; r.x = por(a.x,b.x); return r;
+}
+template<> EIGEN_STRONG_INLINE Packet8h pxor(const Packet8h& a,const Packet8h& b) {
+  Packet8h r; r.x = pxor(a.x,b.x); return r;
+}
+template<> EIGEN_STRONG_INLINE Packet8h pand(const Packet8h& a,const Packet8h& b) {
+  Packet8h r; r.x = pand(a.x,b.x); return r;
+}
+template<> EIGEN_STRONG_INLINE Packet8h pandnot(const Packet8h& a,const Packet8h& b) {
+  Packet8h r; r.x = pandnot(a.x,b.x); return r;
 }
 
 template<> EIGEN_STRONG_INLINE Packet8h pconj(const Packet8h& a) { return a; }

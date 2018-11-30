@@ -158,13 +158,11 @@ preinterpret(const Packet& a); /* { return reinterpret_cast<const Target&>(a); }
 
 /** \internal \returns a + b (coeff-wise) */
 template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
-padd(const Packet& a,
-        const Packet& b) { return a+b; }
+padd(const Packet& a, const Packet& b) { return a+b; }
 
 /** \internal \returns a - b (coeff-wise) */
 template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
-psub(const Packet& a,
-        const Packet& b) { return a-b; }
+psub(const Packet& a, const Packet& b) { return a-b; }
 
 /** \internal \returns -a (coeff-wise) */
 template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
@@ -177,23 +175,19 @@ pconj(const Packet& a) { return numext::conj(a); }
 
 /** \internal \returns a * b (coeff-wise) */
 template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
-pmul(const Packet& a,
-        const Packet& b) { return a*b; }
+pmul(const Packet& a, const Packet& b) { return a*b; }
 
 /** \internal \returns a / b (coeff-wise) */
 template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
-pdiv(const Packet& a,
-        const Packet& b) { return a/b; }
+pdiv(const Packet& a, const Packet& b) { return a/b; }
 
 /** \internal \returns the min of \a a and \a b  (coeff-wise) */
 template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
-pmin(const Packet& a,
-        const Packet& b) { return numext::mini(a, b); }
+pmin(const Packet& a, const Packet& b) { return numext::mini(a, b); }
 
 /** \internal \returns the max of \a a and \a b  (coeff-wise) */
 template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
-pmax(const Packet& a,
-        const Packet& b) { return numext::maxi(a, b); }
+pmax(const Packet& a, const Packet& b) { return numext::maxi(a, b); }
 
 /** \internal \returns the absolute value of \a a */
 template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
@@ -217,7 +211,7 @@ pxor(const Packet& a, const Packet& b) { return a ^ b; }
 
 /** \internal \returns the bitwise andnot of \a a and \a b */
 template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
-pandnot(const Packet& a, const Packet& b) { return a & (!b); }
+pandnot(const Packet& a, const Packet& b) { return a & (~b); }
 
 /** \internal \returns \a a shifted by N bits to the right */
 template<int N> EIGEN_DEVICE_FUNC inline int
