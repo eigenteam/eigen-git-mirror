@@ -393,24 +393,24 @@ template <>
 EIGEN_STRONG_INLINE Packet16f pandnot<Packet16f>(const Packet16f& a,
                                                  const Packet16f& b) {
 #ifdef EIGEN_VECTORIZE_AVX512DQ
-  return _mm512_andnot_ps(a, b);
+  return _mm512_andnot_ps(b, a);
 #else
   Packet16f res = _mm512_undefined_ps();
   Packet4f lane0_a = _mm512_extractf32x4_ps(a, 0);
   Packet4f lane0_b = _mm512_extractf32x4_ps(b, 0);
-  res = _mm512_insertf32x4(res, _mm_andnot_ps(lane0_a, lane0_b), 0);
+  res = _mm512_insertf32x4(res, pandnot(lane0_a, lane0_b), 0);
 
   Packet4f lane1_a = _mm512_extractf32x4_ps(a, 1);
   Packet4f lane1_b = _mm512_extractf32x4_ps(b, 1);
-  res = _mm512_insertf32x4(res, _mm_andnot_ps(lane1_a, lane1_b), 1);
+  res = _mm512_insertf32x4(res, pandnot(lane1_a, lane1_b), 1);
 
   Packet4f lane2_a = _mm512_extractf32x4_ps(a, 2);
   Packet4f lane2_b = _mm512_extractf32x4_ps(b, 2);
-  res = _mm512_insertf32x4(res, _mm_andnot_ps(lane2_a, lane2_b), 2);
+  res = _mm512_insertf32x4(res, pandnot(lane2_a, lane2_b), 2);
 
   Packet4f lane3_a = _mm512_extractf32x4_ps(a, 3);
   Packet4f lane3_b = _mm512_extractf32x4_ps(b, 3);
-  res = _mm512_insertf32x4(res, _mm_andnot_ps(lane3_a, lane3_b), 3);
+  res = _mm512_insertf32x4(res, pandnot(lane3_a, lane3_b), 3);
 
   return res;
 #endif
