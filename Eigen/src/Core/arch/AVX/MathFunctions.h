@@ -18,17 +18,6 @@ namespace Eigen {
 
 namespace internal {
 
-inline Packet8i pshiftleft(Packet8i v, int n)
-{
-#ifdef EIGEN_VECTORIZE_AVX2
-  return _mm256_slli_epi32(v, n);
-#else
-  __m128i lo = _mm_slli_epi32(_mm256_extractf128_si256(v, 0), n);
-  __m128i hi = _mm_slli_epi32(_mm256_extractf128_si256(v, 1), n);
-  return _mm256_insertf128_si256(_mm256_castsi128_si256(lo), (hi), 1);
-#endif
-}
-
 template <>
 EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED Packet8f
 psin<Packet8f>(const Packet8f& _x) {
