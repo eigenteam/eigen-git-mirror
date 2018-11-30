@@ -245,14 +245,23 @@ Packet pexp_double(const Packet _x)
 
   // Construct the result 2^n * exp(g) = e * x. The max is used to catch
   // non-finite values in the input.
-  //return pmax(pmul(x, _mm256_castsi256_pd(e)), _x);
   return pmax(pldexp(x,fx), _x);
 }
 
-template<typename Packet>
+/* The code is the rewriting of the cephes sinf/cosf functions.
+   Precision is excellent as long as x < 8192 (I did not bother to
+   take into account the special handling they have for greater values
+   -- it does not return garbage for arguments over 8192, though, but
+   the extra precision is missing).
+
+   Note that it is such that sinf((float)M_PI) = 8.74e-8, which is the
+   surprising but correct result.
+*/
+
+template<bool ComputeSine,typename Packet>
 EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
 EIGEN_UNUSED
-Packet psin_float(const Packet& _x)
+Packet psincos_float(const Packet& _x)
 {
   typedef typename unpacket_traits<Packet>::integer_packet PacketI;
   const Packet cst_1          = pset1<Packet>(1.0f);
@@ -261,6 +270,7 @@ Packet psin_float(const Packet& _x)
   const PacketI csti_1        = pset1<PacketI>(1);
   const PacketI csti_not1     = pset1<PacketI>(~1);
   const PacketI csti_2        = pset1<PacketI>(2);
+  const PacketI csti_3        = pset1<PacketI>(3);
 
   const Packet cst_sign_mask  = pset1frombits<Packet>(0x80000000u);
 
@@ -290,7 +300,8 @@ Packet psin_float(const Packet& _x)
 
   // Compute the sign to apply to the polynomial.
   // sign = third_bit(y_int1) xor signbit(_x)
-  Packet sign_bit = pxor(_x, preinterpret<Packet>(pshiftleft<29>(y_int1)));
+  Packet sign_bit = ComputeSine ? pxor(_x, preinterpret<Packet>(pshiftleft<29>(y_int1)))
+                                : preinterpret<Packet>(pshiftleft<29>(padd(y_int1,csti_3)));
   sign_bit = pand(sign_bit, cst_sign_mask); // clear all but left most bit
 
   // Get the polynomial selection mask from the second bit of y_int1
@@ -323,10 +334,27 @@ Packet psin_float(const Packet& _x)
   y2 = pmadd(y2, x, x);
 
   // Select the correct result from the two polynoms.
-  y = pselect(poly_mask,y2,y1);
+  y = ComputeSine ? pselect(poly_mask,y2,y1)
+                  : pselect(poly_mask,y1,y2);
 
   // Update the sign
   return pxor(y, sign_bit);
+}
+
+template<typename Packet>
+EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
+EIGEN_UNUSED
+Packet psin_float(const Packet& x)
+{
+  return psincos_float<true>(x);
+}
+
+template<typename Packet>
+EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
+EIGEN_UNUSED
+Packet pcos_float(const Packet& x)
+{
+  return psincos_float<false>(x);
 }
 
 } // end namespace internal

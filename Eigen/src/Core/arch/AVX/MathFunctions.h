@@ -29,14 +29,16 @@ inline Packet8i pshiftleft(Packet8i v, int n)
 #endif
 }
 
-// Sine function
-// Computes sin(x) by wrapping x to the interval [-Pi/4,3*Pi/4] and
-// evaluating interpolants in [-Pi/4,Pi/4] or [Pi/4,3*Pi/4]. The interpolants
-// are (anti-)symmetric and thus have only odd/even coefficients
 template <>
 EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED Packet8f
 psin<Packet8f>(const Packet8f& _x) {
   return psin_float(_x);
+}
+
+template <>
+EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED Packet8f
+pcos<Packet8f>(const Packet8f& _x) {
+  return pcos_float(_x);
 }
 
 template <>
