@@ -146,8 +146,8 @@ template<> struct packet_traits<float>  : default_packet_traits
     HasMin  = 1,
     HasMax  = 1,
     HasAbs  = 1,
-    HasSin  = 0,
-    HasCos  = 0,
+    HasSin  = EIGEN_FAST_MATH,
+    HasCos  = EIGEN_FAST_MATH,
     HasLog  = 1,
     HasExp  = 1,
 #ifdef __VSX__
@@ -437,6 +437,7 @@ template<> EIGEN_STRONG_INLINE Packet4f pcmp_lt_or_nan(const Packet4f& a, const 
   Packet4f c = reinterpret_cast<Packet4f>(vec_cmpge(a,b));
   return vec_nor(c,c);
 }
+template<> EIGEN_STRONG_INLINE Packet4i pcmp_eq(const Packet4i& a, const Packet4i& b) { return reinterpret_cast<Packet4i>(vec_cmpeq(a,b)); }
 
 template<> EIGEN_STRONG_INLINE Packet4f pand<Packet4f>(const Packet4f& a, const Packet4f& b) { return vec_and(a, b); }
 template<> EIGEN_STRONG_INLINE Packet4i pand<Packet4i>(const Packet4i& a, const Packet4i& b) { return vec_and(a, b); }

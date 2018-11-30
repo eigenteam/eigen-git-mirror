@@ -30,6 +30,18 @@ Packet4f pexp<Packet4f>(const Packet4f& _x)
   return pexp_float(_x);
 }
 
+template<> EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED
+Packet4f psin<Packet4f>(const Packet4f& _x)
+{
+  return psin_float(_x);
+}
+
+template<> EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED
+Packet4f pcos<Packet4f>(const Packet4f& _x)
+{
+  return pcos_float(_x);
+}
+
 #ifndef EIGEN_COMP_CLANG
 template<> EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED
 Packet4f prsqrt<Packet4f>(const Packet4f& x)

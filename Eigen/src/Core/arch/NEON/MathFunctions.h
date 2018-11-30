@@ -15,15 +15,27 @@ namespace Eigen {
 namespace internal {
 
 template<> EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED
-Packet4f pexp<Packet4f>(const Packet4f& _x)
+Packet4f pexp<Packet4f>(const Packet4f& x)
 {
-  return pexp_float(_x);
+  return pexp_float(x);
 }
 
 template<> EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED
-Packet4f plog<Packet4f>(const Packet4f& _x)
+Packet4f plog<Packet4f>(const Packet4f& x)
 {
-  return plog_float(_x);
+  return plog_float(x);
+}
+
+template<> EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED
+Packet4f psin<Packet4f>(const Packet4f& x)
+{
+  return psin_float(x);
+}
+
+template<> EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED
+Packet4f pcos<Packet4f>(const Packet4f& x)
+{
+  return pcos_float(x);
 }
 
 } // end namespace internal

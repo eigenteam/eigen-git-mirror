@@ -111,8 +111,8 @@ template<> struct packet_traits<float>  : default_packet_traits
     HasDiv   = 1,
     HasFloor = 1,
     // FIXME check the Has*
-    HasSin  = 0,
-    HasCos  = 0,
+    HasSin  = EIGEN_FAST_MATH,
+    HasCos  = EIGEN_FAST_MATH,
     HasLog  = 1,
     HasExp  = 1,
     HasSqrt = 0
@@ -267,6 +267,8 @@ template<> EIGEN_STRONG_INLINE Packet4f pcmp_le(const Packet4f& a, const Packet4
 template<> EIGEN_STRONG_INLINE Packet4f pcmp_lt(const Packet4f& a, const Packet4f& b) { return vreinterpretq_f32_u32(vcltq_f32(a,b)); }
 template<> EIGEN_STRONG_INLINE Packet4f pcmp_eq(const Packet4f& a, const Packet4f& b) { return vreinterpretq_f32_u32(vceqq_f32(a,b)); }
 template<> EIGEN_STRONG_INLINE Packet4f pcmp_lt_or_nan(const Packet4f& a, const Packet4f& b) { return vreinterpretq_f32_u32(vmvnq_u32(vcgeq_f32(a,b))); }
+
+template<> EIGEN_STRONG_INLINE Packet4i pcmp_eq(const Packet4i& a, const Packet4i& b) { return vreinterpretq_s32_u32(vceqq_s32(a,b)); }
 
 template<> EIGEN_STRONG_INLINE Packet4f pfloor<Packet4f>(const Packet4f& a)
 {
