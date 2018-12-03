@@ -10,13 +10,6 @@
 #ifndef EIGEN_CONFIGURE_VECTORIZATION_H
 #define EIGEN_CONFIGURE_VECTORIZATION_H
 
-// FIXME: not sure why this is needed, perhaps it is not needed anymore.
-#ifdef __NVCC__
-  #ifndef EIGEN_DONT_VECTORIZE
-  #define EIGEN_DONT_VECTORIZE
-  #endif
-#endif
-
 //------------------------------------------------------------------------------------------
 // Static and dynamic alignment control
 //
@@ -183,7 +176,13 @@
 
 //----------------------------------------------------------------------
 
-
+// If we are compiling for GPU we should also disable vectorization because
+// all the packet functions are not marked as __device__ functions.
+#ifdef EIGEN_GPUCC
+#ifndef EIGEN_DONT_VECTORIZE
+    #define EIGEN_DONT_VECTORIZE
+  #endif
+#endif
 
 // if alignment is disabled, then disable vectorization. Note: EIGEN_MAX_ALIGN_BYTES is the proper check, it takes into
 // account both the user's will (EIGEN_MAX_ALIGN_BYTES,EIGEN_DONT_ALIGN) and our own platform checks
