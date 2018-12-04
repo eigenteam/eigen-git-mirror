@@ -49,7 +49,13 @@
 
 // If the user explicitly disable vectorization, then we also disable alignment
 #if defined(EIGEN_DONT_VECTORIZE)
-  #define EIGEN_IDEAL_MAX_ALIGN_BYTES 0
+  #if defined(EIGEN_GPUCC)
+    // GPU code is always vectorized and requires memory alignment for
+    // statically allocated buffers.
+    #define EIGEN_IDEAL_MAX_ALIGN_BYTES 16
+  #elif
+    #define EIGEN_IDEAL_MAX_ALIGN_BYTES 0
+  #endif
 #elif defined(__AVX512F__)
   // 64 bytes static alignment is preferred only if really required
   #define EIGEN_IDEAL_MAX_ALIGN_BYTES 64
@@ -176,14 +182,6 @@
 
 //----------------------------------------------------------------------
 
-// If we are compiling for GPU we should also disable vectorization because
-// all the packet functions are not marked as __device__ functions.
-#ifdef EIGEN_GPUCC
-#ifndef EIGEN_DONT_VECTORIZE
-    #define EIGEN_DONT_VECTORIZE
-  #endif
-#endif
-
 // if alignment is disabled, then disable vectorization. Note: EIGEN_MAX_ALIGN_BYTES is the proper check, it takes into
 // account both the user's will (EIGEN_MAX_ALIGN_BYTES,EIGEN_DONT_ALIGN) and our own platform checks
 #if EIGEN_MAX_ALIGN_BYTES==0
@@ -210,7 +208,7 @@
 #endif
 
 
-#ifndef EIGEN_DONT_VECTORIZE
+#if !(defined(EIGEN_DONT_VECTORIZE) || defined(EIGEN_GPUCC))
 
   #if defined (EIGEN_SSE2_ON_NON_MSVC_BUT_NOT_OLD_GCC) || defined(EIGEN_SSE2_ON_MSVC_2008_OR_LATER)
 
