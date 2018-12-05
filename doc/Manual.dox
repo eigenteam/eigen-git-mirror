@@ -108,7 +108,7 @@ namespace Eigen {
 /** \addtogroup CoeffwiseMathFunctions
     \ingroup DenseMatrixManipulation_chapter */
 
-/** \addtogroup SparseQuickRefPage
+/** \addtogroup QuickRefPage
     \ingroup DenseMatrixManipulation_chapter */
 
 
