@@ -641,16 +641,18 @@ EIGEN_STRONG_INLINE Packet16h float2half(const Packet16f& a) {
 }
 
 template<> EIGEN_STRONG_INLINE Packet16h por(const Packet16h& a,const Packet16h& b) {
-  Packet16h r; r.x = por(a.x,b.x); return r;
+  // in some cases Packet8i is a wrapper around __m256i, so we need to 
+  // cast to Packet8i to call the correct overload.
+  Packet16h r; r.x = por(Packet8i(a.x),Packet8i(b.x)); return r;
 }
 template<> EIGEN_STRONG_INLINE Packet16h pxor(const Packet16h& a,const Packet16h& b) {
-  Packet16h r; r.x = pxor(a.x,b.x); return r;
+  Packet16h r; r.x = pxor(Packet8i(a.x),Packet8i(b.x)); return r;
 }
 template<> EIGEN_STRONG_INLINE Packet16h pand(const Packet16h& a,const Packet16h& b) {
-  Packet16h r; r.x = pand(a.x,b.x); return r;
+  Packet16h r; r.x = pand(Packet8i(a.x),Packet8i(b.x)); return r;
 }
 template<> EIGEN_STRONG_INLINE Packet16h pandnot(const Packet16h& a,const Packet16h& b) {
-  Packet16h r; r.x = pandnot(a.x,b.x); return r;
+  Packet16h r; r.x = pandnot(Packet8i(a.x),Packet8i(b.x)); return r;
 }
 
 template<> EIGEN_STRONG_INLINE Packet16h pnegate(const Packet16h& a) {
@@ -1077,16 +1079,18 @@ EIGEN_STRONG_INLINE Packet8h float2half(const Packet8f& a) {
 }
 
 template<> EIGEN_STRONG_INLINE Packet8h por(const Packet8h& a,const Packet8h& b) {
-  Packet8h r; r.x = por(a.x,b.x); return r;
+  // in some cases Packet4i is a wrapper around __m128i, so we either need to 
+  // cast to Packet4i to directly call the intrinsics as below:
+  Packet8h r; r.x = _mm_or_si128(a.x,b.x); return r;
 }
 template<> EIGEN_STRONG_INLINE Packet8h pxor(const Packet8h& a,const Packet8h& b) {
-  Packet8h r; r.x = pxor(a.x,b.x); return r;
+  Packet8h r; r.x = _mm_xor_si128(a.x,b.x); return r;
 }
 template<> EIGEN_STRONG_INLINE Packet8h pand(const Packet8h& a,const Packet8h& b) {
-  Packet8h r; r.x = pand(a.x,b.x); return r;
+  Packet8h r; r.x = _mm_and_si128(a.x,b.x); return r;
 }
 template<> EIGEN_STRONG_INLINE Packet8h pandnot(const Packet8h& a,const Packet8h& b) {
-  Packet8h r; r.x = pandnot(a.x,b.x); return r;
+  Packet8h r; r.x = _mm_andnot_si128(b.x,a.x); return r;
 }
 
 template<> EIGEN_STRONG_INLINE Packet8h pconj(const Packet8h& a) { return a; }
