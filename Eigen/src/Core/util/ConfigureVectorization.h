@@ -53,7 +53,7 @@
     // GPU code is always vectorized and requires memory alignment for
     // statically allocated buffers.
     #define EIGEN_IDEAL_MAX_ALIGN_BYTES 16
-  #elif
+  #else
     #define EIGEN_IDEAL_MAX_ALIGN_BYTES 0
   #endif
 #elif defined(__AVX512F__)
