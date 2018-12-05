@@ -51,6 +51,10 @@ class TensorContractionBlocking {
     else {
       computeProductBlockingSizes<LhsScalar, RhsScalar, 1>(kc_, nc_, mc_, num_threads);
     }
+
+    const int rhs_packet_size = internal::packet_traits<RhsScalar>::size;
+    kc_ = (rhs_packet_size <= 8 || kc_ <= rhs_packet_size) ?
+      kc_ : (kc_ / rhs_packet_size) * rhs_packet_size;
   }
 
   EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE StorageIndex kc() const { return kc_; }
