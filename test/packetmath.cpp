@@ -314,15 +314,18 @@ template<typename Scalar,typename Packet> void packetmath()
     ref[0] *= data1[i];
   VERIFY(internal::isApprox(ref[0], internal::predux_mul(internal::pload<Packet>(data1))) && "internal::predux_mul");
 
-  for (int j=0; j<PacketSize; ++j)
+  if (PacketTraits::HasReduxp)
   {
-    ref[j] = Scalar(0);
-    for (int i=0; i<PacketSize; ++i)
-      ref[j] += data1[i+j*PacketSize];
-    packets[j] = internal::pload<Packet>(data1+j*PacketSize);
+    for (int j=0; j<PacketSize; ++j)
+    {
+      ref[j] = Scalar(0);
+      for (int i=0; i<PacketSize; ++i)
+        ref[j] += data1[i+j*PacketSize];
+      packets[j] = internal::pload<Packet>(data1+j*PacketSize);
+    }
+    internal::pstore(data2, internal::preduxp(packets));
+    VERIFY(areApproxAbs(ref, data2, PacketSize, refvalue) && "internal::preduxp");
   }
-  internal::pstore(data2, internal::preduxp(packets));
-  VERIFY(areApproxAbs(ref, data2, PacketSize, refvalue) && "internal::preduxp");
 
   for (int i=0; i<PacketSize; ++i)
     ref[i] = data1[PacketSize-i-1];

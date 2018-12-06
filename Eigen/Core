@@ -154,14 +154,12 @@ using std::ptrdiff_t;
 #if defined EIGEN_VECTORIZE_AVX512
   #include "src/Core/arch/SSE/PacketMath.h"
   #include "src/Core/arch/SSE/TypeCasting.h"
-  // FIXME: this needs to be fixed (compilation issue if included)
-  // there is no reason to disable SSE/AVX vectorization
-  // of complex<> while enabling AVX512.
-  // #include "src/Core/arch/SSE/Complex.h"
+  #include "src/Core/arch/SSE/Complex.h"
   #include "src/Core/arch/AVX/PacketMath.h"
   #include "src/Core/arch/AVX/TypeCasting.h"
-  // #include "src/Core/arch/AVX/Complex.h"
+  #include "src/Core/arch/AVX/Complex.h"
   #include "src/Core/arch/AVX512/PacketMath.h"
+  #include "src/Core/arch/AVX512/Complex.h"
   #include "src/Core/arch/SSE/MathFunctions.h"
   #include "src/Core/arch/AVX/MathFunctions.h"
   #include "src/Core/arch/AVX512/MathFunctions.h"

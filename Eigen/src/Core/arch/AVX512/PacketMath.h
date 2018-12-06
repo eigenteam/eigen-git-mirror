@@ -417,6 +417,7 @@ EIGEN_STRONG_INLINE Packet16f ploaddup<Packet16f>(const float* from) {
 }
 
 #ifdef EIGEN_VECTORIZE_AVX512DQ
+// FIXME: this does not look optimal, better load a Packet4d and shuffle...
 // Loads 4 doubles from memory a returns the packet {a0, a0  a1, a1, a2, a2, a3,
 // a3}
 template <>

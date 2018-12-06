@@ -22,6 +22,7 @@ struct Packet4cf
   __m256  v;
 };
 
+#ifndef EIGEN_VECTORIZE_AVX512
 template<> struct packet_traits<std::complex<float> >  : default_packet_traits
 {
   typedef Packet4cf type;
@@ -44,6 +45,7 @@ template<> struct packet_traits<std::complex<float> >  : default_packet_traits
     HasSetLinear = 0
   };
 };
+#endif
 
 template<> struct unpacket_traits<Packet4cf> { typedef std::complex<float> type; enum {size=4, alignment=Aligned32}; typedef Packet2cf half; };
 
@@ -228,6 +230,7 @@ struct Packet2cd
   __m256d  v;
 };
 
+#ifndef EIGEN_VECTORIZE_AVX512
 template<> struct packet_traits<std::complex<double> >  : default_packet_traits
 {
   typedef Packet2cd type;
@@ -250,6 +253,7 @@ template<> struct packet_traits<std::complex<double> >  : default_packet_traits
     HasSetLinear = 0
   };
 };
+#endif
 
 template<> struct unpacket_traits<Packet2cd> { typedef std::complex<double> type; enum {size=2, alignment=Aligned32}; typedef Packet1cd half; };
 
