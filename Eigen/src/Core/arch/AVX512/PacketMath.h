@@ -22,7 +22,7 @@ namespace internal {
 #define EIGEN_ARCH_DEFAULT_NUMBER_OF_REGISTERS (2*sizeof(void*))
 #endif
 
-#ifdef __FMA__
+#ifdef EIGEN_VECTORIZE_FMA
 #ifndef EIGEN_HAS_SINGLE_INSTRUCTION_MADD
 #define EIGEN_HAS_SINGLE_INSTRUCTION_MADD
 #endif
@@ -223,7 +223,7 @@ EIGEN_STRONG_INLINE Packet8d pdiv<Packet8d>(const Packet8d& a,
   return _mm512_div_pd(a, b);
 }
 
-#ifdef __FMA__
+#ifdef EIGEN_VECTORIZE_FMA
 template <>
 EIGEN_STRONG_INLINE Packet16f pmadd(const Packet16f& a, const Packet16f& b,
                                     const Packet16f& c) {
