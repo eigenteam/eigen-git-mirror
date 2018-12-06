@@ -250,7 +250,7 @@ template<> EIGEN_STRONG_INLINE Packet4cd pconj(const Packet4cd& a)
   const __m512d mask = _mm512_castsi512_pd(
           _mm512_set_epi32(0x80000000,0x0,0x0,0x0,0x80000000,0x0,0x0,0x0,
                            0x80000000,0x0,0x0,0x0,0x80000000,0x0,0x0,0x0));
-  return Packet4cd(_mm512_xor_pd(a.v,mask));
+  return Packet4cd(pxor(a.v,mask));
 }
 
 template<> EIGEN_STRONG_INLINE Packet4cd pmul<Packet4cd>(const Packet4cd& a, const Packet4cd& b)
