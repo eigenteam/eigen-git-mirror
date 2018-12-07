@@ -370,10 +370,12 @@ public:
 
     // register block size along the M direction (currently, this one cannot be modified)
     default_mr = (EIGEN_PLAIN_ENUM_MIN(16,NumberOfRegisters)/2/nr)*LhsPacketSize,
-#if defined(EIGEN_HAS_SINGLE_INSTRUCTION_MADD) && !defined(EIGEN_VECTORIZE_ALTIVEC) && !defined(EIGEN_VECTORIZE_VSX)
+#if defined(EIGEN_HAS_SINGLE_INSTRUCTION_MADD) && !defined(EIGEN_VECTORIZE_ALTIVEC) && !defined(EIGEN_VECTORIZE_VSX) \
+    && ((!EIGEN_COMP_MSVC) || (EIGEN_COMP_MSVC>=1914))
     // we assume 16 registers
     // See bug 992, if the scalar type is not vectorizable but that EIGEN_HAS_SINGLE_INSTRUCTION_MADD is defined,
     // then using 3*LhsPacketSize triggers non-implemented paths in syrk.
+    // Bug 1515: MSVC prior to v19.14 yields to register spilling.
     mr = Vectorizable ? 3*LhsPacketSize : default_mr,
 #else
     mr = default_mr,
