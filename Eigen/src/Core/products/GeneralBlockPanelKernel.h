@@ -1197,10 +1197,18 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,DataMapper,mr,nr,ConjugateLhs,Conjuga
             EIGEN_ASM_COMMENT("begin gebp micro kernel 2pX4");
             RhsPacket B_0, B1, B2, B3, T0;
 
-   #define EIGEN_GEBGP_ONESTEP(K) \
+  
+          // NOTE: the begin/end asm comments below work around bug 935!
+          // but they are not enough for gcc>=6 without FMA (bug 1637)
+          #if EIGEN_GNUC_AT_LEAST(6,0)
+            #define EIGEN_GEBP_2PX4_SPILLING_WORKAROUND asm("" : [a0] "+x" (A0), [a1] "+x" (A1) );
+          #else
+            #define EIGEN_GEBP_2PX4_SPILLING_WORKAROUND
+          #endif
+          #define EIGEN_GEBGP_ONESTEP(K) \
             do {                                                                \
               EIGEN_ASM_COMMENT("begin step of gebp micro kernel 2pX4");        \
-              EIGEN_ASM_COMMENT("Note: these asm comments work around bug 935!"); \
+              EIGEN_GEBP_2PX4_SPILLING_WORKAROUND                               \
               traits.loadLhs(&blA[(0+2*K)*LhsProgress], A0);                    \
               traits.loadLhs(&blA[(1+2*K)*LhsProgress], A1);                    \
               traits.broadcastRhs(&blB[(0+4*K)*RhsProgress], B_0, B1, B2, B3);  \
