@@ -254,6 +254,13 @@
       #define EIGEN_VECTORIZE_FMA
     #endif
     #if defined(__AVX512F__)
+      #ifndef __FMA__
+      #if EIGEN_COMP_GNUC
+      #warning Please add -mfma to your compiler flags: compiling with -mavx512f alone without SSE/AVX FMA is not supported (bug 1638).
+      #else
+      #error   Please enable FMA in your compiler flags (e.g. -mfma): compiling with AVX512 alone without SSE/AVX FMA is not supported (bug 1638).
+      #endif
+      #endif
       #define EIGEN_VECTORIZE_AVX512
       #define EIGEN_VECTORIZE_AVX2
       #define EIGEN_VECTORIZE_AVX
