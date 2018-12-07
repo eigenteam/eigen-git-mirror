@@ -266,7 +266,7 @@ template<> EIGEN_STRONG_INLINE Packet2d pdiv<Packet2d>(const Packet2d& a, const 
 
 // for some weird raisons, it has to be overloaded for packet of integers
 template<> EIGEN_STRONG_INLINE Packet4i pmadd(const Packet4i& a, const Packet4i& b, const Packet4i& c) { return padd(pmul(a,b), c); }
-#ifdef __FMA__
+#ifdef EIGEN_VECTORIZE_FMA
 template<> EIGEN_STRONG_INLINE Packet4f pmadd(const Packet4f& a, const Packet4f& b, const Packet4f& c) { return _mm_fmadd_ps(a,b,c); }
 template<> EIGEN_STRONG_INLINE Packet2d pmadd(const Packet2d& a, const Packet2d& b, const Packet2d& c) { return _mm_fmadd_pd(a,b,c); }
 #endif
@@ -1013,7 +1013,7 @@ template<> EIGEN_STRONG_INLINE Packet2d pinsertlast(const Packet2d& a, double b)
 }
 
 // Scalar path for pmadd with FMA to ensure consistency with vectorized path.
-#ifdef __FMA__
+#ifdef EIGEN_VECTORIZE_FMA
 template<> EIGEN_STRONG_INLINE float pmadd(const float& a, const float& b, const float& c) {
   return ::fmaf(a,b,c);
 }

@@ -250,15 +250,17 @@
       #define EIGEN_VECTORIZE_SSE4_1
       #define EIGEN_VECTORIZE_SSE4_2
     #endif
-    #ifdef __FMA__
+    #if defined(__FMA__) || (EIGEN_COMP_MSVC && defined(__AVX2__))
+      // MSVC does not expose a switch dedicated for FMA
+      // For MSVC, AVX2 => FMA
       #define EIGEN_VECTORIZE_FMA
     #endif
     #if defined(__AVX512F__)
       #ifndef __FMA__
       #if EIGEN_COMP_GNUC
-      #warning Please add -mfma to your compiler flags: compiling with -mavx512f alone without SSE/AVX FMA is not supported (bug 1638).
+      #error Please add -mfma to your compiler flags: compiling with -mavx512f alone without SSE/AVX FMA is not supported (bug 1638).
       #else
-      #error   Please enable FMA in your compiler flags (e.g. -mfma): compiling with AVX512 alone without SSE/AVX FMA is not supported (bug 1638).
+      #error Please enable FMA in your compiler flags (e.g. -mfma): compiling with AVX512 alone without SSE/AVX FMA is not supported (bug 1638).
       #endif
       #endif
       #define EIGEN_VECTORIZE_AVX512
