@@ -630,7 +630,8 @@ void big_sparse_triplet(Index rows, Index cols, double density) {
   {
     Index r = internal::random<Index>(0,rows-1);
     Index c = internal::random<Index>(0,cols-1);
-    Scalar v = internal::random<Scalar>();
+    // use positive values to prevent numerical cancellation errors in sum
+    Scalar v = numext::abs(internal::random<Scalar>());
     triplets.push_back(TripletType(r,c,v));
     sum += v;
   }
