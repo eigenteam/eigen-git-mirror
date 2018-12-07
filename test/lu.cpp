@@ -90,7 +90,7 @@ template<typename MatrixType> void lu_non_invertible()
   VERIFY(!lu.isInjective());
   VERIFY(!lu.isInvertible());
   VERIFY(!lu.isSurjective());
-  VERIFY((m1 * m1kernel).isMuchSmallerThan(m1));
+  VERIFY_IS_MUCH_SMALLER_THAN((m1 * m1kernel), m1);
   VERIFY(m1image.fullPivLu().rank() == rank);
   VERIFY_IS_APPROX(m1 * m1.adjoint() * m1image, m1image);
 
