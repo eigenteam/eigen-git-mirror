@@ -78,7 +78,7 @@ template<> EIGEN_STRONG_INLINE Packet8cf pmul<Packet8cf>(const Packet8cf& a, con
 template<> EIGEN_STRONG_INLINE Packet8cf pand   <Packet8cf>(const Packet8cf& a, const Packet8cf& b) { return Packet8cf(_mm512_and_ps(a.v,b.v)); }
 template<> EIGEN_STRONG_INLINE Packet8cf por    <Packet8cf>(const Packet8cf& a, const Packet8cf& b) { return Packet8cf(_mm512_or_ps(a.v,b.v)); }
 template<> EIGEN_STRONG_INLINE Packet8cf pxor   <Packet8cf>(const Packet8cf& a, const Packet8cf& b) { return Packet8cf(_mm512_xor_ps(a.v,b.v)); }
-template<> EIGEN_STRONG_INLINE Packet8cf pandnot<Packet8cf>(const Packet8cf& a, const Packet8cf& b) { return Packet8cf(_mm512_andnot_ps(a.v,b.v)); }
+template<> EIGEN_STRONG_INLINE Packet8cf pandnot<Packet8cf>(const Packet8cf& a, const Packet8cf& b) { return Packet8cf(_mm512_andnot_ps(b.v,a.v)); }
 
 template<> EIGEN_STRONG_INLINE Packet8cf pload <Packet8cf>(const std::complex<float>* from) { EIGEN_DEBUG_ALIGNED_LOAD return Packet8cf(pload<Packet16f>(&numext::real_ref(*from))); }
 template<> EIGEN_STRONG_INLINE Packet8cf ploadu<Packet8cf>(const std::complex<float>* from) { EIGEN_DEBUG_UNALIGNED_LOAD return Packet8cf(ploadu<Packet16f>(&numext::real_ref(*from))); }
@@ -265,7 +265,7 @@ template<> EIGEN_STRONG_INLINE Packet4cd pmul<Packet4cd>(const Packet4cd& a, con
 template<> EIGEN_STRONG_INLINE Packet4cd pand   <Packet4cd>(const Packet4cd& a, const Packet4cd& b) { return Packet4cd(_mm512_and_pd(a.v,b.v)); }
 template<> EIGEN_STRONG_INLINE Packet4cd por    <Packet4cd>(const Packet4cd& a, const Packet4cd& b) { return Packet4cd(_mm512_or_pd(a.v,b.v)); }
 template<> EIGEN_STRONG_INLINE Packet4cd pxor   <Packet4cd>(const Packet4cd& a, const Packet4cd& b) { return Packet4cd(_mm512_xor_pd(a.v,b.v)); }
-template<> EIGEN_STRONG_INLINE Packet4cd pandnot<Packet4cd>(const Packet4cd& a, const Packet4cd& b) { return Packet4cd(_mm512_andnot_pd(a.v,b.v)); }
+template<> EIGEN_STRONG_INLINE Packet4cd pandnot<Packet4cd>(const Packet4cd& a, const Packet4cd& b) { return Packet4cd(_mm512_andnot_pd(b.v,a.v)); }
 
 template<> EIGEN_STRONG_INLINE Packet4cd pload <Packet4cd>(const std::complex<double>* from)
 { EIGEN_DEBUG_ALIGNED_LOAD return Packet4cd(pload<Packet8d>((const double*)from)); }

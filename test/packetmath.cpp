@@ -64,6 +64,10 @@ struct bit_andnot{
   operator()(T a, T b) const { return a & (~b); }
 };
 EIGEN_TEST_MAKE_BITWISE(andnot, bit_andnot())
+template<typename T>
+bool biteq(T a, T b) {
+  return (bits(a) == bits(b)).all();
+}
 
 }
 }
@@ -92,7 +96,7 @@ template<typename Scalar> bool areApprox(const Scalar* a, const Scalar* b, int s
 {
   for (int i=0; i<size; ++i)
   {
-    if (a[i]!=b[i] && !internal::isApprox(a[i],b[i]))
+    if ((!internal::biteq(a[i],b[i])) && a[i]!=b[i] && !internal::isApprox(a[i],b[i]))
     {
       std::cout << "ref: [" << Map<const Matrix<Scalar,1,Dynamic> >(a,size) << "]" << " != vec: [" << Map<const Matrix<Scalar,1,Dynamic> >(b,size) << "]\n";
       return false;
@@ -344,11 +348,6 @@ template<typename Scalar,typename Packet> void packetmath()
     }
   }
 
-  CHECK_CWISE2_IF(true, internal::por, internal::por);
-  CHECK_CWISE2_IF(true, internal::pxor, internal::pxor);
-  CHECK_CWISE2_IF(true, internal::pand, internal::pand);
-  CHECK_CWISE2_IF(true, internal::pandnot, internal::pandnot);
-
   if (PacketTraits::HasBlend) {
     Packet thenPacket = internal::pload<Packet>(data1);
     Packet elsePacket = internal::pload<Packet>(data2);
@@ -383,6 +382,21 @@ template<typename Scalar,typename Packet> void packetmath()
     ref[PacketSize-1] = s;
     internal::pstore(data2, internal::pinsertlast(internal::pload<Packet>(data1),s));
     VERIFY(areApprox(ref, data2, PacketSize) && "internal::pinsertlast");
+  }
+
+  {
+    for (int i=0; i<PacketSize; ++i)
+    {
+      data1[i] = internal::random<Scalar>();
+      unsigned char v = internal::random<bool>() ? 0xff : 0;
+      char* bytes = (char*)(data1+PacketSize+i);
+      for(int k=0; k<int(sizeof(Scalar)); ++k)
+        bytes[k] = v;
+    }
+    CHECK_CWISE2_IF(true, internal::por, internal::por);
+    CHECK_CWISE2_IF(true, internal::pxor, internal::pxor);
+    CHECK_CWISE2_IF(true, internal::pand, internal::pand);
+    CHECK_CWISE2_IF(true, internal::pandnot, internal::pandnot);
   }
 }
 
