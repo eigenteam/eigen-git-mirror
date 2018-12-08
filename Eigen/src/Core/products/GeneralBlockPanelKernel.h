@@ -1207,7 +1207,6 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,DataMapper,mr,nr,ConjugateLhs,Conjuga
           #define EIGEN_GEBGP_ONESTEP(K) \
             do {                                                                \
               EIGEN_ASM_COMMENT("begin step of gebp micro kernel 2pX4");        \
-              EIGEN_GEBP_2PX4_SPILLING_WORKAROUND                               \
               traits.loadLhs(&blA[(0+2*K)*LhsProgress], A0);                    \
               traits.loadLhs(&blA[(1+2*K)*LhsProgress], A1);                    \
               traits.broadcastRhs(&blB[(0+4*K)*RhsProgress], B_0, B1, B2, B3);  \
@@ -1219,6 +1218,7 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,DataMapper,mr,nr,ConjugateLhs,Conjuga
               traits.madd(A1, B2,  C6, B2);                                     \
               traits.madd(A0, B3,  C3, T0);                                     \
               traits.madd(A1, B3,  C7, B3);                                     \
+              EIGEN_GEBP_2PX4_SPILLING_WORKAROUND                               \
               EIGEN_ASM_COMMENT("end step of gebp micro kernel 2pX4");          \
             } while(false)
             
