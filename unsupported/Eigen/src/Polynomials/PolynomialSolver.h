@@ -355,13 +355,11 @@ class PolynomialSolver : public PolynomialSolverBase<_Scalar,_Deg>
         companion.balance();
         m_eigenSolver.compute( companion.denseMatrix() );
         m_roots = m_eigenSolver.eigenvalues();
-        MatrixXcd A = companion.denseMatrix();
         // cleanup noise in imaginary part of real roots:
         // if the imaginary part is rather small compared to the real part
         // and that cancelling the imaginary part yield a smaller evaluation,
         // then it's safe to keep the real part only.
-        RealScalar coarse_prec = std::pow(4,poly.size()+1)*NumTraits<RealScalar>::epsilon();
-        std::cout << coarse_prec << "\n";
+        RealScalar coarse_prec = RealScalar(std::pow(4,poly.size()+1))*NumTraits<RealScalar>::epsilon();
         for(Index i = 0; i<m_roots.size(); ++i)
         {
           if( internal::isMuchSmallerThan(numext::abs(numext::imag(m_roots[i])),
