@@ -26,6 +26,16 @@ struct increment_if_fixed_size
 }
 }
 
+template<typename PolynomialType>
+PolynomialType polyder(const PolynomialType& p)
+{
+  typedef typename PolynomialType::Scalar Scalar;
+  PolynomialType res(p.size());
+  for(Index i=1; i<p.size(); ++i)
+    res[i-1] = p[i]*Scalar(i);
+  res[p.size()-1] = 0.;
+  return res;
+}
 
 template<int Deg, typename POLYNOMIAL, typename SOLVER>
 bool aux_evalSolver( const POLYNOMIAL& pols, SOLVER& psolve )
@@ -44,10 +54,17 @@ bool aux_evalSolver( const POLYNOMIAL& pols, SOLVER& psolve )
   psolve.compute( pols );
   const RootsType& roots( psolve.roots() );
   EvalRootsType evr( deg );
+  POLYNOMIAL pols_der = polyder(pols);
+  EvalRootsType der( deg );
   for( int i=0; i<roots.size(); ++i ){
-    evr[i] = std::abs( poly_eval( pols, roots[i] ) ); }
+    evr[i] = std::abs( poly_eval( pols, roots[i] ) );
+    der[i] = numext::maxi(RealScalar(1.), std::abs( poly_eval( pols_der, roots[i] ) ));
+  }
 
-  bool evalToZero = evr.isZero( test_precision<Scalar>() );
+  // we need to divide by the magnitude of the derivative because
+  // with a high derivative is very small error in the value of the root
+  // yiels a very large error in the polynomial evaluation.
+  bool evalToZero = (evr.cwiseQuotient(der)).isZero( test_precision<Scalar>() );
   if( !evalToZero )
   {
     cerr << "WRONG root: " << endl;

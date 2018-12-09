@@ -75,8 +75,7 @@ class companion
     void setPolynomial( const VectorType& poly )
     {
       const Index deg = poly.size()-1;
-      m_monic = Scalar(-1)/poly[deg] * poly.head(deg);
-      //m_bl_diag.setIdentity( deg-1 );
+      m_monic = -poly.head(deg)/poly[deg];
       m_bl_diag.setOnes(deg-1);
     }
 
