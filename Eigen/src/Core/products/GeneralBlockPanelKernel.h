@@ -101,6 +101,16 @@ void evaluateProductBlockingSizesHeuristic(Index& k, Index& m, Index& n, Index n
   // at the register level. This small horizontal panel has to stay within L1 cache.
   std::ptrdiff_t l1, l2, l3;
   manage_caching_sizes(GetAction, &l1, &l2, &l3);
+  #ifdef EIGEN_VECTORIZE_AVX512
+  // We need to find a rationale for that, but without this adjustment,
+  // performance with AVX512 is pretty bad, like -20% slower.
+  // One reason is that with increasing packet-size, the blocking size k
+  // has to become pretty small if we want that 1 lhs panel fit within L1.
+  // For instance, with the 3pX4 kernel and double, the size of the lhs+rhs panels are:
+  //   k*(3*64 + 4*8) Bytes, with l1=32kBytes, and k%8=0, we have k=144.
+  // This is quite small for a good reuse of the accumulation registers.
+  l1 *= 4;
+  #endif
 
   if (num_threads > 1) {
     typedef typename Traits::ResScalar ResScalar;
@@ -372,7 +382,7 @@ public:
     default_mr = (EIGEN_PLAIN_ENUM_MIN(16,NumberOfRegisters)/2/nr)*LhsPacketSize,
 #if defined(EIGEN_HAS_SINGLE_INSTRUCTION_MADD) && !defined(EIGEN_VECTORIZE_ALTIVEC) && !defined(EIGEN_VECTORIZE_VSX) \
     && ((!EIGEN_COMP_MSVC) || (EIGEN_COMP_MSVC>=1914))
-    // we assume 16 registers
+    // we assume 16 registers or more
     // See bug 992, if the scalar type is not vectorizable but that EIGEN_HAS_SINGLE_INSTRUCTION_MADD is defined,
     // then using 3*LhsPacketSize triggers non-implemented paths in syrk.
     // Bug 1515: MSVC prior to v19.14 yields to register spilling.
