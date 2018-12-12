@@ -304,8 +304,8 @@ RealSchur<MatrixType>& RealSchur<MatrixType>::computeFromHessenberg(const HessMa
   Scalar norm = computeNormOfT();
   // sub-diagonal entries smaller than considerAsZero will be treated as zero.
   // We use eps^2 to enable more precision in small eigenvalues.
-  Scalar considerAsZero = numext::maxi( norm * numext::abs2(NumTraits<Scalar>::epsilon()),
-                                        (std::numeric_limits<Scalar>::min)() );
+  Scalar considerAsZero = numext::maxi<Scalar>( norm * numext::abs2(NumTraits<Scalar>::epsilon()),
+                                                (std::numeric_limits<Scalar>::min)() );
 
   if(norm!=Scalar(0))
   {
@@ -376,7 +376,7 @@ inline Index RealSchur<MatrixType>::findSmallSubdiagEntry(Index iu, const Scalar
   {
     Scalar s = abs(m_matT.coeff(res-1,res-1)) + abs(m_matT.coeff(res,res));
 
-    s = numext::maxi(s * NumTraits<Scalar>::epsilon(), considerAsZero);
+    s = numext::maxi<Scalar>(s * NumTraits<Scalar>::epsilon(), considerAsZero);
     
     if (abs(m_matT.coeff(res,res-1)) <= s)
       break;
