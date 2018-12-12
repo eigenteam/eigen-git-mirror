@@ -334,37 +334,32 @@ endmacro(ei_add_test_sycl)
 # note that the test runner for these is CMake itself, when passed -DEIGEN_FAILTEST=ON
 # so here we're just running CMake commands immediately, we're not adding any targets.
 macro(ei_add_failtest testname)
-  get_property(EIGEN_FAILTEST_FAILURE_COUNT GLOBAL PROPERTY EIGEN_FAILTEST_FAILURE_COUNT)
-  get_property(EIGEN_FAILTEST_COUNT GLOBAL PROPERTY EIGEN_FAILTEST_COUNT)
 
-  message(STATUS "Checking failtest: ${testname}")
-  set(filename "${testname}.cpp")
-  file(READ "${filename}" test_source)
+  set(test_target_ok ${testname}_ok)
+  set(test_target_ko ${testname}_ko)
 
-  try_compile(succeeds_when_it_should_fail
-              "${CMAKE_CURRENT_BINARY_DIR}"
-              "${CMAKE_CURRENT_SOURCE_DIR}/${filename}"
-              COMPILE_DEFINITIONS "-DEIGEN_SHOULD_FAIL_TO_BUILD")
-  if (succeeds_when_it_should_fail)
-    message(STATUS "FAILED: ${testname} build succeeded when it should have failed")
-  endif()
+  # Add executables
+  add_executable(${test_target_ok} ${testname}.cpp)
+  add_executable(${test_target_ko} ${testname}.cpp)
 
-  try_compile(succeeds_when_it_should_succeed
-              "${CMAKE_CURRENT_BINARY_DIR}"
-              "${CMAKE_CURRENT_SOURCE_DIR}/${filename}"
-              COMPILE_DEFINITIONS)
-  if (NOT succeeds_when_it_should_succeed)
-    message(STATUS "FAILED: ${testname} build failed when it should have succeeded")
-  endif()
+  # Remove them from the normal build process
+  set_target_properties(${test_target_ok} ${test_target_ko} PROPERTIES
+                        EXCLUDE_FROM_ALL TRUE
+                        EXCLUDE_FROM_DEFAULT_BUILD TRUE)
 
-  if (succeeds_when_it_should_fail OR NOT succeeds_when_it_should_succeed)
-    math(EXPR EIGEN_FAILTEST_FAILURE_COUNT ${EIGEN_FAILTEST_FAILURE_COUNT}+1)
-  endif()
+  # Configure the failing test
+  target_compile_definitions(${test_target_ko} PRIVATE EIGEN_SHOULD_FAIL_TO_BUILD)
 
-  math(EXPR EIGEN_FAILTEST_COUNT ${EIGEN_FAILTEST_COUNT}+1)
+  # Add the tests to ctest.
+  add_test(NAME ${test_target_ok}
+          COMMAND ${CMAKE_COMMAND} --build . --target ${test_target_ok} --config $<CONFIGURATION>
+          WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+  add_test(NAME ${test_target_ko}
+          COMMAND ${CMAKE_COMMAND} --build . --target ${test_target_ko} --config $<CONFIGURATION>
+          WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 
-  set_property(GLOBAL PROPERTY EIGEN_FAILTEST_FAILURE_COUNT ${EIGEN_FAILTEST_FAILURE_COUNT})
-  set_property(GLOBAL PROPERTY EIGEN_FAILTEST_COUNT ${EIGEN_FAILTEST_COUNT})
+  # Expect the second test to fail
+  set_tests_properties(${test_target_ko} PROPERTIES WILL_FAIL TRUE)
 endmacro(ei_add_failtest)
 
 # print a summary of the different options
