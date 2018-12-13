@@ -57,15 +57,31 @@ before-evaluators
 8988:6c2dc56e73b3   # Bug 256: enable vectorization with unaligned loads/stores.
 9148:b8b8c421e36c   # Relax mixing-type constraints for binary coefficient-wise operators
 9174:d228bc282ac9   # merge
+9175:abc7a3600098   # Include the cost of stores in unrolling
 9212:c90098affa7b   # Fix performance regression introduced in changeset 8aad8f35c955
 9213:9f1c14e4694b   # Fix performance regression in dgemm introduced by changeset 81d53c711775
 9361:69d418c06999   # 3.3-beta2
+9445:f27ff0ad77a3   # Optimize expression matching "d?=a-b*c" as "d?=a; d?=b*c;"
 9583:bef509908b9d   # 3.3-rc1
+9593:2f24280cf59a   # Bug 1311: fix alignment logic in some cases of (scalar*small).lazyProduct(small)
+9722:040d861b88b5   # Disabled part of the matrix matrix peeling code that's incompatible with 512 bit registers
 9792:26667be4f70b   # 3.3.0
+9891:41260bdfc23b   # Fix a performance regression in (mat*mat)*vec for which mat*mat was evaluated multiple times.
 9942:b1d3eba60130   # Operators += and -= do not resize!
 9943:79bb9887afd4   # Ease compiler job to generate clean and efficient code in mat*vec
 9946:2213991340ea   # Complete rewrite of column-major-matrix * vector product to deliver higher performance of modern CPU.
 9955:630471c3298c   # Improve performance of row-major-dense-matrix * vector products for recent CPUs. (this is the next changeset fixing a typo)
 9975:2eeed9de710c   # Revert vec/y to vec*(1/y) in row-major TRSM
-
+10442:e3f17da72a40  # Bug 1435: fix aliasing issue in exressions like: A = C - B*A;
+10735:6913f0cf7d06  # Adds missing EIGEN_STRONG_INLINE to support MSVC properly inlining small vector calculations
+10943:4db388d946bd  # Bug 1562: optimize evaluation of small products of the form s*A*B by rewriting them as: s*(A.lazyProduct(B)) to save a costly temporary. Measured speedup from 2x to 5x.
+10961:5007ff66c9f6  # Introduce the macro ei_declare_local_nested_eval to help allocating on the stack local temporaries via alloca, and let outer-products makes a good use of it.
+11083:30a528a984bb  # Bug 1578: Improve prefetching in matrix multiplication on MIPS.
+11533:71609c41e9f8  # PR 526: Speed up multiplication of small, dynamically sized matrices
+11535:6d348dc9b092  # Vectorize row-by-row gebp loop iterations on 16 packets as well
+11568:efda481cbd7a  # Bug 1624: improve matrix-matrix product on ARM 64, 20% speedup
+11596:b8d3f548a9d9  # do not read buffers out of bounds
+11628:22f9cc0079bd  # Implement AVX512 vectorization of std::complex<float/double>
+11638:81172653b67b  # Bug 1515: disable gebp's 3pX4 micro kernel for MSVC<=19.14 because of register spilling.
+11659:b500fef42ced  # Artificially increase l1-blocking size for AVX512. +10% speedup with current kernels.
 
