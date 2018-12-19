@@ -50,7 +50,8 @@ template<> struct unpacket_traits<Packet8cf> {
   typedef std::complex<float> type;
   enum {
     size = 8,
-    alignment=unpacket_traits<Packet16f>::alignment
+    alignment=unpacket_traits<Packet16f>::alignment,
+    vectorizable=true
   };
   typedef Packet4cf half;
 };
@@ -237,7 +238,8 @@ template<> struct unpacket_traits<Packet4cd> {
   typedef std::complex<double> type;
   enum {
     size = 4,
-    alignment = unpacket_traits<Packet8d>::alignment
+    alignment = unpacket_traits<Packet8d>::alignment,
+    vectorizable=true
   };
   typedef Packet2cd half;
 };

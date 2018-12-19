@@ -145,13 +145,13 @@ template<> struct unpacket_traits<Packet4f>
   typedef float     type;
   typedef Packet4f  half;
   typedef Packet4i  integer_packet;
-  enum {size=4, alignment=Aligned16};
+  enum {size=4, alignment=Aligned16, vectorizable=true};
 };
 template<> struct unpacket_traits<Packet4i>
 {
   typedef int32_t   type;
   typedef Packet4i  half;
-  enum {size=4, alignment=Aligned16};
+  enum {size=4, alignment=Aligned16, vectorizable=true};
 };
 
 template<> EIGEN_STRONG_INLINE Packet4f pset1<Packet4f>(const float&  from) { return vdupq_n_f32(from); }
@@ -650,7 +650,7 @@ template<> struct packet_traits<double>  : default_packet_traits
   };
 };
 
-template<> struct unpacket_traits<Packet2d> { typedef double  type; enum {size=2, alignment=Aligned16}; typedef Packet2d half; };
+template<> struct unpacket_traits<Packet2d> { typedef double  type; enum {size=2, alignment=Aligned16, vectorizable=true}; typedef Packet2d half; };
 
 template<> EIGEN_STRONG_INLINE Packet2d pset1<Packet2d>(const double&  from) { return vdupq_n_f64(from); }
 

@@ -41,7 +41,7 @@ template<> struct packet_traits<Eigen::half> : default_packet_traits
   };
 };
 
-template<> struct unpacket_traits<half2> { typedef Eigen::half type; enum {size=2, alignment=Aligned16}; typedef half2 half; };
+template<> struct unpacket_traits<half2> { typedef Eigen::half type; enum {size=2, alignment=Aligned16, vectorizable=true}; typedef half2 half; };
 
 template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE half2 pset1<half2>(const Eigen::half& from) {
 
@@ -517,7 +517,7 @@ struct packet_traits<half> : default_packet_traits {
 };
 
 
-template<> struct unpacket_traits<Packet16h> { typedef Eigen::half type; enum {size=16, alignment=Aligned32}; typedef Packet16h half; };
+template<> struct unpacket_traits<Packet16h> { typedef Eigen::half type; enum {size=16, alignment=Aligned32, vectorizable=true}; typedef Packet16h half; };
 
 template<> EIGEN_STRONG_INLINE Packet16h pset1<Packet16h>(const Eigen::half& from) {
   Packet16h result;
@@ -984,7 +984,7 @@ struct packet_traits<Eigen::half> : default_packet_traits {
 };
 
 
-template<> struct unpacket_traits<Packet8h> { typedef Eigen::half type; enum {size=8, alignment=Aligned16}; typedef Packet8h half; };
+template<> struct unpacket_traits<Packet8h> { typedef Eigen::half type; enum {size=8, alignment=Aligned16, vectorizable=true}; typedef Packet8h half; };
 
 template<> EIGEN_STRONG_INLINE Packet8h pset1<Packet8h>(const Eigen::half& from) {
   Packet8h result;
@@ -1329,7 +1329,7 @@ struct packet_traits<Eigen::half> : default_packet_traits {
 };
 
 
-template<> struct unpacket_traits<Packet4h> { typedef Eigen::half type; enum {size=4, alignment=Aligned16}; typedef Packet4h half; };
+template<> struct unpacket_traits<Packet4h> { typedef Eigen::half type; enum {size=4, alignment=Aligned16, vectorizable=true}; typedef Packet4h half; };
 
 template<> EIGEN_STRONG_INLINE Packet4h pset1<Packet4h>(const Eigen::half& from) {
   Packet4h result;

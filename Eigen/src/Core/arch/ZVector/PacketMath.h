@@ -239,9 +239,9 @@ template<> struct packet_traits<double> : default_packet_traits
   };
 };
 
-template<> struct unpacket_traits<Packet4i> { typedef int    type; enum {size=4, alignment=Aligned16}; typedef Packet4i half; };
-template<> struct unpacket_traits<Packet4f> { typedef float  type; enum {size=4, alignment=Aligned16}; typedef Packet4f half; };
-template<> struct unpacket_traits<Packet2d> { typedef double type; enum {size=2, alignment=Aligned16}; typedef Packet2d half; };
+template<> struct unpacket_traits<Packet4i> { typedef int    type; enum {size=4, alignment=Aligned16, vectorizable=true}; typedef Packet4i half; };
+template<> struct unpacket_traits<Packet4f> { typedef float  type; enum {size=4, alignment=Aligned16, vectorizable=true}; typedef Packet4f half; };
+template<> struct unpacket_traits<Packet2d> { typedef double type; enum {size=2, alignment=Aligned16, vectorizable=true}; typedef Packet2d half; };
 
 /* Forward declaration */
 EIGEN_DEVICE_FUNC inline void ptranspose(PacketBlock<Packet4f,4>& kernel);
