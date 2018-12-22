@@ -589,7 +589,7 @@ public:
   template <typename ResPacketType, typename AccPacketType>
   EIGEN_STRONG_INLINE void acc(const AccPacketType& c, const ResPacketType& alpha, ResPacketType& r) const
   {
-    const conj_helper<ResPacketType,ResPacketType,ConjLhs,false> cj;
+    conj_helper<ResPacketType,ResPacketType,ConjLhs,false> cj;
     r = cj.pmadd(c,alpha,r);
   }
 
@@ -927,7 +927,7 @@ public:
   template <typename ResPacketType, typename AccPacketType>
   EIGEN_STRONG_INLINE void acc(const AccPacketType& c, const ResPacketType& alpha, ResPacketType& r) const
   {
-    const conj_helper<ResPacketType,ResPacketType,false,ConjRhs> cj;
+    conj_helper<ResPacketType,ResPacketType,false,ConjRhs> cj;
     r = cj.pmadd(alpha,c,r);
   }
 
