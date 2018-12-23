@@ -579,6 +579,22 @@ template<typename Scalar,typename Packet> void packetmath_real()
         VERIFY(data2[0]<=Scalar(1.) && data2[0]>=Scalar(-1.));
         VERIFY(data2[1]<=Scalar(1.) && data2[1]>=Scalar(-1.));
       }
+
+      data1[0] =  std::numeric_limits<Scalar>::infinity();
+      data1[1] = -std::numeric_limits<Scalar>::infinity();
+      h.store(data2, internal::psin(h.load(data1)));
+      VERIFY((numext::isnan)(data2[0]));
+      VERIFY((numext::isnan)(data2[1]));
+
+      h.store(data2, internal::pcos(h.load(data1)));
+      VERIFY((numext::isnan)(data2[0]));
+      VERIFY((numext::isnan)(data2[1]));
+
+      data1[0] =  std::numeric_limits<Scalar>::quiet_NaN();
+      h.store(data2, internal::psin(h.load(data1)));
+      VERIFY((numext::isnan)(data2[0]));
+      h.store(data2, internal::pcos(h.load(data1)));
+      VERIFY((numext::isnan)(data2[0]));
     }
   }
 }
