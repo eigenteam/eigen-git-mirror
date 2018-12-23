@@ -520,10 +520,11 @@ template<typename Scalar,typename Packet> void packetmath_real()
   CHECK_CWISE1_IF(internal::packet_traits<Scalar>::HasErfc, std::erfc, internal::perfc);
 #endif
 
-  if(PacketTraits::HasLog && PacketSize>=2)
+  if(PacketSize>=2)
   {
     data1[0] = std::numeric_limits<Scalar>::quiet_NaN();
     data1[1] = std::numeric_limits<Scalar>::epsilon();
+    if(PacketTraits::HasLog)
     {
       packet_helper<PacketTraits::HasLog,Packet> h;
       h.store(data2, internal::plog(h.load(data1)));
@@ -551,6 +552,10 @@ template<typename Scalar,typename Packet> void packetmath_real()
       data1[0] = Scalar(-1.0f);
       h.store(data2, internal::plog(h.load(data1)));
       VERIFY((numext::isnan)(data2[0]));
+
+      data1[0] = std::numeric_limits<Scalar>::infinity();
+      h.store(data2, internal::plog(h.load(data1)));
+      VERIFY((numext::isinf)(data2[0]));
     }
     {
       packet_helper<PacketTraits::HasSqrt,Packet> h;
