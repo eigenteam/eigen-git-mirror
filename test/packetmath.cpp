@@ -564,6 +564,22 @@ template<typename Scalar,typename Packet> void packetmath_real()
       VERIFY((numext::isnan)(data2[0]));
       VERIFY((numext::isnan)(data2[1]));
     }
+    if(PacketTraits::HasCos)
+    {
+      packet_helper<PacketTraits::HasCos,Packet> h;
+      for(Scalar k = 1; k<Scalar(1000)/std::numeric_limits<Scalar>::epsilon(); k*=2) {
+        data1[0] = k*Scalar(EIGEN_PI) * internal::random<Scalar>(0.8,1.2);
+        data1[1] = (k+1)*Scalar(EIGEN_PI) * internal::random<Scalar>(0.8,1.2);
+        h.store(data2, internal::pcos(h.load(data1)));
+        VERIFY(data2[0]<=Scalar(1.) && data2[0]>=Scalar(-1.));
+        VERIFY(data2[1]<=Scalar(1.) && data2[1]>=Scalar(-1.));
+        data1[0] = (2*k+1)*Scalar(EIGEN_PI)/2 * internal::random<Scalar>(0.8,1.2);
+        data1[1] = (2*k+3)*Scalar(EIGEN_PI)/2 * internal::random<Scalar>(0.8,1.2);
+        h.store(data2, internal::psin(h.load(data1)));
+        VERIFY(data2[0]<=Scalar(1.) && data2[0]>=Scalar(-1.));
+        VERIFY(data2[1]<=Scalar(1.) && data2[1]>=Scalar(-1.));
+      }
+    }
   }
 }
 

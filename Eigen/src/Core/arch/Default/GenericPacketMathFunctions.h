@@ -289,8 +289,14 @@ Packet psincos_float(const Packet& _x)
   const Packet cst_coscof_p1        = pset1<Packet>(-1.388731625493765E-003f);
   const Packet cst_coscof_p2        = pset1<Packet>( 4.166664568298827E-002f);
   const Packet cst_cephes_FOPI      = pset1<Packet>( 1.27323954473516f); // 4 / M_PI
+  const Packet cst_sincos_max_arg   = pset1<Packet>( 13176795.0f);  // Approx. (2**24) / (4/Pi).
 
   Packet x = pabs(_x);
+
+  // Prevent sin/cos from generating values larger than 1.0 in magnitude
+  // for very large arguments by setting x to 0.0.
+  Packet small_or_nan_mask = pcmp_lt_or_nan(x, cst_sincos_max_arg);
+  x = pand(x, small_or_nan_mask);
 
   // Scale x by 4/Pi to find x's octant.
   Packet y = pmul(x, cst_cephes_FOPI);
