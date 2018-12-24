@@ -276,7 +276,7 @@ EIGEN_STRONG_INLINE Packet16f cat256(Packet8f a, Packet8f b) {
 }
 #endif
 
-Packet16f pcmp_lt_or_nan(const Packet16f& a, const Packet16f& b) {
+template<> EIGEN_STRONG_INLINE Packet16f pcmp_lt_or_nan(const Packet16f& a, const Packet16f& b) {
   __m256 lo = _mm256_cmp_ps(extract256<0>(a), extract256<0>(b), _CMP_NGE_UQ);
   __m256 hi = _mm256_cmp_ps(extract256<1>(a), extract256<1>(b), _CMP_NGE_UQ);
   return cat256(lo, hi);
