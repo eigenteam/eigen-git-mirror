@@ -560,6 +560,7 @@ template<typename Scalar,typename Packet> void packetmath_real()
     {
       packet_helper<PacketTraits::HasSqrt,Packet> h;
       data1[0] = Scalar(-1.0f);
+      data1[1] = -std::numeric_limits<Scalar>::denorm_min();
       h.store(data2, internal::psqrt(h.load(data1)));
       VERIFY((numext::isnan)(data2[0]));
       VERIFY((numext::isnan)(data2[1]));
