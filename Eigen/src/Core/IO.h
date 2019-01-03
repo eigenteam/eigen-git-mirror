@@ -41,6 +41,7 @@ std::ostream & print_matrix(std::ostream & s, const Derived& _m, const IOFormat&
   *  - \b rowSuffix string printed at the end of each row
   *  - \b matPrefix string printed at the beginning of the matrix
   *  - \b matSuffix string printed at the end of the matrix
+  *  - \b fill character printed to fill the empty space in aligned columns
   *
   * Example: \include IOFormat.cpp
   * Output: \verbinclude IOFormat.out
@@ -53,9 +54,9 @@ struct IOFormat
   IOFormat(int _precision = StreamPrecision, int _flags = 0,
     const std::string& _coeffSeparator = " ",
     const std::string& _rowSeparator = "\n", const std::string& _rowPrefix="", const std::string& _rowSuffix="",
-    const std::string& _matPrefix="", const std::string& _matSuffix="")
+    const std::string& _matPrefix="", const std::string& _matSuffix="", const char _fill=' ')
   : matPrefix(_matPrefix), matSuffix(_matSuffix), rowPrefix(_rowPrefix), rowSuffix(_rowSuffix), rowSeparator(_rowSeparator),
-    rowSpacer(""), coeffSeparator(_coeffSeparator), precision(_precision), flags(_flags)
+    rowSpacer(""), coeffSeparator(_coeffSeparator), fill(_fill), precision(_precision), flags(_flags)
   {
     // TODO check if rowPrefix, rowSuffix or rowSeparator contains a newline
     // don't add rowSpacer if columns are not to be aligned
@@ -71,6 +72,7 @@ struct IOFormat
   std::string matPrefix, matSuffix;
   std::string rowPrefix, rowSuffix, rowSeparator, rowSpacer;
   std::string coeffSeparator;
+  char fill;
   int precision;
   int flags;
 };
@@ -176,18 +178,26 @@ std::ostream & print_matrix(std::ostream & s, const Derived& _m, const IOFormat&
         width = std::max<Index>(width, Index(sstr.str().length()));
       }
   }
+  std::streamsize old_width = s.width();
+  char old_fill_character = s.fill();
   s << fmt.matPrefix;
   for(Index i = 0; i < m.rows(); ++i)
   {
     if (i)
       s << fmt.rowSpacer;
     s << fmt.rowPrefix;
-    if(width) s.width(width);
+    if(width) {
+      s.fill(fmt.fill);
+      s.width(width);
+    }
     s << m.coeff(i, 0);
     for(Index j = 1; j < m.cols(); ++j)
     {
       s << fmt.coeffSeparator;
-      if (width) s.width(width);
+      if(width) {
+        s.fill(fmt.fill);
+        s.width(width);
+      }
       s << m.coeff(i, j);
     }
     s << fmt.rowSuffix;
@@ -196,6 +206,10 @@ std::ostream & print_matrix(std::ostream & s, const Derived& _m, const IOFormat&
   }
   s << fmt.matSuffix;
   if(explicit_precision) s.precision(old_precision);
+  if(width) {
+    s.fill(old_fill_character);
+    s.width(old_width);
+  }
   return s;
 }
 
