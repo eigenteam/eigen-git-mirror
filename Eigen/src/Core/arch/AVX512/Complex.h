@@ -66,7 +66,7 @@ template<> EIGEN_STRONG_INLINE Packet8cf pconj(const Packet8cf& a)
   const __m512 mask = _mm512_castsi512_ps(_mm512_setr_epi32(
     0x00000000,0x80000000,0x00000000,0x80000000,0x00000000,0x80000000,0x00000000,0x80000000,
     0x00000000,0x80000000,0x00000000,0x80000000,0x00000000,0x80000000,0x00000000,0x80000000));
-  return Packet8cf(_mm512_xor_ps(a.v,mask));
+  return Packet8cf(pxor(a.v,mask));
 }
 
 template<> EIGEN_STRONG_INLINE Packet8cf pmul<Packet8cf>(const Packet8cf& a, const Packet8cf& b)
@@ -75,10 +75,10 @@ template<> EIGEN_STRONG_INLINE Packet8cf pmul<Packet8cf>(const Packet8cf& a, con
   return Packet8cf(_mm512_fmaddsub_ps(_mm512_moveldup_ps(a.v), b.v, tmp2));
 }
 
-template<> EIGEN_STRONG_INLINE Packet8cf pand   <Packet8cf>(const Packet8cf& a, const Packet8cf& b) { return Packet8cf(_mm512_and_ps(a.v,b.v)); }
-template<> EIGEN_STRONG_INLINE Packet8cf por    <Packet8cf>(const Packet8cf& a, const Packet8cf& b) { return Packet8cf(_mm512_or_ps(a.v,b.v)); }
-template<> EIGEN_STRONG_INLINE Packet8cf pxor   <Packet8cf>(const Packet8cf& a, const Packet8cf& b) { return Packet8cf(_mm512_xor_ps(a.v,b.v)); }
-template<> EIGEN_STRONG_INLINE Packet8cf pandnot<Packet8cf>(const Packet8cf& a, const Packet8cf& b) { return Packet8cf(_mm512_andnot_ps(b.v,a.v)); }
+template<> EIGEN_STRONG_INLINE Packet8cf pand   <Packet8cf>(const Packet8cf& a, const Packet8cf& b) { return Packet8cf(pand(a.v,b.v)); }
+template<> EIGEN_STRONG_INLINE Packet8cf por    <Packet8cf>(const Packet8cf& a, const Packet8cf& b) { return Packet8cf(por(a.v,b.v)); }
+template<> EIGEN_STRONG_INLINE Packet8cf pxor   <Packet8cf>(const Packet8cf& a, const Packet8cf& b) { return Packet8cf(pxor(a.v,b.v)); }
+template<> EIGEN_STRONG_INLINE Packet8cf pandnot<Packet8cf>(const Packet8cf& a, const Packet8cf& b) { return Packet8cf(pandnot(a.v,b.v)); }
 
 template<> EIGEN_STRONG_INLINE Packet8cf pload <Packet8cf>(const std::complex<float>* from) { EIGEN_DEBUG_ALIGNED_LOAD return Packet8cf(pload<Packet16f>(&numext::real_ref(*from))); }
 template<> EIGEN_STRONG_INLINE Packet8cf ploadu<Packet8cf>(const std::complex<float>* from) { EIGEN_DEBUG_UNALIGNED_LOAD return Packet8cf(ploadu<Packet16f>(&numext::real_ref(*from))); }
@@ -124,20 +124,20 @@ template<> EIGEN_STRONG_INLINE Packet8cf preverse(const Packet8cf& a) {
 
 template<> EIGEN_STRONG_INLINE std::complex<float> predux<Packet8cf>(const Packet8cf& a)
 {
-  return predux(padd(Packet4cf(_mm512_extractf32x8_ps(a.v,0)),
-                     Packet4cf(_mm512_extractf32x8_ps(a.v,1))));
+  return predux(padd(Packet4cf(extract256<0>(a.v)),
+                     Packet4cf(extract256<1>(a.v))));
 }
 
 template<> EIGEN_STRONG_INLINE std::complex<float> predux_mul<Packet8cf>(const Packet8cf& a)
 {
-  return predux_mul(pmul(Packet4cf(_mm512_extractf32x8_ps(a.v, 0)),
-                         Packet4cf(_mm512_extractf32x8_ps(a.v, 1))));
+  return predux_mul(pmul(Packet4cf(extract256<0>(a.v)),
+                         Packet4cf(extract256<1>(a.v))));
 }
 
 template <>
 EIGEN_STRONG_INLINE Packet4cf predux_half_dowto4<Packet8cf>(const Packet8cf& a) {
-  __m256 lane0 = _mm512_extractf32x8_ps(a.v, 0);
-  __m256 lane1 = _mm512_extractf32x8_ps(a.v, 1);
+  __m256 lane0 = extract256<0>(a.v);
+  __m256 lane1 = extract256<1>(a.v);
   __m256 res = _mm256_add_ps(lane0, lane1);
   return Packet4cf(res);
 }
@@ -262,10 +262,10 @@ template<> EIGEN_STRONG_INLINE Packet4cd pmul<Packet4cd>(const Packet4cd& a, con
   return Packet4cd(_mm512_fmaddsub_pd(tmp1, b.v, odd));
 }
 
-template<> EIGEN_STRONG_INLINE Packet4cd pand   <Packet4cd>(const Packet4cd& a, const Packet4cd& b) { return Packet4cd(_mm512_and_pd(a.v,b.v)); }
-template<> EIGEN_STRONG_INLINE Packet4cd por    <Packet4cd>(const Packet4cd& a, const Packet4cd& b) { return Packet4cd(_mm512_or_pd(a.v,b.v)); }
-template<> EIGEN_STRONG_INLINE Packet4cd pxor   <Packet4cd>(const Packet4cd& a, const Packet4cd& b) { return Packet4cd(_mm512_xor_pd(a.v,b.v)); }
-template<> EIGEN_STRONG_INLINE Packet4cd pandnot<Packet4cd>(const Packet4cd& a, const Packet4cd& b) { return Packet4cd(_mm512_andnot_pd(b.v,a.v)); }
+template<> EIGEN_STRONG_INLINE Packet4cd pand   <Packet4cd>(const Packet4cd& a, const Packet4cd& b) { return Packet4cd(pand(a.v,b.v)); }
+template<> EIGEN_STRONG_INLINE Packet4cd por    <Packet4cd>(const Packet4cd& a, const Packet4cd& b) { return Packet4cd(por(a.v,b.v)); }
+template<> EIGEN_STRONG_INLINE Packet4cd pxor   <Packet4cd>(const Packet4cd& a, const Packet4cd& b) { return Packet4cd(pxor(a.v,b.v)); }
+template<> EIGEN_STRONG_INLINE Packet4cd pandnot<Packet4cd>(const Packet4cd& a, const Packet4cd& b) { return Packet4cd(pandnot(a.v,b.v)); }
 
 template<> EIGEN_STRONG_INLINE Packet4cd pload <Packet4cd>(const std::complex<double>* from)
 { EIGEN_DEBUG_ALIGNED_LOAD return Packet4cd(pload<Packet8d>((const double*)from)); }
@@ -308,7 +308,7 @@ template<> EIGEN_DEVICE_FUNC inline void pscatter<std::complex<double>, Packet4c
 
 template<> EIGEN_STRONG_INLINE std::complex<double> pfirst<Packet4cd>(const Packet4cd& a)
 {
-  __m128d low = _mm512_extractf64x2_pd(a.v, 0);
+  __m128d low = extract128<0>(a.v);
   EIGEN_ALIGN16 double res[2];
   _mm_store_pd(res, low);
   return std::complex<double>(res[0],res[1]);
