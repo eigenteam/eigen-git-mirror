@@ -238,6 +238,7 @@ template<typename Scalar,typename Packet> void packetmath()
   CHECK_CWISE2_IF(PacketTraits::HasMul, REF_MUL,  internal::pmul);
   CHECK_CWISE2_IF(PacketTraits::HasDiv, REF_DIV, internal::pdiv);
 
+  CHECK_CWISE1(internal::pnot, internal::pnot);
   CHECK_CWISE1(internal::negate, internal::pnegate);
   CHECK_CWISE1(numext::conj, internal::pconj);
 
@@ -397,6 +398,14 @@ template<typename Scalar,typename Packet> void packetmath()
     CHECK_CWISE2_IF(true, internal::pxor, internal::pxor);
     CHECK_CWISE2_IF(true, internal::pand, internal::pand);
     CHECK_CWISE2_IF(true, internal::pandnot, internal::pandnot);
+  }
+
+  {
+    for (int i = 0; i < PacketSize; ++i) {
+      data1[i] = internal::random<Scalar>();
+      data2[i] = (i % 2) ? data1[i] : Scalar(0);
+    }
+    CHECK_CWISE2_IF(true, internal::pcmp_eq, internal::pcmp_eq);
   }
 }
 

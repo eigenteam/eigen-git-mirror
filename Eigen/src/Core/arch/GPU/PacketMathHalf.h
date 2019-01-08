@@ -655,6 +655,13 @@ template<> EIGEN_STRONG_INLINE Packet16h pandnot(const Packet16h& a,const Packet
   Packet16h r; r.x = pandnot(Packet8i(a.x),Packet8i(b.x)); return r;
 }
 
+template<> EIGEN_STRONG_INLINE Packet16h pcmp_eq(const Packet16h& a,const Packet16h& b) {
+  Packet16f af = half2float(a);
+  Packet16f bf = half2float(b);
+  Packet16f rf = pcmp_eq(af, bf);
+  return float2half(rf);
+}
+
 template<> EIGEN_STRONG_INLINE Packet16h pnegate(const Packet16h& a) {
   // FIXME we could do that with bit manipulation
   Packet16f af = half2float(a);
@@ -1091,6 +1098,13 @@ template<> EIGEN_STRONG_INLINE Packet8h pand(const Packet8h& a,const Packet8h& b
 }
 template<> EIGEN_STRONG_INLINE Packet8h pandnot(const Packet8h& a,const Packet8h& b) {
   Packet8h r; r.x = _mm_andnot_si128(b.x,a.x); return r;
+}
+
+template<> EIGEN_STRONG_INLINE Packet8h pcmp_eq(const Packet8h& a,const Packet8h& b) {
+  Packet8f af = half2float(a);
+  Packet8f bf = half2float(b);
+  Packet8f rf = pcmp_eq(af, bf);
+  return float2half(rf);
 }
 
 template<> EIGEN_STRONG_INLINE Packet8h pconj(const Packet8h& a) { return a; }

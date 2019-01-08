@@ -214,6 +214,18 @@ pxor(const Packet& a, const Packet& b) { return a ^ b; }
 template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
 pandnot(const Packet& a, const Packet& b) { return a & (~b); }
 
+/** \internal \returns a packet with constant coefficients \a a, e.g.: (a,a,a,a) */
+template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
+pset1(const typename unpacket_traits<Packet>::type& a) { return a; }
+
+/** \internal \returns the bitwise not of \a a */
+template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
+pnot(const Packet& a) {
+  typedef typename unpacket_traits<Packet>::type Scalar;
+  Packet ones  = pset1<Packet>(Scalar(1));
+  return pandnot(ones, a);
+}
+
 /** \internal \returns \a a shifted by N bits to the right */
 template<int N> EIGEN_DEVICE_FUNC inline int
 pshiftright(const int& a) { return a >> N; }
@@ -258,7 +270,12 @@ pcmp_lt(const Packet& a, const Packet& b); /* { return a<b  ? pnot(pxor(a,a)) : 
 
 /** \internal \returns a == b as a bit mask */
 template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
-pcmp_eq(const Packet& a, const Packet& b); /* { return a==b ? pnot(pxor(a,a)) : pxor(a,a); } */
+pcmp_eq(const Packet& a, const Packet& b)
+{
+  typedef typename unpacket_traits<Packet>::type Scalar;
+  Packet zeros  = pset1<Packet>(Scalar(0));
+  return a==b ? pnot(zeros) : zeros;
+}
 
 /** \internal \returns a < b or a==NaN or b==NaN as a bit mask */
 template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
@@ -271,10 +288,6 @@ pload(const typename unpacket_traits<Packet>::type* from) { return *from; }
 /** \internal \returns a packet version of \a *from, (un-aligned load) */
 template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
 ploadu(const typename unpacket_traits<Packet>::type* from) { return *from; }
-
-/** \internal \returns a packet with constant coefficients \a a, e.g.: (a,a,a,a) */
-template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
-pset1(const typename unpacket_traits<Packet>::type& a) { return a; }
 
 /** \internal \returns a packet with constant coefficients set from bits */
 template<typename Packet,typename BitsType> EIGEN_DEVICE_FUNC inline Packet

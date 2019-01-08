@@ -295,6 +295,19 @@ template<> EIGEN_STRONG_INLINE Packet16i pcmp_eq(const Packet16i& a, const Packe
   return _mm512_inserti64x4(_mm512_castsi256_si512(lo), hi, 1);
 }
 
+template <>
+EIGEN_STRONG_INLINE Packet16f pcmp_eq(const Packet16f& a, const Packet16f& b) {
+  __mmask16 mask = _mm512_cmp_ps_mask(a, b, _CMP_EQ_OQ);
+  return _mm512_castsi512_ps(
+      _mm512_mask_set1_epi32(_mm512_set1_epi32(0), mask, 0xffffffff));
+}
+
+template <>
+EIGEN_STRONG_INLINE Packet8d pcmp_eq(const Packet8d& a, const Packet8d& b) {
+  __mmask8 mask = _mm512_cmp_pd_mask(a, b, _CMP_EQ_OQ);
+  return _mm512_castsi512_pd(
+      _mm512_mask_set1_epi64(_mm512_set1_epi64(0), mask, 0xffffffffffffffff));
+}
 
 template <>
 EIGEN_STRONG_INLINE Packet16i pand<Packet16i>(const Packet16i& a,
