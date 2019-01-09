@@ -551,6 +551,13 @@ template<> EIGEN_STRONG_INLINE int32_t predux_max<Packet4i>(const Packet4i& a)
   return vget_lane_s32(max, 0);
 }
 
+template<> EIGEN_STRONG_INLINE bool predux_any(const Packet4f& x)
+{
+  uint32x2_t tmp = vorr_u32(vget_low_u32( vreinterpretq_u32_f32(x)),
+                            vget_high_u32(vreinterpretq_u32_f32(x)));
+  return vget_lane_u32(vpmax_u32(tmp,tmp),0);
+}
+
 // this PALIGN_NEON business is to work around a bug in LLVM Clang 3.0 causing incorrect compilation errors,
 // see bug 347 and this LLVM bug: http://llvm.org/bugs/show_bug.cgi?id=11074
 #define PALIGN_NEON(Offset,Type,Command) \

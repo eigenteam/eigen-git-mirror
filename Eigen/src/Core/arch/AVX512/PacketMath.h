@@ -283,9 +283,27 @@ EIGEN_STRONG_INLINE Packet16f cat256(Packet8f a, Packet8f b) {
 }
 #endif
 
+template<> EIGEN_STRONG_INLINE Packet16f pcmp_le(const Packet16f& a, const Packet16f& b) {
+  __m256 lo = pcmp_le(extract256<0>(a), extract256<0>(b));
+  __m256 hi = pcmp_le(extract256<1>(a), extract256<1>(b));
+  return cat256(lo, hi);
+}
+
+template<> EIGEN_STRONG_INLINE Packet16f pcmp_lt(const Packet16f& a, const Packet16f& b) {
+  __m256 lo = pcmp_lt(extract256<0>(a), extract256<0>(b));
+  __m256 hi = pcmp_lt(extract256<1>(a), extract256<1>(b));
+  return cat256(lo, hi);
+}
+
+template<> EIGEN_STRONG_INLINE Packet16f pcmp_eq(const Packet16f& a, const Packet16f& b) {
+  __m256 lo = pcmp_eq(extract256<0>(a), extract256<0>(b));
+  __m256 hi = pcmp_eq(extract256<1>(a), extract256<1>(b));
+  return cat256(lo, hi);
+}
+
 template<> EIGEN_STRONG_INLINE Packet16f pcmp_lt_or_nan(const Packet16f& a, const Packet16f& b) {
-  __m256 lo = _mm256_cmp_ps(extract256<0>(a), extract256<0>(b), _CMP_NGE_UQ);
-  __m256 hi = _mm256_cmp_ps(extract256<1>(a), extract256<1>(b), _CMP_NGE_UQ);
+  __m256 lo = pcmp_lt_or_nan(extract256<0>(a), extract256<0>(b));
+  __m256 hi = pcmp_lt_or_nan(extract256<1>(a), extract256<1>(b));
   return cat256(lo, hi);
 }
 
@@ -962,6 +980,13 @@ EIGEN_STRONG_INLINE double predux_max<Packet8d>(const Packet8d& a) {
   __m256d res = _mm256_max_pd(lane0, lane1);
   res = _mm256_max_pd(res, _mm256_permute2f128_pd(res, res, 1));
   return pfirst(_mm256_max_pd(res, _mm256_shuffle_pd(res, res, 1)));
+}
+
+template<> EIGEN_STRONG_INLINE bool predux_any(const Packet16f& x)
+{
+  Packet16i xi = _mm512_castps_si512(x);
+  __mmask16 tmp = _mm512_test_epi32_mask(xi,xi);
+  return !_mm512_kortestz(tmp,tmp);
 }
 
 template <int Offset>

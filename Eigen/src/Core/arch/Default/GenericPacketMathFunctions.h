@@ -269,88 +269,121 @@ EIGEN_UNUSED
 Packet psincos_float(const Packet& _x)
 {
   typedef typename unpacket_traits<Packet>::integer_packet PacketI;
-  const Packet cst_1          = pset1<Packet>(1.0f);
-  const Packet cst_half       = pset1<Packet>(0.5f);
 
-  const PacketI csti_1        = pset1<PacketI>(1);
-  const PacketI csti_not1     = pset1<PacketI>(~1);
-  const PacketI csti_2        = pset1<PacketI>(2);
-  const PacketI csti_3        = pset1<PacketI>(3);
-
-  const Packet cst_sign_mask  = pset1frombits<Packet>(0x80000000u);
-
-  const Packet cst_minus_cephes_DP1 = pset1<Packet>(-0.78515625f);
-  const Packet cst_minus_cephes_DP2 = pset1<Packet>(-2.4187564849853515625e-4f);
-  const Packet cst_minus_cephes_DP3 = pset1<Packet>(-3.77489497744594108e-8f);
-  const Packet cst_sincof_p0        = pset1<Packet>(-1.9515295891E-4f);
-  const Packet cst_sincof_p1        = pset1<Packet>( 8.3321608736E-3f);
-  const Packet cst_sincof_p2        = pset1<Packet>(-1.6666654611E-1f);
-  const Packet cst_coscof_p0        = pset1<Packet>( 2.443315711809948E-005f);
-  const Packet cst_coscof_p1        = pset1<Packet>(-1.388731625493765E-003f);
-  const Packet cst_coscof_p2        = pset1<Packet>( 4.166664568298827E-002f);
-  const Packet cst_cephes_FOPI      = pset1<Packet>( 1.27323954473516f); // 4 / M_PI
+  const Packet  cst_2oPI            = pset1<Packet>(0.636619746685028076171875f); // 2/PI
+  const Packet  cst_rounding_magic  = pset1<Packet>(12582912); // 2^23 for rounding
+  const PacketI csti_1              = pset1<PacketI>(1);
+  const Packet  cst_sign_mask       = pset1frombits<Packet>(0x80000000u);
 
   Packet x = pabs(_x);
 
-  // Scale x by 4/Pi to find x's octant.
-  Packet y = pmul(x, cst_cephes_FOPI);
+  // Scale x by 2/Pi to find x's octant.
+  Packet y = pmul(x, cst_2oPI);
 
-  // Get the octant. We'll reduce x by this number of octants or by one more than it.
-  PacketI y_int = pcast<Packet,PacketI>(y);
-  // x's from even-numbered octants will translate to octant 0: [0, +Pi/4].
-  // x's from odd-numbered octants will translate to octant -1: [-Pi/4, 0].
-  // Adjustment for odd-numbered octants: octant = (octant + 1) & (~1).
-  PacketI y_int1 = pand(padd(y_int, csti_1), csti_not1); // could be pbitclear<0>(...)
-  y = pcast<PacketI,Packet>(y_int1);
+  // Rounding trick:
+  Packet y_round = padd(y, cst_rounding_magic);
+  PacketI y_int = preinterpret<PacketI>(y_round); // last 23 digits represent integer (if abs(x)<2^24)
+  y = psub(y_round, cst_rounding_magic); // nearest integer to x*4/pi
 
   // Compute the sign to apply to the polynomial.
-  // sign = third_bit(y_int1) xor signbit(_x)
-  Packet sign_bit = ComputeSine ? pxor(_x, preinterpret<Packet>(pshiftleft<29>(y_int1)))
-                                : preinterpret<Packet>(pshiftleft<29>(padd(y_int1,csti_3)));
+  // sin: sign = second_bit(y_int) xor signbit(_x)
+  // cos: sign = second_bit(y_int+1)
+  Packet sign_bit = ComputeSine ? pxor(_x, preinterpret<Packet>(pshiftleft<30>(y_int)))
+                                : preinterpret<Packet>(pshiftleft<30>(padd(y_int,csti_1)));
   sign_bit = pand(sign_bit, cst_sign_mask); // clear all but left most bit
 
-  // Get the polynomial selection mask from the second bit of y_int1
+  // Get the polynomial selection mask from the second bit of y_int
   // We'll calculate both (sin and cos) polynomials and then select from the two.
-  Packet poly_mask = preinterpret<Packet>(pcmp_eq(pand(y_int1, csti_2), pzero(y_int1)));
+  Packet poly_mask = preinterpret<Packet>(pcmp_eq(pand(y_int, csti_1), pzero(y_int)));
 
-  // Reduce x by y octants to get: -Pi/4 <= x <= +Pi/4.
-  // The magic pass: "Extended precision modular arithmetic"
-  // x = ((x - y * DP1) - y * DP2) - y * DP3
-  x = pmadd(y, cst_minus_cephes_DP1, x);
-  x = pmadd(y, cst_minus_cephes_DP2, x);
-  x = pmadd(y, cst_minus_cephes_DP3, x);
+  // Reduce x by y octants to get: -Pi/4 <= x <= +Pi/4
+  // using "Extended precision modular arithmetic"
+  #if defined(EIGEN_HAS_SINGLE_INSTRUCTION_MADD)
+  // This version requires true FMA for high accuracy
+  // It provides a max error of 1ULP up to (with absolute_error < 5.9605e-08):
+  const float huge_th = ComputeSine ? 117435.992f : 71476.0625f;
+  x = pmadd(y, pset1<Packet>(-1.57079601287841796875f), x);
+  x = pmadd(y, pset1<Packet>(-3.1391647326017846353352069854736328125e-07f), x);
+  x = pmadd(y, pset1<Packet>(-5.390302529957764765544681040410068817436695098876953125e-15f), x);
+  #else
+  // Without true FMA, the previous set of coefficients maintain 1ULP accuracy
+  // up to x<15.7 (for sin), but accuracy is immediately lost for x>15.7.
+  // We thus use one more iteration to maintain 2ULPs up to reasonably large inputs.
+
+  // The following set of coefficients maintain 1ULP up to 9.43 and 14.16 for sin and cos respectively.
+  // and 2 ULP up to:
+  const float huge_th = ComputeSine ? 25966.f : 18838.f;
+  x = pmadd(y, pset1<Packet>(-1.5703125), x); // = 0xbfc90000
+  x = pmadd(y, pset1<Packet>(-0.000483989715576171875), x); // = 0xb9fdc000
+  x = pmadd(y, pset1<Packet>(1.62865035235881805419921875e-07), x); // = 0x342ee000
+  x = pmadd(y, pset1<Packet>(5.5644315544167710640977020375430583953857421875e-11), x); // = 0x2e74b9ee
+
+  // For the record, the following set of coefficients maintain 2ULP up
+  // to a slightly larger range:
+  // const float huge_th = ComputeSine ? 51981.f : 39086.125f;
+  // but it slightly fails to maintain 1ULP for two values of sin below pi.
+  // x = pmadd(y, pset1<Packet>(-3.140625/2.), x);
+  // x = pmadd(y, pset1<Packet>(-0.00048351287841796875), x);
+  // x = pmadd(y, pset1<Packet>(-3.13855707645416259765625e-07), x);
+  // x = pmadd(y, pset1<Packet>(-6.0771006282767103812147979624569416046142578125e-11), x);
+
+  // For the record, with only 3 iterations it is possible to maintain
+  // 1 ULP up to 3PI (maybe more) and 2ULP up to 255.
+  // The coefficients are: 0xbfc90f80, 0xb7354480, 0x2e74b9ee
+  #endif
+
+  // We use huge_vals as a temporary for abs(_x) to ensure huge_vals
+  // is fully initialized for the last pselect(). (prevent compiler warning)
+  Packet huge_vals = pabs(_x);
+  Packet huge_mask = pcmp_le(pset1<Packet>(huge_th),huge_vals);
+  
+  if(predux_any(huge_mask))
+  {
+    const int PacketSize = unpacket_traits<Packet>::size;
+    #if EIGEN_HAS_CXX11
+    alignas(Packet) float vals[PacketSize];
+    #else
+    EIGEN_ALIGN_TO_BOUNDARY(sizeof(Packet)) float vals[PacketSize];
+    #endif
+    pstoreu(vals, _x);
+    for(int k=0; k<PacketSize;++k) {
+      float val = vals[k];
+      if(numext::abs(val)>=huge_th)  {
+        vals[k] = ComputeSine ? std::sin(val) : std::cos(val);
+      }
+    }
+    huge_vals = ploadu<Packet>(vals);
+  }
 
   Packet x2 = pmul(x,x);
 
-  // Evaluate the cos(x) polynomial. (0 <= x <= Pi/4)
-  Packet y1 = cst_coscof_p0;
-  y1 = pmadd(y1, x2, cst_coscof_p1);
-  y1 = pmadd(y1, x2, cst_coscof_p2);
-  y1 = pmul(y1, x2);
-  y1 = pmul(y1, x2);
-  y1 = psub(y1, pmul(x2, cst_half));
-  y1 = padd(y1, cst_1);
+  // Evaluate the cos(x) polynomial. (-Pi/4 <= x <= Pi/4)
+  Packet y1 =        pset1<Packet>(2.4372266125283204019069671630859375e-05f);
+  y1 = pmadd(y1, x2, pset1<Packet>(-0.00138865201734006404876708984375f     ));
+  y1 = pmadd(y1, x2, pset1<Packet>(0.041666619479656219482421875f           ));
+  y1 = pmadd(y1, x2, pset1<Packet>(-0.5f));
+  y1 = pmadd(y1, x2, pset1<Packet>(1.f));
 
-  // Evaluate the sin(x) polynomial. (Pi/4 <= x <= 0) 
-  Packet y2 = cst_sincof_p0;
-  y2 = pmadd(y2, x2, cst_sincof_p1);
-  y2 = pmadd(y2, x2, cst_sincof_p2);
+  // Evaluate the sin(x) polynomial. (Pi/4 <= x <= Pi/4)
+  // octave/matlab code to compute those coefficients:
+  //    x = (0:0.0001:pi/4)';
+  //    A = [x.^3 x.^5 x.^7];
+  //    w = ((1.-(x/(pi/4)).^2).^5)*2000+1;         # weights trading relative accuracy
+  //    c = (A'*diag(w)*A)\(A'*diag(w)*(sin(x)-x)); # weighted LS, linear coeff forced to 1
+  //    printf('%.64f\n %.64f\n%.64f\n', c(3), c(2), c(1))
+  //
+  Packet y2 =        pset1<Packet>(-0.0001959234114083702898469196984621021329076029360294342041015625f);
+  y2 = pmadd(y2, x2, pset1<Packet>( 0.0083326873655616851693794799871284340042620897293090820312500000f));
+  y2 = pmadd(y2, x2, pset1<Packet>(-0.1666666203982298255503735617821803316473960876464843750000000000f));
   y2 = pmul(y2, x2);
   y2 = pmadd(y2, x, x);
 
-  // Select the correct result from the two polynoms.
+  // Select the correct result from the two polynomials.
   y = ComputeSine ? pselect(poly_mask,y2,y1)
                   : pselect(poly_mask,y1,y2);
 
-  // For very large arguments the the reduction to the [-Pi/4,+Pi/4] range
-  // does not work thus leading to sine/cosine out of the [-1:1] range.
-  // Since computing the sine/cosine for very large entry entries makes little
-  // sense in term of accuracy, we simply clamp to [-1,1]:
-  y = pmin(y,pset1<Packet>( 1.f));
-  y = pmax(y,pset1<Packet>(-1.f));
-
-  // Update the sign
-  return pxor(y, sign_bit);
+  // Update the sign and filter huge inputs
+  return pselect(huge_mask, huge_vals, pxor(y, sign_bit));
 }
 
 template<typename Packet>

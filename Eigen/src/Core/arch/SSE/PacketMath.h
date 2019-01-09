@@ -813,6 +813,17 @@ template<> EIGEN_STRONG_INLINE int predux_max<Packet4i>(const Packet4i& a)
 #endif // EIGEN_VECTORIZE_SSE4_1
 }
 
+// not needed yet
+// template<> EIGEN_STRONG_INLINE bool predux_all(const Packet4f& x)
+// {
+//   return _mm_movemask_ps(x) == 0xF;
+// }
+
+template<> EIGEN_STRONG_INLINE bool predux_any(const Packet4f& x)
+{
+  return _mm_movemask_ps(x) != 0x0;
+}
+
 #if EIGEN_COMP_GNUC
 // template <> EIGEN_STRONG_INLINE Packet4f pmadd(const Packet4f&  a, const Packet4f&  b, const Packet4f&  c)
 // {

@@ -576,6 +576,16 @@ template<> EIGEN_STRONG_INLINE double predux_max<Packet4d>(const Packet4d& a)
   return pfirst(_mm256_max_pd(tmp, _mm256_shuffle_pd(tmp, tmp, 1)));
 }
 
+// not needed yet
+// template<> EIGEN_STRONG_INLINE bool predux_all(const Packet8f& x)
+// {
+//   return _mm256_movemask_ps(x)==0xFF;
+// }
+
+template<> EIGEN_STRONG_INLINE bool predux_any(const Packet8f& x)
+{
+  return _mm256_movemask_ps(x)!=0;
+}
 
 template<int Offset>
 struct palign_impl<Offset,Packet8f>
