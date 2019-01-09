@@ -393,17 +393,38 @@ typename conditional<(unpacket_traits<Packet>::size%8)==0,typename unpacket_trai
 predux_half_dowto4(const Packet& a)
 { return a; }
 
-/** \internal \returns the product of the elements of \a a*/
+/** \internal \returns the product of the elements of \a a */
 template<typename Packet> EIGEN_DEVICE_FUNC inline typename unpacket_traits<Packet>::type predux_mul(const Packet& a)
 { return a; }
 
-/** \internal \returns the min of the elements of \a a*/
+/** \internal \returns the min of the elements of \a a */
 template<typename Packet> EIGEN_DEVICE_FUNC inline typename unpacket_traits<Packet>::type predux_min(const Packet& a)
 { return a; }
 
-/** \internal \returns the max of the elements of \a a*/
+/** \internal \returns the max of the elements of \a a */
 template<typename Packet> EIGEN_DEVICE_FUNC inline typename unpacket_traits<Packet>::type predux_max(const Packet& a)
 { return a; }
+
+/** \internal \returns true if all coeffs of \a a means "true"
+  * It is supposed to be called on values returned by pcmp_*.
+  */
+// not needed yet
+// template<typename Packet> EIGEN_DEVICE_FUNC inline bool predux_all(const Packet& a)
+// { return bool(a); }
+
+/** \internal \returns true if any coeffs of \a a means "true"
+  * It is supposed to be called on values returned by pcmp_*.
+  */
+template<typename Packet> EIGEN_DEVICE_FUNC inline bool predux_any(const Packet& a)
+{
+  // Dirty but generic implementation where "true" is assumed to be non 0 and all the sames.
+  // It is expected that "true" is either:
+  //  - Scalar(1)
+  //  - bits full of ones (NaN for floats),
+  //  - or first bit equals to 1 (1 for ints, smallest denormal for floats).
+  // For all these cases, taking the sum is just fine, and this boils down to a no-op for scalars.
+  return bool(predux(a));
+}
 
 /** \internal \returns the reversed elements of \a a*/
 template<typename Packet> EIGEN_DEVICE_FUNC inline Packet preverse(const Packet& a)
