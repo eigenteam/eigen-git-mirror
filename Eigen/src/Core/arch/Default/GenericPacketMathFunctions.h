@@ -332,8 +332,11 @@ Packet psincos_float(const Packet& _x)
   // The coefficients are: 0xbfc90f80, 0xb7354480, 0x2e74b9ee
   #endif
 
-  Packet huge_mask = pcmp_le(pset1<Packet>(huge_th),pabs(_x));
-  Packet huge_vals;
+  // We use huge_vals as a temporary for abs(_x) to ensure huge_vals
+  // is fully initialized for the last pselect(). (prevent compiler warning)
+  Packet huge_vals = pabs(_x);
+  Packet huge_mask = pcmp_le(pset1<Packet>(huge_th),huge_vals);
+  
   if(predux_any(huge_mask))
   {
     const int PacketSize = unpacket_traits<Packet>::size;
