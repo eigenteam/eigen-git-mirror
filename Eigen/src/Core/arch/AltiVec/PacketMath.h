@@ -720,6 +720,11 @@ template<> EIGEN_STRONG_INLINE int predux_max<Packet4i>(const Packet4i& a)
   return pfirst(res);
 }
 
+template<> EIGEN_STRONG_INLINE bool predux_any(const Packet4f& x)
+{
+  return vec_any_ne(x, pzero(x));
+}
+
 template<int Offset>
 struct palign_impl<Offset,Packet4f>
 {

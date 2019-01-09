@@ -969,6 +969,13 @@ EIGEN_STRONG_INLINE double predux_max<Packet8d>(const Packet8d& a) {
   return pfirst(_mm256_max_pd(res, _mm256_shuffle_pd(res, res, 1)));
 }
 
+template<> EIGEN_STRONG_INLINE bool predux_any(const Packet16f& x)
+{
+  Packet16i xi = _mm512_castps_si512(x);
+  __mmask16 tmp = _mm512_test_epi32_mask(xi,xi);
+  return !_mm512_kortestz(tmp,tmp);
+}
+
 template <int Offset>
 struct palign_impl<Offset, Packet16f> {
   static EIGEN_STRONG_INLINE void run(Packet16f& first,
