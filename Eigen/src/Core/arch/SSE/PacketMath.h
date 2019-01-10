@@ -378,14 +378,14 @@ template<> EIGEN_STRONG_INLINE Packet4i pcmp_eq(const Packet4i& a, const Packet4
 template<> EIGEN_STRONG_INLINE Packet2d pcmp_eq(const Packet2d& a, const Packet2d& b) { return _mm_cmpeq_pd(a,b); }
 template<> EIGEN_STRONG_INLINE Packet4f pcmp_lt_or_nan(const Packet4f& a, const Packet4f& b) { return _mm_cmpnge_ps(a,b); }
 
-template<> EIGEN_STRONG_INLINE Packet4i pones<Packet4i>(const Packet4i& a) { return _mm_cmpeq_epi32(a, a); }
+template<> EIGEN_STRONG_INLINE Packet4i ptrue<Packet4i>(const Packet4i& a) { return _mm_cmpeq_epi32(a, a); }
 template<> EIGEN_STRONG_INLINE Packet4f
-pones<Packet4f>(const Packet4f& a) {
+ptrue<Packet4f>(const Packet4f& a) {
   Packet4i b = _mm_castps_si128(a);
   return _mm_castsi128_ps(_mm_cmpeq_epi32(b, b));
 }
 template<> EIGEN_STRONG_INLINE Packet2d
-pones<Packet2d>(const Packet2d& a) {
+ptrue<Packet2d>(const Packet2d& a) {
   Packet4i b = _mm_castpd_si128(a);
   return _mm_castsi128_pd(_mm_cmpeq_epi32(b, b));
 }

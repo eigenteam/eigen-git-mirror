@@ -240,7 +240,7 @@ template<typename Scalar,typename Packet> void packetmath()
 
   CHECK_CWISE1(internal::pnot, internal::pnot);
   CHECK_CWISE1(internal::pzero, internal::pzero);
-  CHECK_CWISE1(internal::pones, internal::pones);
+  CHECK_CWISE1(internal::ptrue, internal::ptrue);
   CHECK_CWISE1(internal::negate, internal::pnegate);
   CHECK_CWISE1(numext::conj, internal::pconj);
 

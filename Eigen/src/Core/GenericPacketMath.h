@@ -216,11 +216,11 @@ pandnot(const Packet& a, const Packet& b) { return a & (~b); }
 
 /** \internal \returns ones */
 template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
-pones(const Packet& /*a*/) { Packet b; memset(&b, 0xff, sizeof(b)); return b;}
+ptrue(const Packet& /*a*/) { Packet b; memset(&b, 0xff, sizeof(b)); return b;}
 
 /** \internal \returns the bitwise not of \a a */
 template <typename Packet> EIGEN_DEVICE_FUNC inline Packet
-pnot(const Packet& a) { return pxor(pones(a), a);}
+pnot(const Packet& a) { return pxor(ptrue(a), a);}
 
 /** \internal \returns \a a shifted by N bits to the right */
 template<int N> EIGEN_DEVICE_FUNC inline int
@@ -258,15 +258,15 @@ pselect(const Packet& mask, const Packet& a, const Packet& b) {
 
 /** \internal \returns a <= b as a bit mask */
 template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
-pcmp_le(const Packet& a, const Packet& b)  { return a<=b ? pones(a) : pzero(a); }
+pcmp_le(const Packet& a, const Packet& b)  { return a<=b ? ptrue(a) : pzero(a); }
 
 /** \internal \returns a < b as a bit mask */
 template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
-pcmp_lt(const Packet& a, const Packet& b)  { return a<b ? pones(a) : pzero(a); }
+pcmp_lt(const Packet& a, const Packet& b)  { return a<b ? ptrue(a) : pzero(a); }
 
 /** \internal \returns a == b as a bit mask */
 template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
-pcmp_eq(const Packet& a, const Packet& b) { return a==b ? pones(a) : pzero(a); }
+pcmp_eq(const Packet& a, const Packet& b) { return a==b ? ptrue(a) : pzero(a); }
 
 /** \internal \returns a < b or a==NaN or b==NaN as a bit mask */
 template<typename Packet> EIGEN_DEVICE_FUNC inline Packet

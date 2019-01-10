@@ -82,7 +82,7 @@ template<> EIGEN_STRONG_INLINE Packet2cf pmul<Packet2cf>(const Packet2cf& a, con
   #endif
 }
 
-template<> EIGEN_STRONG_INLINE Packet2cf pones  <Packet2cf>(const Packet2cf& a) { return Packet2cf(pones(a.v)); }
+template<> EIGEN_STRONG_INLINE Packet2cf ptrue  <Packet2cf>(const Packet2cf& a) { return Packet2cf(ptrue(a.v)); }
 template<> EIGEN_STRONG_INLINE Packet2cf pnot   <Packet2cf>(const Packet2cf& a) { return Packet2cf(pnot(a.v)); }
 
 template<> EIGEN_STRONG_INLINE Packet2cf pand   <Packet2cf>(const Packet2cf& a, const Packet2cf& b) { return Packet2cf(_mm_and_ps(a.v,b.v)); }
@@ -308,7 +308,7 @@ template<> EIGEN_STRONG_INLINE Packet1cd pmul<Packet1cd>(const Packet1cd& a, con
   #endif
 }
 
-template<> EIGEN_STRONG_INLINE Packet1cd pones  <Packet1cd>(const Packet1cd& a) { return Packet1cd(pones(a.v)); }
+template<> EIGEN_STRONG_INLINE Packet1cd ptrue  <Packet1cd>(const Packet1cd& a) { return Packet1cd(ptrue(a.v)); }
 template<> EIGEN_STRONG_INLINE Packet1cd pnot   <Packet1cd>(const Packet1cd& a) { return Packet1cd(pnot(a.v)); }
 template<> EIGEN_STRONG_INLINE Packet1cd pand   <Packet1cd>(const Packet1cd& a, const Packet1cd& b) { return Packet1cd(_mm_and_pd(a.v,b.v)); }
 template<> EIGEN_STRONG_INLINE Packet1cd por    <Packet1cd>(const Packet1cd& a, const Packet1cd& b) { return Packet1cd(_mm_or_pd(a.v,b.v)); }

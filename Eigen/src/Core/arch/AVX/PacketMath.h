@@ -251,22 +251,34 @@ template<> EIGEN_STRONG_INLINE Packet8f pfloor<Packet8f>(const Packet8f& a) { re
 template<> EIGEN_STRONG_INLINE Packet4d pfloor<Packet4d>(const Packet4d& a) { return _mm256_floor_pd(a); }
 
 
+template<> EIGEN_STRONG_INLINE Packet8i ptrue<Packet8i>(const Packet8i& a) {
 #ifdef EIGEN_VECTORIZE_AVX2
-template<> EIGEN_STRONG_INLINE Packet8i pones<Packet8i>(const Packet8i& a) {
-  return _mm256_cmpeq_epi64(a,a);
-}
+  // vpcmpeqd has lower latency than the more general vcmpps
+  return _mm256_cmpeq_epi32(a,a);
 #else
-template<> EIGEN_STRONG_INLINE Packet8i pones<Packet8i>(const Packet8i& /*a*/) {
-  const unsigned int o = 0xffffffffu;
-  return _mm256_set_epi32(o, o, o, o, o, o, o, o);
-}
+  const __m256 b = _mm256_castsi256_ps(a);
+  return _mm256_castps_si256(_mm256_cmp_ps(b,b,_CMP_TRUE_UQ));
 #endif
-template<> EIGEN_STRONG_INLINE Packet8f pones<Packet8f>(const Packet8f& a) {
-  return _mm256_castsi256_ps(pones<Packet8i>(_mm256_castps_si256(a)));
 }
 
-template<> EIGEN_STRONG_INLINE Packet4d pones<Packet4d>(const Packet4d& a) {
-  return _mm256_castsi256_pd(pones<Packet8i>(_mm256_castpd_si256(a)));
+template<> EIGEN_STRONG_INLINE Packet8f ptrue<Packet8f>(const Packet8f& a) {
+#ifdef EIGEN_VECTORIZE_AVX2
+  // vpcmpeqd has lower latency than the more general vcmpps
+  const __m256i b = _mm256_castps_si256(a);
+  return _mm256_castsi256_ps(_mm256_cmpeq_epi32(b,b));
+#else
+  return _mm256_cmp_ps(a,a,_CMP_TRUE_UQ);
+#endif
+}
+
+template<> EIGEN_STRONG_INLINE Packet4d ptrue<Packet4d>(const Packet4d& a) {
+#ifdef EIGEN_VECTORIZE_AVX2
+  // vpcmpeqq has lower latency than the more general vcmppd
+  const __m256i b = _mm256_castpd_si256(a);
+  return _mm256_castsi256_pd(_mm256_cmpeq_epi64(b,b));
+#else
+  return _mm256_cmp_pd(a,a,_CMP_TRUE_UQ);
+#endif
 }
 
 template<> EIGEN_STRONG_INLINE Packet8f pand<Packet8f>(const Packet8f& a, const Packet8f& b) { return _mm256_and_ps(a,b); }

@@ -321,19 +321,18 @@ EIGEN_STRONG_INLINE Packet8d pcmp_eq(const Packet8d& a, const Packet8d& b) {
 }
 
 template <>
-EIGEN_STRONG_INLINE Packet16i pones<Packet16i>(const Packet16i& /*a*/) {
-  const unsigned int o = 0xffffffffu;
-  return _mm512_set_epi32(o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o);
+EIGEN_STRONG_INLINE Packet16i ptrue<Packet16i>(const Packet16i& /*a*/) {
+  return _mm512_set1_epi32(0xffffffffu);
 }
 
 template <>
-EIGEN_STRONG_INLINE Packet16f pones<Packet16f>(const Packet16f& a) {
-  return _mm512_castsi512_ps(pones<Packet16i>(_mm512_castps_si512(a)));
+EIGEN_STRONG_INLINE Packet16f ptrue<Packet16f>(const Packet16f& a) {
+  return _mm512_castsi512_ps(ptrue<Packet16i>(_mm512_castps_si512(a)));
 }
 
 template <>
-EIGEN_STRONG_INLINE Packet8d pones<Packet8d>(const Packet8d& a) {
-  return _mm512_castsi512_pd(pones<Packet16i>(_mm512_castpd_si512(a)));
+EIGEN_STRONG_INLINE Packet8d ptrue<Packet8d>(const Packet8d& a) {
+  return _mm512_castsi512_pd(ptrue<Packet16i>(_mm512_castpd_si512(a)));
 }
 
 template <>
