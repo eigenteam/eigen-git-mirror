@@ -82,6 +82,9 @@ template<> EIGEN_STRONG_INLINE Packet2cf pmul<Packet2cf>(const Packet2cf& a, con
   #endif
 }
 
+template<> EIGEN_STRONG_INLINE Packet2cf pones  <Packet2cf>(const Packet2cf& a) { return Packet2cf(pones(a.v)); }
+template<> EIGEN_STRONG_INLINE Packet2cf pnot   <Packet2cf>(const Packet2cf& a) { return Packet2cf(pnot(a.v)); }
+
 template<> EIGEN_STRONG_INLINE Packet2cf pand   <Packet2cf>(const Packet2cf& a, const Packet2cf& b) { return Packet2cf(_mm_and_ps(a.v,b.v)); }
 template<> EIGEN_STRONG_INLINE Packet2cf por    <Packet2cf>(const Packet2cf& a, const Packet2cf& b) { return Packet2cf(_mm_or_ps(a.v,b.v)); }
 template<> EIGEN_STRONG_INLINE Packet2cf pxor   <Packet2cf>(const Packet2cf& a, const Packet2cf& b) { return Packet2cf(_mm_xor_ps(a.v,b.v)); }
@@ -305,6 +308,8 @@ template<> EIGEN_STRONG_INLINE Packet1cd pmul<Packet1cd>(const Packet1cd& a, con
   #endif
 }
 
+template<> EIGEN_STRONG_INLINE Packet1cd pones  <Packet1cd>(const Packet1cd& a) { return Packet1cd(pones(a.v)); }
+template<> EIGEN_STRONG_INLINE Packet1cd pnot   <Packet1cd>(const Packet1cd& a) { return Packet1cd(pnot(a.v)); }
 template<> EIGEN_STRONG_INLINE Packet1cd pand   <Packet1cd>(const Packet1cd& a, const Packet1cd& b) { return Packet1cd(_mm_and_pd(a.v,b.v)); }
 template<> EIGEN_STRONG_INLINE Packet1cd por    <Packet1cd>(const Packet1cd& a, const Packet1cd& b) { return Packet1cd(_mm_or_pd(a.v,b.v)); }
 template<> EIGEN_STRONG_INLINE Packet1cd pxor   <Packet1cd>(const Packet1cd& a, const Packet1cd& b) { return Packet1cd(_mm_xor_pd(a.v,b.v)); }
@@ -442,15 +447,13 @@ ptranspose(PacketBlock<Packet2cf,2>& kernel) {
 template<> EIGEN_STRONG_INLINE Packet2cf pcmp_eq(const Packet2cf& a, const Packet2cf& b)
 {
   __m128 eq = _mm_cmpeq_ps(a.v, b.v);
-  __m128 real_and_imag_equal = _mm_and_ps(eq, vec4f_swizzle1(eq, 1, 0, 3, 2));
-  return Packet2cf(real_and_imag_equal);
+  return Packet2cf(pand(eq, vec4f_swizzle1(eq, 1, 0, 3, 2)));
 }
 
 template<> EIGEN_STRONG_INLINE Packet1cd pcmp_eq(const Packet1cd& a, const Packet1cd& b)
 {
   __m128d eq = _mm_cmpeq_pd(a.v, b.v);
-  __m128d real_and_imag_equal = _mm_and_pd(eq, vec2d_swizzle1(eq, 1, 0));
-  return Packet1cd(real_and_imag_equal);
+  return Packet1cd(pand(eq, vec2d_swizzle1(eq, 1, 0)));
 }
 
 template<>  EIGEN_STRONG_INLINE Packet2cf pblend(const Selector<2>& ifPacket, const Packet2cf& thenPacket, const Packet2cf& elsePacket) {

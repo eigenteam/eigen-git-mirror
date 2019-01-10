@@ -83,10 +83,7 @@ template<> EIGEN_STRONG_INLINE Packet8cf pandnot<Packet8cf>(const Packet8cf& a, 
 template <>
 EIGEN_STRONG_INLINE Packet8cf pcmp_eq(const Packet8cf& a, const Packet8cf& b) {
   __m512 eq = pcmp_eq<Packet16f>(a.v, b.v);
-  __m512 eq_swap_real_imag = _mm512_permute_ps(eq, 0xB1);
-  __m512i real_and_imag_equal = _mm512_and_si512(
-      _mm512_castps_si512(eq), _mm512_castps_si512(eq_swap_real_imag));
-  return Packet8cf(_mm512_castsi512_ps(real_and_imag_equal));
+  return Packet8cf(pand(eq, _mm512_permute_ps(eq, 0xB1)));
 }
 
 template<> EIGEN_STRONG_INLINE Packet8cf pload <Packet8cf>(const std::complex<float>* from) { EIGEN_DEBUG_ALIGNED_LOAD return Packet8cf(pload<Packet16f>(&numext::real_ref(*from))); }
@@ -279,10 +276,7 @@ template<> EIGEN_STRONG_INLINE Packet4cd pandnot<Packet4cd>(const Packet4cd& a, 
 template <>
 EIGEN_STRONG_INLINE Packet4cd pcmp_eq(const Packet4cd& a, const Packet4cd& b) {
   __m512d eq = pcmp_eq<Packet8d>(a.v, b.v);
-  __m512d eq_swap_real_imag = _mm512_permute_pd(eq, 0x55);
-  __m512i real_and_imag_equal = _mm512_and_si512(
-      _mm512_castpd_si512(eq), _mm512_castpd_si512(eq_swap_real_imag));
-  return Packet4cd(_mm512_castsi512_pd(real_and_imag_equal));
+  return Packet4cd(pand(eq, _mm512_permute_pd(eq, 0x55)));
 }
 
 template<> EIGEN_STRONG_INLINE Packet4cd pload <Packet4cd>(const std::complex<double>* from)
