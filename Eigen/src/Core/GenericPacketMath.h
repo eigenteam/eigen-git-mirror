@@ -284,11 +284,11 @@ ploadu(const typename unpacket_traits<Packet>::type* from) { return *from; }
 template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
 pset1(const typename unpacket_traits<Packet>::type& a) { return a; }
 
-/** \/** \internal \returns a packet with constant coefficients set from bits */
+/** \internal \returns a packet with constant coefficients set from bits */
 template<typename Packet,typename BitsType> EIGEN_DEVICE_FUNC inline Packet
 pset1frombits(BitsType a);
 
-internal \returns a packet with constant coefficients \a a[0], e.g.: (a[0],a[0],a[0],a[0]) */
+/** \internal \returns a packet with constant coefficients \a a[0], e.g.: (a[0],a[0],a[0],a[0]) */
 template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
 pload1(const typename unpacket_traits<Packet>::type  *a) { return pset1<Packet>(*a); }
 
