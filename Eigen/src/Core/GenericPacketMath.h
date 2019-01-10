@@ -214,6 +214,10 @@ pxor(const Packet& a, const Packet& b) { return a ^ b; }
 template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
 pandnot(const Packet& a, const Packet& b) { return a & (~b); }
 
+/** \internal \returns ones */
+template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
+pones(const Packet& /*a*/) { Packet b; memset(&b, 0xff, sizeof(b)); return b;}
+
 /** \internal \returns the bitwise not of \a a */
 template <typename Packet> EIGEN_DEVICE_FUNC inline Packet
 pnot(const Packet& a) { return pxor(pones(a), a);}
@@ -245,10 +249,6 @@ pldexp(const Packet &a, const Packet &exponent) { return std::ldexp(a,exponent);
 /** \internal \returns zeros */
 template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
 pzero(const Packet& a) { return pxor(a,a); }
-
-/** \internal \returns ones */
-template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
-pones(const Packet& /*a*/) { Packet b; memset(&b, 0xff, sizeof(b)); return b;}
 
 /** \internal \returns bits of \a or \b according to the input bit mask \a mask */
 template<typename Packet> EIGEN_DEVICE_FUNC inline Packet

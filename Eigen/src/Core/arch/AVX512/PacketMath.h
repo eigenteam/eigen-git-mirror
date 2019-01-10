@@ -284,27 +284,26 @@ EIGEN_STRONG_INLINE Packet16f cat256(Packet8f a, Packet8f b) {
 #endif
 
 template<> EIGEN_STRONG_INLINE Packet16f pcmp_le(const Packet16f& a, const Packet16f& b) {
-  __m256 lo = pcmp_le(extract256<0>(a), extract256<0>(b));
-  __m256 hi = pcmp_le(extract256<1>(a), extract256<1>(b));
-  return cat256(lo, hi);
+  __mmask16 mask = _mm512_cmp_ps_mask(a, b, _CMP_LE_OQ);
+  return _mm512_castsi512_ps(
+      _mm512_mask_set1_epi32(_mm512_set1_epi32(0), mask, 0xffffffffu));
 }
 
 template<> EIGEN_STRONG_INLINE Packet16f pcmp_lt(const Packet16f& a, const Packet16f& b) {
-  __m256 lo = pcmp_lt(extract256<0>(a), extract256<0>(b));
-  __m256 hi = pcmp_lt(extract256<1>(a), extract256<1>(b));
-  return cat256(lo, hi);
+  __mmask16 mask = _mm512_cmp_ps_mask(a, b, _CMP_LT_OQ);
+  return _mm512_castsi512_ps(
+      _mm512_mask_set1_epi32(_mm512_set1_epi32(0), mask, 0xffffffffu));
 }
 
 template<> EIGEN_STRONG_INLINE Packet16f pcmp_lt_or_nan(const Packet16f& a, const Packet16f& b) {
-  __m256 lo = pcmp_lt_or_nan(extract256<0>(a), extract256<0>(b));
-  __m256 hi = pcmp_lt_or_nan(extract256<1>(a), extract256<1>(b));
-  return cat256(lo, hi);
+  __mmask16 mask = _mm512_cmp_ps_mask(a, b, _CMP_NGT_UQ);
+  return _mm512_castsi512_ps(
+      _mm512_mask_set1_epi32(_mm512_set1_epi32(0), mask, 0xffffffffu));
 }
 
 template<> EIGEN_STRONG_INLINE Packet16i pcmp_eq(const Packet16i& a, const Packet16i& b) {
-  __m256i lo = _mm256_cmpeq_epi32(_mm512_extracti64x4_epi64(a, 0), _mm512_extracti64x4_epi64(b, 0));
-  __m256i hi = _mm256_cmpeq_epi32(_mm512_extracti64x4_epi64(a, 1), _mm512_extracti64x4_epi64(b, 1));
-  return _mm512_inserti64x4(_mm512_castsi256_si512(lo), hi, 1);
+  __mmask16 mask = _mm512_cmp_epi32_mask(a, b, _CMP_EQ_OQ);
+  return _mm512_mask_set1_epi32(_mm512_set1_epi32(0), mask, 0xffffffffu);
 }
 
 template <>
