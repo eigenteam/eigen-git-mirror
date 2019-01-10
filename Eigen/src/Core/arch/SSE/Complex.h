@@ -447,15 +447,13 @@ ptranspose(PacketBlock<Packet2cf,2>& kernel) {
 template<> EIGEN_STRONG_INLINE Packet2cf pcmp_eq(const Packet2cf& a, const Packet2cf& b)
 {
   __m128 eq = _mm_cmpeq_ps(a.v, b.v);
-  __m128 real_and_imag_equal = _mm_and_ps(eq, vec4f_swizzle1(eq, 1, 0, 3, 2));
-  return Packet2cf(real_and_imag_equal);
+  return Packet2cf(pand(eq, vec4f_swizzle1(eq, 1, 0, 3, 2)));
 }
 
 template<> EIGEN_STRONG_INLINE Packet1cd pcmp_eq(const Packet1cd& a, const Packet1cd& b)
 {
   __m128d eq = _mm_cmpeq_pd(a.v, b.v);
-  __m128d real_and_imag_equal = _mm_and_pd(eq, vec2d_swizzle1(eq, 1, 0));
-  return Packet1cd(real_and_imag_equal);
+  return Packet1cd(pand(eq, vec2d_swizzle1(eq, 1, 0)));
 }
 
 template<>  EIGEN_STRONG_INLINE Packet2cf pblend(const Selector<2>& ifPacket, const Packet2cf& thenPacket, const Packet2cf& elsePacket) {
