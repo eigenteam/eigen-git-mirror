@@ -72,10 +72,11 @@ template<> EIGEN_STRONG_INLINE Packet4cf pmul<Packet4cf>(const Packet4cf& a, con
 template <>
 EIGEN_STRONG_INLINE Packet4cf pcmp_eq(const Packet4cf& a, const Packet4cf& b) {
   __m256 eq = _mm256_cmp_ps(a.v, b.v, _CMP_EQ_OQ);
-  __m256 real_and_imag_equal = _mm256_and_ps(eq, _mm256_permute_ps(eq, 0xb1));
-  return Packet4cf(real_and_imag_equal);
+  return Packet4cf(_mm256_and_ps(eq, _mm256_permute_ps(eq, 0xb1)));
 }
 
+template<> EIGEN_STRONG_INLINE Packet4cf pones<Packet4cf>(const Packet4cf& a) { return Packet4cf(pones(a.v)); }
+template<> EIGEN_STRONG_INLINE Packet4cf pnot<Packet4cf>(const Packet4cf& a) { return Packet4cf(pnot(a.v)); }
 template<> EIGEN_STRONG_INLINE Packet4cf pand   <Packet4cf>(const Packet4cf& a, const Packet4cf& b) { return Packet4cf(_mm256_and_ps(a.v,b.v)); }
 template<> EIGEN_STRONG_INLINE Packet4cf por    <Packet4cf>(const Packet4cf& a, const Packet4cf& b) { return Packet4cf(_mm256_or_ps(a.v,b.v)); }
 template<> EIGEN_STRONG_INLINE Packet4cf pxor   <Packet4cf>(const Packet4cf& a, const Packet4cf& b) { return Packet4cf(_mm256_xor_ps(a.v,b.v)); }
@@ -286,10 +287,11 @@ template<> EIGEN_STRONG_INLINE Packet2cd pmul<Packet2cd>(const Packet2cd& a, con
 template <>
 EIGEN_STRONG_INLINE Packet2cd pcmp_eq(const Packet2cd& a, const Packet2cd& b) {
   __m256d eq = _mm256_cmp_pd(a.v, b.v, _CMP_EQ_OQ);
-  __m256d real_and_imag_equal = _mm256_and_pd(eq, _mm256_permute_pd(eq, 0x5));
-  return Packet2cd(real_and_imag_equal);
+  return Packet2cd(pand(eq, _mm256_permute_pd(eq, 0x5)));
 }
 
+template<> EIGEN_STRONG_INLINE Packet2cd pones<Packet2cd>(const Packet2cd& a) { return Packet2cd(pones(a.v)); }
+template<> EIGEN_STRONG_INLINE Packet2cd pnot<Packet2cd>(const Packet2cd& a) { return Packet2cd(pnot(a.v)); }
 template<> EIGEN_STRONG_INLINE Packet2cd pand   <Packet2cd>(const Packet2cd& a, const Packet2cd& b) { return Packet2cd(_mm256_and_pd(a.v,b.v)); }
 template<> EIGEN_STRONG_INLINE Packet2cd por    <Packet2cd>(const Packet2cd& a, const Packet2cd& b) { return Packet2cd(_mm256_or_pd(a.v,b.v)); }
 template<> EIGEN_STRONG_INLINE Packet2cd pxor   <Packet2cd>(const Packet2cd& a, const Packet2cd& b) { return Packet2cd(_mm256_xor_pd(a.v,b.v)); }
