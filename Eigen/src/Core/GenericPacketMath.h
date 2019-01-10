@@ -214,18 +214,6 @@ pxor(const Packet& a, const Packet& b) { return a ^ b; }
 template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
 pandnot(const Packet& a, const Packet& b) { return a & (~b); }
 
-/** \internal \returns a packet with constant coefficients set from bits */
-template<typename Packet,typename BitsType> EIGEN_DEVICE_FUNC inline Packet
-pset1frombits(BitsType a);
-
-/** \internal \returns zeros */
-template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
-pzero(const Packet& a) { return pxor(a,a); }
-
-/** \internal \returns ones */
-template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
-pones(const Packet& /*a*/) { Packet b; memset(&b, 0xff, sizeof(b)); return b;}
-
 /** \internal \returns the bitwise not of \a a */
 template <typename Packet> EIGEN_DEVICE_FUNC inline Packet
 pnot(const Packet& a) { return pxor(pones(a), a);}
@@ -254,9 +242,19 @@ pfrexp(const Packet &a, Packet &exponent) { return std::frexp(a,&exponent); }
 template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
 pldexp(const Packet &a, const Packet &exponent) { return std::ldexp(a,exponent); }
 
+/** \internal \returns zeros */
+template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
+pzero(const Packet& a) { return pxor(a,a); }
+
+/** \internal \returns ones */
+template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
+pones(const Packet& /*a*/) { Packet b; memset(&b, 0xff, sizeof(b)); return b;}
+
 /** \internal \returns bits of \a or \b according to the input bit mask \a mask */
 template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
-pselect(const Packet& mask, const Packet& a, const Packet& b) { return por(pand(a,mask),pandnot(b,mask)); }
+pselect(const Packet& mask, const Packet& a, const Packet& b) {
+  return por(pand(a,mask),pandnot(b,mask));
+}
 
 /** \internal \returns a <= b as a bit mask */
 template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
@@ -286,7 +284,11 @@ ploadu(const typename unpacket_traits<Packet>::type* from) { return *from; }
 template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
 pset1(const typename unpacket_traits<Packet>::type& a) { return a; }
 
-/** \internal \returns a packet with constant coefficients \a a[0], e.g.: (a[0],a[0],a[0],a[0]) */
+/** \/** \internal \returns a packet with constant coefficients set from bits */
+template<typename Packet,typename BitsType> EIGEN_DEVICE_FUNC inline Packet
+pset1frombits(BitsType a);
+
+internal \returns a packet with constant coefficients \a a[0], e.g.: (a[0],a[0],a[0],a[0]) */
 template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
 pload1(const typename unpacket_traits<Packet>::type  *a) { return pset1<Packet>(*a); }
 

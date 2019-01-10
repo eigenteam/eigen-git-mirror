@@ -82,7 +82,7 @@ template<> EIGEN_STRONG_INLINE Packet2cf pmul<Packet2cf>(const Packet2cf& a, con
   #endif
 }
 
-template<> EIGEN_STRONG_INLINE Packet2cf pones   <Packet2cf>(const Packet2cf& a) { return Packet2cf(pones(a.v)); }
+template<> EIGEN_STRONG_INLINE Packet2cf pones  <Packet2cf>(const Packet2cf& a) { return Packet2cf(pones(a.v)); }
 template<> EIGEN_STRONG_INLINE Packet2cf pnot   <Packet2cf>(const Packet2cf& a) { return Packet2cf(pnot(a.v)); }
 
 template<> EIGEN_STRONG_INLINE Packet2cf pand   <Packet2cf>(const Packet2cf& a, const Packet2cf& b) { return Packet2cf(_mm_and_ps(a.v,b.v)); }
