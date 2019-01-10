@@ -250,6 +250,25 @@ template<> EIGEN_STRONG_INLINE Packet4d pceil<Packet4d>(const Packet4d& a) { ret
 template<> EIGEN_STRONG_INLINE Packet8f pfloor<Packet8f>(const Packet8f& a) { return _mm256_floor_ps(a); }
 template<> EIGEN_STRONG_INLINE Packet4d pfloor<Packet4d>(const Packet4d& a) { return _mm256_floor_pd(a); }
 
+
+#ifdef EIGEN_VECTORIZE_AVX2
+template<> EIGEN_STRONG_INLINE Packet8i pones<Packet8i>(const Packet8i& a) {
+  return _mm256_cmpeq_epi64(a,a);
+}
+#else
+template<> EIGEN_STRONG_INLINE Packet8i pones<Packet8i>(const Packet8i& /*a*/) {
+  const unsigned int o = 0xffffffffu;
+  return _mm256_set_epi32(o, o, o, o, o, o, o, o);
+}
+#endif
+template<> EIGEN_STRONG_INLINE Packet8f pones<Packet8f>(const Packet8f& a) {
+  return _mm256_castsi256_ps(pones<Packet8i>(_mm256_castps_si256(a)));
+}
+
+template<> EIGEN_STRONG_INLINE Packet4d pones<Packet4d>(const Packet4d& a) {
+  return _mm256_castsi256_pd(pones<Packet8i>(_mm256_castpd_si256(a)));
+}
+
 template<> EIGEN_STRONG_INLINE Packet8f pand<Packet8f>(const Packet8f& a, const Packet8f& b) { return _mm256_and_ps(a,b); }
 template<> EIGEN_STRONG_INLINE Packet4d pand<Packet4d>(const Packet4d& a, const Packet4d& b) { return _mm256_and_pd(a,b); }
 template<> EIGEN_STRONG_INLINE Packet8i pand<Packet8i>(const Packet8i& a, const Packet8i& b) {

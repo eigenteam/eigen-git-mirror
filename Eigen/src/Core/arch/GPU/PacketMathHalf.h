@@ -143,6 +143,10 @@ template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE half2 pabs<half2>(const half2& 
   return result;
 }
 
+template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE half2 pones<half2>(const half2& a) {
+  half2 result;
+  *(reinterpret_cast<unsigned*>(&(result))) = 0xffffffffu;
+}  
 
 EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void
 ptranspose(PacketBlock<half2,2>& kernel) {
@@ -640,6 +644,14 @@ EIGEN_STRONG_INLINE Packet16h float2half(const Packet16f& a) {
 #endif
 }
 
+template<> EIGEN_STRONG_INLINE Packet16h pnot(const Packet16h& a) {
+  Packet16h r; r.x = _mm256_xor_si256(a.x, pcmp_eq(a.x, a.x)); return r;
+}
+
+template<> EIGEN_STRONG_INLINE Packet16h pones(const Packet16h& a) {
+  Packet16h r; r.x = Packet8i(pones(a.x)); return r;
+}
+
 template<> EIGEN_STRONG_INLINE Packet16h por(const Packet16h& a,const Packet16h& b) {
   // in some cases Packet8i is a wrapper around __m256i, so we need to 
   // cast to Packet8i to call the correct overload.
@@ -1083,6 +1095,10 @@ EIGEN_STRONG_INLINE Packet8h float2half(const Packet8f& a) {
   result.x = _mm_set_epi16(h7.x, h6.x, h5.x, h4.x, h3.x, h2.x, h1.x, h0.x);
   return result;
 #endif
+}
+
+template<> EIGEN_STRONG_INLINE Packet8h pones(const Packet8h& a) {
+  Packet8h r; r.x = _mm_cmpeq_epi32(a.x, a.x); return r;
 }
 
 template<> EIGEN_STRONG_INLINE Packet8h por(const Packet8h& a,const Packet8h& b) {

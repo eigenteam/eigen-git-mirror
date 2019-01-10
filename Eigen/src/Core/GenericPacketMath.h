@@ -214,17 +214,21 @@ pxor(const Packet& a, const Packet& b) { return a ^ b; }
 template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
 pandnot(const Packet& a, const Packet& b) { return a & (~b); }
 
-/** \internal \returns a packet with constant coefficients \a a, e.g.: (a,a,a,a) */
+/** \internal \returns a packet with constant coefficients set from bits */
+template<typename Packet,typename BitsType> EIGEN_DEVICE_FUNC inline Packet
+pset1frombits(BitsType a);
+
+/** \internal \returns zeros */
 template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
-pset1(const typename unpacket_traits<Packet>::type& a) { return a; }
+pzero(const Packet& a) { return pxor(a,a); }
+
+/** \internal \returns ones */
+template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
+pones(const Packet& /*a*/) { Packet b; memset(&b, 0xff, sizeof(b)); return b;}
 
 /** \internal \returns the bitwise not of \a a */
-template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
-pnot(const Packet& a) {
-  typedef typename unpacket_traits<Packet>::type Scalar;
-  Packet ones  = pset1<Packet>(Scalar(1));
-  return pandnot(ones, a);
-}
+template <typename Packet> EIGEN_DEVICE_FUNC inline Packet
+pnot(const Packet& a) { return pxor(pones(a), a);}
 
 /** \internal \returns \a a shifted by N bits to the right */
 template<int N> EIGEN_DEVICE_FUNC inline int
@@ -250,36 +254,25 @@ pfrexp(const Packet &a, Packet &exponent) { return std::frexp(a,&exponent); }
 template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
 pldexp(const Packet &a, const Packet &exponent) { return std::ldexp(a,exponent); }
 
-/** \internal \returns zeros */
-template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
-pzero(const Packet& a) { return pxor(a,a); }
-
 /** \internal \returns bits of \a or \b according to the input bit mask \a mask */
 template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
-pselect(const Packet& mask, const Packet& a, const Packet& b) {
-  return por(pand(a,mask),pandnot(b,mask));
-}
+pselect(const Packet& mask, const Packet& a, const Packet& b) { return por(pand(a,mask),pandnot(b,mask)); }
 
 /** \internal \returns a <= b as a bit mask */
 template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
-pcmp_le(const Packet& a, const Packet& b); /* { return a<=b ? pnot(pxor(a,a)) : pxor(a,a); } */
+pcmp_le(const Packet& a, const Packet& b)  { return a<=b ? pones(a) : pzero(a); }
 
 /** \internal \returns a < b as a bit mask */
 template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
-pcmp_lt(const Packet& a, const Packet& b); /* { return a<b  ? pnot(pxor(a,a)) : pxor(a,a); } */
+pcmp_lt(const Packet& a, const Packet& b)  { return a<b ? pones(a) : pzero(a); }
 
 /** \internal \returns a == b as a bit mask */
 template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
-pcmp_eq(const Packet& a, const Packet& b)
-{
-  typedef typename unpacket_traits<Packet>::type Scalar;
-  Packet zeros  = pset1<Packet>(Scalar(0));
-  return a==b ? pnot(zeros) : zeros;
-}
+pcmp_eq(const Packet& a, const Packet& b) { return a==b ? pones(a) : pzero(a); }
 
 /** \internal \returns a < b or a==NaN or b==NaN as a bit mask */
 template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
-pcmp_lt_or_nan(const Packet& a, const Packet& b); /* { return pnot(pcmp_le(b,a)); } */
+pcmp_lt_or_nan(const Packet& a, const Packet& b) { return pnot(pcmp_le(b,a)); } 
 
 /** \internal \returns a packet version of \a *from, from must be 16 bytes aligned */
 template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
@@ -289,9 +282,9 @@ pload(const typename unpacket_traits<Packet>::type* from) { return *from; }
 template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
 ploadu(const typename unpacket_traits<Packet>::type* from) { return *from; }
 
-/** \internal \returns a packet with constant coefficients set from bits */
-template<typename Packet,typename BitsType> EIGEN_DEVICE_FUNC inline Packet
-pset1frombits(BitsType a);
+/** \internal \returns a packet with constant coefficients \a a, e.g.: (a,a,a,a) */
+template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
+pset1(const typename unpacket_traits<Packet>::type& a) { return a; }
 
 /** \internal \returns a packet with constant coefficients \a a[0], e.g.: (a[0],a[0],a[0],a[0]) */
 template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
