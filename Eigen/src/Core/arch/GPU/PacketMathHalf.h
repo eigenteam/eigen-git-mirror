@@ -143,11 +143,7 @@ template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE half2 pabs<half2>(const half2& 
   return result;
 }
 
-<<<<<<< working copy
 template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE half2 ptrue<half2>(const half2& a) {
-=======
-template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE half2 pones<half2>(const half2& a) {
->>>>>>> merge rev
   half2 result;
   *(reinterpret_cast<unsigned*>(&(result))) = 0xffffffffu;
 }  
@@ -652,13 +648,8 @@ template<> EIGEN_STRONG_INLINE Packet16h pnot(const Packet16h& a) {
   Packet16h r; r.x = _mm256_xor_si256(a.x, pcmp_eq(a.x, a.x)); return r;
 }
 
-<<<<<<< working copy
 template<> EIGEN_STRONG_INLINE Packet16h ptrue(const Packet16h& a) {
   Packet16h r; r.x = Packet8i(ptrue(a.x)); return r;
-=======
-template<> EIGEN_STRONG_INLINE Packet16h pones(const Packet16h& a) {
-  Packet16h r; r.x = Packet8i(pones(a.x)); return r;
->>>>>>> merge rev
 }
 
 template<> EIGEN_STRONG_INLINE Packet16h por(const Packet16h& a,const Packet16h& b) {
@@ -1106,11 +1097,7 @@ EIGEN_STRONG_INLINE Packet8h float2half(const Packet8f& a) {
 #endif
 }
 
-<<<<<<< working copy
 template<> EIGEN_STRONG_INLINE Packet8h ptrue(const Packet8h& a) {
-=======
-template<> EIGEN_STRONG_INLINE Packet8h pones(const Packet8h& a) {
->>>>>>> merge rev
   Packet8h r; r.x = _mm_cmpeq_epi32(a.x, a.x); return r;
 }
 
