@@ -340,11 +340,7 @@ Packet psincos_float(const Packet& _x)
   if(predux_any(huge_mask))
   {
     const int PacketSize = unpacket_traits<Packet>::size;
-    #if EIGEN_HAS_CXX11
-    alignas(Packet) float vals[PacketSize];
-    #else
     EIGEN_ALIGN_TO_BOUNDARY(sizeof(Packet)) float vals[PacketSize];
-    #endif
     pstoreu(vals, _x);
     for(int k=0; k<PacketSize;++k) {
       float val = vals[k];
