@@ -879,7 +879,8 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
     // Keep count of pending gemm tasks for each l0 range.
     MaxSizeVector<std::atomic<int>> l0_state(l0_ranges);
     for (int i = 0; i < l0_ranges; ++i) {
-      l0_state.emplace_back(actual_range_size(l0_ranges, l0_size, i));
+      const Index num_pending_tasks = actual_range_size(l0_ranges, l0_size, i);
+      l0_state.emplace_back(internal::convert_index<int>(num_pending_tasks));
     }
 
     MaxSizeVector<Scalar*> block_buffers(num_blocks);
