@@ -143,6 +143,10 @@ template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE half2 pabs<half2>(const half2& 
   return result;
 }
 
+template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE half ptrue<half>(const half& a) {
+  return __half_raw(0xffffu);
+}
+
 template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE half2 ptrue<half2>(const half2& a) {
   half2 result;
   *(reinterpret_cast<unsigned*>(&(result))) = 0xffffffffu;
