@@ -890,7 +890,8 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
 
       TENSOR_CONTRACTION_DISPATCH(
           this->template evalGemmPartialWithoutOutputKernel, Alignment,
-          (buf, begin, end, /*num_threads=*/num_blocks));
+          (buf, begin, end,
+           /*num_threads=*/internal::convert_index<int>(num_blocks)));
 
       // Check if it was the last task in l0 range.
       const Index l0_index = block_idx / l0_size;
