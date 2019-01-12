@@ -150,7 +150,7 @@ template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE half ptrue<half>(const half& a)
 template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE half2 ptrue<half2>(const half2& a) {
   half2 result;
   *(reinterpret_cast<unsigned*>(&(result))) = 0xffffffffu;
-}  
+}
 
 EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void
 ptranspose(PacketBlock<half2,2>& kernel) {
