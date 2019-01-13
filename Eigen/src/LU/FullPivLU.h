@@ -18,6 +18,7 @@ template<typename _MatrixType> struct traits<FullPivLU<_MatrixType> >
 {
   typedef MatrixXpr XprKind;
   typedef SolverStorage StorageKind;
+  typedef int StorageIndex;
   enum { Flags = 0 };
 };
 
@@ -64,7 +65,6 @@ template<typename _MatrixType> class FullPivLU
     typedef SolverBase<FullPivLU> Base;
 
     EIGEN_GENERIC_PUBLIC_INTERFACE(FullPivLU)
-    // FIXME StorageIndex defined in EIGEN_GENERIC_PUBLIC_INTERFACE should be int
     enum {
       MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
       MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime
@@ -529,8 +529,8 @@ void FullPivLU<MatrixType>::computeInPlace()
       m_nonzero_pivots = k;
       for(Index i = k; i < size; ++i)
       {
-        m_rowsTranspositions.coeffRef(i) = i;
-        m_colsTranspositions.coeffRef(i) = i;
+        m_rowsTranspositions.coeffRef(i) = internal::convert_index<StorageIndex>(i);
+        m_colsTranspositions.coeffRef(i) = internal::convert_index<StorageIndex>(i);
       }
       break;
     }
@@ -541,8 +541,8 @@ void FullPivLU<MatrixType>::computeInPlace()
     // Now that we've found the pivot, we need to apply the row/col swaps to
     // bring it to the location (k,k).
 
-    m_rowsTranspositions.coeffRef(k) = row_of_biggest_in_corner;
-    m_colsTranspositions.coeffRef(k) = col_of_biggest_in_corner;
+    m_rowsTranspositions.coeffRef(k) = internal::convert_index<StorageIndex>(row_of_biggest_in_corner);
+    m_colsTranspositions.coeffRef(k) = internal::convert_index<StorageIndex>(col_of_biggest_in_corner);
     if(k != row_of_biggest_in_corner) {
       m_lu.row(k).swap(m_lu.row(row_of_biggest_in_corner));
       ++number_of_transpositions;
