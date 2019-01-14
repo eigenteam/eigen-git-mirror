@@ -3,7 +3,7 @@
 //
 // Copyright (C) 2007 Julien Pommier
 // Copyright (C) 2014 Pedro Gonnet (pedro.gonnet@gmail.com)
-// Copyright (C) 2009-2018 Gael Guennebaud <gael.guennebaud@inria.fr>
+// Copyright (C) 2009-2019 Gael Guennebaud <gael.guennebaud@inria.fr>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
@@ -253,15 +253,68 @@ Packet pexp_double(const Packet _x)
   return pmax(pldexp(x,fx), _x);
 }
 
-/* The code is the rewriting of the cephes sinf/cosf functions.
-   Precision is excellent as long as x < 8192 (I did not bother to
-   take into account the special handling they have for greater values
-   -- it does not return garbage for arguments over 8192, though, but
-   the extra precision is missing).
+// The following code is inspired by the following stack-overflow answer:
+//   https://stackoverflow.com/questions/30463616/payne-hanek-algorithm-implementation-in-c/30465751#30465751
+// It has been largely optimized:
+//  - By-pass calls to frexp.
+//  - Aligned loads of required 96 bits of 2/pi. This is accomplished by
+//    (1) balancing the mantissa and exponent to the required bits of 2/pi are
+//    aligned on 8-bits, and (2) replicating the storage of the bits of 2/pi.
+//  - Avoid a branch in rounding and extraction of the remaining fractional part.
+// Overall, I measured a speed up higher than x2 on x86-64.
+inline float trig_reduce_huge (float xf, int *quadrant)
+{
+  using Eigen::numext::int32_t;
+  using Eigen::numext::uint32_t;
+  using Eigen::numext::int64_t;
+  using Eigen::numext::uint64_t;
 
-   Note that it is such that sinf((float)M_PI) = 8.74e-8, which is the
-   surprising but correct result.
-*/
+  const double pio2_62 = 3.4061215800865545e-19;    // pi/2 * 2^-62
+  const uint64_t zero_dot_five = uint64_t(1) << 61; // 0.5 in 2.62-bit fixed-point foramt
+
+  // 192 bits of 2/pi for Payne-Hanek reduction
+  // Bits are introduced by packet of 8 to enable aligned reads.
+  static const uint32_t two_over_pi [] = 
+  {
+    0x00000028, 0x000028be, 0x0028be60, 0x28be60db,
+    0xbe60db93, 0x60db9391, 0xdb939105, 0x9391054a,
+    0x91054a7f, 0x054a7f09, 0x4a7f09d5, 0x7f09d5f4,
+    0x09d5f47d, 0xd5f47d4d, 0xf47d4d37, 0x7d4d3770,
+    0x4d377036, 0x377036d8, 0x7036d8a5, 0x36d8a566,
+    0xd8a5664f, 0xa5664f10, 0x664f10e4, 0x4f10e410,
+    0x10e41000, 0xe4100000
+  };
+  
+  uint32_t xi = numext::as_uint(xf);
+  // Below, -118 = -126 + 8.
+  //   -126 is to get the exponent,
+  //   +8 is to enable alignment of 2/pi's bits on 8 bits.
+  // This is possible because the fractional part of x as only 24 meaningful bits.
+  uint32_t e = (xi >> 23) - 118;
+  // Extract the mantissa and shift it to align it wrt the exponent
+  xi = ((xi & 0x007fffffu)| 0x00800000u) << (e & 0x7);
+
+  uint32_t i = e >> 3;
+  uint32_t twoopi_1  = two_over_pi[i-1];
+  uint32_t twoopi_2  = two_over_pi[i+3];
+  uint32_t twoopi_3  = two_over_pi[i+7];
+
+  // Compute x * 2/pi in 2.62-bit fixed-point format.
+  uint64_t p;
+  p = uint64_t(xi) * twoopi_3;
+  p = uint64_t(xi) * twoopi_2 + (p >> 32);
+  p = (uint64_t(xi * twoopi_1) << 32) + p;
+
+  // Round to nearest: add 0.5 and extract integral part.
+  uint64_t q = (p + zero_dot_five) >> 62;
+  *quadrant = int(q);
+  // Now it remains to compute "r = x - q*pi/2" with high accuracy,
+  // since we have p=x/(pi/2) with high accuracy, we can more efficiently compute r as:
+  //   r = (p-q)*pi/2,
+  // where the product can be be carried out with sufficient accuracy using double precision.
+  p -= q<<62;
+  return float(double(int64_t(p)) * pio2_62);
+}
 
 template<bool ComputeSine,typename Packet>
 EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
@@ -284,17 +337,6 @@ Packet psincos_float(const Packet& _x)
   Packet y_round = padd(y, cst_rounding_magic);
   PacketI y_int = preinterpret<PacketI>(y_round); // last 23 digits represent integer (if abs(x)<2^24)
   y = psub(y_round, cst_rounding_magic); // nearest integer to x*4/pi
-
-  // Compute the sign to apply to the polynomial.
-  // sin: sign = second_bit(y_int) xor signbit(_x)
-  // cos: sign = second_bit(y_int+1)
-  Packet sign_bit = ComputeSine ? pxor(_x, preinterpret<Packet>(pshiftleft<30>(y_int)))
-                                : preinterpret<Packet>(pshiftleft<30>(padd(y_int,csti_1)));
-  sign_bit = pand(sign_bit, cst_sign_mask); // clear all but left most bit
-
-  // Get the polynomial selection mask from the second bit of y_int
-  // We'll calculate both (sin and cos) polynomials and then select from the two.
-  Packet poly_mask = preinterpret<Packet>(pcmp_eq(pand(y_int, csti_1), pzero(y_int)));
 
   // Reduce x by y octants to get: -Pi/4 <= x <= +Pi/4
   // using "Extended precision modular arithmetic"
@@ -332,24 +374,35 @@ Packet psincos_float(const Packet& _x)
   // The coefficients are: 0xbfc90f80, 0xb7354480, 0x2e74b9ee
   #endif
 
-  // We use huge_vals as a temporary for abs(_x) to ensure huge_vals
-  // is fully initialized for the last pselect(). (prevent compiler warning)
-  Packet huge_vals = pabs(_x);
-  Packet huge_mask = pcmp_le(pset1<Packet>(huge_th),huge_vals);
-  
-  if(predux_any(huge_mask))
+  if(predux_any(pcmp_le(pset1<Packet>(huge_th),pabs(_x))))
   {
     const int PacketSize = unpacket_traits<Packet>::size;
     EIGEN_ALIGN_TO_BOUNDARY(sizeof(Packet)) float vals[PacketSize];
-    pstoreu(vals, _x);
-    for(int k=0; k<PacketSize;++k) {
+    EIGEN_ALIGN_TO_BOUNDARY(sizeof(Packet)) float x_cpy[PacketSize];
+    EIGEN_ALIGN_TO_BOUNDARY(sizeof(Packet)) int y_int2[PacketSize];
+    pstoreu(vals, pabs(_x));
+    pstoreu(x_cpy, x);
+    pstoreu(y_int2, y_int);
+    for(int k=0; k<PacketSize;++k)
+    {
       float val = vals[k];
-      if(numext::abs(val)>=huge_th)  {
-        vals[k] = ComputeSine ? std::sin(val) : std::cos(val);
-      }
+      if(val>=huge_th && (numext::isfinite)(val))
+        x_cpy[k] = trig_reduce_huge(val,&y_int2[k]);
     }
-    huge_vals = ploadu<Packet>(vals);
+    x = ploadu<Packet>(x_cpy);
+    y_int = ploadu<PacketI>(y_int2);
   }
+
+  // Compute the sign to apply to the polynomial.
+  // sin: sign = second_bit(y_int) xor signbit(_x)
+  // cos: sign = second_bit(y_int+1)
+  Packet sign_bit = ComputeSine ? pxor(_x, preinterpret<Packet>(pshiftleft<30>(y_int)))
+                                : preinterpret<Packet>(pshiftleft<30>(padd(y_int,csti_1)));
+  sign_bit = pand(sign_bit, cst_sign_mask); // clear all but left most bit
+
+  // Get the polynomial selection mask from the second bit of y_int
+  // We'll calculate both (sin and cos) polynomials and then select from the two.
+  Packet poly_mask = preinterpret<Packet>(pcmp_eq(pand(y_int, csti_1), pzero(y_int)));
 
   Packet x2 = pmul(x,x);
 
@@ -379,7 +432,7 @@ Packet psincos_float(const Packet& _x)
                   : pselect(poly_mask,y1,y2);
 
   // Update the sign and filter huge inputs
-  return pselect(huge_mask, huge_vals, pxor(y, sign_bit));
+  return pxor(y, sign_bit);
 }
 
 template<typename Packet>
