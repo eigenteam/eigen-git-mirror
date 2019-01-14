@@ -97,6 +97,9 @@ template<int Mode> struct transform_make_affine;
   *              - #AffineCompact: the transformation is stored as a (Dim)x(Dim+1) matrix.
   *              - #Projective: the transformation is stored as a (Dim+1)^2 matrix
   *                             without any assumption.
+  *              - #Isometry: same as #Affine with the additional assumption that
+  *                           the linear part represents a rotation. This assumption is exploited
+  *                           to speed up some functions such as inverse() and rotation().
   * \tparam _Options has the same meaning as in class Matrix. It allows to specify DontAlign and/or RowMajor.
   *                  These Options are passed directly to the underlying matrix type.
   *
@@ -252,11 +255,11 @@ protected:
 public:
 
   /** Default constructor without initialization of the meaningful coefficients.
-    * If Mode==Affine, then the last row is set to [0 ... 0 1] */
+    * If Mode==Affine or Mode==Isometry, then the last row is set to [0 ... 0 1] */
   EIGEN_DEVICE_FUNC inline Transform()
   {
     check_template_params();
-    internal::transform_make_affine<(int(Mode)==Affine) ? Affine : AffineCompact>::run(m_matrix);
+    internal::transform_make_affine<(int(Mode)==Affine || int(Mode)==Isometry) ? Affine : AffineCompact>::run(m_matrix);
   }
 
   EIGEN_DEVICE_FUNC inline Transform(const Transform& other)

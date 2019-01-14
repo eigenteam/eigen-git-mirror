@@ -18,6 +18,8 @@ typename MatrixType::RealScalar matrix_l1_norm(const MatrixType& m) {
 
 template<typename MatrixType> void lu_non_invertible()
 {
+  STATIC_CHECK(( internal::is_same<typename FullPivLU<MatrixType>::StorageIndex,int>::value ));
+
   typedef typename MatrixType::RealScalar RealScalar;
   /* this test covers the following files:
      LU.h
@@ -190,6 +192,8 @@ template<typename MatrixType> void lu_partial_piv()
   MatrixType m1(size, size), m2(size, size), m3(size, size);
   m1.setRandom();
   PartialPivLU<MatrixType> plu(m1);
+
+  STATIC_CHECK(( internal::is_same<typename PartialPivLU<MatrixType>::StorageIndex,int>::value ));
 
   VERIFY_IS_APPROX(m1, plu.reconstructedMatrix());
 

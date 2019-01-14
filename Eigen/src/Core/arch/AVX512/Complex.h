@@ -308,18 +308,18 @@ template<> EIGEN_STRONG_INLINE void pstoreu<std::complex<double> >(std::complex<
 template<> EIGEN_DEVICE_FUNC inline Packet4cd pgather<std::complex<double>, Packet4cd>(const std::complex<double>* from, Index stride)
 {
   return Packet4cd(_mm512_insertf64x4(_mm512_castpd256_pd512(
-            _mm256_insertf128_pd(_mm256_castpd128_pd256(pload<Packet1cd>(from+0*stride).v), pload<Packet1cd>(from+1*stride).v,1)),
-            _mm256_insertf128_pd(_mm256_castpd128_pd256(pload<Packet1cd>(from+2*stride).v), pload<Packet1cd>(from+3*stride).v,1), 1));
+            _mm256_insertf128_pd(_mm256_castpd128_pd256(ploadu<Packet1cd>(from+0*stride).v), ploadu<Packet1cd>(from+1*stride).v,1)),
+            _mm256_insertf128_pd(_mm256_castpd128_pd256(ploadu<Packet1cd>(from+2*stride).v), ploadu<Packet1cd>(from+3*stride).v,1), 1));
 }
 
 template<> EIGEN_DEVICE_FUNC inline void pscatter<std::complex<double>, Packet4cd>(std::complex<double>* to, const Packet4cd& from, Index stride)
 {
   __m512i fromi = _mm512_castpd_si512(from.v);
   double* tod = (double*)(void*)to;
-  _mm_store_pd(tod+0*stride, _mm_castsi128_pd(_mm512_extracti32x4_epi32(fromi,0)) );
-  _mm_store_pd(tod+2*stride, _mm_castsi128_pd(_mm512_extracti32x4_epi32(fromi,1)) );
-  _mm_store_pd(tod+4*stride, _mm_castsi128_pd(_mm512_extracti32x4_epi32(fromi,2)) );
-  _mm_store_pd(tod+6*stride, _mm_castsi128_pd(_mm512_extracti32x4_epi32(fromi,3)) );
+  _mm_storeu_pd(tod+0*stride, _mm_castsi128_pd(_mm512_extracti32x4_epi32(fromi,0)) );
+  _mm_storeu_pd(tod+2*stride, _mm_castsi128_pd(_mm512_extracti32x4_epi32(fromi,1)) );
+  _mm_storeu_pd(tod+4*stride, _mm_castsi128_pd(_mm512_extracti32x4_epi32(fromi,2)) );
+  _mm_storeu_pd(tod+6*stride, _mm_castsi128_pd(_mm512_extracti32x4_epi32(fromi,3)) );
 }
 
 template<> EIGEN_STRONG_INLINE std::complex<double> pfirst<Packet4cd>(const Packet4cd& a)
