@@ -216,7 +216,7 @@ pandnot(const Packet& a, const Packet& b) { return a & (~b); }
 
 /** \internal \returns ones */
 template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
-ptrue(const Packet& /*a*/) { Packet b; memset(&b, 0xff, sizeof(b)); return b;}
+ptrue(const Packet& /*a*/) { Packet b; memset((void*)&b, 0xff, sizeof(b)); return b;}
 
 template <typename RealScalar>
 EIGEN_DEVICE_FUNC inline std::complex<RealScalar> ptrue(const std::complex<RealScalar>& /*a*/) {
