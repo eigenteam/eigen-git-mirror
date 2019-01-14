@@ -568,6 +568,7 @@ template<typename Scalar,typename Packet> void packetmath_real()
       h.store(data2, internal::plog(h.load(data1)));
       VERIFY((numext::isinf)(data2[0]));
     }
+    if(PacketTraits::HasSqrt)
     {
       packet_helper<PacketTraits::HasSqrt,Packet> h;
       data1[0] = Scalar(-1.0f);
