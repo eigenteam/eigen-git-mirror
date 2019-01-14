@@ -321,7 +321,6 @@ This also means that, unless specified, if the function \c std::foo is available
   <td></td>
 </tr>
 <tr>
-<tr>
   <td class="code">
   \anchor cwisetable_asinh
   a.\link ArrayBase::asinh asinh\endlink(); \n

@@ -19,6 +19,7 @@ template<typename _MatrixType> struct traits<PartialPivLU<_MatrixType> >
 {
   typedef MatrixXpr XprKind;
   typedef SolverStorage StorageKind;
+  typedef int StorageIndex;
   typedef traits<_MatrixType> BaseTraits;
   enum {
     Flags = BaseTraits::Flags & RowMajorBit,
@@ -80,7 +81,6 @@ template<typename _MatrixType> class PartialPivLU
     typedef _MatrixType MatrixType;
     typedef SolverBase<PartialPivLU> Base;
     EIGEN_GENERIC_PUBLIC_INTERFACE(PartialPivLU)
-    // FIXME StorageIndex defined in EIGEN_GENERIC_PUBLIC_INTERFACE should be int
     enum {
       MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
       MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime

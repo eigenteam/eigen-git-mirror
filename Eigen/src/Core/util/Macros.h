@@ -129,16 +129,21 @@
   #define EIGEN_COMP_MSVC_STRICT 0
 #endif
 
-/// \internal EIGEN_COMP_IBM set to 1 if the compiler is IBM XL C++
-#if defined(__IBMCPP__) || defined(__xlc__)
-  #define EIGEN_COMP_IBM 1
+/// \internal EIGEN_COMP_IBM set to xlc version if the compiler is IBM XL C++
+// XLC   version
+// 3.1   0x0301	
+// 4.5   0x0405	
+// 5.0   0x0500
+// 12.1  0x0C01
+#if defined(__IBMCPP__) || defined(__xlc__) || defined(__ibmxl__)
+  #define EIGEN_COMP_IBM __xlC__
 #else
   #define EIGEN_COMP_IBM 0
 #endif
 
-/// \internal EIGEN_COMP_PGI set to 1 if the compiler is Portland Group Compiler
+/// \internal EIGEN_COMP_PGI set to PGI version if the compiler is Portland Group Compiler
 #if defined(__PGI)
-  #define EIGEN_COMP_PGI 1
+  #define EIGEN_COMP_PGI (__PGIC__*100+__PGIC_MINOR__)
 #else
   #define EIGEN_COMP_PGI 0
 #endif
@@ -347,9 +352,17 @@
   #define EIGEN_OS_WIN_STRICT 0
 #endif
 
-/// \internal EIGEN_OS_SUN set to 1 if the OS is SUN
+/// \internal EIGEN_OS_SUN set to __SUNPRO_C if the OS is SUN
+// compiler  solaris   __SUNPRO_C
+// version   studio
+// 5.7       10        0x570
+// 5.8       11        0x580
+// 5.9       12        0x590
+// 5.10	     12.1      0x5100
+// 5.11	     12.2      0x5110
+// 5.12	     12.3      0x5120
 #if (defined(sun) || defined(__sun)) && !(defined(__SVR4) || defined(__svr4__))
-  #define EIGEN_OS_SUN 1
+  #define EIGEN_OS_SUN __SUNPRO_C
 #else
   #define EIGEN_OS_SUN 0
 #endif
@@ -543,6 +556,22 @@
 #define EIGEN_HAS_STD_RESULT_OF 1
 #else
 #define EIGEN_HAS_STD_RESULT_OF 0
+#endif
+#endif
+
+#ifndef EIGEN_HAS_ALIGNAS
+#if EIGEN_MAX_CPP_VER>=11 && EIGEN_HAS_CXX11 &&   \
+      (     __has_feature(cxx_alignas)            \
+        ||  EIGEN_HAS_CXX14                       \
+        || (EIGEN_COMP_MSVC >= 1800)              \
+        || (EIGEN_GNUC_AT_LEAST(4,8))             \
+        || (EIGEN_COMP_CLANG>=305)                \
+        || (EIGEN_COMP_ICC>=1500)                 \
+        || (EIGEN_COMP_PGI>=1500)                 \
+        || (EIGEN_COMP_SUN>=0x5130))
+#define EIGEN_HAS_ALIGNAS 1
+#else
+#define EIGEN_HAS_ALIGNAS 0
 #endif
 #endif
 
