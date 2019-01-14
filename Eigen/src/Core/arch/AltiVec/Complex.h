@@ -82,14 +82,14 @@ template<> EIGEN_STRONG_INLINE void pstoreu<std::complex<float> >(std::complex<f
 
 template<> EIGEN_DEVICE_FUNC inline Packet2cf pgather<std::complex<float>, Packet2cf>(const std::complex<float>* from, Index stride)
 {
-  std::complex<float> EIGEN_ALIGN16 af[2];
+  EIGEN_ALIGN16 std::complex<float> af[2];
   af[0] = from[0*stride];
   af[1] = from[1*stride];
   return pload<Packet2cf>(af);
 }
 template<> EIGEN_DEVICE_FUNC inline void pscatter<std::complex<float>, Packet2cf>(std::complex<float>* to, const Packet2cf& from, Index stride)
 {
-  std::complex<float> EIGEN_ALIGN16 af[2];
+  EIGEN_ALIGN16 std::complex<float> af[2];
   pstore<std::complex<float> >((std::complex<float> *) af, from);
   to[0*stride] = af[0];
   to[1*stride] = af[1];
@@ -128,7 +128,7 @@ template<> EIGEN_STRONG_INLINE void prefetch<std::complex<float> >(const std::co
 
 template<> EIGEN_STRONG_INLINE std::complex<float>  pfirst<Packet2cf>(const Packet2cf& a)
 {
-  std::complex<float> EIGEN_ALIGN16 res[2];
+  EIGEN_ALIGN16 std::complex<float> res[2];
   pstore((float *)&res, a.v);
 
   return res[0];
@@ -298,14 +298,14 @@ template<> EIGEN_STRONG_INLINE Packet1cd pset1<Packet1cd>(const std::complex<dou
 
 template<> EIGEN_DEVICE_FUNC inline Packet1cd pgather<std::complex<double>, Packet1cd>(const std::complex<double>* from, Index stride)
 {
-  std::complex<double> EIGEN_ALIGN16 af[2];
+  EIGEN_ALIGN16 std::complex<double> af[2];
   af[0] = from[0*stride];
   af[1] = from[1*stride];
   return pload<Packet1cd>(af);
 }
 template<> EIGEN_DEVICE_FUNC inline void pscatter<std::complex<double>, Packet1cd>(std::complex<double>* to, const Packet1cd& from, Index stride)
 {
-  std::complex<double> EIGEN_ALIGN16 af[2];
+  EIGEN_ALIGN16 std::complex<double> af[2];
   pstore<std::complex<double> >(af, from);
   to[0*stride] = af[0];
   to[1*stride] = af[1];
@@ -345,7 +345,7 @@ template<> EIGEN_STRONG_INLINE void prefetch<std::complex<double> >(const std::c
 
 template<> EIGEN_STRONG_INLINE std::complex<double>  pfirst<Packet1cd>(const Packet1cd& a)
 {
-  std::complex<double> EIGEN_ALIGN16 res[2];
+  EIGEN_ALIGN16 std::complex<double> res[2];
   pstore<std::complex<double> >(res, a);
 
   return res[0];
