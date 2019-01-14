@@ -97,6 +97,9 @@ template<int Mode> struct transform_make_affine;
   *              - #AffineCompact: the transformation is stored as a (Dim)x(Dim+1) matrix.
   *              - #Projective: the transformation is stored as a (Dim+1)^2 matrix
   *                             without any assumption.
+  *              - #Isometry: same as #Affine with the additional assumption that
+  *                           the linear part represents a rotation. This assumption is exploited
+  *                           to speed up some functions such as inverse() and rotation().
   * \tparam _Options has the same meaning as in class Matrix. It allows to specify DontAlign and/or RowMajor.
   *                  These Options are passed directly to the underlying matrix type.
   *
