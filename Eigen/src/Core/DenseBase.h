@@ -150,8 +150,8 @@ template<typename Derived> class DenseBase
           * \sa SizeAtCompileTime, MaxRowsAtCompileTime, MaxColsAtCompileTime
           */
 
-      IsVectorAtCompileTime = internal::traits<Derived>::MaxRowsAtCompileTime == 1
-                           || internal::traits<Derived>::MaxColsAtCompileTime == 1,
+      IsVectorAtCompileTime = internal::traits<Derived>::RowsAtCompileTime == 1
+                           || internal::traits<Derived>::ColsAtCompileTime == 1,
         /**< This is set to true if either the number of rows or the number of
           * columns is known at compile-time to be equal to 1. Indeed, in that case,
           * we are dealing with a column-vector (if there is only one column) or with
