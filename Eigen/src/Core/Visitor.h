@@ -137,6 +137,8 @@ namespace internal {
 template <typename Derived>
 struct coeff_visitor
 {
+  // default initialization to avoid countless invalid maybe-uninitialized warnings by gcc
+  coeff_visitor() : row(-1), col(-1), res(0) {}
   typedef typename Derived::Scalar Scalar;
   Index row, col;
   Scalar res;
