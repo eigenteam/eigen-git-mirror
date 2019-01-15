@@ -389,6 +389,13 @@ inline void verify_impl(bool condition, const char *testname, const char *file, 
 
 namespace Eigen {
 
+template<typename T1,typename T2>
+typename internal::enable_if<internal::is_same<T1,T2>::value,bool>::type
+is_same_type(const T1&, const T2&)
+{
+  return true;
+}
+
 template<typename T> inline typename NumTraits<T>::Real test_precision() { return NumTraits<T>::dummy_precision(); }
 template<> inline float test_precision<float>() { return 1e-3f; }
 template<> inline double test_precision<double>() { return 1e-6; }

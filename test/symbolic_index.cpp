@@ -19,44 +19,6 @@
 
 #include "main.h"
 
-template<typename T>
-bool match(const T& xpr, std::string ref, std::string str_xpr = "") {
-  EIGEN_UNUSED_VARIABLE(str_xpr);
-  std::stringstream str;
-  str << xpr;
-  if(!(str.str() == ref))
-    std::cout << str_xpr << "\n" << xpr << "\n\n";
-  return str.str() == ref;
-}
-
-#define MATCH(X,R) match(X, R, #X)
-
-template<typename T1,typename T2>
-typename internal::enable_if<internal::is_same<T1,T2>::value,bool>::type
-is_same_fixed(const T1& a, const T2& b)
-{
-  return (Index(a) == Index(b));
-}
-
-template<typename T1,typename T2>
-bool is_same_seq(const T1& a, const T2& b)
-{
-  bool ok = a.first()==b.first() && a.size() == b.size() && Index(a.incrObject())==Index(b.incrObject());;
-  if(!ok)
-  {
-    std::cerr << "seqN(" << a.first() << ", " << a.size() << ", " << Index(a.incrObject()) << ") != ";
-    std::cerr << "seqN(" << b.first() << ", " << b.size() << ", " << Index(b.incrObject()) << ")\n";
-  }
-  return ok;
-}
-
-template<typename T1,typename T2>
-typename internal::enable_if<internal::is_same<T1,T2>::value,bool>::type
-is_same_type(const T1&, const T2&)
-{
-  return true;
-}
-
 template<typename T1,typename T2>
 bool is_same_symb(const T1& a, const T2& b, Index size)
 {
