@@ -568,7 +568,7 @@
         || (EIGEN_COMP_CLANG>=305)                \
         || (EIGEN_COMP_ICC>=1500)                 \
         || (EIGEN_COMP_PGI>=1500)                 \
-        || (EIGEN_COMP_SUN>=0x5130))
+        || (EIGEN_COMP_SUNCC>=0x5130))
 #define EIGEN_HAS_ALIGNAS 1
 #else
 #define EIGEN_HAS_ALIGNAS 0
