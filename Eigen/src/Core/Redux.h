@@ -397,6 +397,8 @@ public:
   * The template parameter \a BinaryOp is the type of the functor \a func which must be
   * an associative operator. Both current C++98 and C++11 functor styles are handled.
   *
+  * \warning the matrix must be not empty, otherwise an assertion is triggered.
+  *
   * \sa DenseBase::sum(), DenseBase::minCoeff(), DenseBase::maxCoeff(), MatrixBase::colwise(), MatrixBase::rowwise()
   */
 template<typename Derived>
@@ -415,6 +417,7 @@ DenseBase<Derived>::redux(const Func& func) const
 }
 
 /** \returns the minimum of all coefficients of \c *this.
+  * \warning the matrix must be not empty, otherwise an assertion is triggered.
   * \warning the result is undefined if \c *this contains NaN.
   */
 template<typename Derived>
@@ -425,6 +428,7 @@ DenseBase<Derived>::minCoeff() const
 }
 
 /** \returns the maximum of all coefficients of \c *this.
+  * \warning the matrix must be not empty, otherwise an assertion is triggered.
   * \warning the result is undefined if \c *this contains NaN.
   */
 template<typename Derived>

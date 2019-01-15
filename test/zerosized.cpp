@@ -23,6 +23,11 @@ template<typename MatrixType> void zeroReduction(const MatrixType& m) {
   VERIFY(!m.hasNaN());
   VERIFY_RAISES_ASSERT( m.minCoeff() );
   VERIFY_RAISES_ASSERT( m.maxCoeff() );
+  Index i,j;
+  VERIFY_RAISES_ASSERT( m.minCoeff(&i,&j) );
+  VERIFY_RAISES_ASSERT( m.maxCoeff(&i,&j) );
+  VERIFY_RAISES_ASSERT( m.reshaped().minCoeff(&i) );
+  VERIFY_RAISES_ASSERT( m.reshaped().maxCoeff(&i) );
 }
 
 
