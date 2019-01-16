@@ -350,9 +350,9 @@ inline void computeProductBlockingSizes(Index& k, Index& m, Index& n, Index num_
 template <typename RhsPacket, typename RhsPacketx4, int registers_taken>
 struct RhsPanelHelper {
  private:
-  typedef typename conditional<(registers_taken < 15), RhsPacket, RhsPacketx4>::type inter_type;
+  static const int remaining_registers = EIGEN_ARCH_DEFAULT_NUMBER_OF_REGISTERS - registers_taken;
  public:
-  typedef typename conditional<(EIGEN_ARCH_DEFAULT_NUMBER_OF_REGISTERS < 32), RhsPacket, inter_type>::type type;
+  typedef typename conditional<remaining_registers>=4, RhsPacketx4, RhsPacket>::type type;
 };
 
 template <typename Packet>
