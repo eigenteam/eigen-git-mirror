@@ -392,7 +392,7 @@ struct checkTransposeAliasing_impl<Derived, OtherDerived, false>
 template<typename Dst, typename Src>
 void check_for_aliasing(const Dst &dst, const Src &src)
 {
-  if(src.size()>1)
+  if((!Dst::IsVectorAtCompileTime) && dst.rows()>1 && dst.cols()>1)
     internal::checkTransposeAliasing_impl<Dst, Src>::run(dst, src);
 }
 
