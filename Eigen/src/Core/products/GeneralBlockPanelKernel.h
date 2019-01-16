@@ -1307,7 +1307,8 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,DataMapper,mr,nr,ConjugateLhs,Conjuga
           // process remaining peeled loop
           for(Index k=peeled_kc; k<depth; k++)
           {
-            RhsPanel15 rhs_panel, T0;
+            RhsPanel15 rhs_panel;
+            RhsPacket T0;
             LhsPacket A2;
             EIGEN_GEBP_ONESTEP(0);
             blB += 4*RhsProgress;
