@@ -228,9 +228,6 @@ template <typename RealScalar>
 static void test_fft_non_power_of_2_round_trip(int exponent) {
   int n = (1 << exponent) + 1;
 
-  // The dimension type needs to be at least 8 bytes long for the
-  // Tensor constructor to work. On Windows, long is only 4 bytes long,
-  // so use long long here to force the usage of a 8 bytes integer type.
   Eigen::DSizes<std::int64_t, 1> dimensions;
   dimensions[0] = n;
   const DSizes<std::int64_t, 1> arr = dimensions;
@@ -249,7 +246,9 @@ static void test_fft_non_power_of_2_round_trip(int exponent) {
       forward.template fft<RealPart, FFT_REVERSE>(fft);
 
   for (int i = 0; i < n; ++i) {
-    VERIFY_IS_APPROX(input[i], output[i]);
+    RealScalar tol = test_precision<RealScalar>() *
+                     (std::abs(input[i]) + std::abs(output[i]) + 1);
+    VERIFY_IS_APPROX_OR_LESS_THAN(std::abs(input[i] - output[i]), tol);
   }
 }
 
@@ -301,4 +300,5 @@ EIGEN_DECLARE_TEST(cxx11_tensor_fft) {
     test_fft_real_input_energy<RowMajor, double, false,  Eigen::BothParts, FFT_FORWARD, 4>();
 
     test_fft_non_power_of_2_round_trip<float>(7);
+    test_fft_non_power_of_2_round_trip<double>(7);
 }
