@@ -55,8 +55,8 @@ template<> struct unpacket_traits<Packet8cf> {
   typedef Packet4cf half;
 };
 
-template<> EIGEN_STRONG_INLINE Packet8cf ptrue<Packet8cf>(const Packet8cf& a) { return Packet8cf(ptrue(a.v)); }
-template<> EIGEN_STRONG_INLINE Packet8cf pnot<Packet8cf>(const Packet8cf& a) { return Packet8cf(pnot(a.v)); }
+template<> EIGEN_STRONG_INLINE Packet8cf ptrue<Packet8cf>(const Packet8cf& a) { return Packet8cf(ptrue(Packet16f(a.v))); }
+template<> EIGEN_STRONG_INLINE Packet8cf pnot<Packet8cf>(const Packet8cf& a) { return Packet8cf(pnot(Packet16f(a.v))); }
 template<> EIGEN_STRONG_INLINE Packet8cf padd<Packet8cf>(const Packet8cf& a, const Packet8cf& b) { return Packet8cf(_mm512_add_ps(a.v,b.v)); }
 template<> EIGEN_STRONG_INLINE Packet8cf psub<Packet8cf>(const Packet8cf& a, const Packet8cf& b) { return Packet8cf(_mm512_sub_ps(a.v,b.v)); }
 template<> EIGEN_STRONG_INLINE Packet8cf pnegate(const Packet8cf& a)
@@ -270,8 +270,8 @@ template<> EIGEN_STRONG_INLINE Packet4cd pmul<Packet4cd>(const Packet4cd& a, con
   return Packet4cd(_mm512_fmaddsub_pd(tmp1, b.v, odd));
 }
 
-template<> EIGEN_STRONG_INLINE Packet4cd ptrue<Packet4cd>(const Packet4cd& a) { return Packet4cd(ptrue(a.v)); }
-template<> EIGEN_STRONG_INLINE Packet4cd pnot<Packet4cd>(const Packet4cd& a) { return Packet4cd(pnot(a.v)); }
+template<> EIGEN_STRONG_INLINE Packet4cd ptrue<Packet4cd>(const Packet4cd& a) { return Packet4cd(ptrue(Packet8d(a.v))); }
+template<> EIGEN_STRONG_INLINE Packet4cd pnot<Packet4cd>(const Packet4cd& a) { return Packet4cd(pnot(Packet8d(a.v))); }
 template<> EIGEN_STRONG_INLINE Packet4cd pand   <Packet4cd>(const Packet4cd& a, const Packet4cd& b) { return Packet4cd(pand(a.v,b.v)); }
 template<> EIGEN_STRONG_INLINE Packet4cd por    <Packet4cd>(const Packet4cd& a, const Packet4cd& b) { return Packet4cd(por(a.v,b.v)); }
 template<> EIGEN_STRONG_INLINE Packet4cd pxor   <Packet4cd>(const Packet4cd& a, const Packet4cd& b) { return Packet4cd(pxor(a.v,b.v)); }
