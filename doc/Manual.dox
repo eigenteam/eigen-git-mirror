@@ -15,7 +15,6 @@ namespace Eigen {
 
 
 /** \page UserManual_Generalities General topics
-  - \subpage Eigen2ToEigen3
   - \subpage TopicFunctionTakingEigenTypes
   - \subpage TopicPreprocessorDirectives
   - \subpage TopicAssertions

@@ -177,6 +177,10 @@ void adjoint_extra()
     c.col(j).head(j) = c.row(j).head(j);
   }
 
+  for (int j = 0; j < 10; ++j) {
+    c.col(j) = c.row(j);
+  }
+
   a.conservativeResize(1,1);
   a = a.transpose();
 
