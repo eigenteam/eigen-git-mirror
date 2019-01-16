@@ -600,8 +600,8 @@ public:
     dest = ploadu<LhsPacketType>(a);
   }
 
-  template <typename LhsPacketType, typename AccPacketType, typename LaneIdType>
-  EIGEN_STRONG_INLINE void madd(const LhsPacketType& a, const RhsPacket& b, AccPacketType& c, RhsPacket& tmp, const LaneIdType&) const
+  template <typename LhsPacketType, typename RhsPacketType, typename AccPacketType, typename LaneIdType>
+  EIGEN_STRONG_INLINE void madd(const LhsPacketType& a, const RhsPacketType& b, AccPacketType& c, RhsPacketType& tmp, const LaneIdType&) const
   {
     madd_impl(a, b, c, tmp, typename conditional<Vectorizable,true_type,false_type>::type());
   }
@@ -820,8 +820,10 @@ public:
     dest = ploadu<LhsPacketType>((const typename unpacket_traits<LhsPacketType>::type*)(a));
   }
 
-  template<typename LhsPacketType, typename ResPacketType, typename TmpType, typename LaneIdType>
-  EIGEN_STRONG_INLINE void madd(const LhsPacketType& a, const RhsPacket& b, DoublePacket<ResPacketType>& c, TmpType& /*tmp*/, const LaneIdType&) const
+  template<typename LhsPacketType, typename RhsPacketType, typename ResPacketType, typename TmpType, typename LaneIdType>
+  EIGEN_STRONG_INLINE
+  typename enable_if<!is_same<RhsPacketType,RhsPacketx4>::value>::type
+  madd(const LhsPacketType& a, const RhsPacketType& b, DoublePacket<ResPacketType>& c, TmpType& /*tmp*/, const LaneIdType&) const
   {
     c.first   = padd(pmul(a,b.first), c.first);
     c.second  = padd(pmul(a,b.second),c.second);
@@ -953,8 +955,8 @@ public:
     dest = ploaddup<LhsPacketType>(a);
   }
 
-  template <typename LhsPacketType, typename AccPacketType, typename LaneIdType>
-  EIGEN_STRONG_INLINE void madd(const LhsPacketType& a, const RhsPacket& b, AccPacketType& c, RhsPacket& tmp, const LaneIdType&) const
+  template <typename LhsPacketType, typename RhsPacketType, typename AccPacketType, typename LaneIdType>
+  EIGEN_STRONG_INLINE void madd(const LhsPacketType& a, const RhsPacketType& b, AccPacketType& c, RhsPacketType& tmp, const LaneIdType&) const
   {
     madd_impl(a, b, c, tmp, typename conditional<Vectorizable,true_type,false_type>::type());
   }
