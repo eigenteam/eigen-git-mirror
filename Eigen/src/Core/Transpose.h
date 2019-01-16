@@ -392,7 +392,8 @@ struct checkTransposeAliasing_impl<Derived, OtherDerived, false>
 template<typename Dst, typename Src>
 void check_for_aliasing(const Dst &dst, const Src &src)
 {
-  internal::checkTransposeAliasing_impl<Dst, Src>::run(dst, src);
+  if(src.size()>1)
+    internal::checkTransposeAliasing_impl<Dst, Src>::run(dst, src);
 }
 
 } // end namespace internal

@@ -171,6 +171,17 @@ void adjoint_extra()
   c = MatrixXd::Ones(10,10) * 1.0 + c;
   c = c + MatrixXd::Ones(10,10) .cwiseProduct( MatrixXd::Zero(10,10) );
   c = MatrixXd::Ones(10,10) * MatrixXd::Zero(10,10);
+
+  // regression for bug 1646
+  for (int j = 0; j < 10; ++j) {
+    c.col(j).head(j) = c.row(j).head(j);
+  }
+
+  a.conservativeResize(1,1);
+  a = a.transpose();
+
+  a.conservativeResize(0,0);
+  a = a.transpose();
 }
 
 EIGEN_DECLARE_TEST(adjoint)
