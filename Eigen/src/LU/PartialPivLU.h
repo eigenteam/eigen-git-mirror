@@ -246,26 +246,21 @@ template<typename _MatrixType> class PartialPivLU
     template<bool Conjugate, typename RhsType, typename DstType>
     EIGEN_DEVICE_FUNC
     void _solve_impl_transposed(const RhsType &rhs, DstType &dst) const {
-     /* The decomposition PA = LU can be rewritten as A = P^{-1} L U.
+     /* The decomposition PA = LU can be rewritten as A^T = U^T L^T P.
       * So we proceed as follows:
-      * Step 1: compute c = Pb.
-      * Step 2: replace c by the solution x to Lx = c.
-      * Step 3: replace c by the solution x to Ux = c.
+      * Step 1: compute c as the solution to L^T c = b
+      * Step 2: replace c by the solution x to U^T x = c.
+      * Step 3: update  c = P^-1 c.
       */
 
       eigen_assert(rhs.rows() == m_lu.cols());
 
-      if (Conjugate) {
-        // Step 1
-        dst = m_lu.template triangularView<Upper>().adjoint().solve(rhs);
-        // Step 2
-        m_lu.template triangularView<UnitLower>().adjoint().solveInPlace(dst);
-      } else {
-        // Step 1
-        dst = m_lu.template triangularView<Upper>().transpose().solve(rhs);
-        // Step 2
-        m_lu.template triangularView<UnitLower>().transpose().solveInPlace(dst);
-      }
+      // Step 1
+      dst = m_lu.template triangularView<Upper>().transpose()
+                .template conjugateIf<Conjugate>().solve(rhs);
+      // Step 2
+      m_lu.template triangularView<UnitLower>().transpose()
+          .template conjugateIf<Conjugate>().solveInPlace(dst);
       // Step 3
       dst = permutationP().transpose() * dst;
     }

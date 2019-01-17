@@ -129,6 +129,22 @@ template<typename MatrixType> void triangular_square(const MatrixType& m)
 
   VERIFY_IS_APPROX(m1.template selfadjointView<Upper>().diagonal(), m1.diagonal());
 
+  m3.setRandom();
+  const MatrixType& m3c(m3);
+  VERIFY( is_same_type(m3c.template triangularView<Lower>(),m3.template triangularView<Lower>().template conjugateIf<false>()) );
+  VERIFY( is_same_type(m3c.template triangularView<Lower>().conjugate(),m3.template triangularView<Lower>().template conjugateIf<true>()) );
+  VERIFY_IS_APPROX(m3.template triangularView<Lower>().template conjugateIf<true>().toDenseMatrix(),
+                   m3.conjugate().template triangularView<Lower>().toDenseMatrix());
+  VERIFY_IS_APPROX(m3.template triangularView<Lower>().template conjugateIf<false>().toDenseMatrix(),
+                   m3.template triangularView<Lower>().toDenseMatrix());
+
+  VERIFY( is_same_type(m3c.template selfadjointView<Lower>(),m3.template selfadjointView<Lower>().template conjugateIf<false>()) );
+  VERIFY( is_same_type(m3c.template selfadjointView<Lower>().conjugate(),m3.template selfadjointView<Lower>().template conjugateIf<true>()) );
+  VERIFY_IS_APPROX(m3.template selfadjointView<Lower>().template conjugateIf<true>().toDenseMatrix(),
+                   m3.conjugate().template selfadjointView<Lower>().toDenseMatrix());
+  VERIFY_IS_APPROX(m3.template selfadjointView<Lower>().template conjugateIf<false>().toDenseMatrix(),
+                   m3.template selfadjointView<Lower>().toDenseMatrix());
+
 }
 
 

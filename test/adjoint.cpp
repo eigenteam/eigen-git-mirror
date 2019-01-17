@@ -143,6 +143,9 @@ template<typename MatrixType> void adjoint(const MatrixType& m)
   RealVectorType rv1 = RealVectorType::Random(rows);
   VERIFY_IS_APPROX(v1.dot(rv1.template cast<Scalar>()), v1.dot(rv1));
   VERIFY_IS_APPROX(rv1.template cast<Scalar>().dot(v1), rv1.dot(v1));
+
+  VERIFY( is_same_type(m1,m1.template conjugateIf<false>()) );
+  VERIFY( is_same_type(m1.conjugate(),m1.template conjugateIf<true>()) );
 }
 
 template<int>
