@@ -815,29 +815,19 @@ void FullPivLU<_MatrixType>::_solve_impl_transposed(const RhsType &rhs, DstType 
   // Step 1
   c = permutationQ().inverse() * rhs;
 
-  if (Conjugate) {
-    // Step 2
-    m_lu.topLeftCorner(nonzero_pivots, nonzero_pivots)
-        .template triangularView<Upper>()
-        .adjoint()
-        .solveInPlace(c.topRows(nonzero_pivots));
-    // Step 3
-    m_lu.topLeftCorner(smalldim, smalldim)
-        .template triangularView<UnitLower>()
-        .adjoint()
-        .solveInPlace(c.topRows(smalldim));
-  } else {
-    // Step 2
-    m_lu.topLeftCorner(nonzero_pivots, nonzero_pivots)
-        .template triangularView<Upper>()
-        .transpose()
-        .solveInPlace(c.topRows(nonzero_pivots));
-    // Step 3
-    m_lu.topLeftCorner(smalldim, smalldim)
-        .template triangularView<UnitLower>()
-        .transpose()
-        .solveInPlace(c.topRows(smalldim));
-  }
+  // Step 2
+  m_lu.topLeftCorner(nonzero_pivots, nonzero_pivots)
+      .template triangularView<Upper>()
+      .transpose()
+      .template conjugateIf<Conjugate>()
+      .solveInPlace(c.topRows(nonzero_pivots));
+
+  // Step 3
+  m_lu.topLeftCorner(smalldim, smalldim)
+      .template triangularView<UnitLower>()
+      .transpose()
+      .template conjugateIf<Conjugate>()
+      .solveInPlace(c.topRows(smalldim));
 
   // Step 4
   PermutationPType invp = permutationP().inverse().eval();
