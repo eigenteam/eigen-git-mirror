@@ -203,7 +203,7 @@ struct vectorwise_reverse_inplace_impl<Horizontal>
 template<typename ExpressionType, int Direction>
 EIGEN_DEVICE_FUNC void VectorwiseOp<ExpressionType,Direction>::reverseInPlace()
 {
-  internal::vectorwise_reverse_inplace_impl<Direction>::run(_expression().const_cast_derived());
+  internal::vectorwise_reverse_inplace_impl<Direction>::run(m_matrix);
 }
 
 } // end namespace Eigen

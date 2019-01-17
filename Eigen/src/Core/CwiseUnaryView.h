@@ -81,7 +81,7 @@ class CwiseUnaryView : public CwiseUnaryViewImpl<ViewOp, MatrixType, typename in
 
     /** \returns the nested expression */
     typename internal::remove_reference<MatrixTypeNested>::type&
-    nestedExpression() { return m_matrix.const_cast_derived(); }
+    nestedExpression() { return m_matrix; }
 
   protected:
     MatrixTypeNested m_matrix;
