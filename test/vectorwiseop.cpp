@@ -150,6 +150,19 @@ template<typename MatrixType> void vectorwiseop_matrix(const MatrixType& m)
   RealColVectorType rcres;
   RealRowVectorType rrres;
 
+  // test broadcast assignment
+  m2 = m1;
+  m2.colwise() = colvec;
+  for(Index j=0; j<cols; ++j)
+    VERIFY_IS_APPROX(m2.col(j), colvec);
+  m2.rowwise() = rowvec;
+  for(Index i=0; i<rows; ++i)
+    VERIFY_IS_APPROX(m2.row(i), rowvec);
+  if(rows>1)
+    VERIFY_RAISES_ASSERT(m2.colwise() = colvec.transpose());
+  if(cols>1)
+    VERIFY_RAISES_ASSERT(m2.rowwise() = rowvec.transpose());
+
   // test addition
 
   m2 = m1;

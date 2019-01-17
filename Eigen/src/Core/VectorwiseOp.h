@@ -557,7 +557,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(OtherDerived)
       EIGEN_STATIC_ASSERT_SAME_XPR_KIND(ExpressionType, OtherDerived)
       //eigen_assert((m_matrix.isNull()) == (other.isNull())); FIXME
-      return const_cast<ExpressionType&>(m_matrix = extendedTo(other.derived()));
+      return m_matrix = extendedTo(other.derived());
     }
 
     /** Adds the vector \a other to each subvector of \c *this */
@@ -567,7 +567,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
     {
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(OtherDerived)
       EIGEN_STATIC_ASSERT_SAME_XPR_KIND(ExpressionType, OtherDerived)
-      return const_cast<ExpressionType&>(m_matrix += extendedTo(other.derived()));
+      return m_matrix += extendedTo(other.derived());
     }
 
     /** Substracts the vector \a other to each subvector of \c *this */
@@ -577,7 +577,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
     {
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(OtherDerived)
       EIGEN_STATIC_ASSERT_SAME_XPR_KIND(ExpressionType, OtherDerived)
-      return const_cast<ExpressionType&>(m_matrix -= extendedTo(other.derived()));
+      return m_matrix -= extendedTo(other.derived());
     }
 
     /** Multiples each subvector of \c *this by the vector \a other */
@@ -589,7 +589,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
       EIGEN_STATIC_ASSERT_ARRAYXPR(ExpressionType)
       EIGEN_STATIC_ASSERT_SAME_XPR_KIND(ExpressionType, OtherDerived)
       m_matrix *= extendedTo(other.derived());
-      return const_cast<ExpressionType&>(m_matrix);
+      return m_matrix;
     }
 
     /** Divides each subvector of \c *this by the vector \a other */
@@ -601,7 +601,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
       EIGEN_STATIC_ASSERT_ARRAYXPR(ExpressionType)
       EIGEN_STATIC_ASSERT_SAME_XPR_KIND(ExpressionType, OtherDerived)
       m_matrix /= extendedTo(other.derived());
-      return const_cast<ExpressionType&>(m_matrix);
+      return m_matrix;
     }
 
     /** Returns the expression of the sum of the vector \a other to each subvector of \c *this */
