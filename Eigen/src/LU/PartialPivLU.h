@@ -80,6 +80,8 @@ template<typename _MatrixType> class PartialPivLU
 
     typedef _MatrixType MatrixType;
     typedef SolverBase<PartialPivLU> Base;
+    friend class SolverBase<PartialPivLU>;
+
     EIGEN_GENERIC_PUBLIC_INTERFACE(PartialPivLU)
     enum {
       MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
@@ -152,6 +154,7 @@ template<typename _MatrixType> class PartialPivLU
       return m_p;
     }
 
+    #ifdef EIGEN_PARSED_BY_DOXYGEN
     /** This method returns the solution x to the equation Ax=b, where A is the matrix of which
       * *this is the LU decomposition.
       *
@@ -169,14 +172,10 @@ template<typename _MatrixType> class PartialPivLU
       *
       * \sa TriangularView::solve(), inverse(), computeInverse()
       */
-    // FIXME this is a copy-paste of the base-class member to add the isInitialized assertion.
     template<typename Rhs>
     inline const Solve<PartialPivLU, Rhs>
-    solve(const MatrixBase<Rhs>& b) const
-    {
-      eigen_assert(m_isInitialized && "PartialPivLU is not initialized.");
-      return Solve<PartialPivLU, Rhs>(*this, b.derived());
-    }
+    solve(const MatrixBase<Rhs>& b) const;
+    #endif
 
     /** \returns an estimate of the reciprocal condition number of the matrix of which \c *this is
         the LU decomposition.
@@ -230,8 +229,6 @@ template<typename _MatrixType> class PartialPivLU
       * Step 2: replace c by the solution x to Lx = c.
       * Step 3: replace c by the solution x to Ux = c.
       */
-
-      eigen_assert(rhs.rows() == m_lu.rows());
 
       // Step 1
       dst = permutationP() * rhs;

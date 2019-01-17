@@ -39,6 +39,7 @@ namespace internal {
 
 template<typename _MatrixType> 
 struct traits<BDCSVD<_MatrixType> >
+        : traits<_MatrixType>
 {
   typedef _MatrixType MatrixType;
 };  
@@ -1006,7 +1007,7 @@ void BDCSVD<MatrixType>::perturbCol0
 #ifdef EIGEN_BDCSVD_SANITY_CHECKS
       assert((std::isfinite)(tmp));
 #endif
-      zhat(k) = col0(k) > Literal(0) ? tmp : -tmp;
+      zhat(k) = col0(k) > Literal(0) ? RealScalar(tmp) : RealScalar(-tmp);
     }
   }
 }

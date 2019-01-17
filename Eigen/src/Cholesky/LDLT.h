@@ -16,6 +16,15 @@
 namespace Eigen {
 
 namespace internal {
+  template<typename _MatrixType, int _UpLo> struct traits<LDLT<_MatrixType, _UpLo> >
+   : traits<_MatrixType>
+  {
+    typedef MatrixXpr XprKind;
+    typedef SolverStorage StorageKind;
+    typedef int StorageIndex;
+    enum { Flags = 0 };
+  };
+
   template<typename MatrixType, int UpLo> struct LDLT_Traits;
 
   // PositiveSemiDef means positive semi-definite and non-zero; same for NegativeSemiDef
@@ -48,20 +57,19 @@ namespace internal {
   * \sa MatrixBase::ldlt(), SelfAdjointView::ldlt(), class LLT
   */
 template<typename _MatrixType, int _UpLo> class LDLT
+        : public SolverBase<LDLT<_MatrixType, _UpLo> >
 {
   public:
     typedef _MatrixType MatrixType;
+    typedef SolverBase<LDLT> Base;
+    friend class SolverBase<LDLT>;
+
+    EIGEN_GENERIC_PUBLIC_INTERFACE(LDLT)
     enum {
-      RowsAtCompileTime = MatrixType::RowsAtCompileTime,
-      ColsAtCompileTime = MatrixType::ColsAtCompileTime,
       MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
       MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime,
       UpLo = _UpLo
     };
-    typedef typename MatrixType::Scalar Scalar;
-    typedef typename NumTraits<typename MatrixType::Scalar>::Real RealScalar;
-    typedef Eigen::Index Index; ///< \deprecated since Eigen 3.3
-    typedef typename MatrixType::StorageIndex StorageIndex;
     typedef Matrix<Scalar, RowsAtCompileTime, 1, 0, MaxRowsAtCompileTime, 1> TmpMatrixType;
 
     typedef Transpositions<RowsAtCompileTime, MaxRowsAtCompileTime> TranspositionType;
@@ -180,6 +188,7 @@ template<typename _MatrixType, int _UpLo> class LDLT
       return m_sign == internal::NegativeSemiDef || m_sign == internal::ZeroSign;
     }
 
+    #ifdef EIGEN_PARSED_BY_DOXYGEN
     /** \returns a solution x of \f$ A x = b \f$ using the current decomposition of A.
       *
       * This function also supports in-place solves using the syntax <tt>x = decompositionObject.solve(x)</tt> .
@@ -197,13 +206,8 @@ template<typename _MatrixType, int _UpLo> class LDLT
       */
     template<typename Rhs>
     inline const Solve<LDLT, Rhs>
-    solve(const MatrixBase<Rhs>& b) const
-    {
-      eigen_assert(m_isInitialized && "LDLT is not initialized.");
-      eigen_assert(m_matrix.rows()==b.rows()
-                && "LDLT::solve(): invalid number of rows of the right hand side matrix b");
-      return Solve<LDLT, Rhs>(*this, b.derived());
-    }
+    solve(const MatrixBase<Rhs>& b) const;
+    #endif
 
     template<typename Derived>
     bool solveInPlace(MatrixBase<Derived> &bAndX) const;
@@ -259,6 +263,9 @@ template<typename _MatrixType, int _UpLo> class LDLT
     #ifndef EIGEN_PARSED_BY_DOXYGEN
     template<typename RhsType, typename DstType>
     void _solve_impl(const RhsType &rhs, DstType &dst) const;
+
+    template<bool Conjugate, typename RhsType, typename DstType>
+    void _solve_impl_transposed(const RhsType &rhs, DstType &dst) const;
     #endif
 
   protected:
@@ -559,14 +566,22 @@ template<typename _MatrixType, int _UpLo>
 template<typename RhsType, typename DstType>
 void LDLT<_MatrixType,_UpLo>::_solve_impl(const RhsType &rhs, DstType &dst) const
 {
-  eigen_assert(rhs.rows() == rows());
+  _solve_impl_transposed<true>(rhs, dst);
+}
+
+template<typename _MatrixType,int _UpLo>
+template<bool Conjugate, typename RhsType, typename DstType>
+void LDLT<_MatrixType,_UpLo>::_solve_impl_transposed(const RhsType &rhs, DstType &dst) const
+{
   // dst = P b
   dst = m_transpositions * rhs;
 
   // dst = L^-1 (P b)
-  matrixL().solveInPlace(dst);
+  // dst = L^-*T (P b)
+  matrixL().template conjugateIf<!Conjugate>().solveInPlace(dst);
 
-  // dst = D^-1 (L^-1 P b)
+  // dst = D^-* (L^-1 P b)
+  // dst = D^-1 (L^-*T P b)
   // more precisely, use pseudo-inverse of D (see bug 241)
   using std::abs;
   const typename Diagonal<const MatrixType>::RealReturnType vecD(vectorD());
@@ -578,7 +593,6 @@ void LDLT<_MatrixType,_UpLo>::_solve_impl(const RhsType &rhs, DstType &dst) cons
   // Moreover, Lapack's xSYTRS routines use 0 for the tolerance.
   // Using numeric_limits::min() gives us more robustness to denormals.
   RealScalar tolerance = (std::numeric_limits<RealScalar>::min)();
-
   for (Index i = 0; i < vecD.size(); ++i)
   {
     if(abs(vecD(i)) > tolerance)
@@ -587,10 +601,12 @@ void LDLT<_MatrixType,_UpLo>::_solve_impl(const RhsType &rhs, DstType &dst) cons
       dst.row(i).setZero();
   }
 
-  // dst = L^-T (D^-1 L^-1 P b)
-  matrixU().solveInPlace(dst);
+  // dst = L^-* (D^-* L^-1 P b)
+  // dst = L^-T (D^-1 L^-*T P b)
+  matrixL().transpose().template conjugateIf<Conjugate>().solveInPlace(dst);
 
-  // dst = P^-1 (L^-T D^-1 L^-1 P b) = A^-1 b
+  // dst = P^T (L^-* D^-* L^-1 P b) = A^-1 b
+  // dst = P^-T (L^-T D^-1 L^-*T P b) = A^-1 b
   dst = m_transpositions.transpose() * dst;
 }
 #endif

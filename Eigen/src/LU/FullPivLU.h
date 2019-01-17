@@ -63,6 +63,7 @@ template<typename _MatrixType> class FullPivLU
   public:
     typedef _MatrixType MatrixType;
     typedef SolverBase<FullPivLU> Base;
+    friend class SolverBase<FullPivLU>;
 
     EIGEN_GENERIC_PUBLIC_INTERFACE(FullPivLU)
     enum {
@@ -218,6 +219,7 @@ template<typename _MatrixType> class FullPivLU
       return internal::image_retval<FullPivLU>(*this, originalMatrix);
     }
 
+    #ifdef EIGEN_PARSED_BY_DOXYGEN
     /** \return a solution x to the equation Ax=b, where A is the matrix of which
       * *this is the LU decomposition.
       *
@@ -237,14 +239,10 @@ template<typename _MatrixType> class FullPivLU
       *
       * \sa TriangularView::solve(), kernel(), inverse()
       */
-    // FIXME this is a copy-paste of the base-class member to add the isInitialized assertion.
     template<typename Rhs>
     inline const Solve<FullPivLU, Rhs>
-    solve(const MatrixBase<Rhs>& b) const
-    {
-      eigen_assert(m_isInitialized && "LU is not initialized.");
-      return Solve<FullPivLU, Rhs>(*this, b.derived());
-    }
+    solve(const MatrixBase<Rhs>& b) const;
+    #endif
 
     /** \returns an estimate of the reciprocal condition number of the matrix of which \c *this is
         the LU decomposition.
@@ -755,7 +753,6 @@ void FullPivLU<_MatrixType>::_solve_impl(const RhsType &rhs, DstType &dst) const
   const Index rows = this->rows(),
               cols = this->cols(),
               nonzero_pivots = this->rank();
-  eigen_assert(rhs.rows() == rows);
   const Index smalldim = (std::min)(rows, cols);
 
   if(nonzero_pivots == 0)
@@ -805,7 +802,6 @@ void FullPivLU<_MatrixType>::_solve_impl_transposed(const RhsType &rhs, DstType 
 
   const Index rows = this->rows(), cols = this->cols(),
     nonzero_pivots = this->rank();
-   eigen_assert(rhs.rows() == cols);
   const Index smalldim = (std::min)(rows, cols);
 
   if(nonzero_pivots == 0)

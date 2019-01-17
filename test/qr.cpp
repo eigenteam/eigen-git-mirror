@@ -9,6 +9,7 @@
 
 #include "main.h"
 #include <Eigen/QR>
+#include "solverbase.h"
 
 template<typename MatrixType> void qr(const MatrixType& m)
 {
@@ -41,11 +42,7 @@ template<typename MatrixType, int Cols2> void qr_fixedsize()
 
   VERIFY_IS_APPROX(m1, qr.householderQ() * r);
 
-  Matrix<Scalar,Cols,Cols2> m2 = Matrix<Scalar,Cols,Cols2>::Random(Cols,Cols2);
-  Matrix<Scalar,Rows,Cols2> m3 = m1*m2;
-  m2 = Matrix<Scalar,Cols,Cols2>::Random(Cols,Cols2);
-  m2 = qr.solve(m3);
-  VERIFY_IS_APPROX(m3, m1*m2);
+  check_solverbase<Matrix<Scalar,Cols,Cols2>, Matrix<Scalar,Rows,Cols2> >(m1, qr, Rows, Cols, Cols2);
 }
 
 template<typename MatrixType> void qr_invertible()
@@ -56,6 +53,8 @@ template<typename MatrixType> void qr_invertible()
   using std::max;
   typedef typename NumTraits<typename MatrixType::Scalar>::Real RealScalar;
   typedef typename MatrixType::Scalar Scalar;
+
+  STATIC_CHECK(( internal::is_same<typename HouseholderQR<MatrixType>::StorageIndex,int>::value ));
 
   int size = internal::random<int>(10,50);
 
@@ -70,9 +69,8 @@ template<typename MatrixType> void qr_invertible()
   }
 
   HouseholderQR<MatrixType> qr(m1);
-  m3 = MatrixType::Random(size,size);
-  m2 = qr.solve(m3);
-  VERIFY_IS_APPROX(m3, m1*m2);
+
+  check_solverbase<MatrixType, MatrixType>(m1, qr, size, size, size);
 
   // now construct a matrix with prescribed determinant
   m1.setZero();
@@ -95,6 +93,8 @@ template<typename MatrixType> void qr_verify_assert()
   HouseholderQR<MatrixType> qr;
   VERIFY_RAISES_ASSERT(qr.matrixQR())
   VERIFY_RAISES_ASSERT(qr.solve(tmp))
+  VERIFY_RAISES_ASSERT(qr.transpose().solve(tmp))
+  VERIFY_RAISES_ASSERT(qr.adjoint().solve(tmp))
   VERIFY_RAISES_ASSERT(qr.householderQ())
   VERIFY_RAISES_ASSERT(qr.absDeterminant())
   VERIFY_RAISES_ASSERT(qr.logAbsDeterminant())

@@ -9,6 +9,7 @@
 
 #include "main.h"
 #include <Eigen/LU>
+#include "solverbase.h"
 using namespace std;
 
 template<typename MatrixType>
@@ -96,32 +97,14 @@ template<typename MatrixType> void lu_non_invertible()
   VERIFY(m1image.fullPivLu().rank() == rank);
   VERIFY_IS_APPROX(m1 * m1.adjoint() * m1image, m1image);
 
+  check_solverbase<CMatrixType, MatrixType>(m1, lu, rows, cols, cols2);
+
   m2 = CMatrixType::Random(cols,cols2);
   m3 = m1*m2;
   m2 = CMatrixType::Random(cols,cols2);
   // test that the code, which does resize(), may be applied to an xpr
   m2.block(0,0,m2.rows(),m2.cols()) = lu.solve(m3);
   VERIFY_IS_APPROX(m3, m1*m2);
-
-  // test solve with transposed
-  m3 = MatrixType::Random(rows,cols2);
-  m2 = m1.transpose()*m3;
-  m3 = MatrixType::Random(rows,cols2);
-  lu.template _solve_impl_transposed<false>(m2, m3);
-  VERIFY_IS_APPROX(m2, m1.transpose()*m3);
-  m3 = MatrixType::Random(rows,cols2);
-  m3 = lu.transpose().solve(m2);
-  VERIFY_IS_APPROX(m2, m1.transpose()*m3);
-
-  // test solve with conjugate transposed
-  m3 = MatrixType::Random(rows,cols2);
-  m2 = m1.adjoint()*m3;
-  m3 = MatrixType::Random(rows,cols2);
-  lu.template _solve_impl_transposed<true>(m2, m3);
-  VERIFY_IS_APPROX(m2, m1.adjoint()*m3);
-  m3 = MatrixType::Random(rows,cols2);
-  m3 = lu.adjoint().solve(m2);
-  VERIFY_IS_APPROX(m2, m1.adjoint()*m3);
 }
 
 template<typename MatrixType> void lu_invertible()
@@ -150,10 +133,12 @@ template<typename MatrixType> void lu_invertible()
   VERIFY(lu.isSurjective());
   VERIFY(lu.isInvertible());
   VERIFY(lu.image(m1).fullPivLu().isInvertible());
+
+  check_solverbase<MatrixType, MatrixType>(m1, lu, size, size, size);
+
+  MatrixType m1_inverse = lu.inverse();
   m3 = MatrixType::Random(size,size);
   m2 = lu.solve(m3);
-  VERIFY_IS_APPROX(m3, m1*m2);
-  MatrixType m1_inverse = lu.inverse();
   VERIFY_IS_APPROX(m2, m1_inverse*m3);
 
   RealScalar rcond = (RealScalar(1) / matrix_l1_norm(m1)) / matrix_l1_norm(m1_inverse);
@@ -161,20 +146,6 @@ template<typename MatrixType> void lu_invertible()
   // Verify that the estimated condition number is within a factor of 10 of the
   // truth.
   VERIFY(rcond_est > rcond / 10 && rcond_est < rcond * 10);
-
-  // test solve with transposed
-  lu.template _solve_impl_transposed<false>(m3, m2);
-  VERIFY_IS_APPROX(m3, m1.transpose()*m2);
-  m3 = MatrixType::Random(size,size);
-  m3 = lu.transpose().solve(m2);
-  VERIFY_IS_APPROX(m2, m1.transpose()*m3);
-
-  // test solve with conjugate transposed
-  lu.template _solve_impl_transposed<true>(m3, m2);
-  VERIFY_IS_APPROX(m3, m1.adjoint()*m2);
-  m3 = MatrixType::Random(size,size);
-  m3 = lu.adjoint().solve(m2);
-  VERIFY_IS_APPROX(m2, m1.adjoint()*m3);
 
   // Regression test for Bug 302
   MatrixType m4 = MatrixType::Random(size,size);
@@ -197,30 +168,17 @@ template<typename MatrixType> void lu_partial_piv()
 
   VERIFY_IS_APPROX(m1, plu.reconstructedMatrix());
 
+  check_solverbase<MatrixType, MatrixType>(m1, plu, size, size, size);
+
+  MatrixType m1_inverse = plu.inverse();
   m3 = MatrixType::Random(size,size);
   m2 = plu.solve(m3);
-  VERIFY_IS_APPROX(m3, m1*m2);
-  MatrixType m1_inverse = plu.inverse();
   VERIFY_IS_APPROX(m2, m1_inverse*m3);
 
   RealScalar rcond = (RealScalar(1) / matrix_l1_norm(m1)) / matrix_l1_norm(m1_inverse);
   const RealScalar rcond_est = plu.rcond();
   // Verify that the estimate is within a factor of 10 of the truth.
   VERIFY(rcond_est > rcond / 10 && rcond_est < rcond * 10);
-
-  // test solve with transposed
-  plu.template _solve_impl_transposed<false>(m3, m2);
-  VERIFY_IS_APPROX(m3, m1.transpose()*m2);
-  m3 = MatrixType::Random(size,size);
-  m3 = plu.transpose().solve(m2);
-  VERIFY_IS_APPROX(m2, m1.transpose()*m3);
-
-  // test solve with conjugate transposed
-  plu.template _solve_impl_transposed<true>(m3, m2);
-  VERIFY_IS_APPROX(m3, m1.adjoint()*m2);
-  m3 = MatrixType::Random(size,size);
-  m3 = plu.adjoint().solve(m2);
-  VERIFY_IS_APPROX(m2, m1.adjoint()*m3);
 }
 
 template<typename MatrixType> void lu_verify_assert()
@@ -234,6 +192,8 @@ template<typename MatrixType> void lu_verify_assert()
   VERIFY_RAISES_ASSERT(lu.kernel())
   VERIFY_RAISES_ASSERT(lu.image(tmp))
   VERIFY_RAISES_ASSERT(lu.solve(tmp))
+  VERIFY_RAISES_ASSERT(lu.transpose().solve(tmp))
+  VERIFY_RAISES_ASSERT(lu.adjoint().solve(tmp))
   VERIFY_RAISES_ASSERT(lu.determinant())
   VERIFY_RAISES_ASSERT(lu.rank())
   VERIFY_RAISES_ASSERT(lu.dimensionOfKernel())
@@ -246,6 +206,8 @@ template<typename MatrixType> void lu_verify_assert()
   VERIFY_RAISES_ASSERT(plu.matrixLU())
   VERIFY_RAISES_ASSERT(plu.permutationP())
   VERIFY_RAISES_ASSERT(plu.solve(tmp))
+  VERIFY_RAISES_ASSERT(plu.transpose().solve(tmp))
+  VERIFY_RAISES_ASSERT(plu.adjoint().solve(tmp))
   VERIFY_RAISES_ASSERT(plu.determinant())
   VERIFY_RAISES_ASSERT(plu.inverse())
 }
