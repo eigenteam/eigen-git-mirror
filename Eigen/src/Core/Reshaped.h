@@ -191,7 +191,7 @@ class ReshapedImpl_dense<XprType,Rows,Cols,Order,false>
     /** \returns the nested expression */
     EIGEN_DEVICE_FUNC
     typename internal::remove_reference<XprType>::type&
-    nestedExpression() { return m_xpr.const_cast_derived(); }
+    nestedExpression() { return m_xpr; }
 
   protected:
 
