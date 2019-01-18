@@ -17,6 +17,7 @@
 #include <sstream>
 #include <vector>
 #include <typeinfo>
+#include <functional>
 
 // The following includes of STL headers have to be done _before_ the
 // definition of macros min() and max().  The reason is that many STL
