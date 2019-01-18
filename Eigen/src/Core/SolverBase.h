@@ -146,6 +146,7 @@ class SolverBase : public EigenBase<Derived>
 
     template<bool Transpose_, typename Rhs>
     void _check_solve_assertion(const Rhs& b) const {
+        EIGEN_ONLY_USED_FOR_DEBUG(b);
         eigen_assert(derived().m_isInitialized && "Solver is not initialized.");
         eigen_assert((Transpose_?derived().cols():derived().rows())==b.rows() && "SolverBase::solve(): invalid number of rows of the right hand side matrix b");
     }

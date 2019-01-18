@@ -241,6 +241,7 @@ protected:
 
   template<bool Transpose_, typename Rhs>
   void _check_solve_assertion(const Rhs& b) const {
+      EIGEN_ONLY_USED_FOR_DEBUG(b);
       eigen_assert(m_isInitialized && "SVD is not initialized.");
       eigen_assert(computeU() && computeV() && "SVDBase::solve(): Both unitaries U and V are required to be computed (thin unitaries suffice).");
       eigen_assert((Transpose_?cols():rows())==b.rows() && "SVDBase::solve(): invalid number of rows of the right hand side matrix b");
