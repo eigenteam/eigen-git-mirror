@@ -386,7 +386,7 @@
 #endif
 
 #if defined(EIGEN_HAS_CUDA_FP16)
-  #include <host_defines.h>
+  #include <cuda_runtime_api.h>
   #include <cuda_fp16.h>
 #endif
 
