@@ -526,6 +526,77 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
 //       EIGEN_INITIALIZE_COEFFS_IF_THAT_OPTION_IS_ENABLED
     }
 
+    #ifdef EIGEN_PARSED_BY_DOXYGEN
+    /** 
+     * \brief Construct a vector with fixed number of rows or a rowvector with fixed number of 
+     * columns by passing an initializer list \cpp11
+     *
+     * \only_for_vectors
+     * 
+     * \warning To construct a vector or rowvector of fixed size, the number of values passed through
+     * the initializer list must match the the fixed number of rows in the vector case or
+     * the fixed number of columns in the rowvector case. */
+    EIGEN_DEVICE_FUNC
+    explicit EIGEN_STRONG_INLINE PlainObjectBase(const std::initializer_list<Scalar>& list);
+
+    /**
+     * \brief Constructs a Matrix or Array and initializes it by elements given by an initializer list of initializer
+     * lists \cpp11 */
+    EIGEN_DEVICE_FUNC
+    explicit EIGEN_STRONG_INLINE PlainObjectBase(const std::initializer_list<std::initializer_list<Scalar>>& list);
+    #else // EIGEN_PARSED_BY_DOXYGEN
+    #if EIGEN_HAS_CXX11
+    template<typename T>
+    EIGEN_DEVICE_FUNC
+    explicit EIGEN_STRONG_INLINE PlainObjectBase(const std::initializer_list<T>& list,
+      typename internal::enable_if<internal::is_same<T, Scalar>::value, T>::type* = 0,
+      typename internal::enable_if<RowsAtCompileTime != Dynamic
+                                   && ColsAtCompileTime != Dynamic
+                                   && IsVectorAtCompileTime ==  1, T>::type* = 0)
+      : m_storage()
+    {
+      _check_template_params();
+      EIGEN_STATIC_ASSERT_FIXED_SIZE(PlainObjectBase);
+      resize(list.size());
+      std::copy(list.begin(), list.end(), m_storage.data());
+    }
+
+    EIGEN_DEVICE_FUNC
+    explicit EIGEN_STRONG_INLINE PlainObjectBase(const std::initializer_list<std::initializer_list<Scalar>>& list)
+      : m_storage()
+    {
+      _check_template_params();
+
+      size_t list_size = 0;
+      if (list.begin() != list.end()) {
+        list_size = list.begin()->size();
+      }
+
+      // This is to allow syntax like VectorXi {{1, 2, 3, 4}}
+      if (ColsAtCompileTime == 1 && list.size() == 1) {
+        eigen_assert(list_size == static_cast<size_t>(RowsAtCompileTime) || RowsAtCompileTime == Dynamic);
+        resize(list_size, ColsAtCompileTime);
+        std::copy(list.begin()->begin(), list.begin()->end(), m_storage.data());
+      } else {
+        eigen_assert(list.size() == static_cast<size_t>(RowsAtCompileTime) || RowsAtCompileTime == Dynamic);
+        eigen_assert(list_size == static_cast<size_t>(ColsAtCompileTime) || ColsAtCompileTime == Dynamic);
+        resize(list.size(), list_size);
+       
+        Index row_index = 0;
+        for (const std::initializer_list<Scalar>& row : list) {
+          eigen_assert(list_size == row.size());
+          Index col_index = 0;
+          for (const Scalar& e : row) {
+            coeffRef(row_index, col_index) = e;
+            ++col_index;
+          }
+          ++row_index;
+        }
+      }
+    }
+    #endif  // end EIGEN_HAS_CXX11
+    #endif  // end EIGEN_PARSED_BY_DOXYGEN
+
     /** \sa PlainObjectBase::operator=(const EigenBase<OtherDerived>&) */
     template<typename OtherDerived>
     EIGEN_DEVICE_FUNC

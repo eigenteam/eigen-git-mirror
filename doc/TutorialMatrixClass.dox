@@ -101,11 +101,38 @@ Matrix3f a(3,3);
 \endcode
 and is a no-operation.
 
-Finally, we also offer some constructors to initialize the coefficients of small fixed-size vectors up to size 4:
+Additionally, we also offer some constructors to initialize the coefficients of small fixed-size vectors up to size 4:
 \code
 Vector2d a(5.0, 6.0);
 Vector3d b(5.0, 6.0, 7.0);
 Vector4d c(5.0, 6.0, 7.0, 8.0);
+\endcode
+
+If C++11 is enabled, matrices can be constructed and initialized using initializer lists. In the case of fixed-sized vectors
+and rowvectors a simple initializer list can be passed:
+\code
+Vector2i a {1, 2};                  // A vector containing the elements {1, 2}
+Matrix<int, 4, 1> b {1, 2, 3, 4};   // A row-vector containing the elements {1, 2, 3, 4}
+Matrix<int, 1, 4> c {1, 2, 3, 4};   // A vector containing the elements {1, 2, 3, 4}
+\endcode
+
+In the case of fixed or dynamically sized matrices an initializer list containing an initializer list for each row
+can be passed. If the matrix is fixed-sized, the number of elements that are passed must match the dimensions.
+\code
+MatrixXi a {
+      {1, 2},     // first row
+      {3, 4}      // second row
+};
+Matrix<double, 2, 3> b {
+      {2.0, 3.0, 4.0},
+      {5.0, 6.0, 7.0},
+};
+\endcode
+
+In the case of vectors and rowvectors, the following shorthand notation can be used:
+\code
+VectorXd a {{1.5, 2.5, 3.5}};             // A vector with 3 rows
+RowVectorXd b {{1.0, 2.0, 3.0, 4.0}};     // A rowvector with 4 columns
 \endcode
 
 \section TutorialMatrixCoeffAccessors Coefficient accessors
