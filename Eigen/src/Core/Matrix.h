@@ -303,13 +303,11 @@ class Matrix
     }
 
     #if EIGEN_HAS_CXX11
-  protected:
-    enum { IsFixedSizeVectorAtCompileTime = RowsAtCompileTime != Dynamic && ColsAtCompileTime != Dynamic && IsVectorAtCompileTime == 1 };
   public:
-    template<typename T,
-             typename = typename internal::enable_if<IsFixedSizeVectorAtCompileTime && internal::is_same<T, Scalar>::value>::type>
-    EIGEN_DEVICE_FUNC
-    explicit EIGEN_STRONG_INLINE Matrix(const std::initializer_list<T>& list) : Base(list) {}
+    template <typename... ArgTypes>
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    Matrix(const Scalar& a0, const Scalar& a1, const Scalar& a2,  const Scalar& a3, const ArgTypes&... args)
+      : Base(a0, a1, a2, a3, args...) {}
 
     EIGEN_DEVICE_FUNC
     explicit EIGEN_STRONG_INLINE Matrix(const std::initializer_list<std::initializer_list<Scalar>>& list) : Base(list) {}
@@ -353,15 +351,16 @@ class Matrix
     /** \brief Constructs an initialized 2D vector with given coefficients */
     Matrix(const Scalar& x, const Scalar& y);
 
-    /** \copydoc PlainObjectBase::PlainObjectBase(const std::initializer_list<Scalar>& list)
+    /** \copydoc PlainObjectBase(const Scalar& a0, const Scalar& a1, const Scalar& a2,  const Scalar& a3, const ArgTypes&... args)
      *
-     * Example: \include Matrix_initializer_list2_cxx11.cpp
-     * Output: \verbinclude Matrix_initializer_list2_cxx11.out
+     * Example: \include Matrix_variadic_ctor_cxx11.cpp
+     * Output: \verbinclude Matrix_variadic_ctor_cxx11.out
      *
      * \sa Matrix(const std::initializer_list<std::initializer_list<Scalar>>&)
      */
-    EIGEN_DEVICE_FUNC
-    explicit EIGEN_STRONG_INLINE Matrix(const std::initializer_list<Scalar>& list);
+    template <typename... ArgTypes>
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    Matrix(const Scalar& a0, const Scalar& a1, const Scalar& a2,  const Scalar& a3, const ArgTypes&... args);
 
     /** \brief Constructs a Matrix and initializes it from the coefficients given as initializer-lists grouped by row. \cpp11
       * 

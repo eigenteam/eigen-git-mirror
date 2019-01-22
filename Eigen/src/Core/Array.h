@@ -183,10 +183,10 @@ class Array
   protected:
     enum { IsFixedSizeVectorAtCompileTime = RowsAtCompileTime != Dynamic && ColsAtCompileTime != Dynamic && IsVectorAtCompileTime == 1 };
   public:
-    template<typename T,
-             typename = typename internal::enable_if<IsFixedSizeVectorAtCompileTime && internal::is_same<T, Scalar>::value>::type>
-    EIGEN_DEVICE_FUNC
-    explicit EIGEN_STRONG_INLINE Array(const std::initializer_list<T>& list) : Base(list) {}
+    template <typename... ArgTypes>
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    Array(const Scalar& a0, const Scalar& a1, const Scalar& a2,  const Scalar& a3, const ArgTypes&... args)
+      : Base(a0, a1, a2, a3, args...) {}
 
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE Array(const std::initializer_list<std::initializer_list<Scalar> >& list) : Base(list) {}
@@ -214,15 +214,16 @@ class Array
     /** constructs an initialized 2D vector with given coefficients */
     Array(const Scalar& val0, const Scalar& val1);
 
-    /** \copydoc PlainObjectBase::PlainObjectBase(const std::initializer_list<Scalar>& list) 
-      *
-      * Example: \include Array_initializer_list2_cxx11.cpp
-      * Output: \verbinclude Array_initializer_list2_cxx11.out
-      *
-      * \sa Array(const std::initializer_list<std::initializer_list<Scalar> >&)
-      */
-    EIGEN_DEVICE_FUNC
-    explicit EIGEN_STRONG_INLINE Array(const std::initializer_list<Scalar>& list);
+    /** \copydoc PlainObjectBase(const Scalar& a0, const Scalar& a1, const Scalar& a2,  const Scalar& a3, const ArgTypes&... args)
+     *
+     * Example: \include Array_variadic_ctor_cxx11.cpp
+     * Output: \verbinclude Array_variadic_ctor_cxx11.out
+     *
+     * \sa Array(const std::initializer_list<std::initializer_list<Scalar>>&)
+     */
+    template <typename... ArgTypes>
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    Array(const Scalar& a0, const Scalar& a1, const Scalar& a2,  const Scalar& a3, const ArgTypes&... args);
 
     /** \brief Constructs an array and initializes it from the coefficients given as initializer-lists grouped by row. \cpp11
       * 
