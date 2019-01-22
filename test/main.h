@@ -411,8 +411,6 @@ inline bool test_isApprox(const unsigned short& a, const unsigned short& b)
 { return internal::isApprox(a, b, test_precision<unsigned short>()); }
 inline bool test_isApprox(const unsigned int& a, const unsigned int& b)
 { return internal::isApprox(a, b, test_precision<unsigned int>()); }
-inline bool test_isApprox(const long& a, const long& b)
-{ return internal::isApprox(a, b, test_precision<long>()); }
 inline bool test_isApprox(const unsigned long& a, const unsigned long& b)
 { return internal::isApprox(a, b, test_precision<unsigned long>()); }
 
@@ -422,6 +420,13 @@ inline bool test_isMuchSmallerThan(const int& a, const int& b)
 { return internal::isMuchSmallerThan(a, b, test_precision<int>()); }
 inline bool test_isApproxOrLessThan(const int& a, const int& b)
 { return internal::isApproxOrLessThan(a, b, test_precision<int>()); }
+
+inline bool test_isApprox(const long& a, const long& b)
+{ return internal::isApprox(a, b, test_precision<long>()); }
+inline bool test_isMuchSmallerThan(const long& a, const long b)
+{ return internal::isMuchSmallerThan(a, b, test_precision<long>()); }
+inline bool test_isApproxOrLessThan(const long& a, const long& b)
+{ return internal::isApproxOrLessThan(a, b, test_precision<long>()); }
 
 inline bool test_isApprox(const float& a, const float& b)
 { return internal::isApprox(a, b, test_precision<float>()); }
