@@ -180,13 +180,13 @@ class Array
     }
 
     #if EIGEN_HAS_CXX11
-    template<typename T>
+  protected:
+    enum { IsFixedSizeVectorAtCompileTime = RowsAtCompileTime != Dynamic && ColsAtCompileTime != Dynamic && IsVectorAtCompileTime == 1 };
+  public:
+    template<typename T,
+             typename = typename internal::enable_if<IsFixedSizeVectorAtCompileTime && internal::is_same<T, Scalar>::value>::type>
     EIGEN_DEVICE_FUNC
-    explicit EIGEN_STRONG_INLINE Array(const std::initializer_list<T>& list,
-      typename internal::enable_if<internal::is_same<T, Scalar>::value, T>::type* = 0,
-      typename internal::enable_if<RowsAtCompileTime != Dynamic
-                                   && ColsAtCompileTime != Dynamic
-                                   && IsVectorAtCompileTime == 1, T>::type* = 0) : Base(list) {}
+    explicit EIGEN_STRONG_INLINE Array(const std::initializer_list<T>& list) : Base(list) {}
 
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE Array(const std::initializer_list<std::initializer_list<Scalar> >& list) : Base(list) {}
@@ -219,35 +219,39 @@ class Array
       * Example: \include Array_initializer_list2_cxx11.cpp
       * Output: \verbinclude Array_initializer_list2_cxx11.out
       *
-      * \sa Array::Array(const Scalar& val0, const Scalar& val1)
-      * \sa Array::Array(const Scalar& val0, const Scalar& val1, const Scalar& val2) */
+      * \sa Array(const std::initializer_list<std::initializer_list<Scalar> >&)
+      */
     EIGEN_DEVICE_FUNC
     explicit EIGEN_STRONG_INLINE Array(const std::initializer_list<Scalar>& list);
 
-    /**
-     * \brief Constructs an array and initializes it by elements given by an initializer list of initializer lists \cpp11
-     * 
-     * This constructor distinguishes between the construction of arbitrary array and arrays with one fixed dimension,
-     * 
-     * In the general case, the constructor takes an initializer list, representing the array rows, that contains for
-     * each row an initializer list, representing a single column, containing scalar values. Each of the inner
-     * initializer lists must contain the same number of elements. 
-     * 
-     * In the case of array with one fixed dimension, an initializer list containing just one other initializer list
-     * that contains the array elements can be passed. Therefore \c Array<int,\c Dynamic,\c 1>\c {{1,\c 2,\c 3,\c 4}} is
-     * legal and the more verbose syntax \c Array<int,\c Dynamic,\c 1>\c {{1},\c {2},\c {3},\c {4}} can be avoided.
-     * 
-     * \warning In the case of fixed-sized arrays, the initializer list size must be equal to the array \a rows rows
-     * and \a cols columns.
-     *  
-     * Example: \include Array_initializer_list_cxx11.cpp
-     * Output: \verbinclude Array_initializer_list_cxx11.out
-     */
+    /** \brief Constructs an array and initializes it from the coefficients given as initializer-lists grouped by row. \cpp11
+      * 
+      * In the general case, the constructor takes a list of rows, each row being represented as a list of coefficients:
+      * 
+      * Example: \include Array_initializer_list_23_cxx11.cpp
+      * Output: \verbinclude Array_initializer_list_23_cxx11.out
+      * 
+      * Each of the inner initializer lists must contain the exact same number of elements, otherwise an assertion is triggered.
+      * 
+      * In the case of a compile-time column 1D array, implicit transposition from a single row is allowed.
+      * Therefore <code> Array<int,Dynamic,1>{{1,2,3,4,5}}</code> is legal and the more verbose syntax
+      * <code>Array<int,Dynamic,1>{{1},{2},{3},{4},{5}}</code> can be avoided:
+      * 
+      * Example: \include Array_initializer_list_vector_cxx11.cpp
+      * Output: \verbinclude Array_initializer_list_vector_cxx11.out
+      * 
+      * In the case of fixed-sized arrays, the initializer list sizes must exactly match the array sizes,
+      * and implicit transposition is allowed for compile-time 1D arrays only.
+      * 
+      * \sa Array(const std::initializer_list<Scalar>&)
+      */
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE Array(const std::initializer_list<std::initializer_list<Scalar> >& list);
     #endif  // end EIGEN_PARSED_BY_DOXYGEN 
 
-    /** constructs an initialized 3D vector with given coefficients */
+    /** constructs an initialized 3D vector with given coefficients
+      * \sa Array(const std::initializer_list<Scalar>&)
+      */
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE Array(const Scalar& val0, const Scalar& val1, const Scalar& val2)
     {
@@ -257,7 +261,9 @@ class Array
       m_storage.data()[1] = val1;
       m_storage.data()[2] = val2;
     }
-    /** constructs an initialized 4D vector with given coefficients */
+    /** constructs an initialized 4D vector with given coefficients
+      * \sa Array(const std::initializer_list<Scalar>&)
+      */
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE Array(const Scalar& val0, const Scalar& val1, const Scalar& val2, const Scalar& val3)
     {

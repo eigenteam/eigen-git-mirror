@@ -527,21 +527,19 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
     }
 
     #ifdef EIGEN_PARSED_BY_DOXYGEN
-    /** 
-     * \brief Construct a vector with fixed number of rows or a rowvector with fixed number of 
-     * columns by passing an initializer list \cpp11
-     *
-     * \only_for_vectors
-     * 
-     * \warning To construct a vector or rowvector of fixed size, the number of values passed through
-     * the initializer list must match the the fixed number of rows in the vector case or
-     * the fixed number of columns in the rowvector case. */
+    /** \brief Construct a row of column vector with fixed size from an initializer list of coefficients. \cpp11
+      *
+      * \only_for_vectors
+      * 
+      * \warning To construct a column (resp. row) vector of fixed length, the number of values passed through
+      * the initializer list must match the the fixed number of rows (resp. columns) of \c *this.
+      */
     EIGEN_DEVICE_FUNC
     explicit EIGEN_STRONG_INLINE PlainObjectBase(const std::initializer_list<Scalar>& list);
 
-    /**
-     * \brief Constructs a Matrix or Array and initializes it by elements given by an initializer list of initializer
-     * lists \cpp11 */
+    /** \brief Constructs a Matrix or Array and initializes it by elements given by an initializer list of initializer
+      * lists \cpp11
+      */
     EIGEN_DEVICE_FUNC
     explicit EIGEN_STRONG_INLINE PlainObjectBase(const std::initializer_list<std::initializer_list<Scalar>>& list);
     #else // EIGEN_PARSED_BY_DOXYGEN

@@ -303,13 +303,13 @@ class Matrix
     }
 
     #if EIGEN_HAS_CXX11
-    template<typename T>
+  protected:
+    enum { IsFixedSizeVectorAtCompileTime = RowsAtCompileTime != Dynamic && ColsAtCompileTime != Dynamic && IsVectorAtCompileTime == 1 };
+  public:
+    template<typename T,
+             typename = typename internal::enable_if<IsFixedSizeVectorAtCompileTime && internal::is_same<T, Scalar>::value>::type>
     EIGEN_DEVICE_FUNC
-    explicit EIGEN_STRONG_INLINE Matrix(const std::initializer_list<T>& list,
-      typename internal::enable_if<internal::is_same<T, Scalar>::value, T>::type* = 0,
-      typename internal::enable_if<RowsAtCompileTime != Dynamic
-                                   && ColsAtCompileTime != Dynamic
-                                   && IsVectorAtCompileTime == 1, T>::type* = 0) : Base(list) {}
+    explicit EIGEN_STRONG_INLINE Matrix(const std::initializer_list<T>& list) : Base(list) {}
 
     EIGEN_DEVICE_FUNC
     explicit EIGEN_STRONG_INLINE Matrix(const std::initializer_list<std::initializer_list<Scalar>>& list) : Base(list) {}
@@ -358,37 +358,40 @@ class Matrix
      * Example: \include Matrix_initializer_list2_cxx11.cpp
      * Output: \verbinclude Matrix_initializer_list2_cxx11.out
      *
-     * \sa Matrix::Matrix(const Scalar& x, const Scalar& y, const Scalar& z)
-     * \sa Matrix::Matrix(const Scalar& x, const Scalar& y, const Scalar& z, const Scalar& w) */
+     * \sa Matrix(const std::initializer_list<std::initializer_list<Scalar>>&)
+     */
     EIGEN_DEVICE_FUNC
     explicit EIGEN_STRONG_INLINE Matrix(const std::initializer_list<Scalar>& list);
 
-    /**
-     * \brief Constructs a matrix and initializes it by elements given by an initializer list of initializer lists \cpp11
-     * 
-     * This constructor distinguishes between the construction of arbitrary matrices and matrices with one fixed dimension,
-     * i.e., vectors or rowvectors.
-     * 
-     * In the general case, the constructor takes an initializer list, representing the matrix rows, that contains for
-     * each row an initializer list, representing a single column, containing scalar values. Each of the inner
-     * initializer lists must contain the same number of elements. 
-     * 
-     * In the case of matrices with one fixed dimension, an initializer list containing just one other initializer list
-     * that contains the matrix elements can be passed. Therefore \c VectorXi\c {{1,\c 2,\c 3,\c 4}} is legal and the more
-     * verbose syntax \c VectorXi\c {{1},\c {2},\c {3},\c {4}} can be avoided.
-     * 
-     * \warning In the case of fixed-sized matrices, the initializer list size must be equal to the matrix \a rows rows
-     * and \a cols columns.
-     *  
-     * Example: \include Matrix_initializer_list_cxx11.cpp
-     * Output: \verbinclude Matrix_initializer_list_cxx11.out
-     */
+    /** \brief Constructs a Matrix and initializes it from the coefficients given as initializer-lists grouped by row. \cpp11
+      * 
+      * In the general case, the constructor takes a list of rows, each row being represented as a list of coefficients:
+      * 
+      * Example: \include Matrix_initializer_list_23_cxx11.cpp
+      * Output: \verbinclude Matrix_initializer_list_23_cxx11.out
+      * 
+      * Each of the inner initializer lists must contain the exact same number of elements, otherwise an assertion is triggered.
+      * 
+      * In the case of a compile-time column vector, implicit transposition from a single row is allowed.
+      * Therefore <code>VectorXd{{1,2,3,4,5}}</code> is legal and the more verbose syntax
+      * <code>RowVectorXd{{1},{2},{3},{4},{5}}</code> can be avoided:
+      * 
+      * Example: \include Matrix_initializer_list_vector_cxx11.cpp
+      * Output: \verbinclude Matrix_initializer_list_vector_cxx11.out
+      * 
+      * In the case of fixed-sized matrices, the initializer list sizes must exactly match the matrix sizes,
+      * and implicit transposition is allowed for compile-time vectors only.
+      * 
+      * \sa Matrix(const std::initializer_list<Scalar>&)
+      */
     EIGEN_DEVICE_FUNC
     explicit EIGEN_STRONG_INLINE Matrix(const std::initializer_list<std::initializer_list<Scalar>>& list);
 
     #endif  // end EIGEN_PARSED_BY_DOXYGEN
 
-    /** \brief Constructs an initialized 3D vector with given coefficients */
+    /** \brief Constructs an initialized 3D vector with given coefficients
+      * \sa Matrix(const std::initializer_list<Scalar>&)
+      */
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE Matrix(const Scalar& x, const Scalar& y, const Scalar& z)
     {
@@ -398,7 +401,9 @@ class Matrix
       m_storage.data()[1] = y;
       m_storage.data()[2] = z;
     }
-    /** \brief Constructs an initialized 4D vector with given coefficients */
+    /** \brief Constructs an initialized 4D vector with given coefficients
+      * \sa Matrix(const std::initializer_list<Scalar>&)
+      */
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE Matrix(const Scalar& x, const Scalar& y, const Scalar& z, const Scalar& w)
     {
