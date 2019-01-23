@@ -55,10 +55,10 @@ Here is an example sorting each row of a matrix:
 <table class="example">
 <tr><th>Example:</th><th>Output:</th></tr>
 <tr><td>
-\include Tutorial_std_sort_rows.cpp
+\include Tutorial_std_sort_rows_cxx11.cpp
 </td>
 <td>
-\verbinclude Tutorial_std_sort_rows.out
+\verbinclude Tutorial_std_sort_rows_cxx11.out
 </td></tr></table>
 
 */
