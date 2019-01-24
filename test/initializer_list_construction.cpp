@@ -47,40 +47,58 @@ struct TestMethodDispatching<Scalar, 1> {
   }
 };
 
-template<typename Scalar> void singleInitializerListVectorConstruction()
+template<typename Vec4, typename Vec5> void fixedsizeVariadicVectorConstruction2()
 {
-  Scalar raw[4];
-  for(int k = 0; k < 4; ++k) {
-    raw[k] = internal::random<Scalar>();
+  {
+    Vec4 ref = Vec4::Random();
+    Vec4 v{ ref[0], ref[1], ref[2], ref[3] };
+    VERIFY_IS_APPROX(v, ref);
+    VERIFY_IS_APPROX(v, (Vec4( ref[0], ref[1], ref[2], ref[3] )));
+    VERIFY_IS_APPROX(v, (Vec4({ref[0], ref[1], ref[2], ref[3]})));
+
+    Vec4 v2 = { ref[0], ref[1], ref[2], ref[3] };
+    VERIFY_IS_APPROX(v2, ref);
   }
   {
-    Matrix<Scalar, 1, 4> m { raw[0], raw[1], raw[2], raw[3] };
-    Array<Scalar, 1, 4> a { raw[0], raw[1], raw[2], raw[3] };
-    for(int k = 0; k < 4; ++k) {
-      VERIFY(m(k) == raw[k]);
-    }
-    for(int k = 0; k < 4; ++k) {
-      VERIFY(a(k) == raw[k]);
-    }
-    VERIFY_IS_EQUAL(m, (Matrix<Scalar, 1, 4>(raw[0], raw[1], raw[2], raw[3])));
-    VERIFY_IS_EQUAL(m, (Matrix<Scalar, 1, 4>({raw[0], raw[1], raw[2], raw[3]})));
-    VERIFY((a == (Array<Scalar, 1, 4>(raw[0], raw[1], raw[2], raw[3]))).all());
-    VERIFY((a == (Array<Scalar, 1, 4>({raw[0], raw[1], raw[2], raw[3]}))).all());
+    Vec5 ref = Vec5::Random();
+    Vec5 v{ ref[0], ref[1], ref[2], ref[3], ref[4] };
+    VERIFY_IS_APPROX(v, ref);
+    VERIFY_IS_APPROX(v, (Vec5( ref[0], ref[1], ref[2], ref[3], ref[4] )));
+    VERIFY_IS_APPROX(v, (Vec5({ref[0], ref[1], ref[2], ref[3], ref[4]})));
+
+    Vec5 v2 = { ref[0], ref[1], ref[2], ref[3], ref[4] };
+    VERIFY_IS_APPROX(v2, ref);
   }
-  {
-    Matrix<Scalar, 4, 1> m { raw[0], raw[1], raw[2], raw[3] };
-    Array<Scalar, 4, 1> a { raw[0], raw[1], raw[2], raw[3] };
-    for(int k = 0; k < 4; ++k) {
-      VERIFY(m(k) == raw[k]);
-    }
-    for(int k = 0; k < 4; ++k) {
-      VERIFY(a(k) == raw[k]);
-    }
-    VERIFY_IS_EQUAL(m, (Matrix<Scalar, 4, 1>(raw[0], raw[1], raw[2], raw[3])));
-    VERIFY_IS_EQUAL(m, (Matrix<Scalar, 4, 1>({raw[0], raw[1], raw[2], raw[3]})));
-    VERIFY((a == (Array<Scalar, 4, 1>(raw[0], raw[1], raw[2], raw[3]))).all());
-    VERIFY((a == (Array<Scalar, 4, 1>({raw[0], raw[1], raw[2], raw[3]}))).all());
-  }
+}
+
+#define CHECK_MIXSCALAR_V5_APPROX(V, A0, A1, A2, A3, A4) { \
+  VERIFY_IS_APPROX(V[0], Scalar(A0) ); \
+  VERIFY_IS_APPROX(V[1], Scalar(A1) ); \
+  VERIFY_IS_APPROX(V[2], Scalar(A2) ); \
+  VERIFY_IS_APPROX(V[3], Scalar(A3) ); \
+  VERIFY_IS_APPROX(V[4], Scalar(A4) ); \
+}
+
+#define CHECK_MIXSCALAR_V5(VEC5, A0, A1, A2, A3, A4) { \
+  typedef VEC5::Scalar Scalar; \
+  VEC5 v = { A0 , A1 , A2 , A3 , A4 }; \
+  CHECK_MIXSCALAR_V5_APPROX(v, A0 , A1 , A2 , A3 , A4); \
+}
+
+template<int> void fixedsizeVariadicVectorConstruction3()
+{
+  typedef Matrix<double,5,1> Vec5;
+  typedef Array<float,5,1> Arr5;
+  CHECK_MIXSCALAR_V5(Vec5, 1, 2., -3, 4.121, 5.53252);
+  CHECK_MIXSCALAR_V5(Arr5, 1, 2., 3.12f, 4.121, 5.53252);
+}
+
+template<typename Scalar> void fixedsizeVariadicVectorConstruction()
+{
+  CALL_SUBTEST(( fixedsizeVariadicVectorConstruction2<Matrix<Scalar,4,1>, Matrix<Scalar,5,1> >() ));
+  CALL_SUBTEST(( fixedsizeVariadicVectorConstruction2<Matrix<Scalar,1,4>, Matrix<Scalar,1,5> >() ));
+  CALL_SUBTEST(( fixedsizeVariadicVectorConstruction2<Array<Scalar,4,1>,  Array<Scalar,5,1>  >() ));
+  CALL_SUBTEST(( fixedsizeVariadicVectorConstruction2<Array<Scalar,1,4>,  Array<Scalar,1,5>  >() ));
 }
 
 
@@ -346,15 +364,16 @@ EIGEN_DECLARE_TEST(initializer_list_construction)
   CALL_SUBTEST_3(initializerListArrayConstruction<std::complex<double>>());
   CALL_SUBTEST_3(initializerListArrayConstruction<std::complex<float>>());
 
-  CALL_SUBTEST_4(singleInitializerListVectorConstruction<unsigned char>());
-  CALL_SUBTEST_4(singleInitializerListVectorConstruction<float>());
-  CALL_SUBTEST_4(singleInitializerListVectorConstruction<double>());
-  CALL_SUBTEST_4(singleInitializerListVectorConstruction<int>());
-  CALL_SUBTEST_4(singleInitializerListVectorConstruction<long int>());
-  CALL_SUBTEST_4(singleInitializerListVectorConstruction<std::ptrdiff_t>());
-  CALL_SUBTEST_4(singleInitializerListVectorConstruction<std::complex<int>>());
-  CALL_SUBTEST_4(singleInitializerListVectorConstruction<std::complex<double>>());
-  CALL_SUBTEST_4(singleInitializerListVectorConstruction<std::complex<float>>());
+  CALL_SUBTEST_4(fixedsizeVariadicVectorConstruction<unsigned char>());
+  CALL_SUBTEST_4(fixedsizeVariadicVectorConstruction<float>());
+  CALL_SUBTEST_4(fixedsizeVariadicVectorConstruction<double>());
+  CALL_SUBTEST_4(fixedsizeVariadicVectorConstruction<int>());
+  CALL_SUBTEST_4(fixedsizeVariadicVectorConstruction<long int>());
+  CALL_SUBTEST_4(fixedsizeVariadicVectorConstruction<std::ptrdiff_t>());
+  CALL_SUBTEST_4(fixedsizeVariadicVectorConstruction<std::complex<int>>());
+  CALL_SUBTEST_4(fixedsizeVariadicVectorConstruction<std::complex<double>>());
+  CALL_SUBTEST_4(fixedsizeVariadicVectorConstruction<std::complex<float>>());
+  CALL_SUBTEST_4(fixedsizeVariadicVectorConstruction3<0>());
 
   CALL_SUBTEST_5(TestMethodDispatching<int>::run());
   CALL_SUBTEST_5(TestMethodDispatching<long int>::run());
