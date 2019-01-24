@@ -180,50 +180,18 @@ class Array
     }
 
     #if EIGEN_HAS_CXX11
-  protected:
-    enum { IsFixedSizeVectorAtCompileTime = RowsAtCompileTime != Dynamic && ColsAtCompileTime != Dynamic && IsVectorAtCompileTime == 1 };
-  public:
-    template <typename... ArgTypes>
-    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-    Array(const Scalar& a0, const Scalar& a1, const Scalar& a2,  const Scalar& a3, const ArgTypes&... args)
-      : Base(a0, a1, a2, a3, args...) {}
-
-    EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE Array(const std::initializer_list<std::initializer_list<Scalar> >& list) : Base(list) {}
-    #endif // end EIGEN_HAS_CXX11
-
-    #else
-    /** \brief Constructs a fixed-sized array initialized with coefficients starting at \a data */
-    EIGEN_DEVICE_FUNC explicit Array(const Scalar *data);
-    /** Constructs a vector or row-vector with given dimension. \only_for_vectors
-      *
-      * Note that this is only useful for dynamic-size vectors. For fixed-size vectors,
-      * it is redundant to pass the dimension here, so it makes more sense to use the default
-      * constructor Array() instead.
-      */
-    EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE explicit Array(Index dim);
-    /** constructs an initialized 1x1 Array with the given coefficient */
-    Array(const Scalar& value);
-    /** constructs an uninitialized array with \a rows rows and \a cols columns.
-      *
-      * This is useful for dynamic-size arrays. For fixed-size arrays,
-      * it is redundant to pass these parameters, so one should use the default constructor
-      * Array() instead. */
-    Array(Index rows, Index cols);
-    /** constructs an initialized 2D vector with given coefficients */
-    Array(const Scalar& val0, const Scalar& val1);
-
-    /** \copydoc PlainObjectBase(const Scalar& a0, const Scalar& a1, const Scalar& a2,  const Scalar& a3, const ArgTypes&... args)
+    /** \copydoc PlainObjectBase(const Scalar& a0, const Scalar& a1, const Scalar& a2, const Scalar& a3, const ArgTypes&... args)
      *
      * Example: \include Array_variadic_ctor_cxx11.cpp
      * Output: \verbinclude Array_variadic_ctor_cxx11.out
      *
      * \sa Array(const std::initializer_list<std::initializer_list<Scalar>>&)
+     * \sa Array(Scalar), Array(Scalar,Scalar)
      */
     template <typename... ArgTypes>
     EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-    Array(const Scalar& a0, const Scalar& a1, const Scalar& a2,  const Scalar& a3, const ArgTypes&... args);
+    Array(const Scalar& a0, const Scalar& a1, const Scalar& a2, const Scalar& a3, const ArgTypes&... args)
+      : Base(a0, a1, a2, a3, args...) {}
 
     /** \brief Constructs an array and initializes it from the coefficients given as initializer-lists grouped by row. \cpp11
       * 
@@ -244,14 +212,39 @@ class Array
       * In the case of fixed-sized arrays, the initializer list sizes must exactly match the array sizes,
       * and implicit transposition is allowed for compile-time 1D arrays only.
       * 
-      * \sa Array(const std::initializer_list<Scalar>&)
+      * \sa Array(const Scalar& a0, const Scalar& a1, const Scalar& a2, const Scalar& a3, const ArgTypes&... args)
       */
     EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE Array(const std::initializer_list<std::initializer_list<Scalar> >& list);
+    EIGEN_STRONG_INLINE Array(const std::initializer_list<std::initializer_list<Scalar> >& list) : Base(list) {}
+    #endif // end EIGEN_HAS_CXX11
+
+    #else
+    /** \brief Constructs a fixed-sized array initialized with coefficients starting at \a data */
+    EIGEN_DEVICE_FUNC explicit Array(const Scalar *data);
+    /** Constructs a vector or row-vector with given dimension. \only_for_vectors
+      *
+      * Note that this is only useful for dynamic-size vectors. For fixed-size vectors,
+      * it is redundant to pass the dimension here, so it makes more sense to use the default
+      * constructor Array() instead.
+      */
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE explicit Array(Index dim);
+    /** constructs an initialized 1x1 Array with the given coefficient
+      * \sa const Scalar& a0, const Scalar& a1, const Scalar& a2, const Scalar& a3, const ArgTypes&... args */
+    Array(const Scalar& value);
+    /** constructs an uninitialized array with \a rows rows and \a cols columns.
+      *
+      * This is useful for dynamic-size arrays. For fixed-size arrays,
+      * it is redundant to pass these parameters, so one should use the default constructor
+      * Array() instead. */
+    Array(Index rows, Index cols);
+    /** constructs an initialized 2D vector with given coefficients
+      * \sa Array(const Scalar& a0, const Scalar& a1, const Scalar& a2, const Scalar& a3, const ArgTypes&... args) */
+    Array(const Scalar& val0, const Scalar& val1);
     #endif  // end EIGEN_PARSED_BY_DOXYGEN 
 
     /** constructs an initialized 3D vector with given coefficients
-      * \sa Array(const std::initializer_list<Scalar>&)
+      * \sa Array(const Scalar& a0, const Scalar& a1, const Scalar& a2, const Scalar& a3, const ArgTypes&... args)
       */
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE Array(const Scalar& val0, const Scalar& val1, const Scalar& val2)
@@ -263,7 +256,7 @@ class Array
       m_storage.data()[2] = val2;
     }
     /** constructs an initialized 4D vector with given coefficients
-      * \sa Array(const std::initializer_list<Scalar>&)
+      * \sa Array(const Scalar& a0, const Scalar& a1, const Scalar& a2, const Scalar& a3, const ArgTypes&... args)
       */
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE Array(const Scalar& val0, const Scalar& val1, const Scalar& val2, const Scalar& val3)
