@@ -47,9 +47,9 @@ namespace internal {
  */
 
 
-template<std::size_t I, class T> constexpr inline T&       array_get(std::vector<T>&       a) { return a[I]; }
-template<std::size_t I, class T> constexpr inline T&&      array_get(std::vector<T>&&      a) { return a[I]; }
-template<std::size_t I, class T> constexpr inline T const& array_get(std::vector<T> const& a) { return a[I]; }
+template<std::size_t I_, class T> constexpr inline T&       array_get(std::vector<T>&       a) { return a[I_]; }
+template<std::size_t I_, class T> constexpr inline T&&      array_get(std::vector<T>&&      a) { return a[I_]; }
+template<std::size_t I_, class T> constexpr inline T const& array_get(std::vector<T> const& a) { return a[I_]; }
 
 /* Suppose you have a template of the form
  * template<typename T> struct X;

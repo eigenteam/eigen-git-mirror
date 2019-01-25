@@ -97,6 +97,8 @@
 #define FORBIDDEN_IDENTIFIER (this_identifier_is_forbidden_to_avoid_clashes) this_identifier_is_forbidden_to_avoid_clashes
 // B0 is defined in POSIX header termios.h
 #define B0 FORBIDDEN_IDENTIFIER
+// `I` may be defined by complex.h:
+#define I  FORBIDDEN_IDENTIFIER
 
 // Unit tests calling Eigen's blas library must preserve the default blocking size
 // to avoid troubles.

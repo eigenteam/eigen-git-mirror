@@ -72,9 +72,9 @@ void verify_euler(const EulerAngles<Scalar, EulerSystem>& e)
     }
   }
   
-  const Vector3 I = EulerAnglesType::AlphaAxisVector();
-  const Vector3 J = EulerAnglesType::BetaAxisVector();
-  const Vector3 K = EulerAnglesType::GammaAxisVector();
+  const Vector3 I_ = EulerAnglesType::AlphaAxisVector();
+  const Vector3 J_ = EulerAnglesType::BetaAxisVector();
+  const Vector3 K_ = EulerAnglesType::GammaAxisVector();
   
   // Is approx checks
   VERIFY(e.isApprox(e));
@@ -97,7 +97,7 @@ void verify_euler(const EulerAngles<Scalar, EulerSystem>& e)
   VERIFY_APPROXED_RANGE(betaRangeStart, ebis.beta(), betaRangeEnd);
   VERIFY_APPROXED_RANGE(-PI, ebis.gamma(), PI);
 
-  const Matrix3 mbis(AngleAxisType(ebis.alpha(), I) * AngleAxisType(ebis.beta(), J) * AngleAxisType(ebis.gamma(), K));
+  const Matrix3 mbis(AngleAxisType(ebis.alpha(), I_) * AngleAxisType(ebis.beta(), J_) * AngleAxisType(ebis.gamma(), K_));
   VERIFY_IS_APPROX(Scalar(mbis.determinant()), ONE);
   VERIFY_IS_APPROX(mbis, ebis.toRotationMatrix());
   /*std::cout << "===================\n" <<

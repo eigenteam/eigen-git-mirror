@@ -197,13 +197,13 @@ EIGEN_DEVICE_FUNC bool operator==(const array<T,N>& lhs, const array<T,N>& rhs) 
 
 
 namespace internal {
-template<std::size_t I, class T, std::size_t N>
+template<std::size_t I_, class T, std::size_t N>
 EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T& array_get(array<T,N>& a) {
-  return a[I];
+  return a[I_];
 }
-template<std::size_t I, class T, std::size_t N>
+template<std::size_t I_, class T, std::size_t N>
 EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const T& array_get(const array<T,N>& a) {
-  return a[I];
+  return a[I_];
 }
 
 template<class T, std::size_t N> struct array_size<array<T,N> > {
@@ -240,16 +240,16 @@ namespace internal {
  *                       this may not be constexpr
  */
 #if defined(__GLIBCXX__) && __GLIBCXX__ < 20120322
-#define STD_GET_ARR_HACK             a._M_instance[I]
+#define STD_GET_ARR_HACK             a._M_instance[I_]
 #elif defined(_LIBCPP_VERSION)
-#define STD_GET_ARR_HACK             a.__elems_[I]
+#define STD_GET_ARR_HACK             a.__elems_[I_]
 #else
-#define STD_GET_ARR_HACK             std::template get<I, T, N>(a)
+#define STD_GET_ARR_HACK             std::template get<I_, T, N>(a)
 #endif
 
-template<std::size_t I, class T, std::size_t N> constexpr inline T&       array_get(std::array<T,N>&       a) { return (T&)       STD_GET_ARR_HACK; }
-template<std::size_t I, class T, std::size_t N> constexpr inline T&&      array_get(std::array<T,N>&&      a) { return (T&&)      STD_GET_ARR_HACK; }
-template<std::size_t I, class T, std::size_t N> constexpr inline T const& array_get(std::array<T,N> const& a) { return (T const&) STD_GET_ARR_HACK; }
+template<std::size_t I_, class T, std::size_t N> constexpr inline T&       array_get(std::array<T,N>&       a) { return (T&)       STD_GET_ARR_HACK; }
+template<std::size_t I_, class T, std::size_t N> constexpr inline T&&      array_get(std::array<T,N>&&      a) { return (T&&)      STD_GET_ARR_HACK; }
+template<std::size_t I_, class T, std::size_t N> constexpr inline T const& array_get(std::array<T,N> const& a) { return (T const&) STD_GET_ARR_HACK; }
 
 #undef STD_GET_ARR_HACK
 

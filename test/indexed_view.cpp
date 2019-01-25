@@ -335,8 +335,8 @@ void check_indexed_view()
     VERIFY_IS_APPROX( A(B.RowsAtCompileTime, 1), A(4,1) );
     VERIFY_IS_APPROX( A(B.RowsAtCompileTime-1, B.ColsAtCompileTime-1), A(3,3) );
     VERIFY_IS_APPROX( A(B.RowsAtCompileTime, B.ColsAtCompileTime), A(4,4) );
-    const Index I = 3, J = 4;
-    VERIFY_IS_APPROX( A(I,J), A(3,4) );
+    const Index I_ = 3, J_ = 4;
+    VERIFY_IS_APPROX( A(I_,J_), A(3,4) );
   }
 
   // check extended block API
