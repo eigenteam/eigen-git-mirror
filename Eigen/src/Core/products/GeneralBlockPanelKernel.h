@@ -1031,7 +1031,7 @@ struct gebp_traits <float, float, false, false,Architecture::NEON>
 
   EIGEN_STRONG_INLINE void madd(const LhsPacket& a, const RhsPacket& b, AccPacket& c, RhsPacket& /*tmp*/, const FixedInt<0>&) const
   {
-    c += a * b;
+    c = vfmaq_n_f32(c, a, b);
   }
 
   EIGEN_STRONG_INLINE void madd(const LhsPacket& a, const RhsPacketx4& b, AccPacket& c, RhsPacket& /*tmp*/, const FixedInt<0>&) const
