@@ -407,42 +407,29 @@ template<> inline float test_precision<std::complex<float> >() { return test_pre
 template<> inline double test_precision<std::complex<double> >() { return test_precision<double>(); }
 template<> inline long double test_precision<std::complex<long double> >() { return test_precision<long double>(); }
 
-inline bool test_isApprox(const short& a, const short& b)
-{ return internal::isApprox(a, b, test_precision<short>()); }
-inline bool test_isApprox(const unsigned short& a, const unsigned short& b)
-{ return internal::isApprox(a, b, test_precision<unsigned short>()); }
-inline bool test_isApprox(const unsigned int& a, const unsigned int& b)
-{ return internal::isApprox(a, b, test_precision<unsigned int>()); }
-inline bool test_isApprox(const unsigned long& a, const unsigned long& b)
-{ return internal::isApprox(a, b, test_precision<unsigned long>()); }
+#define EIGEN_TEST_SCALAR_TEST_OVERLOAD(TYPE)                             \
+  inline bool test_isApprox(TYPE a, TYPE b)                               \
+  { return internal::isApprox(a, b, test_precision<TYPE>()); }            \
+  inline bool test_isMuchSmallerThan(TYPE a, TYPE b)                      \
+  { return internal::isMuchSmallerThan(a, b, test_precision<TYPE>()); }   \
+  inline bool test_isApproxOrLessThan(TYPE a, TYPE b)                     \
+  { return internal::isApproxOrLessThan(a, b, test_precision<TYPE>()); }
 
-inline bool test_isApprox(const int& a, const int& b)
-{ return internal::isApprox(a, b, test_precision<int>()); }
-inline bool test_isMuchSmallerThan(const int& a, const int& b)
-{ return internal::isMuchSmallerThan(a, b, test_precision<int>()); }
-inline bool test_isApproxOrLessThan(const int& a, const int& b)
-{ return internal::isApproxOrLessThan(a, b, test_precision<int>()); }
+EIGEN_TEST_SCALAR_TEST_OVERLOAD(short)
+EIGEN_TEST_SCALAR_TEST_OVERLOAD(unsigned short)
+EIGEN_TEST_SCALAR_TEST_OVERLOAD(int)
+EIGEN_TEST_SCALAR_TEST_OVERLOAD(unsigned int)
+EIGEN_TEST_SCALAR_TEST_OVERLOAD(long)
+EIGEN_TEST_SCALAR_TEST_OVERLOAD(unsigned long)
+#if EIGEN_HAS_CXX11
+EIGEN_TEST_SCALAR_TEST_OVERLOAD(long long)
+EIGEN_TEST_SCALAR_TEST_OVERLOAD(unsigned long long)
+#endif
+EIGEN_TEST_SCALAR_TEST_OVERLOAD(float)
+EIGEN_TEST_SCALAR_TEST_OVERLOAD(double)
+EIGEN_TEST_SCALAR_TEST_OVERLOAD(half)
 
-inline bool test_isApprox(const long& a, const long& b)
-{ return internal::isApprox(a, b, test_precision<long>()); }
-inline bool test_isMuchSmallerThan(const long& a, const long b)
-{ return internal::isMuchSmallerThan(a, b, test_precision<long>()); }
-inline bool test_isApproxOrLessThan(const long& a, const long& b)
-{ return internal::isApproxOrLessThan(a, b, test_precision<long>()); }
-
-inline bool test_isApprox(const float& a, const float& b)
-{ return internal::isApprox(a, b, test_precision<float>()); }
-inline bool test_isMuchSmallerThan(const float& a, const float& b)
-{ return internal::isMuchSmallerThan(a, b, test_precision<float>()); }
-inline bool test_isApproxOrLessThan(const float& a, const float& b)
-{ return internal::isApproxOrLessThan(a, b, test_precision<float>()); }
-
-inline bool test_isApprox(const double& a, const double& b)
-{ return internal::isApprox(a, b, test_precision<double>()); }
-inline bool test_isMuchSmallerThan(const double& a, const double& b)
-{ return internal::isMuchSmallerThan(a, b, test_precision<double>()); }
-inline bool test_isApproxOrLessThan(const double& a, const double& b)
-{ return internal::isApproxOrLessThan(a, b, test_precision<double>()); }
+#undef EIGEN_TEST_SCALAR_TEST_OVERLOAD
 
 #ifndef EIGEN_TEST_NO_COMPLEX
 inline bool test_isApprox(const std::complex<float>& a, const std::complex<float>& b)
@@ -478,13 +465,6 @@ inline bool test_isMuchSmallerThan(const long double& a, const long double& b)
 inline bool test_isApproxOrLessThan(const long double& a, const long double& b)
 { return internal::isApproxOrLessThan(a, b, test_precision<long double>()); }
 #endif // EIGEN_TEST_NO_LONGDOUBLE
-
-inline bool test_isApprox(const half& a, const half& b)
-{ return internal::isApprox(a, b, test_precision<half>()); }
-inline bool test_isMuchSmallerThan(const half& a, const half& b)
-{ return internal::isMuchSmallerThan(a, b, test_precision<half>()); }
-inline bool test_isApproxOrLessThan(const half& a, const half& b)
-{ return internal::isApproxOrLessThan(a, b, test_precision<half>()); }
 
 // test_relative_error returns the relative difference between a and b as a real scalar as used in isApprox.
 template<typename T1,typename T2>
