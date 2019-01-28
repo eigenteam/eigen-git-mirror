@@ -546,13 +546,35 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
   {
     DenseVector d = DenseVector::Random(rows);
     DenseMatrix refMat2 = d.asDiagonal();
-    SparseMatrixType m2(rows, rows);
+    SparseMatrixType m2;
     m2 = d.asDiagonal();
     VERIFY_IS_APPROX(m2, refMat2);
     SparseMatrixType m3(d.asDiagonal());
     VERIFY_IS_APPROX(m3, refMat2);
     refMat2 += d.asDiagonal();
     m2 += d.asDiagonal();
+    VERIFY_IS_APPROX(m2, refMat2);
+    m2.setZero();       m2 += d.asDiagonal();
+    refMat2.setZero();  refMat2 += d.asDiagonal();
+    VERIFY_IS_APPROX(m2, refMat2);
+    m2.setZero();       m2 -= d.asDiagonal();
+    refMat2.setZero();  refMat2 -= d.asDiagonal();
+    VERIFY_IS_APPROX(m2, refMat2);
+
+    initSparse<Scalar>(density, refMat2, m2);
+    m2.makeCompressed();
+    m2 += d.asDiagonal();
+    refMat2 += d.asDiagonal();
+    VERIFY_IS_APPROX(m2, refMat2);
+
+    initSparse<Scalar>(density, refMat2, m2);
+    m2.makeCompressed();
+    VectorXi res(rows);
+    for(Index i=0; i<rows; ++i)
+      res(i) = internal::random<int>(0,3);
+    m2.reserve(res);
+    m2 -= d.asDiagonal();
+    refMat2 -= d.asDiagonal();
     VERIFY_IS_APPROX(m2, refMat2);
   }
   
