@@ -249,7 +249,7 @@ struct Assignment<DstXprType, SrcXprType, Functor, Diagonal2Sparse>
 
   template<int Options, typename AssignFunc>
   static void run(SparseMatrix<Scalar,Options,StorageIndex> &dst, const SrcXprType &src, const AssignFunc &func)
-  { dst._assignDiagonal(src.diagonal(), func); }
+  { dst.assignDiagonal(src.diagonal(), func); }
   
   template<typename DstDerived>
   static void run(SparseMatrixBase<DstDerived> &dst, const SrcXprType &src, const internal::assign_op<typename DstXprType::Scalar,typename SrcXprType::Scalar> &/*func*/)
