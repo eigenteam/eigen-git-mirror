@@ -1050,6 +1050,65 @@ struct gebp_traits <float, float, false, false,Architecture::NEON>
   }
 };
 
+
+template<>
+struct gebp_traits <double, double, false, false,Architecture::NEON>
+ : gebp_traits<double,double,false,false,Architecture::Generic>
+{
+  typedef double RhsPacket;
+
+  struct RhsPacketx4 {
+    float64x2_t B_0, B_1;
+  };
+
+  EIGEN_STRONG_INLINE void loadRhs(const RhsScalar* b, RhsPacket& dest) const
+  {
+    dest = *b;
+  }
+
+  EIGEN_STRONG_INLINE void loadRhs(const RhsScalar* b, RhsPacketx4& dest) const
+  {
+    dest.B_0 = vld1q_f64(b);
+    dest.B_1 = vld1q_f64(b+2);
+  }
+
+  EIGEN_STRONG_INLINE void updateRhs(const RhsScalar* b, RhsPacket& dest) const
+  {
+    loadRhs(b,dest);
+  }
+
+  EIGEN_STRONG_INLINE void updateRhs(const RhsScalar* b, RhsPacketx4& dest) const
+  {}
+
+  EIGEN_STRONG_INLINE void loadRhsQuad(const RhsScalar* b, RhsPacket& dest) const
+  {
+    loadRhs(b,dest);
+  }
+
+  EIGEN_STRONG_INLINE void madd(const LhsPacket& a, const RhsPacket& b, AccPacket& c, RhsPacket& /*tmp*/, const FixedInt<0>&) const
+  {
+    c = vfmaq_n_f64(c, a, b);
+  }
+
+  template<int LaneID>
+  EIGEN_STRONG_INLINE void madd(const LhsPacket& a, const RhsPacketx4& b, AccPacket& c, RhsPacket& /*tmp*/, const FixedInt<LaneID>&) const
+  {
+    #if EIGEN_COMP_GNUC_STRICT
+    // workaround gcc issue https://gcc.gnu.org/bugzilla/show_bug.cgi?id=89101
+    // vfmaq_laneq_f64 is implemented through a costly dup
+         if(LaneID==0)  asm("fmla %0.2d, %1.2d, %2.d[0]\n" : "+w" (c) : "w" (a), "w" (b.B_0) :  );
+    else if(LaneID==1)  asm("fmla %0.2d, %1.2d, %2.d[1]\n" : "+w" (c) : "w" (a), "w" (b.B_0) :  );
+    else if(LaneID==2)  asm("fmla %0.2d, %1.2d, %2.d[0]\n" : "+w" (c) : "w" (a), "w" (b.B_1) :  );
+    else if(LaneID==3)  asm("fmla %0.2d, %1.2d, %2.d[1]\n" : "+w" (c) : "w" (a), "w" (b.B_1) :  );
+    #else
+         if(LaneID==0) c = vfmaq_laneq_f64(c, a, b.B_0, 0);
+    else if(LaneID==1) c = vfmaq_laneq_f64(c, a, b.B_0, 1);
+    else if(LaneID==2) c = vfmaq_laneq_f64(c, a, b.B_1, 0);
+    else if(LaneID==3) c = vfmaq_laneq_f64(c, a, b.B_1, 1);
+    #endif
+  }
+};
+
 #endif
 
 /* optimized General packed Block * packed Panel product kernel
