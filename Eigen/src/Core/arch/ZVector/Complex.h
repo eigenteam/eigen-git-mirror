@@ -91,8 +91,8 @@ template<> struct packet_traits<std::complex<double> >  : default_packet_traits
   };
 };
 
-template<> struct unpacket_traits<Packet2cf> { typedef std::complex<float>  type; enum {size=2, alignment=Aligned16}; typedef Packet2cf half; };
-template<> struct unpacket_traits<Packet1cd> { typedef std::complex<double> type; enum {size=1, alignment=Aligned16}; typedef Packet1cd half; };
+template<> struct unpacket_traits<Packet2cf> { typedef std::complex<float>  type; enum {size=2, alignment=Aligned16, vectorizable=true}; typedef Packet2cf half; };
+template<> struct unpacket_traits<Packet1cd> { typedef std::complex<double> type; enum {size=1, alignment=Aligned16, vectorizable=true}; typedef Packet1cd half; };
 
 /* Forward declaration */
 EIGEN_STRONG_INLINE void ptranspose(PacketBlock<Packet2cf,2>& kernel);

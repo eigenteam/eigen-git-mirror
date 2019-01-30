@@ -127,7 +127,7 @@ struct packet_traits<std::complex<float> > : default_packet_traits {
 template <>
 struct unpacket_traits<Packet2cf> {
   typedef std::complex<float> type;
-  enum { size = 2, alignment = Aligned16 };
+  enum { size = 2, alignment = Aligned16, vectorizable=true };
   typedef Packet2cf half;
 };
 
@@ -500,7 +500,7 @@ struct packet_traits<std::complex<double> > : default_packet_traits {
 template <>
 struct unpacket_traits<Packet1cd> {
   typedef std::complex<double> type;
-  enum { size = 1, alignment = Aligned16 };
+  enum { size = 1, alignment = Aligned16, vectorizable=true };
   typedef Packet1cd half;
 };
 

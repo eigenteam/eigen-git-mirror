@@ -117,14 +117,14 @@ struct packet_traits<int32_t> : default_packet_traits {
 template <>
 struct unpacket_traits<Packet4f> {
   typedef float type;
-  enum { size = 4, alignment = Aligned16 };
+  enum { size = 4, alignment = Aligned16, vectorizable=true };
   typedef Packet4f half;
 };
 
 template <>
 struct unpacket_traits<Packet4i> {
   typedef int32_t type;
-  enum { size = 4, alignment = Aligned16 };
+  enum { size = 4, alignment = Aligned16, vectorizable=true };
   typedef Packet4i half;
 };
 
@@ -925,7 +925,7 @@ struct packet_traits<double> : default_packet_traits {
 template <>
 struct unpacket_traits<Packet2d> {
   typedef double type;
-  enum { size = 2, alignment = Aligned16 };
+  enum { size = 2, alignment = Aligned16, vectorizable=true };
   typedef Packet2d half;
 };
 
