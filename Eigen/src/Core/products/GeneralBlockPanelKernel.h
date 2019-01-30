@@ -1053,9 +1053,9 @@ protected:
 
 #if EIGEN_ARCH_ARM64 && defined EIGEN_VECTORIZE_NEON
 
-template<int _PacketSize>
-struct gebp_traits <float, float, false, false,Architecture::NEON,_PacketSize>
- : gebp_traits<float,float,false,false,Architecture::Generic,_PacketSize>
+template<>
+struct gebp_traits <float, float, false, false,Architecture::NEON,PacketFull>
+ : gebp_traits<float,float,false,false,Architecture::Generic,PacketFull>
 {
   typedef float RhsPacket;
 
