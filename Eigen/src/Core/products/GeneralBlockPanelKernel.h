@@ -1008,17 +1008,17 @@ struct gebp_traits <float, float, false, false,Architecture::NEON>
 
   EIGEN_STRONG_INLINE void loadRhs(const RhsScalar* b, RhsPacket& dest) const
   {
-     dest = *b;
+    dest = *b;
   }
 
   EIGEN_STRONG_INLINE void loadRhs(const RhsScalar* b, RhsPacketx4& dest) const
   {
-     dest = vld1q_f32(b);
+    dest = vld1q_f32(b);
   }
 
   EIGEN_STRONG_INLINE void updateRhs(const RhsScalar* b, RhsPacket& dest) const
   {
-     dest = *b;
+    dest = *b;
   }
 
   EIGEN_STRONG_INLINE void updateRhs(const RhsScalar* b, RhsPacketx4& dest) const
@@ -1034,24 +1034,19 @@ struct gebp_traits <float, float, false, false,Architecture::NEON>
     c = vfmaq_n_f32(c, a, b);
   }
 
-  EIGEN_STRONG_INLINE void madd(const LhsPacket& a, const RhsPacketx4& b, AccPacket& c, RhsPacket& /*tmp*/, const FixedInt<0>&) const
+  template<int LaneID>
+  EIGEN_STRONG_INLINE void madd(const LhsPacket& a, const RhsPacketx4& b, AccPacket& c, RhsPacket& /*tmp*/, const FixedInt<LaneID>&) const
   {
-    c = vfmaq_lane_f32(c, a, vget_low_f32(b), 0);
-  }
-
-  EIGEN_STRONG_INLINE void madd(const LhsPacket& a, const RhsPacketx4& b, AccPacket& c, RhsPacket& /*tmp*/, const FixedInt<1>&) const
-  {
-    c = vfmaq_lane_f32(c, a, vget_low_f32(b), 1);
-  }
-
-  EIGEN_STRONG_INLINE void madd(const LhsPacket& a, const RhsPacketx4& b, AccPacket& c, RhsPacket& /*tmp*/, const FixedInt<2>&) const
-  {
-    c = vfmaq_lane_f32(c, a, vget_high_f32(b), 0);
-  }
-
-  EIGEN_STRONG_INLINE void madd(const LhsPacket& a, const RhsPacketx4& b, AccPacket& c, RhsPacket& /*tmp*/, const FixedInt<3>&) const
-  {
-    c = vfmaq_lane_f32(c, a, vget_high_f32(b), 1);
+    #if EIGEN_COMP_GNUC_STRICT
+    // workaround gcc issue https://gcc.gnu.org/bugzilla/show_bug.cgi?id=89101
+    // vfmaq_laneq_f32 is implemented through a costly dup
+         if(LaneID==0)  asm("fmla %0.4s, %1.4s, %2.s[0]\n" : "+w" (c) : "w" (a), "w" (b) :  );
+    else if(LaneID==1)  asm("fmla %0.4s, %1.4s, %2.s[1]\n" : "+w" (c) : "w" (a), "w" (b) :  );
+    else if(LaneID==2)  asm("fmla %0.4s, %1.4s, %2.s[2]\n" : "+w" (c) : "w" (a), "w" (b) :  );
+    else if(LaneID==3)  asm("fmla %0.4s, %1.4s, %2.s[3]\n" : "+w" (c) : "w" (a), "w" (b) :  );
+    #else
+    c = vfmaq_laneq_f32(c, a, b, LaneID);
+    #endif
   }
 };
 
@@ -1260,7 +1255,14 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,DataMapper,mr,nr,ConjugateLhs,Conjuga
             RhsPanel15 rhs_panel;
             RhsPacket T0;
             LhsPacket A2;
-
+            #if EIGEN_COMP_GNUC_STRICT && EIGEN_ARCH_ARM64 && defined(EIGEN_VECTORIZE_NEON)
+            // see http://eigen.tuxfamily.org/bz/show_bug.cgi?id=1633
+            // without this workaround A0, A1, and A2 are loaded in the same register,
+            // which is not good for pipelining
+            #define EIGEN_GEBP_3PX4_REGISTER_ALLOC_WORKAROUND __asm__  ("" : "+w,m" (A0), "+w,m" (A1), "+w,m" (A2));
+            #else
+            #define EIGEN_GEBP_3PX4_REGISTER_ALLOC_WORKAROUND
+            #endif
 #define EIGEN_GEBP_ONESTEP(K)                                                     \
             do {                                                                  \
               EIGEN_ASM_COMMENT("begin step of gebp micro kernel 3pX4");          \
@@ -1272,6 +1274,7 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,DataMapper,mr,nr,ConjugateLhs,Conjuga
               traits.loadLhs(&blA[(0 + 3 * K) * LhsProgress], A0);                \
               traits.loadLhs(&blA[(1 + 3 * K) * LhsProgress], A1);                \
               traits.loadLhs(&blA[(2 + 3 * K) * LhsProgress], A2);                \
+              EIGEN_GEBP_3PX4_REGISTER_ALLOC_WORKAROUND \
               traits.loadRhs(blB + (0+4*K) * Traits::RhsProgress, rhs_panel);     \
               traits.madd(A0, rhs_panel, C0, T0, fix<0>);                         \
               traits.madd(A1, rhs_panel, C4, T0, fix<0>);                         \
