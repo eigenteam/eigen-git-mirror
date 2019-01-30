@@ -1037,7 +1037,7 @@ struct gebp_traits <float, float, false, false,Architecture::NEON>
   template<int LaneID>
   EIGEN_STRONG_INLINE void madd(const LhsPacket& a, const RhsPacketx4& b, AccPacket& c, RhsPacket& /*tmp*/, const FixedInt<LaneID>&) const
   {
-    #if EIGEN_COMP_GNUC_STRICT
+    #if EIGEN_COMP_GNUC_STRICT && !(EIGEN_GNUC_AT_LEAST(9,0))
     // workaround gcc issue https://gcc.gnu.org/bugzilla/show_bug.cgi?id=89101
     // vfmaq_laneq_f32 is implemented through a costly dup
          if(LaneID==0)  asm("fmla %0.4s, %1.4s, %2.s[0]\n" : "+w" (c) : "w" (a), "w" (b) :  );
@@ -1093,7 +1093,7 @@ struct gebp_traits <double, double, false, false,Architecture::NEON>
   template<int LaneID>
   EIGEN_STRONG_INLINE void madd(const LhsPacket& a, const RhsPacketx4& b, AccPacket& c, RhsPacket& /*tmp*/, const FixedInt<LaneID>&) const
   {
-    #if EIGEN_COMP_GNUC_STRICT
+    #if EIGEN_COMP_GNUC_STRICT && !(EIGEN_GNUC_AT_LEAST(9,0))
     // workaround gcc issue https://gcc.gnu.org/bugzilla/show_bug.cgi?id=89101
     // vfmaq_laneq_f64 is implemented through a costly dup
          if(LaneID==0)  asm("fmla %0.2d, %1.2d, %2.d[0]\n" : "+w" (c) : "w" (a), "w" (b.B_0) :  );
@@ -1314,7 +1314,7 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,DataMapper,mr,nr,ConjugateLhs,Conjuga
             RhsPanel15 rhs_panel;
             RhsPacket T0;
             LhsPacket A2;
-            #if EIGEN_COMP_GNUC_STRICT && EIGEN_ARCH_ARM64 && defined(EIGEN_VECTORIZE_NEON)
+            #if EIGEN_COMP_GNUC_STRICT && EIGEN_ARCH_ARM64 && defined(EIGEN_VECTORIZE_NEON) && !(EIGEN_GNUC_AT_LEAST(9,0))
             // see http://eigen.tuxfamily.org/bz/show_bug.cgi?id=1633
             // without this workaround A0, A1, and A2 are loaded in the same register,
             // which is not good for pipelining
