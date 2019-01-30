@@ -1313,15 +1313,18 @@ struct lhs_process_one_packet
 
   EIGEN_STRONG_INLINE void peeled_kc_onestep(Index K, const LhsScalar* blA, const RhsScalar* blB, GEBPTraits traits, LhsPacket *A0, RhsPacketx4 *rhs_panel, RhsPacket *T0, AccPacket *C0, AccPacket *C1, AccPacket *C2, AccPacket *C3)
   {
-        EIGEN_ASM_COMMENT("begin step of gebp micro kernel 1X4");
-        EIGEN_ASM_COMMENT("Note: these asm comments work around bug 935!");
-        traits.loadLhs(&blA[(0+1*K)*LhsProgress], *A0);
-        traits.loadRhs(&blB[(0+4*K)*RhsProgress], *rhs_panel);
-        traits.madd(*A0, *rhs_panel, *C0, *T0, fix<0>);
-        traits.madd(*A0, *rhs_panel, *C1, *T0, fix<1>);
-        traits.madd(*A0, *rhs_panel, *C2, *T0, fix<2>);
-        traits.madd(*A0, *rhs_panel, *C3, *T0, fix<3>);
-        EIGEN_ASM_COMMENT("end step of gebp micro kernel 1X4");
+    EIGEN_ASM_COMMENT("begin step of gebp micro kernel 1X4");
+    EIGEN_ASM_COMMENT("Note: these asm comments work around bug 935!");
+    traits.loadLhs(&blA[(0+1*K)*LhsProgress], *A0);
+    traits.loadRhs(&blB[(0+4*K)*RhsProgress], *rhs_panel);
+    traits.madd(*A0, *rhs_panel, *C0, *T0, fix<0>);
+    traits.madd(*A0, *rhs_panel, *C1, *T0, fix<1>);
+    traits.madd(*A0, *rhs_panel, *C2, *T0, fix<2>);
+    traits.madd(*A0, *rhs_panel, *C3, *T0, fix<3>);
+    #if EIGEN_GNUC_AT_LEAST(6,0) && defined(EIGEN_VECTORIZE_SSE)
+    __asm__  ("" : "+x,m" (*A0));
+    #endif
+    EIGEN_ASM_COMMENT("end step of gebp micro kernel 1X4");
   }
 
   EIGEN_STRONG_INLINE void operator()(
@@ -1350,6 +1353,16 @@ struct lhs_process_one_packet
         traits.initAcc(C1);
         traits.initAcc(C2);
         traits.initAcc(C3);
+        // To improve instruction pipelining, let's double the accumulation registers:
+        //  even k will accumulate in C*, while odd k will accumulate in D*.
+        // This trick is crutial to get good performance with FMA, otherwise it is 
+        // actually faster to perform separated MUL+ADD because of a naturally
+        // better instruction-level parallelism.
+        AccPacket D0, D1, D2, D3;
+        traits.initAcc(D0);
+        traits.initAcc(D1);
+        traits.initAcc(D2);
+        traits.initAcc(D3);
 
         LinearMapper r0 = res.getLinearMapper(i, j2 + 0);
         LinearMapper r1 = res.getLinearMapper(i, j2 + 1);
@@ -1364,7 +1377,7 @@ struct lhs_process_one_packet
         // performs "inner" products
         const RhsScalar* blB = &blockB[j2*strideB+offsetB*nr];
         prefetch(&blB[0]);
-        LhsPacket A0;
+        LhsPacket A0, A1;
 
         for(Index k=0; k<peeled_kc; k+=pk)
         {
@@ -1374,20 +1387,24 @@ struct lhs_process_one_packet
 
           internal::prefetch(blB+(48+0));
           peeled_kc_onestep(0, blA, blB, traits, &A0, &rhs_panel, &T0, &C0, &C1, &C2, &C3);
-          peeled_kc_onestep(1, blA, blB, traits, &A0, &rhs_panel, &T0, &C0, &C1, &C2, &C3);
+          peeled_kc_onestep(1, blA, blB, traits, &A1, &rhs_panel, &T0, &D0, &D1, &D2, &D3);
           peeled_kc_onestep(2, blA, blB, traits, &A0, &rhs_panel, &T0, &C0, &C1, &C2, &C3);
-          peeled_kc_onestep(3, blA, blB, traits, &A0, &rhs_panel, &T0, &C0, &C1, &C2, &C3);
+          peeled_kc_onestep(3, blA, blB, traits, &A1, &rhs_panel, &T0, &D0, &D1, &D2, &D3);
           internal::prefetch(blB+(48+16));
           peeled_kc_onestep(4, blA, blB, traits, &A0, &rhs_panel, &T0, &C0, &C1, &C2, &C3);
-          peeled_kc_onestep(5, blA, blB, traits, &A0, &rhs_panel, &T0, &C0, &C1, &C2, &C3);
+          peeled_kc_onestep(5, blA, blB, traits, &A1, &rhs_panel, &T0, &D0, &D1, &D2, &D3);
           peeled_kc_onestep(6, blA, blB, traits, &A0, &rhs_panel, &T0, &C0, &C1, &C2, &C3);
-          peeled_kc_onestep(7, blA, blB, traits, &A0, &rhs_panel, &T0, &C0, &C1, &C2, &C3);
+          peeled_kc_onestep(7, blA, blB, traits, &A1, &rhs_panel, &T0, &D0, &D1, &D2, &D3);
 
           blB += pk*4*RhsProgress;
           blA += pk*LhsProgress;
 
           EIGEN_ASM_COMMENT("end gebp micro kernel 1/half/quarterX4");
         }
+        C0 = padd(C0,D0);
+        C1 = padd(C1,D1);
+        C2 = padd(C2,D2);
+        C3 = padd(C3,D3);
 
         // process remaining peeled loop
         for(Index k=peeled_kc; k<depth; k++)
