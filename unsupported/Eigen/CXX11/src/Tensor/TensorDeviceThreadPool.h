@@ -122,6 +122,12 @@ struct ThreadPoolDevice {
     return num_threads_;
   }
 
+  // Number of theads available in the underlying thread pool. This number can
+  // be different from the value returned by numThreads().
+  EIGEN_STRONG_INLINE int numThreadsInPool() const {
+    return pool_->NumThreads();
+  }
+
   EIGEN_STRONG_INLINE size_t firstLevelCacheSize() const {
     return l1CacheSize();
   }
