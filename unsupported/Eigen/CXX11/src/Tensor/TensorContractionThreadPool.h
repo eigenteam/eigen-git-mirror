@@ -339,10 +339,19 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
       // If there is enough available parallelism in sharding dimension we can
       // call kernels in sync mode and use thread local memory for packed data.
       const Index sharding_dim_tasks = shard_by_col ? nn : nm;
-      if (!parallel_pack_ && sharding_dim_tasks >= device_.numThreadsInPool()) {
-        parallelize_by_sharding_dim_only_ = true;
 
-        int num_worker_threads = device_.numThreadsInPool();
+      const int num_worker_threads = device_.numThreadsInPool();
+
+      // With small number of threads we want to make sure that we do not reduce
+      // parallelism too much.
+      const int oversharding_factor =
+          num_worker_threads <= 4  ? 8 :
+          num_worker_threads <= 8  ? 4 :
+          num_worker_threads <= 16 ? 2 : 1;
+
+      if (!parallel_pack_ &&
+          sharding_dim_tasks >= oversharding_factor * num_worker_threads) {
+        parallelize_by_sharding_dim_only_ = true;
 
         if (shard_by_col) {
           can_use_thread_local_packed_ = new std::atomic<bool>[nn_];
