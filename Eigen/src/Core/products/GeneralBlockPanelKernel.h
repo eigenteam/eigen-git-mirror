@@ -1089,8 +1089,21 @@ struct gebp_traits <float, float, false, false,Architecture::NEON,PacketFull>
     c = vfmaq_n_f32(c, a, b);
   }
 
+  // NOTE: Template parameter inference failed when compiled with Android NDK:
+  // "candidate template ignored: could not match 'FixedInt<N>' against 'Eigen::internal::FixedInt<0>".
+
+  EIGEN_STRONG_INLINE void madd(const LhsPacket& a, const RhsPacketx4& b, AccPacket& c, RhsPacket& /*tmp*/, const FixedInt<0>&) const
+  { madd_helper<0>(a, b, c); }
+  EIGEN_STRONG_INLINE void madd(const LhsPacket& a, const RhsPacketx4& b, AccPacket& c, RhsPacket& /*tmp*/, const FixedInt<1>&) const
+  { madd_helper<1>(a, b, c); }
+  EIGEN_STRONG_INLINE void madd(const LhsPacket& a, const RhsPacketx4& b, AccPacket& c, RhsPacket& /*tmp*/, const FixedInt<2>&) const
+  { madd_helper<2>(a, b, c); }
+  EIGEN_STRONG_INLINE void madd(const LhsPacket& a, const RhsPacketx4& b, AccPacket& c, RhsPacket& /*tmp*/, const FixedInt<3>&) const
+  { madd_helper<3>(a, b, c); }
+
+ private:
   template<int LaneID>
-  EIGEN_STRONG_INLINE void madd(const LhsPacket& a, const RhsPacketx4& b, AccPacket& c, RhsPacket& /*tmp*/, const FixedInt<LaneID>&) const
+  EIGEN_STRONG_INLINE void madd_helper(const LhsPacket& a, const RhsPacketx4& b, AccPacket& c) const
   {
     #if EIGEN_COMP_GNUC_STRICT && !(EIGEN_GNUC_AT_LEAST(9,0))
     // workaround gcc issue https://gcc.gnu.org/bugzilla/show_bug.cgi?id=89101
@@ -1145,10 +1158,24 @@ struct gebp_traits <double, double, false, false,Architecture::NEON>
     c = vfmaq_n_f64(c, a, b);
   }
 
-  template<int LaneID>
-  EIGEN_STRONG_INLINE void madd(const LhsPacket& a, const RhsPacketx4& b, AccPacket& c, RhsPacket& /*tmp*/, const FixedInt<LaneID>&) const
+  // NOTE: Template parameter inference failed when compiled with Android NDK:
+  // "candidate template ignored: could not match 'FixedInt<N>' against 'Eigen::internal::FixedInt<0>".
+
+  EIGEN_STRONG_INLINE void madd(const LhsPacket& a, const RhsPacketx4& b, AccPacket& c, RhsPacket& /*tmp*/, const FixedInt<0>&) const
+  { madd_helper<0>(a, b, c); }
+  EIGEN_STRONG_INLINE void madd(const LhsPacket& a, const RhsPacketx4& b, AccPacket& c, RhsPacket& /*tmp*/, const FixedInt<1>&) const
+  { madd_helper<1>(a, b, c); }
+  EIGEN_STRONG_INLINE void madd(const LhsPacket& a, const RhsPacketx4& b, AccPacket& c, RhsPacket& /*tmp*/, const FixedInt<2>&) const
+  { madd_helper<2>(a, b, c); }
+  EIGEN_STRONG_INLINE void madd(const LhsPacket& a, const RhsPacketx4& b, AccPacket& c, RhsPacket& /*tmp*/, const FixedInt<3>&) const
+  { madd_helper<3>(a, b, c); }
+
+ private:
+  template <int LaneID>
+  EIGEN_STRONG_INLINE void madd_helper(const LhsPacket& a, const RhsPacketx4& b, AccPacket& c) const
   {
     #if EIGEN_COMP_GNUC_STRICT && !(EIGEN_GNUC_AT_LEAST(9,0))
+    // workaround gcc issue https://gcc.gnu.org/bugzilla/show_bug.cgi?id=89101
     // workaround gcc issue https://gcc.gnu.org/bugzilla/show_bug.cgi?id=89101
     // vfmaq_laneq_f64 is implemented through a costly dup
          if(LaneID==0)  asm("fmla %0.2d, %1.2d, %2.d[0]\n" : "+w" (c) : "w" (a), "w" (b.B_0) :  );
