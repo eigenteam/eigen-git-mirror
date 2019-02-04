@@ -1176,7 +1176,6 @@ struct gebp_traits <double, double, false, false,Architecture::NEON>
   {
     #if EIGEN_COMP_GNUC_STRICT && !(EIGEN_GNUC_AT_LEAST(9,0))
     // workaround gcc issue https://gcc.gnu.org/bugzilla/show_bug.cgi?id=89101
-    // workaround gcc issue https://gcc.gnu.org/bugzilla/show_bug.cgi?id=89101
     // vfmaq_laneq_f64 is implemented through a costly dup
          if(LaneID==0)  asm("fmla %0.2d, %1.2d, %2.d[0]\n" : "+w" (c) : "w" (a), "w" (b.B_0) :  );
     else if(LaneID==1)  asm("fmla %0.2d, %1.2d, %2.d[1]\n" : "+w" (c) : "w" (a), "w" (b.B_0) :  );
