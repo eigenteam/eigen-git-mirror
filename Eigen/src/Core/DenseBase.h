@@ -40,7 +40,7 @@ static inline void check_DenseIndex_is_signed() {
   */
 template<typename Derived> class DenseBase
 #ifndef EIGEN_PARSED_BY_DOXYGEN
-  : public DenseCoeffsBase<Derived>
+  : public DenseCoeffsBase<Derived, internal::accessors_level<Derived>::value>
 #else
   : public DenseCoeffsBase<Derived,DirectWriteAccessors>
 #endif // not EIGEN_PARSED_BY_DOXYGEN
@@ -71,7 +71,7 @@ template<typename Derived> class DenseBase
     typedef Scalar value_type;
     
     typedef typename NumTraits<Scalar>::Real RealScalar;
-    typedef DenseCoeffsBase<Derived> Base;
+    typedef DenseCoeffsBase<Derived, internal::accessors_level<Derived>::value> Base;
 
     using Base::derived;
     using Base::const_cast_derived;
