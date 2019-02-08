@@ -230,8 +230,21 @@ struct PacketConv<SrcPacket, TargetPacket, LoadMode, true, IsSameT> {
   }
 };
 
-template <typename SrcPacket, typename TargetPacket, int LoadMode, bool ActuallyVectorize>
-struct PacketConv<SrcPacket, TargetPacket, LoadMode, ActuallyVectorize, true> {
+template <typename SrcPacket, typename TargetPacket, int LoadMode>
+struct PacketConv<SrcPacket, TargetPacket, LoadMode, /*ActuallyVectorize=*/false, /*IsSameT=*/true> {
+  typedef typename internal::unpacket_traits<TargetPacket>::type TargetType;
+  static const int PacketSize = internal::unpacket_traits<TargetPacket>::size;
+
+  template <typename ArgType, typename Device>
+  static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TargetPacket run(const TensorEvaluator<ArgType, Device>& impl, Index index) {
+    EIGEN_ALIGN_MAX typename internal::remove_const<TargetType>::type values[PacketSize];
+    for (int i = 0; i < PacketSize; ++i) values[i] = impl.coeff(index+i);
+    return internal::pload<TargetPacket>(values);
+  }
+};
+
+template <typename SrcPacket, typename TargetPacket, int LoadMode>
+struct PacketConv<SrcPacket, TargetPacket, LoadMode, /*ActuallyVectorize=*/true, /*IsSameT=*/true> {
   template <typename ArgType, typename Device>
   static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TargetPacket run(const TensorEvaluator<ArgType, Device>& impl, Index index) {
     return impl.template packet<LoadMode>(index);
@@ -287,10 +300,17 @@ struct TensorEvaluator<const TensorConversionOp<TargetType, ArgType>, Device>
   }
 
   template<int LoadMode>
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE PacketReturnType packet(Index index) const
-  {
-    const bool Vectorizable = TensorEvaluator<ArgType, Device>::PacketAccess &
-        internal::type_casting_traits<SrcType, TargetType>::VectorizedCast;
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE PacketReturnType
+  packet(Index index) const {
+    // If we are not going to do the cast, we just need to check that base
+    // TensorEvaluator has packet access. Otherwise we also need to make sure,
+    // that we have an implementation of vectorized cast.
+    const bool Vectorizable =
+        IsSameType
+        ? TensorEvaluator<ArgType, Device>::PacketAccess
+        : TensorEvaluator<ArgType, Device>::PacketAccess &
+          internal::type_casting_traits<SrcType, TargetType>::VectorizedCast;
+
     return internal::PacketConv<PacketSourceType, PacketReturnType, LoadMode,
                                 Vectorizable, IsSameType>::run(m_impl, index);
   }
