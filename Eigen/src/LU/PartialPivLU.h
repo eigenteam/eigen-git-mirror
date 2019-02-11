@@ -337,6 +337,9 @@ struct partial_lu_impl
   static const int UnBlockedBound = 16;
   static const bool UnBlockedAtCompileTime = SizeAtCompileTime!=Dynamic && SizeAtCompileTime<=UnBlockedBound;
   static const int ActualSizeAtCompileTime = UnBlockedAtCompileTime ? SizeAtCompileTime : Dynamic;
+  // Remaining rows and columns at compile-time:
+  static const int RRows = SizeAtCompileTime==2 ? 1 : Dynamic;
+  static const int RCols = SizeAtCompileTime==2 ? 1 : Dynamic;
   typedef Matrix<Scalar, ActualSizeAtCompileTime, ActualSizeAtCompileTime, StorageOrder> MatrixType;
   typedef Ref<MatrixType> MatrixTypeRef;
   typedef Ref<Matrix<Scalar, Dynamic, Dynamic, StorageOrder> > BlockType;
@@ -359,9 +362,12 @@ struct partial_lu_impl
     const Index rows = lu.rows();
     const Index cols = lu.cols();
     const Index size = (std::min)(rows,cols);
+    // For small compile-time matrices it is worth processing the last row separately:
+    //  speedup: +100% for 2x2, +10% for others.
+    const Index endk = UnBlockedAtCompileTime ? size-1 : size;
     nb_transpositions = 0;
     Index first_zero_pivot = -1;
-    for(Index k = 0; k < size; ++k)
+    for(Index k = 0; k < endk; ++k)
     {
       Index rrows = rows-k-1;
       Index rcols = cols-k-1;
@@ -383,7 +389,7 @@ struct partial_lu_impl
 
         // FIXME shall we introduce a safe quotient expression in cas 1/lu.coeff(k,k)
         // overflow but not the actual quotient?
-        lu.col(k).tail(rrows) /= lu.coeff(k,k);
+        lu.col(k).tail(fix<RRows>(rrows)) /= lu.coeff(k,k);
       }
       else if(first_zero_pivot==-1)
       {
@@ -393,8 +399,18 @@ struct partial_lu_impl
       }
 
       if(k<rows-1)
-        lu.bottomRightCorner(rrows,rcols).noalias() -= lu.col(k).tail(rrows) * lu.row(k).tail(rcols);
+        lu.bottomRightCorner(fix<RRows>(rrows),fix<RCols>(rcols)).noalias() -= lu.col(k).tail(fix<RRows>(rrows)) * lu.row(k).tail(fix<RCols>(rcols));
     }
+
+    // special handling of the last entry
+    if(UnBlockedAtCompileTime)
+    {
+      Index k = endk;
+      row_transpositions[k] = PivIndex(k);
+      if (std::abs(lu(k, k)) == 0 && first_zero_pivot == -1)
+        first_zero_pivot = k;
+    }
+
     return first_zero_pivot;
   }
 
