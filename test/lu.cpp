@@ -110,7 +110,7 @@ template<typename MatrixType> void lu_non_invertible()
 template<typename MatrixType> void lu_invertible()
 {
   /* this test covers the following files:
-     LU.h
+     FullPivLU.h
   */
   typedef typename NumTraits<typename MatrixType::Scalar>::Real RealScalar;
   Index size = MatrixType::RowsAtCompileTime;
@@ -152,13 +152,12 @@ template<typename MatrixType> void lu_invertible()
   VERIFY_IS_APPROX(lu.solve(m3*m4), lu.solve(m3)*m4);
 }
 
-template<typename MatrixType> void lu_partial_piv()
+template<typename MatrixType> void lu_partial_piv(Index size = MatrixType::ColsAtCompileTime)
 {
   /* this test covers the following files:
      PartialPivLU.h
   */
   typedef typename NumTraits<typename MatrixType::Scalar>::Real RealScalar;
-  Index size = internal::random<Index>(1,4);
 
   MatrixType m1(size, size), m2(size, size), m3(size, size);
   m1.setRandom();
@@ -218,9 +217,13 @@ EIGEN_DECLARE_TEST(lu)
     CALL_SUBTEST_1( lu_non_invertible<Matrix3f>() );
     CALL_SUBTEST_1( lu_invertible<Matrix3f>() );
     CALL_SUBTEST_1( lu_verify_assert<Matrix3f>() );
+    CALL_SUBTEST_1( lu_partial_piv<Matrix3f>() );
 
     CALL_SUBTEST_2( (lu_non_invertible<Matrix<double, 4, 6> >()) );
     CALL_SUBTEST_2( (lu_verify_assert<Matrix<double, 4, 6> >()) );
+    CALL_SUBTEST_2( lu_partial_piv<Matrix2d>() );
+    CALL_SUBTEST_2( lu_partial_piv<Matrix4d>() );
+    CALL_SUBTEST_2( (lu_partial_piv<Matrix<double,6,6> >()) );
 
     CALL_SUBTEST_3( lu_non_invertible<MatrixXf>() );
     CALL_SUBTEST_3( lu_invertible<MatrixXf>() );
@@ -228,7 +231,7 @@ EIGEN_DECLARE_TEST(lu)
 
     CALL_SUBTEST_4( lu_non_invertible<MatrixXd>() );
     CALL_SUBTEST_4( lu_invertible<MatrixXd>() );
-    CALL_SUBTEST_4( lu_partial_piv<MatrixXd>() );
+    CALL_SUBTEST_4( lu_partial_piv<MatrixXd>(internal::random<int>(1,EIGEN_TEST_MAX_SIZE)) );
     CALL_SUBTEST_4( lu_verify_assert<MatrixXd>() );
 
     CALL_SUBTEST_5( lu_non_invertible<MatrixXcf>() );
@@ -237,7 +240,7 @@ EIGEN_DECLARE_TEST(lu)
 
     CALL_SUBTEST_6( lu_non_invertible<MatrixXcd>() );
     CALL_SUBTEST_6( lu_invertible<MatrixXcd>() );
-    CALL_SUBTEST_6( lu_partial_piv<MatrixXcd>() );
+    CALL_SUBTEST_6( lu_partial_piv<MatrixXcd>(internal::random<int>(1,EIGEN_TEST_MAX_SIZE)) );
     CALL_SUBTEST_6( lu_verify_assert<MatrixXcd>() );
 
     CALL_SUBTEST_7(( lu_non_invertible<Matrix<float,Dynamic,16> >() ));
