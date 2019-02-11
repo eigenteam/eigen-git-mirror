@@ -387,8 +387,6 @@ struct partial_lu_impl
           ++nb_transpositions;
         }
 
-        // FIXME shall we introduce a safe quotient expression in cas 1/lu.coeff(k,k)
-        // overflow but not the actual quotient?
         lu.col(k).tail(fix<RRows>(rrows)) /= lu.coeff(k,k);
       }
       else if(first_zero_pivot==-1)
@@ -407,7 +405,7 @@ struct partial_lu_impl
     {
       Index k = endk;
       row_transpositions[k] = PivIndex(k);
-      if (std::abs(lu(k, k)) == 0 && first_zero_pivot == -1)
+      if (Scoring()(lu(k, k)) == Score(0) && first_zero_pivot == -1)
         first_zero_pivot = k;
     }
 
