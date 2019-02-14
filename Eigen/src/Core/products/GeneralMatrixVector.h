@@ -255,20 +255,11 @@ EIGEN_DEVICE_FUNC EIGEN_DONT_INLINE void general_matrix_vector_product<Index,Lhs
   conj_helper<LhsScalar,RhsScalar,ConjugateLhs,ConjugateRhs> cj;
   conj_helper<LhsPacket,RhsPacket,ConjugateLhs,ConjugateRhs> pcj;
 
-  // TODO: fine tune the following heuristic. The rationale is that if the
-  // matrix is very large, processing multiple rows at once might be counter
-  // productive wrt cache.
-#if EIGEN_ARCH_ARM_OR_ARM64
-  // This threshold was empirically determined using a Pixel2.
-  // The little cores are a lot more sensitive to this number
-  // than the big cores.
-  const Index cache_threshold = 1024;
-#else
-  const Index cache_threshold = 1024 * 256;
-#endif
-
-  const Index row_bytes = lhs.stride() * sizeof(LhsScalar);
-  const Index n8 = (8 * row_bytes > cache_threshold) ? 0 : (rows - 7);
+  // TODO: fine tune the following heuristic. The rationale is that if the matrix is very large,
+  //       processing 8 rows at once might be counter productive wrt cache.
+  const Index n8 = lhs.stride()*sizeof(LhsScalar)>32000 ? 0 : rows-7;
+  const Index n4 = rows-3;
+  const Index n2 = rows-1;
 
   // TODO: for padded aligned inputs, we could enable aligned reads
   enum { LhsAlignment = Unaligned };
@@ -329,9 +320,6 @@ EIGEN_DEVICE_FUNC EIGEN_DONT_INLINE void general_matrix_vector_product<Index,Lhs
     res[(i+6)*resIncr] += alpha*cc6;
     res[(i+7)*resIncr] += alpha*cc7;
   }
-
-  if (i == rows) return;
-  const Index n4 = (4 * row_bytes > cache_threshold) ? 0 : (rows - 3);
   for(; i<n4; i+=4)
   {
     ResPacket c0 = pset1<ResPacket>(ResScalar(0)),
@@ -367,9 +355,6 @@ EIGEN_DEVICE_FUNC EIGEN_DONT_INLINE void general_matrix_vector_product<Index,Lhs
     res[(i+2)*resIncr] += alpha*cc2;
     res[(i+3)*resIncr] += alpha*cc3;
   }
-
-  if (i == rows) return;
-  const Index n2 = (2 * row_bytes > cache_threshold) ? 0 : (rows - 1);
   for(; i<n2; i+=2)
   {
     ResPacket c0 = pset1<ResPacket>(ResScalar(0)),
