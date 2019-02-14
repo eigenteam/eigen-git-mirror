@@ -208,7 +208,7 @@ class RunQueue {
         return CalculateSize(front, back);
       } else {
         // This value will be 0 if the queue is empty, and undefined otherwise.
-        int maybe_zero = ((front ^ back) & kMask2);
+        unsigned maybe_zero = ((front ^ back) & kMask2);
         eigen_assert(maybe_zero == 0 ? CalculateSize(front, back) == 0 : true);
         return maybe_zero;
       }
@@ -225,7 +225,7 @@ class RunQueue {
     // increment size before the corresponding pop has decremented it.
     // So the computed size can be up to kSize + 1, fix it.
     if (size > static_cast<int>(kSize)) size = kSize;
-    return size;
+    return static_cast<unsigned>(size);
   }
 
   RunQueue(const RunQueue&) = delete;
