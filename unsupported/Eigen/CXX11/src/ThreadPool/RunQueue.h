@@ -148,39 +148,6 @@ class RunQueue {
     return n;
   }
 
-  // Size returns current queue size; if NeedSizeEstimate is false, only whether
-  // the size is 0 is guaranteed to be correct.
-  // Can be called by any thread at any time.
-  template <bool NeedSizeEstimate>
-  unsigned SizeOrNotEmpty() const {
-    // Emptiness plays critical role in thread pool blocking. So we go to great
-    // effort to not produce false positives (claim non-empty queue as empty).
-    unsigned front = front_.load(std::memory_order_acquire);
-    for (;;) {
-      // Capture a consistent snapshot of front/tail.
-      unsigned back = back_.load(std::memory_order_acquire);
-      unsigned front1 = front_.load(std::memory_order_relaxed);
-      if (front != front1) {
-        front = front1;
-        std::atomic_thread_fence(std::memory_order_acquire);
-        continue;
-      }
-      if (NeedSizeEstimate) {
-        int size = (front & kMask2) - (back & kMask2);
-        // Fix overflow.
-        if (size < 0) size += 2 * kSize;
-        // Order of modification in push/pop is crafted to make the queue look
-        // larger than it is during concurrent modifications. E.g. pop can
-        // decrement size before the corresponding push has incremented it.
-        // So the computed size can be up to kSize + 1, fix it.
-        if (size > kSize) size = kSize;
-        return size;
-      } else {
-        return ((front ^ back) & kMask2);
-      }
-    }
-  }
-
   // Size returns current queue size.
   // Can be called by any thread at any time.
   unsigned Size() const { return SizeOrNotEmpty<true>(); }
@@ -219,6 +186,47 @@ class RunQueue {
   std::atomic<unsigned> front_;
   std::atomic<unsigned> back_;
   Elem array_[kSize];
+
+  // SizeOrNotEmpty returns current queue size; if NeedSizeEstimate is false,
+  // only whether the size is 0 is guaranteed to be correct.
+  // Can be called by any thread at any time.
+  template<bool NeedSizeEstimate>
+  unsigned SizeOrNotEmpty() const {
+    // Emptiness plays critical role in thread pool blocking. So we go to great
+    // effort to not produce false positives (claim non-empty queue as empty).
+    unsigned front = front_.load(std::memory_order_acquire);
+    for (;;) {
+      // Capture a consistent snapshot of front/tail.
+      unsigned back = back_.load(std::memory_order_acquire);
+      unsigned front1 = front_.load(std::memory_order_relaxed);
+      if (front != front1) {
+        front = front1;
+        std::atomic_thread_fence(std::memory_order_acquire);
+        continue;
+      }
+      if (NeedSizeEstimate) {
+        return CalculateSize(front, back);
+      } else {
+        // This value will be 0 if the queue is empty, and undefined otherwise.
+        int maybe_zero = ((front ^ back) & kMask2);
+        eigen_assert(maybe_zero == 0 ? CalculateSize(front, back) == 0 : true);
+        return maybe_zero;
+      }
+    }
+  }
+
+  EIGEN_ALWAYS_INLINE
+  unsigned CalculateSize(unsigned front, unsigned back) const {
+    int size = (front & kMask2) - (back & kMask2);
+    // Fix overflow.
+    if (size < 0) size += 2 * kSize;
+    // Order of modification in push/pop is crafted to make the queue look
+    // larger than it is during concurrent modifications. E.g. push can
+    // increment size before the corresponding pop has decremented it.
+    // So the computed size can be up to kSize + 1, fix it.
+    if (size > static_cast<int>(kSize)) size = kSize;
+    return size;
+  }
 
   RunQueue(const RunQueue&) = delete;
   void operator=(const RunQueue&) = delete;
