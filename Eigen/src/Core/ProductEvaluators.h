@@ -582,7 +582,8 @@ struct product_evaluator<Product<Lhs, Rhs, LazyProduct>, ProductTag, DenseShape,
    * which is why we don't set the LinearAccessBit.
    * TODO: this seems possible when the result is a vector
    */
-  EIGEN_DEVICE_FUNC const CoeffReturnType coeff(Index index) const
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+  const CoeffReturnType coeff(Index index) const
   {
     const Index row = (RowsAtCompileTime == 1 || MaxRowsAtCompileTime==1) ? 0 : index;
     const Index col = (RowsAtCompileTime == 1 || MaxRowsAtCompileTime==1) ? index : 0;
@@ -590,6 +591,7 @@ struct product_evaluator<Product<Lhs, Rhs, LazyProduct>, ProductTag, DenseShape,
   }
 
   template<int LoadMode, typename PacketType>
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
   const PacketType packet(Index row, Index col) const
   {
     PacketType res;
@@ -601,6 +603,7 @@ struct product_evaluator<Product<Lhs, Rhs, LazyProduct>, ProductTag, DenseShape,
   }
 
   template<int LoadMode, typename PacketType>
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
   const PacketType packet(Index index) const
   {
     const Index row = (RowsAtCompileTime == 1 || MaxRowsAtCompileTime==1) ? 0 : index;
@@ -629,7 +632,8 @@ struct product_evaluator<Product<Lhs, Rhs, DefaultProduct>, LazyCoeffBasedProduc
   enum {
     Flags = Base::Flags | EvalBeforeNestingBit
   };
-  EIGEN_DEVICE_FUNC explicit product_evaluator(const XprType& xpr)
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+  explicit product_evaluator(const XprType& xpr)
     : Base(BaseProduct(xpr.lhs(),xpr.rhs()))
   {}
 };

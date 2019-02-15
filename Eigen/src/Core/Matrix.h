@@ -255,27 +255,27 @@ class Matrix
       *
       * \sa resize(Index,Index)
       */
-    EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE Matrix() : Base()
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    Matrix() : Base()
     {
       Base::_check_template_params();
       EIGEN_INITIALIZE_COEFFS_IF_THAT_OPTION_IS_ENABLED
     }
 
     // FIXME is it still needed
-    EIGEN_DEVICE_FUNC
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
     explicit Matrix(internal::constructor_without_unaligned_array_assert)
       : Base(internal::constructor_without_unaligned_array_assert())
     { Base::_check_template_params(); EIGEN_INITIALIZE_COEFFS_IF_THAT_OPTION_IS_ENABLED }
 
 #if EIGEN_HAS_RVALUE_REFERENCES
-    EIGEN_DEVICE_FUNC
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
     Matrix(Matrix&& other) EIGEN_NOEXCEPT_IF(std::is_nothrow_move_constructible<Scalar>::value)
       : Base(std::move(other))
     {
       Base::_check_template_params();
     }
-    EIGEN_DEVICE_FUNC
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
     Matrix& operator=(Matrix&& other) EIGEN_NOEXCEPT_IF(std::is_nothrow_move_assignable<Scalar>::value)
     {
       other.swap(*this);
@@ -287,16 +287,16 @@ class Matrix
 
     // This constructor is for both 1x1 matrices and dynamic vectors
     template<typename T>
-    EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE explicit Matrix(const T& x)
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    explicit Matrix(const T& x)
     {
       Base::_check_template_params();
       Base::template _init1<T>(x);
     }
 
     template<typename T0, typename T1>
-    EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE Matrix(const T0& x, const T1& y)
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    Matrix(const T0& x, const T1& y)
     {
       Base::_check_template_params();
       Base::template _init2<T0,T1>(x, y);

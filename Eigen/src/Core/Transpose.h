@@ -61,25 +61,27 @@ template<typename MatrixType> class Transpose
     typedef typename internal::remove_all<MatrixType>::type NestedExpression;
 
     EIGEN_DEVICE_FUNC
-    explicit inline Transpose(MatrixType& matrix) : m_matrix(matrix) {}
+    explicit EIGEN_STRONG_INLINE Transpose(MatrixType& matrix) : m_matrix(matrix) {}
 
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Transpose)
 
-    EIGEN_DEVICE_FUNC inline Index rows() const { return m_matrix.cols(); }
-    EIGEN_DEVICE_FUNC inline Index cols() const { return m_matrix.rows(); }
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    Index rows() const { return m_matrix.cols(); }
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    Index cols() const { return m_matrix.rows(); }
 
     /** \returns the nested expression */
-    EIGEN_DEVICE_FUNC
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
     const typename internal::remove_all<MatrixTypeNested>::type&
     nestedExpression() const { return m_matrix; }
 
     /** \returns the nested expression */
-    EIGEN_DEVICE_FUNC
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
     typename internal::remove_reference<MatrixTypeNested>::type&
     nestedExpression() { return m_matrix; }
 
     /** \internal */
-    EIGEN_DEVICE_FUNC
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
     void resize(Index nrows, Index ncols) {
       m_matrix.resize(ncols,nrows);
     }
@@ -123,8 +125,10 @@ template<typename MatrixType> class TransposeImpl<MatrixType,Dense>
     EIGEN_DENSE_PUBLIC_INTERFACE(Transpose<MatrixType>)
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(TransposeImpl)
 
-    EIGEN_DEVICE_FUNC inline Index innerStride() const { return derived().nestedExpression().innerStride(); }
-    EIGEN_DEVICE_FUNC inline Index outerStride() const { return derived().nestedExpression().outerStride(); }
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    Index innerStride() const { return derived().nestedExpression().innerStride(); }
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    Index outerStride() const { return derived().nestedExpression().outerStride(); }
 
     typedef typename internal::conditional<
                        internal::is_lvalue<MatrixType>::value,
@@ -132,18 +136,20 @@ template<typename MatrixType> class TransposeImpl<MatrixType,Dense>
                        const Scalar
                      >::type ScalarWithConstIfNotLvalue;
 
-    EIGEN_DEVICE_FUNC inline ScalarWithConstIfNotLvalue* data() { return derived().nestedExpression().data(); }
-    EIGEN_DEVICE_FUNC inline const Scalar* data() const { return derived().nestedExpression().data(); }
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    ScalarWithConstIfNotLvalue* data() { return derived().nestedExpression().data(); }
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    const Scalar* data() const { return derived().nestedExpression().data(); }
 
     // FIXME: shall we keep the const version of coeffRef?
-    EIGEN_DEVICE_FUNC
-    inline const Scalar& coeffRef(Index rowId, Index colId) const
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    const Scalar& coeffRef(Index rowId, Index colId) const
     {
       return derived().nestedExpression().coeffRef(colId, rowId);
     }
 
-    EIGEN_DEVICE_FUNC
-    inline const Scalar& coeffRef(Index index) const
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    const Scalar& coeffRef(Index index) const
     {
       return derived().nestedExpression().coeffRef(index);
     }
@@ -169,7 +175,8 @@ template<typename MatrixType> class TransposeImpl<MatrixType,Dense>
   *
   * \sa transposeInPlace(), adjoint() */
 template<typename Derived>
-EIGEN_DEVICE_FUNC inline Transpose<Derived>
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+Transpose<Derived>
 DenseBase<Derived>::transpose()
 {
   return TransposeReturnType(derived());
@@ -181,7 +188,8 @@ DenseBase<Derived>::transpose()
   *
   * \sa transposeInPlace(), adjoint() */
 template<typename Derived>
-EIGEN_DEVICE_FUNC inline typename DenseBase<Derived>::ConstTransposeReturnType
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+typename DenseBase<Derived>::ConstTransposeReturnType
 DenseBase<Derived>::transpose() const
 {
   return ConstTransposeReturnType(derived());

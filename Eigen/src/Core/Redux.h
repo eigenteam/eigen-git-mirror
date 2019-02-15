@@ -359,7 +359,8 @@ class redux_evaluator : public internal::evaluator<_XprType>
   typedef internal::evaluator<_XprType> Base;
 public:
   typedef _XprType XprType;
-  EIGEN_DEVICE_FUNC explicit redux_evaluator(const XprType &xpr) : Base(xpr) {}
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+  explicit redux_evaluator(const XprType &xpr) : Base(xpr) {}
   
   typedef typename XprType::Scalar Scalar;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
@@ -375,11 +376,12 @@ public:
     InnerSizeAtCompileTime = XprType::InnerSizeAtCompileTime
   };
   
-  EIGEN_DEVICE_FUNC
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
   CoeffReturnType coeffByOuterInner(Index outer, Index inner) const
   { return Base::coeff(IsRowMajor ? outer : inner, IsRowMajor ? inner : outer); }
   
   template<int LoadMode, typename PacketType>
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
   PacketType packetByOuterInner(Index outer, Index inner) const
   { return Base::template packet<LoadMode,PacketType>(IsRowMajor ? outer : inner, IsRowMajor ? inner : outer); }
   

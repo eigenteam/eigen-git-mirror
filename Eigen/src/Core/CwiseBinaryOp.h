@@ -100,8 +100,12 @@ class CwiseBinaryOp :
     typedef typename internal::remove_reference<LhsNested>::type _LhsNested;
     typedef typename internal::remove_reference<RhsNested>::type _RhsNested;
 
-    EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE CwiseBinaryOp(const Lhs& aLhs, const Rhs& aRhs, const BinaryOp& func = BinaryOp())
+    //Required for Visual Studio or the Copy constructor will probably not get inlined!
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    CwiseBinaryOp(const CwiseBinaryOp<BinaryOp,LhsType,RhsType>&) = default;
+
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    CwiseBinaryOp(const Lhs& aLhs, const Rhs& aRhs, const BinaryOp& func = BinaryOp())
       : m_lhs(aLhs), m_rhs(aRhs), m_functor(func)
     {
       EIGEN_CHECK_BINARY_COMPATIBILIY(BinaryOp,typename Lhs::Scalar,typename Rhs::Scalar);
@@ -110,16 +114,16 @@ class CwiseBinaryOp :
       eigen_assert(aLhs.rows() == aRhs.rows() && aLhs.cols() == aRhs.cols());
     }
 
-    EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE Index rows() const {
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    Index rows() const {
       // return the fixed size type if available to enable compile time optimizations
       if (internal::traits<typename internal::remove_all<LhsNested>::type>::RowsAtCompileTime==Dynamic)
         return m_rhs.rows();
       else
         return m_lhs.rows();
     }
-    EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE Index cols() const {
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    Index cols() const {
       // return the fixed size type if available to enable compile time optimizations
       if (internal::traits<typename internal::remove_all<LhsNested>::type>::ColsAtCompileTime==Dynamic)
         return m_rhs.cols();
@@ -128,13 +132,13 @@ class CwiseBinaryOp :
     }
 
     /** \returns the left hand side nested expression */
-    EIGEN_DEVICE_FUNC
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
     const _LhsNested& lhs() const { return m_lhs; }
     /** \returns the right hand side nested expression */
-    EIGEN_DEVICE_FUNC
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
     const _RhsNested& rhs() const { return m_rhs; }
     /** \returns the functor representing the binary operation */
-    EIGEN_DEVICE_FUNC
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
     const BinaryOp& functor() const { return m_functor; }
 
   protected:

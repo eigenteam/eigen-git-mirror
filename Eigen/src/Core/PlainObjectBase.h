@@ -947,7 +947,7 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
       * of same type it is enough to swap the data pointers.
       */
     template<typename OtherDerived>
-    EIGEN_DEVICE_FUNC
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
     void swap(DenseBase<OtherDerived> & other)
     {
       enum { SwapPointers = internal::is_same<Derived, OtherDerived>::value && Base::SizeAtCompileTime==Dynamic };
@@ -958,7 +958,7 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
       * \brief const version forwarded to DenseBase::swap
       */
     template<typename OtherDerived>
-    EIGEN_DEVICE_FUNC
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
     void swap(DenseBase<OtherDerived> const & other)
     { Base::swap(other.derived()); }
 
@@ -1092,7 +1092,7 @@ template<typename MatrixTypeA, typename MatrixTypeB, bool SwapPointers>
 struct matrix_swap_impl
 {
   EIGEN_DEVICE_FUNC
-  static inline void run(MatrixTypeA& a, MatrixTypeB& b)
+  static EIGEN_STRONG_INLINE void run(MatrixTypeA& a, MatrixTypeB& b)
   {
     a.base().swap(b);
   }

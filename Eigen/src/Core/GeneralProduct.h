@@ -396,8 +396,8 @@ template<> struct gemv_dense_selector<OnTheRight,RowMajor,false>
   */
 template<typename Derived>
 template<typename OtherDerived>
-EIGEN_DEVICE_FUNC
-inline const Product<Derived, OtherDerived>
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+const Product<Derived, OtherDerived>
 MatrixBase<Derived>::operator*(const MatrixBase<OtherDerived> &other) const
 {
   // A note regarding the function declaration: In MSVC, this function will sometimes
@@ -439,8 +439,9 @@ MatrixBase<Derived>::operator*(const MatrixBase<OtherDerived> &other) const
   */
 template<typename Derived>
 template<typename OtherDerived>
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
 const Product<Derived,OtherDerived,LazyProduct>
-EIGEN_DEVICE_FUNC MatrixBase<Derived>::lazyProduct(const MatrixBase<OtherDerived> &other) const
+MatrixBase<Derived>::lazyProduct(const MatrixBase<OtherDerived> &other) const
 {
   enum {
     ProductIsValid =  Derived::ColsAtCompileTime==Dynamic

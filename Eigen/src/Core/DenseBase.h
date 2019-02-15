@@ -415,7 +415,7 @@ template<typename Derived> class DenseBase
       *
       */
     template<typename OtherDerived>
-    EIGEN_DEVICE_FUNC
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
     void swap(const DenseBase<OtherDerived>& other)
     {
       EIGEN_STATIC_ASSERT(!OtherDerived::IsPlainObjectBase,THIS_EXPRESSION_IS_NOT_A_LVALUE__IT_IS_READ_ONLY);
@@ -427,7 +427,7 @@ template<typename Derived> class DenseBase
       *
       */
     template<typename OtherDerived>
-    EIGEN_DEVICE_FUNC
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
     void swap(PlainObjectBase<OtherDerived>& other)
     {
       eigen_assert(rows()==other.rows() && cols()==other.cols());
