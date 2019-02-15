@@ -141,7 +141,7 @@ EIGEN_STRONG_INLINE Packet16f pload1<Packet16f>(const float* from) {
 }
 template <>
 EIGEN_STRONG_INLINE Packet8d pload1<Packet8d>(const double* from) {
-  return _mm512_broadcastsd_pd(_mm_load_pd1(from));
+  return _mm512_set1_pd(*from);
 }
 
 template <>
@@ -167,6 +167,11 @@ EIGEN_STRONG_INLINE Packet8d padd<Packet8d>(const Packet8d& a,
                                             const Packet8d& b) {
   return _mm512_add_pd(a, b);
 }
+template <>
+EIGEN_STRONG_INLINE Packet16i padd<Packet16i>(const Packet16i& a,
+                                              const Packet16i& b) {
+  return _mm512_add_epi32(a, b);
+}
 
 template <>
 EIGEN_STRONG_INLINE Packet16f psub<Packet16f>(const Packet16f& a,
@@ -177,6 +182,11 @@ template <>
 EIGEN_STRONG_INLINE Packet8d psub<Packet8d>(const Packet8d& a,
                                             const Packet8d& b) {
   return _mm512_sub_pd(a, b);
+}
+template <>
+EIGEN_STRONG_INLINE Packet16i psub<Packet16i>(const Packet16i& a,
+                                              const Packet16i& b) {
+  return _mm512_sub_epi32(a, b);
 }
 
 template <>
@@ -210,6 +220,11 @@ template <>
 EIGEN_STRONG_INLINE Packet8d pmul<Packet8d>(const Packet8d& a,
                                             const Packet8d& b) {
   return _mm512_mul_pd(a, b);
+}
+template <>
+EIGEN_STRONG_INLINE Packet16i pmul<Packet16i>(const Packet16i& a,
+                                              const Packet16i& b) {
+  return _mm512_mul_epi32(a, b);
 }
 
 template <>
@@ -522,10 +537,8 @@ EIGEN_STRONG_INLINE Packet16f ploadquad<Packet16f>(const float* from) {
 // {a0, a0  a0, a0, a1, a1, a1, a1}
 template <>
 EIGEN_STRONG_INLINE Packet8d ploadquad<Packet8d>(const double* from) {
-  __m128d tmp0 = _mm_load_pd1(from);
-  __m256d lane0 = _mm256_broadcastsd_pd(tmp0);
-  __m128d tmp1 = _mm_load_pd1(from + 1);
-  __m256d lane1 = _mm256_broadcastsd_pd(tmp1);
+  __m256d lane0 = _mm256_set1_pd(*from);
+  __m256d lane1 = _mm256_set1_pd(*(from+1));
   __m512d tmp = _mm512_undefined_pd();
   tmp = _mm512_insertf64x4(tmp, lane0, 0);
   return _mm512_insertf64x4(tmp, lane1, 1);
