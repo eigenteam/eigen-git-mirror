@@ -100,9 +100,11 @@ class CwiseBinaryOp :
     typedef typename internal::remove_reference<LhsNested>::type _LhsNested;
     typedef typename internal::remove_reference<RhsNested>::type _RhsNested;
 
+#if EIGEN_COMP_MSVC && EIGEN_HAS_CXX11
     //Required for Visual Studio or the Copy constructor will probably not get inlined!
     EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
     CwiseBinaryOp(const CwiseBinaryOp<BinaryOp,LhsType,RhsType>&) = default;
+#endif
 
     EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
     CwiseBinaryOp(const Lhs& aLhs, const Rhs& aRhs, const BinaryOp& func = BinaryOp())
