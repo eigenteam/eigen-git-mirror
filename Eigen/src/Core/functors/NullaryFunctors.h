@@ -42,14 +42,15 @@ template <typename Scalar, bool IsInteger> struct linspaced_op_impl;
 template <typename Scalar>
 struct linspaced_op_impl<Scalar,/*IsInteger*/false>
 {
+  typedef typename NumTraits<Scalar>::Real RealScalar;
+
   linspaced_op_impl(const Scalar& low, const Scalar& high, Index num_steps) :
-    m_low(low), m_high(high), m_size1(num_steps==1 ? 1 : num_steps-1), m_step(num_steps==1 ? Scalar() : (high-low)/Scalar(num_steps-1)),
+    m_low(low), m_high(high), m_size1(num_steps==1 ? 1 : num_steps-1), m_step(num_steps==1 ? Scalar() : (high-low)/RealScalar(num_steps-1)),
     m_flip(numext::abs(high)<numext::abs(low))
   {}
 
   template<typename IndexType>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar operator() (IndexType i) const {
-    typedef typename NumTraits<Scalar>::Real RealScalar;
     if(m_flip)
       return (i==0)? m_low : (m_high - RealScalar(m_size1-i)*m_step);
     else
