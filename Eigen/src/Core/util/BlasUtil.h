@@ -274,7 +274,8 @@ template<typename XprType> struct blas_traits
     HasUsableDirectAccess = (    (int(XprType::Flags)&DirectAccessBit)
                               && (   bool(XprType::IsVectorAtCompileTime)
                                   || int(inner_stride_at_compile_time<XprType>::ret) == 1)
-                             ) ?  1 : 0
+                             ) ?  1 : 0,
+    HasScalarFactor = false
   };
   typedef typename conditional<bool(HasUsableDirectAccess),
     ExtractType,
@@ -306,6 +307,9 @@ template<typename Scalar, typename NestedXpr, typename Plain>
 struct blas_traits<CwiseBinaryOp<scalar_product_op<Scalar>, const CwiseNullaryOp<scalar_constant_op<Scalar>,Plain>, NestedXpr> >
  : blas_traits<NestedXpr>
 {
+  enum {
+    HasScalarFactor = true
+  };
   typedef blas_traits<NestedXpr> Base;
   typedef CwiseBinaryOp<scalar_product_op<Scalar>, const CwiseNullaryOp<scalar_constant_op<Scalar>,Plain>, NestedXpr> XprType;
   typedef typename Base::ExtractType ExtractType;
@@ -317,6 +321,9 @@ template<typename Scalar, typename NestedXpr, typename Plain>
 struct blas_traits<CwiseBinaryOp<scalar_product_op<Scalar>, NestedXpr, const CwiseNullaryOp<scalar_constant_op<Scalar>,Plain> > >
  : blas_traits<NestedXpr>
 {
+  enum {
+    HasScalarFactor = true
+  };
   typedef blas_traits<NestedXpr> Base;
   typedef CwiseBinaryOp<scalar_product_op<Scalar>, NestedXpr, const CwiseNullaryOp<scalar_constant_op<Scalar>,Plain> > XprType;
   typedef typename Base::ExtractType ExtractType;
@@ -335,6 +342,9 @@ template<typename Scalar, typename NestedXpr>
 struct blas_traits<CwiseUnaryOp<scalar_opposite_op<Scalar>, NestedXpr> >
  : blas_traits<NestedXpr>
 {
+  enum {
+    HasScalarFactor = true
+  };
   typedef blas_traits<NestedXpr> Base;
   typedef CwiseUnaryOp<scalar_opposite_op<Scalar>, NestedXpr> XprType;
   typedef typename Base::ExtractType ExtractType;
@@ -358,7 +368,7 @@ struct blas_traits<Transpose<NestedXpr> >
     typename ExtractType::PlainObject
     >::type DirectLinearAccessType;
   enum {
-    IsTransposed = Base::IsTransposed ? 0 : 1
+    IsTransposed = Base::IsTransposed ? 0 : 1,
   };
   static inline ExtractType extract(const XprType& x) { return ExtractType(Base::extract(x.nestedExpression())); }
   static inline Scalar extractScalarFactor(const XprType& x) { return Base::extractScalarFactor(x.nestedExpression()); }

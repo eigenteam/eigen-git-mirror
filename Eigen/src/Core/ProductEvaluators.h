@@ -411,35 +411,56 @@ struct generic_product_impl<Lhs,Rhs,DenseShape,DenseShape,CoeffBasedProductMode>
     call_assignment_no_alias(dst, lhs.lazyProduct(rhs), internal::sub_assign_op<typename Dst::Scalar,Scalar>());
   }
 
-  // Catch "dst {,+,-}= (s*A)*B" and evaluate it lazily by moving out the scalar factor:
-  //    dst {,+,-}= s * (A.lazyProduct(B))
-  // This is a huge benefit for heap-allocated matrix types as it save one costly allocation.
-  // For them, this strategy is also faster than simply by-passing the heap allocation through
-  // stack allocation.
-  // For fixed sizes matrices, this is less obvious, it is sometimes x2 faster, but sometimes x3 slower,
-  // and the behavior depends also a lot on the compiler... so let's be conservative and enable them for dynamic-size only,
-  // that is when coming from generic_product_impl<...,GemmProduct> in file GeneralMatrixMatrix.h
-  template<typename Dst, typename Scalar1, typename Scalar2, typename Plain1, typename Xpr2, typename Func>
+  // This is a special evaluation path called from generic_product_impl<...,GemmProduct> in file GeneralMatrixMatrix.h
+  // This variant tries to extract scalar multiples from both the LHS and RHS and factor them out. For instance:
+  //   dst {,+,-}= (s1*A)*(B*s2)
+  // will be rewritten as:
+  //   dst {,+,-}= (s1*s2) * (A.lazyProduct(B))
+  // There are at least four benefits of doing so:
+  //  1 - huge performance gain for heap-allocated matrix types as it save costly allocations.
+  //  2 - it is faster than simply by-passing the heap allocation through stack allocation.
+  //  3 - it makes this fallback consistent with the heavy GEMM routine.
+  //  4 - it fully by-passes huge stack allocation attempts when multiplying huge fixed-size matrices.
+  //      (see https://stackoverflow.com/questions/54738495)
+  // For small fixed sizes matrices, howver, the gains are less obvious, it is sometimes x2 faster, but sometimes x3 slower,
+  // and the behavior depends also a lot on the compiler... This is why this re-writting strategy is currently
+  // enabled only when falling back from the main GEMM.
+  template<typename Dst, typename Func>
   static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-  void eval_dynamic(Dst& dst, const CwiseBinaryOp<internal::scalar_product_op<Scalar1,Scalar2>,
-                                           const CwiseNullaryOp<internal::scalar_constant_op<Scalar1>, Plain1>, Xpr2>& lhs, const Rhs& rhs, const Func &func)
+  void eval_dynamic(Dst& dst, const Lhs& lhs, const Rhs& rhs, const Func &func)
   {
-    call_restricted_packet_assignment_no_alias(dst, lhs.lhs().functor().m_other * lhs.rhs().lazyProduct(rhs), func);
+    enum {
+      HasScalarFactor = blas_traits<Lhs>::HasScalarFactor || blas_traits<Rhs>::HasScalarFactor
+    };
+    // FIXME: in c++11 this should be auto, and extractScalarFactor should also return auto
+    //        this is important for real*complex_mat
+    Scalar actualAlpha =    blas_traits<Lhs>::extractScalarFactor(lhs)
+                          * blas_traits<Rhs>::extractScalarFactor(rhs);
+    eval_dynamic_impl(dst,
+                      blas_traits<Lhs>::extract(lhs),
+                      blas_traits<Rhs>::extract(rhs),
+                      func,
+                      actualAlpha,
+                      typename conditional<HasScalarFactor,true_type,false_type>::type());
+
+    
   }
 
-  // Here, we we always have LhsT==Lhs, but we need to make it a template type to make the above
-  // overload more specialized.
-  template<typename Dst, typename LhsT, typename Func>
+protected:
+
+  template<typename Dst, typename LhsT, typename RhsT, typename Func, typename Scalar>
   static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-  void eval_dynamic(Dst& dst, const LhsT& lhs, const Rhs& rhs, const Func &func)
+  void eval_dynamic_impl(Dst& dst, const LhsT& lhs, const RhsT& rhs, const Func &func, const Scalar& /* s == 1 */, false_type)
   {
     call_restricted_packet_assignment_no_alias(dst, lhs.lazyProduct(rhs), func);
   }
-  
-  
-//   template<typename Dst>
-//   static inline void scaleAndAddTo(Dst& dst, const Lhs& lhs, const Rhs& rhs, const Scalar& alpha)
-//   { dst.noalias() += alpha * lhs.lazyProduct(rhs); }
+
+  template<typename Dst, typename LhsT, typename RhsT, typename Func, typename Scalar>
+  static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+  void eval_dynamic_impl(Dst& dst, const LhsT& lhs, const RhsT& rhs, const Func &func, const Scalar& s, true_type)
+  {
+    call_restricted_packet_assignment_no_alias(dst, s * lhs.lazyProduct(rhs), func);
+  }
 };
 
 // This specialization enforces the use of a coefficient-based evaluation strategy
