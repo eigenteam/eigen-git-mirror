@@ -117,7 +117,15 @@ template<typename Scalar>
 struct functor_traits<scalar_conjugate_op<Scalar> >
 {
   enum {
-    Cost = NumTraits<Scalar>::IsComplex ? NumTraits<Scalar>::AddCost : 0,
+    Cost = 0,
+    // Yes the cost is zero even for complexes because in most cases for which
+    // the cost is used, conjugation turns to be a no-op. Some examples:
+    //   cost(a*conj(b)) == cost(a*b)
+    //   cost(a+conj(b)) == cost(a+b)
+    //   <etc.
+    // If we don't set it to zero, then:
+    //   A.conjugate().lazyProduct(B.conjugate())
+    // will bake its operands. We definitely don't want that!
     PacketAccess = packet_traits<Scalar>::HasConj
   };
 };

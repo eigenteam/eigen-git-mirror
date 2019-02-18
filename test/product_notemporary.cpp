@@ -134,7 +134,9 @@ template<typename MatrixType> void product_notemporary(const MatrixType& m)
   VERIFY_EVALUATION_COUNT( m3.noalias() = m1.block(r0,r0,r1,r1).template triangularView<UnitUpper>()  * m2.block(r0,c0,r1,c1), 1);
 
   // Zero temporaries for lazy products ...
+  m3.setRandom(rows,cols);
   VERIFY_EVALUATION_COUNT( Scalar tmp = 0; tmp += Scalar(RealScalar(1)) /  (m3.transpose().lazyProduct(m3)).diagonal().sum(), 0 );
+  VERIFY_EVALUATION_COUNT( m3.noalias() = m1.conjugate().lazyProduct(m2.conjugate()), 0);
 
   // ... and even no temporary for even deeply (>=2) nested products
   VERIFY_EVALUATION_COUNT( Scalar tmp = 0; tmp += Scalar(RealScalar(1)) /  (m3.transpose() * m3).diagonal().sum(), 0 );
