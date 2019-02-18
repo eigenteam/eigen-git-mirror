@@ -70,7 +70,7 @@ void testVectorType(const VectorType& base)
   
   Scalar high = internal::random<Scalar>(-500,500);
   Scalar low = (size == 1 ? high : internal::random<Scalar>(-500,500));
-  if (low>high) std::swap(low,high);
+  if (numext::real(low)>numext::real(high)) std::swap(low,high);
 
   // check low==high
   if(internal::random<float>(0.f,1.f)<0.05f)
@@ -79,7 +79,7 @@ void testVectorType(const VectorType& base)
   else if(size>2 && std::numeric_limits<RealScalar>::max_exponent10>0 && internal::random<float>(0.f,1.f)<0.1f)
     low = -internal::random<Scalar>(1,2) * RealScalar(std::pow(RealScalar(10),std::numeric_limits<RealScalar>::max_exponent10/2));
 
-  const Scalar step = ((size == 1) ? 1 : (high-low)/(size-1));
+  const Scalar step = ((size == 1) ? 1 : (high-low)/RealScalar(size-1));
 
   // check whether the result yields what we expect it to do
   VectorType m(base);
@@ -89,21 +89,22 @@ void testVectorType(const VectorType& base)
   {
     VectorType n(size);
     for (int i=0; i<size; ++i)
-      n(i) = low+i*step;
+      n(i) = low+RealScalar(i)*step;
     VERIFY_IS_APPROX(m,n);
 
     CALL_SUBTEST( check_extremity_accuracy(m, low, high) );
   }
 
-  if((!NumTraits<Scalar>::IsInteger) || ((high-low)>=size && (Index(high-low)%(size-1))==0) || (Index(high-low+1)<size && (size%Index(high-low+1))==0))
+  RealScalar range_length = numext::real(high-low);
+  if((!NumTraits<Scalar>::IsInteger) || (range_length>=size && (Index(range_length)%(size-1))==0) || (Index(range_length+1)<size && (size%Index(range_length+1))==0))
   {
     VectorType n(size);
-    if((!NumTraits<Scalar>::IsInteger) || (high-low>=size))
+    if((!NumTraits<Scalar>::IsInteger) || (range_length>=size))
       for (int i=0; i<size; ++i)
-        n(i) = size==1 ? low : (low + ((high-low)*Scalar(i))/(size-1));
+        n(i) = size==1 ? low : (low + ((high-low)*Scalar(i))/RealScalar(size-1));
     else
       for (int i=0; i<size; ++i)
-        n(i) = size==1 ? low : low + Scalar((double(high-low+1)*double(i))/double(size));
+        n(i) = size==1 ? low : low + Scalar((double(range_length+1)*double(i))/double(size));
     VERIFY_IS_APPROX(m,n);
 
     // random access version
@@ -116,12 +117,12 @@ void testVectorType(const VectorType& base)
       CALL_SUBTEST( check_extremity_accuracy(m, low, high) );
   }
 
-  VERIFY( m(m.size()-1) <= high );
-  VERIFY( (m.array() <= high).all() );
-  VERIFY( (m.array() >= low).all() );
+  VERIFY( numext::real(m(m.size()-1)) <= numext::real(high) );
+  VERIFY( (m.array().real() <= numext::real(high)).all() );
+  VERIFY( (m.array().real() >= numext::real(low)).all() );
 
 
-  VERIFY( m(m.size()-1) >= low );
+  VERIFY( numext::real(m(m.size()-1)) >= numext::real(low) );
   if(size>=1)
   {
     VERIFY( internal::isApprox(m(0),low) );
@@ -135,7 +136,7 @@ void testVectorType(const VectorType& base)
   col_vector.setLinSpaced(size,low,high);
   // when using the extended precision (e.g., FPU) the relative error might exceed 1 bit
   // when computing the squared sum in isApprox, thus the 2x factor.
-  VERIFY( row_vector.isApprox(col_vector.transpose(), Scalar(2)*NumTraits<Scalar>::epsilon()));
+  VERIFY( row_vector.isApprox(col_vector.transpose(), RealScalar(2)*NumTraits<Scalar>::epsilon()));
 
   Matrix<Scalar,Dynamic,1> size_changer(size+50);
   size_changer.setLinSpaced(size,low,high);
@@ -157,18 +158,18 @@ void testVectorType(const VectorType& base)
   {
     Index n0 = VectorType::SizeAtCompileTime==Dynamic ? 0 : VectorType::SizeAtCompileTime;
     low = internal::random<Scalar>();
-    m = VectorType::LinSpaced(n0,low,low-1);
+    m = VectorType::LinSpaced(n0,low,low-RealScalar(1));
     VERIFY(m.size()==n0);
 
     if(VectorType::SizeAtCompileTime==Dynamic)
     {
       VERIFY_IS_EQUAL(VectorType::LinSpaced(n0,0,Scalar(n0-1)).sum(),Scalar(0));
-      VERIFY_IS_EQUAL(VectorType::LinSpaced(n0,low,low-1).sum(),Scalar(0));
+      VERIFY_IS_EQUAL(VectorType::LinSpaced(n0,low,low-RealScalar(1)).sum(),Scalar(0));
     }
 
     m.setLinSpaced(n0,0,Scalar(n0-1));
     VERIFY(m.size()==n0);
-    m.setLinSpaced(n0,low,low-1);
+    m.setLinSpaced(n0,low,low-RealScalar(1));
     VERIFY(m.size()==n0);
 
     // empty range only:
@@ -178,16 +179,16 @@ void testVectorType(const VectorType& base)
 
     if(NumTraits<Scalar>::IsInteger)
     {
-      VERIFY_IS_APPROX( VectorType::LinSpaced(size,low,Scalar(low+size-1)), VectorType::LinSpaced(size,Scalar(low+size-1),low).reverse() );
+      VERIFY_IS_APPROX( VectorType::LinSpaced(size,low,low+Scalar(size-1)), VectorType::LinSpaced(size,low+Scalar(size-1),low).reverse() );
 
       if(VectorType::SizeAtCompileTime==Dynamic)
       {
         // Check negative multiplicator path:
         for(Index k=1; k<5; ++k)
-          VERIFY_IS_APPROX( VectorType::LinSpaced(size,low,Scalar(low+(size-1)*k)), VectorType::LinSpaced(size,Scalar(low+(size-1)*k),low).reverse() );
+          VERIFY_IS_APPROX( VectorType::LinSpaced(size,low,low+Scalar((size-1)*k)), VectorType::LinSpaced(size,low+Scalar((size-1)*k),low).reverse() );
         // Check negative divisor path:
         for(Index k=1; k<5; ++k)
-          VERIFY_IS_APPROX( VectorType::LinSpaced(size*k,low,Scalar(low+size-1)), VectorType::LinSpaced(size*k,Scalar(low+size-1),low).reverse() );
+          VERIFY_IS_APPROX( VectorType::LinSpaced(size*k,low,low+Scalar(size-1)), VectorType::LinSpaced(size*k,low+Scalar(size-1),low).reverse() );
       }
     }
   }
@@ -318,6 +319,7 @@ EIGEN_DECLARE_TEST(nullary)
   CALL_SUBTEST_3( testMatrixType(MatrixXf(internal::random<int>(1,300),internal::random<int>(1,300))) );
   
   for(int i = 0; i < g_repeat*10; i++) {
+    CALL_SUBTEST_3( testVectorType(VectorXcd(internal::random<int>(1,30000))) );
     CALL_SUBTEST_4( testVectorType(VectorXd(internal::random<int>(1,30000))) );
     CALL_SUBTEST_5( testVectorType(Vector4d()) );  // regression test for bug 232
     CALL_SUBTEST_6( testVectorType(Vector3d()) );
