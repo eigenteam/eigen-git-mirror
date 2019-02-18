@@ -29,6 +29,7 @@ void check_scalar_multiple2(Dst &dst, const Lhs& A, const Rhs& B, S2 s2)
   CALL_SUBTEST( check_scalar_multiple3(dst, A,   -B) );
   CALL_SUBTEST( check_scalar_multiple3(dst, A, s2*B) );
   CALL_SUBTEST( check_scalar_multiple3(dst, A, B*s2) );
+  CALL_SUBTEST( check_scalar_multiple3(dst, A, (B*s2).conjugate()) );
 }
 
 template<typename Dst, typename Lhs, typename Rhs, typename S1, typename S2>
@@ -38,6 +39,7 @@ void check_scalar_multiple1(Dst &dst, const Lhs& A, const Rhs& B, S1 s1, S2 s2)
   CALL_SUBTEST( check_scalar_multiple2(dst,   -A, B, s2) );
   CALL_SUBTEST( check_scalar_multiple2(dst, s1*A, B, s2) );
   CALL_SUBTEST( check_scalar_multiple2(dst, A*s1, B, s2) );
+  CALL_SUBTEST( check_scalar_multiple2(dst, (A*s1).conjugate(), B, s2) );
 }
 
 template<typename MatrixType> void product_notemporary(const MatrixType& m)

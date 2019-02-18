@@ -430,28 +430,30 @@ struct generic_product_impl<Lhs,Rhs,DenseShape,DenseShape,CoeffBasedProductMode>
   void eval_dynamic(Dst& dst, const Lhs& lhs, const Rhs& rhs, const Func &func)
   {
     enum {
-      HasScalarFactor = blas_traits<Lhs>::HasScalarFactor || blas_traits<Rhs>::HasScalarFactor
+      HasScalarFactor = blas_traits<Lhs>::HasScalarFactor || blas_traits<Rhs>::HasScalarFactor,
+      ConjLhs = blas_traits<Lhs>::NeedToConjugate,
+      ConjRhs = blas_traits<Rhs>::NeedToConjugate
     };
     // FIXME: in c++11 this should be auto, and extractScalarFactor should also return auto
     //        this is important for real*complex_mat
     Scalar actualAlpha =    blas_traits<Lhs>::extractScalarFactor(lhs)
                           * blas_traits<Rhs>::extractScalarFactor(rhs);
     eval_dynamic_impl(dst,
-                      blas_traits<Lhs>::extract(lhs),
-                      blas_traits<Rhs>::extract(rhs),
+                      blas_traits<Lhs>::extract(lhs).template conjugateIf<ConjLhs>(),
+                      blas_traits<Rhs>::extract(rhs).template conjugateIf<ConjRhs>(),
                       func,
                       actualAlpha,
                       typename conditional<HasScalarFactor,true_type,false_type>::type());
-
-    
   }
 
 protected:
 
   template<typename Dst, typename LhsT, typename RhsT, typename Func, typename Scalar>
   static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-  void eval_dynamic_impl(Dst& dst, const LhsT& lhs, const RhsT& rhs, const Func &func, const Scalar& /* s == 1 */, false_type)
+  void eval_dynamic_impl(Dst& dst, const LhsT& lhs, const RhsT& rhs, const Func &func, const Scalar&  s /* == 1 */, false_type)
   {
+    EIGEN_UNUSED_VARIABLE(s);
+    eigen_internal_assert(s==Scalar(1));
     call_restricted_packet_assignment_no_alias(dst, lhs.lazyProduct(rhs), func);
   }
 
