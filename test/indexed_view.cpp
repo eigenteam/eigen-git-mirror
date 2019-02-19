@@ -95,7 +95,11 @@ void check_indexed_view()
   ArrayXd a = ArrayXd::LinSpaced(n,0,n-1);
   Array<double,1,Dynamic> b = a.transpose();
 
-  ArrayXXi A = ArrayXXi::NullaryExpr(n,n, std::ptr_fun(encode));
+  #if EIGEN_COMP_CXXVER>=14
+  ArrayXXi A = ArrayXXi::NullaryExpr(n,n, std::ref(encode));
+  #else
+  ArrayXXi A = ArrayXXi::NullaryExpr(n,n, std::ptr_fun(&encode));
+  #endif
 
   for(Index i=0; i<n; ++i)
     for(Index j=0; j<n; ++j)
