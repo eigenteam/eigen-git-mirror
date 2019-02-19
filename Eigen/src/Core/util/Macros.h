@@ -508,13 +508,33 @@
 #define EIGEN_HAS_STATIC_ARRAY_TEMPLATE 0
 #endif
 
-#if EIGEN_MAX_CPP_VER>=11 && (defined(__cplusplus) && (__cplusplus >= 201103L) || EIGEN_COMP_MSVC >= 1900)
+
+// The macro EIGEN_COMP_CXXVER defines the c++ verson expected by the compiler.
+// For instance, if compiling with gcc and -std=c++17, then EIGEN_COMP_CXXVER
+// is defined to 17.
+#if   (defined(__cplusplus) && (__cplusplus >  201402L) || EIGEN_COMP_MSVC >= 1914)
+#define EIGEN_COMP_CXXVER 17
+#elif (defined(__cplusplus) && (__cplusplus >  201103L) || EIGEN_COMP_MSVC >= 1910)
+#define EIGEN_COMP_CXXVER 14
+#elif (defined(__cplusplus) && (__cplusplus >= 201103L) || EIGEN_COMP_MSVC >= 1900)
+#define EIGEN_COMP_CXXVER 11
+#else
+#define EIGEN_COMP_CXXVER 03
+#endif
+
+
+// The macros EIGEN_HAS_CXX?? defines a rough estimate of available c++ features
+// but in practice we should not rely on them but rather on the availabilty of
+// individual features as defined later.
+// This is why there is no EIGEN_HAS_CXX17.
+// FIXME: get rid of EIGEN_HAS_CXX14 and maybe even EIGEN_HAS_CXX11.
+#if EIGEN_MAX_CPP_VER>=11 && EIGEN_COMP_CXXVER>=11
 #define EIGEN_HAS_CXX11 1
 #else
 #define EIGEN_HAS_CXX11 0
 #endif
 
-#if EIGEN_MAX_CPP_VER>=14 && (defined(__cplusplus) && (__cplusplus > 201103L) || EIGEN_COMP_MSVC >= 1910)
+#if EIGEN_MAX_CPP_VER>=14 && EIGEN_COMP_CXXVER>=14
 #define EIGEN_HAS_CXX14 1
 #else
 #define EIGEN_HAS_CXX14 0
@@ -1105,9 +1125,9 @@ namespace Eigen {
 #   define EIGEN_NOEXCEPT
 #   define EIGEN_NOEXCEPT_IF(x)
 #   define EIGEN_NO_THROW throw()
-#   if EIGEN_COMP_MSVC
+#   if EIGEN_COMP_MSVC || EIGEN_COMP_CXXVER>=17
       // MSVC does not support exception specifications (warning C4290),
-      // and they are deprecated in c++11 anyway.
+      // and they are deprecated in c++11 anyway. This is even an error in c++17.
 #     define EIGEN_EXCEPTION_SPEC(X) throw()
 #   else
 #     define EIGEN_EXCEPTION_SPEC(X) throw(X)
