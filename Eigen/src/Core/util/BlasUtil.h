@@ -368,7 +368,7 @@ struct blas_traits<Transpose<NestedXpr> >
     typename ExtractType::PlainObject
     >::type DirectLinearAccessType;
   enum {
-    IsTransposed = Base::IsTransposed ? 0 : 1,
+    IsTransposed = Base::IsTransposed ? 0 : 1
   };
   static inline ExtractType extract(const XprType& x) { return ExtractType(Base::extract(x.nestedExpression())); }
   static inline Scalar extractScalarFactor(const XprType& x) { return Base::extractScalarFactor(x.nestedExpression()); }
