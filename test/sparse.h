@@ -14,7 +14,12 @@
 
 #include "main.h"
 
-#if EIGEN_GNUC_AT_LEAST(4,0) && !defined __ICC && !defined(__clang__)
+#if EIGEN_HAS_CXX11
+
+#include <unordered_map>
+#define EIGEN_UNORDERED_MAP_SUPPORT
+
+#elif EIGEN_GNUC_AT_LEAST(4,0) && !defined __ICC && !defined(__clang__)
 
 #ifdef min
 #undef min
