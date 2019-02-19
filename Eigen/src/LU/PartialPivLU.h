@@ -369,8 +369,8 @@ struct partial_lu_impl
     Index first_zero_pivot = -1;
     for(Index k = 0; k < endk; ++k)
     {
-      Index rrows = rows-k-1;
-      Index rcols = cols-k-1;
+      int rrows = internal::convert_index<int>(rows-k-1);
+      int rcols = internal::convert_index<int>(cols-k-1);
 
       Index row_of_biggest_in_col;
       Score biggest_in_corner
