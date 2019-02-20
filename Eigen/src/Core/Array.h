@@ -304,7 +304,7 @@ class Array
 /** \defgroup arraytypedefs Global array typedefs
   * \ingroup Core_Module
   *
-  * Eigen defines several typedef shortcuts for most common 1D and 2D array types.
+  * %Eigen defines several typedef shortcuts for most common 1D and 2D array types.
   *
   * The general patterns are the following:
   *
@@ -317,6 +317,12 @@ class Array
   * There are also \c ArraySizeType which are self-explanatory. For example, \c Array4cf is
   * a fixed-size 1D array of 4 complex floats.
   *
+  * With \cpp11, template alias are also defined for common sizes.
+  * They follow the same pattern as above except that the scalar type suffix is replaced by a
+  * template parameter, i.e.:
+  *   - `ArrayRowsCols<Type>` where `Rows` and `Cols` can be \c 2,\c 3,\c 4, or \c X for fixed or dynamic size.
+  *   - `ArraySize<Type>` where `Size` can be \c 2,\c 3,\c 4 or \c X for fixed or dynamic size 1D arrays.
+  * 
   * \sa class Array
   */
 
@@ -349,35 +355,40 @@ EIGEN_MAKE_ARRAY_TYPEDEFS_ALL_SIZES(std::complex<double>, cd)
 
 #undef EIGEN_MAKE_ARRAY_TYPEDEFS_ALL_SIZES
 #undef EIGEN_MAKE_ARRAY_TYPEDEFS
+#undef EIGEN_MAKE_ARRAY_FIXED_TYPEDEFS
 
 #if EIGEN_HAS_CXX11
 
-#define EIGEN_MAKE_TYPEDEFS(Size, SizeSuffix)                     \
-/** \ingroup matrixtypedefs */                                    \
+#define EIGEN_MAKE_ARRAY_TYPEDEFS(Size, SizeSuffix)               \
+/** \ingroup arraytypedefs */                                     \
+/** \brief \cpp11 */                                              \
 template <typename Type>                                          \
 using Array##SizeSuffix##SizeSuffix = Array<Type, Size, Size>;    \
-/** \ingroup matrixtypedefs */                                    \
+/** \ingroup arraytypedefs */                                     \
+/** \brief \cpp11 */                                              \
 template <typename Type>                                          \
 using Array##SizeSuffix = Array<Type, Size, 1>; 
 
-#define EIGEN_MAKE_FIXED_TYPEDEFS(Size)                           \
-/** \ingroup matrixtypedefs */                                    \
+#define EIGEN_MAKE_ARRAY_FIXED_TYPEDEFS(Size)                     \
+/** \ingroup arraytypedefs */                                     \
+/** \brief \cpp11 */                                              \
 template <typename Type>                                          \
 using Array##Size##X = Array<Type, Size, Dynamic>;                \
-/** \ingroup matrixtypedefs */                                    \
+/** \ingroup arraytypedefs */                                     \
+/** \brief \cpp11 */                                              \
 template <typename Type>                                          \
 using Array##X##Size = Array<Type, Dynamic, Size>;
 
-EIGEN_MAKE_TYPEDEFS(2, 2)
-EIGEN_MAKE_TYPEDEFS(3, 3)
-EIGEN_MAKE_TYPEDEFS(4, 4)
-EIGEN_MAKE_TYPEDEFS(Dynamic, X)
-EIGEN_MAKE_FIXED_TYPEDEFS(2)
-EIGEN_MAKE_FIXED_TYPEDEFS(3)
-EIGEN_MAKE_FIXED_TYPEDEFS(4)
+EIGEN_MAKE_ARRAY_TYPEDEFS(2, 2)
+EIGEN_MAKE_ARRAY_TYPEDEFS(3, 3)
+EIGEN_MAKE_ARRAY_TYPEDEFS(4, 4)
+EIGEN_MAKE_ARRAY_TYPEDEFS(Dynamic, X)
+EIGEN_MAKE_ARRAY_FIXED_TYPEDEFS(2)
+EIGEN_MAKE_ARRAY_FIXED_TYPEDEFS(3)
+EIGEN_MAKE_ARRAY_FIXED_TYPEDEFS(4)
 
-#undef EIGEN_MAKE_TYPEDEFS
-#undef EIGEN_MAKE_FIXED_TYPEDEFS
+#undef EIGEN_MAKE_ARRAY_TYPEDEFS
+#undef EIGEN_MAKE_ARRAY_FIXED_TYPEDEFS
 
 #endif // EIGEN_HAS_CXX11
   

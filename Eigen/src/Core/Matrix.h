@@ -450,7 +450,7 @@ class Matrix
   *
   * \ingroup Core_Module
   *
-  * Eigen defines several typedef shortcuts for most common matrix and vector types.
+  * %Eigen defines several typedef shortcuts for most common matrix and vector types.
   *
   * The general patterns are the following:
   *
@@ -462,6 +462,13 @@ class Matrix
   *
   * There are also \c VectorSizeType and \c RowVectorSizeType which are self-explanatory. For example, \c Vector4cf is
   * a fixed-size vector of 4 complex floats.
+  * 
+  * With \cpp11, template alias are also defined for common sizes.
+  * They follow the same pattern as above except that the scalar type suffix is replaced by a
+  * template parameter, i.e.:
+  *   - `MatrixSize<Type>` where `Size` can be \c 2,\c 3,\c 4 for fixed size square matrices or \c X for dynamic size.
+  *   - `MatrixXSize<Type>`and `MatrixSizeX<Type>` where `Size` can be \c 2,\c 3,\c 4 for hybrid dynamic/fixed matrices.
+  *   - `VectorSize<Type>` and `RowVectorSize<Type>` for column and row vectors.
   *
   * \sa class Matrix
   */
@@ -503,20 +510,25 @@ EIGEN_MAKE_TYPEDEFS_ALL_SIZES(std::complex<double>, cd)
 
 #define EIGEN_MAKE_TYPEDEFS(Size, SizeSuffix)                     \
 /** \ingroup matrixtypedefs */                                    \
+/** \brief \cpp11 */                                              \
 template <typename Type>                                          \
 using Matrix##SizeSuffix = Matrix<Type, Size, Size>;              \
 /** \ingroup matrixtypedefs */                                    \
+/** \brief \cpp11 */                                              \
 template <typename Type>                                          \
 using Vector##SizeSuffix = Matrix<Type, Size, 1>;                 \
 /** \ingroup matrixtypedefs */                                    \
+/** \brief \cpp11 */                                              \
 template <typename Type>                                          \
 using RowVector##SizeSuffix = Matrix<Type, 1, Size>;
 
 #define EIGEN_MAKE_FIXED_TYPEDEFS(Size)                           \
 /** \ingroup matrixtypedefs */                                    \
+/** \brief \cpp11 */                                              \
 template <typename Type>                                          \
 using Matrix##Size##X = Matrix<Type, Size, Dynamic>;              \
 /** \ingroup matrixtypedefs */                                    \
+/** \brief \cpp11 */                                              \
 template <typename Type>                                          \
 using Matrix##X##Size = Matrix<Type, Dynamic, Size>;
 
