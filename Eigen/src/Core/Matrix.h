@@ -499,7 +499,7 @@ EIGEN_MAKE_TYPEDEFS_ALL_SIZES(std::complex<double>, cd)
 #undef EIGEN_MAKE_TYPEDEFS
 #undef EIGEN_MAKE_FIXED_TYPEDEFS
 
-#if __cplusplus>=201103L
+#if EIGEN_HAS_CXX11
 
 #define EIGEN_MAKE_TYPEDEFS(Size, SizeSuffix)                     \
 /** \ingroup matrixtypedefs */                                    \
@@ -531,7 +531,7 @@ EIGEN_MAKE_FIXED_TYPEDEFS(4)
 #undef EIGEN_MAKE_TYPEDEFS
 #undef EIGEN_MAKE_FIXED_TYPEDEFS
 
-#endif // __cplusplus>=201103L
+#endif // EIGEN_HAS_CXX11
 
 } // end namespace Eigen
 
