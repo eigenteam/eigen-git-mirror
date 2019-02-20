@@ -16,11 +16,6 @@
 
 #if EIGEN_HAS_CXX11
 
-#include <unordered_map>
-#define EIGEN_UNORDERED_MAP_SUPPORT
-
-#elif EIGEN_GNUC_AT_LEAST(4,0) && !defined __ICC && !defined(__clang__)
-
 #ifdef min
 #undef min
 #endif
@@ -29,11 +24,9 @@
 #undef max
 #endif
 
-#include <tr1/unordered_map>
+#include <unordered_map>
 #define EIGEN_UNORDERED_MAP_SUPPORT
-namespace std {
-  using std::tr1::unordered_map;
-}
+
 #endif
 
 #ifdef EIGEN_GOOGLEHASH_SUPPORT
