@@ -29,13 +29,18 @@ EIGEN_DECLARE_TEST(type_alias)
   STATIC_CHECK((is_same<Vector2<float>,     Vector2f>::value));
   STATIC_CHECK((is_same<RowVectorX<int>,    RowVectorXi>::value));
   STATIC_CHECK((is_same<RowVector2<float>,  RowVector2f>::value));
-  
+
   STATIC_CHECK((is_same<ArrayXX<float>,     ArrayXXf>::value));
   STATIC_CHECK((is_same<Array33<int>,       Array33i>::value));
   STATIC_CHECK((is_same<Array2X<float>,     Array2Xf>::value));
   STATIC_CHECK((is_same<ArrayX4<double>,    ArrayX4d>::value));
   STATIC_CHECK((is_same<ArrayX<double>,     ArrayXd>::value));
   STATIC_CHECK((is_same<Array4<double>,     Array4d>::value));
+
+  STATIC_CHECK((is_same<Vector<float,3>,        Vector3f>::value));
+  STATIC_CHECK((is_same<Vector<int,Dynamic>,    VectorXi>::value));
+  STATIC_CHECK((is_same<RowVector<float,3>,     RowVector3f>::value));
+  STATIC_CHECK((is_same<RowVector<int,Dynamic>, RowVectorXi>::value));
 
 #else
   std::cerr << "WARNING: c++11 type aliases not tested.\n";

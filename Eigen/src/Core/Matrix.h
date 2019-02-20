@@ -467,8 +467,10 @@ class Matrix
   * They follow the same pattern as above except that the scalar type suffix is replaced by a
   * template parameter, i.e.:
   *   - `MatrixSize<Type>` where `Size` can be \c 2,\c 3,\c 4 for fixed size square matrices or \c X for dynamic size.
-  *   - `MatrixXSize<Type>`and `MatrixSizeX<Type>` where `Size` can be \c 2,\c 3,\c 4 for hybrid dynamic/fixed matrices.
+  *   - `MatrixXSize<Type>` and `MatrixSizeX<Type>` where `Size` can be \c 2,\c 3,\c 4 for hybrid dynamic/fixed matrices.
   *   - `VectorSize<Type>` and `RowVectorSize<Type>` for column and row vectors.
+  * 
+  * With \cpp11, you can also use fully generic column and row vector types: `Vector<Type,Size>` and `RowVector<Type,Size>`.
   *
   * \sa class Matrix
   */
@@ -539,6 +541,16 @@ EIGEN_MAKE_TYPEDEFS(Dynamic, X)
 EIGEN_MAKE_FIXED_TYPEDEFS(2)
 EIGEN_MAKE_FIXED_TYPEDEFS(3)
 EIGEN_MAKE_FIXED_TYPEDEFS(4)
+
+/** \ingroup matrixtypedefs
+  * \brief \cpp11 */
+template <typename Type, int Size>
+using Vector = Matrix<Type, Size, 1>;
+
+/** \ingroup matrixtypedefs
+  * \brief \cpp11 */
+template <typename Type, int Size>
+using RowVector = Matrix<Type, 1, Size>;
 
 #undef EIGEN_MAKE_TYPEDEFS
 #undef EIGEN_MAKE_FIXED_TYPEDEFS
