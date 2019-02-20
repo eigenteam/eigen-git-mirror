@@ -107,7 +107,7 @@ template<typename T> void check_custom_new_delete()
     delete[] t;
   }
   
-#if EIGEN_MAX_ALIGN_BYTES>0
+#if EIGEN_MAX_ALIGN_BYTES>0 && (!EIGEN_HAS_CXX17_OVERALIGN)
   {
     T* t = static_cast<T *>((T::operator new)(sizeof(T)));
     (T::operator delete)(t, sizeof(T));
