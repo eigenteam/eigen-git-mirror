@@ -350,8 +350,37 @@ EIGEN_MAKE_ARRAY_TYPEDEFS_ALL_SIZES(std::complex<double>, cd)
 #undef EIGEN_MAKE_ARRAY_TYPEDEFS_ALL_SIZES
 #undef EIGEN_MAKE_ARRAY_TYPEDEFS
 
-#undef EIGEN_MAKE_ARRAY_TYPEDEFS_LARGE
+#if __cplusplus>=201103L
 
+#define EIGEN_MAKE_TYPEDEFS(Size, SizeSuffix)                     \
+/** \ingroup matrixtypedefs */                                    \
+template <typename Type>                                          \
+using Array##SizeSuffix##SizeSuffix = Array<Type, Size, Size>;    \
+/** \ingroup matrixtypedefs */                                    \
+template <typename Type>                                          \
+using Array##SizeSuffix = Array<Type, Size, 1>; 
+
+#define EIGEN_MAKE_FIXED_TYPEDEFS(Size)                           \
+/** \ingroup matrixtypedefs */                                    \
+template <typename Type>                                          \
+using Array##Size##X = Array<Type, Size, Dynamic>;                \
+/** \ingroup matrixtypedefs */                                    \
+template <typename Type>                                          \
+using Array##X##Size = Array<Type, Dynamic, Size>;
+
+EIGEN_MAKE_TYPEDEFS(2, 2)
+EIGEN_MAKE_TYPEDEFS(3, 3)
+EIGEN_MAKE_TYPEDEFS(4, 4)
+EIGEN_MAKE_TYPEDEFS(Dynamic, X)
+EIGEN_MAKE_FIXED_TYPEDEFS(2)
+EIGEN_MAKE_FIXED_TYPEDEFS(3)
+EIGEN_MAKE_FIXED_TYPEDEFS(4)
+
+#undef EIGEN_MAKE_TYPEDEFS
+#undef EIGEN_MAKE_FIXED_TYPEDEFS
+
+#endif // __cplusplus>=201103L
+  
 #define EIGEN_USING_ARRAY_TYPEDEFS_FOR_TYPE_AND_SIZE(TypeSuffix, SizeSuffix) \
 using Eigen::Matrix##SizeSuffix##TypeSuffix; \
 using Eigen::Vector##SizeSuffix##TypeSuffix; \
