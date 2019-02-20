@@ -1612,6 +1612,9 @@ PREDEFINED             = EIGEN_EMPTY_STRUCT \
 EXPAND_AS_DEFINED      = EIGEN_MAKE_TYPEDEFS \
                          EIGEN_MAKE_FIXED_TYPEDEFS \
                          EIGEN_MAKE_TYPEDEFS_ALL_SIZES \
+                         EIGEN_MAKE_ARRAY_TYPEDEFS \
+                         EIGEN_MAKE_ARRAY_FIXED_TYPEDEFS \
+                         EIGEN_MAKE_ARRAY_TYPEDEFS_ALL_SIZES \
                          EIGEN_CWISE_UNOP_RETURN_TYPE \
                          EIGEN_CWISE_BINOP_RETURN_TYPE \
                          EIGEN_CURRENT_STORAGE_BASE_CLASS \
