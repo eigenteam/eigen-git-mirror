@@ -91,3 +91,4 @@ before-evaluators
 11753:556fb4ceb654  # Bug: 1633: refactor gebp kernel and optimize for neon
 11761:cefc1ba05596  # Bug 1661: fix regression in GEBP and AVX512
 11763:1e41e70fe97b  # GEBP: cleanup logic to choose between<br/> a 4 packets of 1 packet (=209bf81aa3f3+fix)
+11803:d95b5d78598b  # gebp: Add new ½ and ¼ packet rows per (peeling) round on the lhs
