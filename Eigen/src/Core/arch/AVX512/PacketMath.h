@@ -526,13 +526,11 @@ EIGEN_STRONG_INLINE Packet8d ploaddup<Packet8d>(const double* from) {
 // {a0, a0  a0, a0, a1, a1, a1, a1, a2, a2, a2, a2, a3, a3, a3, a3}
 template <>
 EIGEN_STRONG_INLINE Packet16f ploadquad<Packet16f>(const float* from) {
-  Packet16f tmp = _mm512_undefined_ps();
-  tmp = _mm512_insertf32x4(tmp, _mm_load_ps1(from), 0);
-  tmp = _mm512_insertf32x4(tmp, _mm_load_ps1(from + 1), 1);
-  tmp = _mm512_insertf32x4(tmp, _mm_load_ps1(from + 2), 2);
-  tmp = _mm512_insertf32x4(tmp, _mm_load_ps1(from + 3), 3);
-  return tmp;
+  Packet16f tmp = _mm512_castps128_ps512(pload<Packet4f>(from));
+  const Packet16i scatter_mask = _mm512_set_epi32(3,3,3,3, 2,2,2,2, 1,1,1,1, 0,0,0,0);
+  return _mm512_permutexvar_ps(scatter_mask, tmp);
 }
+
 // Loads 2 doubles from memory a returns the packet
 // {a0, a0  a0, a0, a1, a1, a1, a1}
 template <>
