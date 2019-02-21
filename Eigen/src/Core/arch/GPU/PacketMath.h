@@ -53,6 +53,7 @@ template<> struct packet_traits<float> : default_packet_traits
     HasBetaInc = 1,
 
     HasBlend = 0,
+    HasFloor = 1,
   };
 };
 
@@ -86,6 +87,7 @@ template<> struct packet_traits<double> : default_packet_traits
     HasBetaInc = 1,
 
     HasBlend = 0,
+    HasFloor = 1,
   };
 };
 
@@ -406,6 +408,13 @@ template<> EIGEN_DEVICE_FUNC inline float4  pabs<float4>(const float4& a) {
 }
 template<> EIGEN_DEVICE_FUNC inline double2 pabs<double2>(const double2& a) {
   return make_double2(fabs(a.x), fabs(a.y));
+}
+
+template<> EIGEN_DEVICE_FUNC inline float4  pfloor<float4>(const float4& a) {
+  return make_float4(floorf(a.x), floorf(a.y), floorf(a.z), floorf(a.w));
+}
+template<> EIGEN_DEVICE_FUNC inline double2 pfloor<double2>(const double2& a) {
+  return make_double2(floor(a.x), floor(a.y));
 }
 
 EIGEN_DEVICE_FUNC inline void

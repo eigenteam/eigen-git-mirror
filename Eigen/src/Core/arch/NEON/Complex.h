@@ -101,6 +101,18 @@ template<> EIGEN_STRONG_INLINE Packet2cf pmul<Packet2cf>(const Packet2cf& a, con
   return Packet2cf(vaddq_f32(v1, v2));
 }
 
+template<> EIGEN_STRONG_INLINE Packet2cf pcmp_eq(const Packet2cf& a, const Packet2cf& b)
+{
+  // Compare real and imaginary parts of a and b to get the mask vector:
+  // [re(a[0])==re(b[0]), im(a[0])==im(b[0]), re(a[1])==re(b[1]), im(a[1])==im(b[1])]
+  Packet4f eq = pcmp_eq<Packet4f>(a.v, b.v);
+  // Swap real/imag elements in the mask in to get:
+  // [im(a[0])==im(b[0]), re(a[0])==re(b[0]), im(a[1])==im(b[1]), re(a[1])==re(b[1])]
+  Packet4f eq_swapped = vrev64q_f32(eq);
+  // Return re(a)==re(b) && im(a)==im(b) by computing bitwise AND of eq and eq_swapped
+  return Packet2cf(pand<Packet4f>(eq, eq_swapped));
+}
+
 template<> EIGEN_STRONG_INLINE Packet2cf pand   <Packet2cf>(const Packet2cf& a, const Packet2cf& b)
 {
   return Packet2cf(vreinterpretq_f32_u32(vandq_u32(vreinterpretq_u32_f32(a.v),vreinterpretq_u32_f32(b.v))));
@@ -359,6 +371,18 @@ template<> EIGEN_STRONG_INLINE Packet1cd pmul<Packet1cd>(const Packet1cd& a, con
   v2 = preverse<Packet2d>(v2);
   // Add and return the result
   return Packet1cd(vaddq_f64(v1, v2));
+}
+
+template<> EIGEN_STRONG_INLINE Packet1cd pcmp_eq(const Packet1cd& a, const Packet1cd& b)
+{
+  // Compare real and imaginary parts of a and b to get the mask vector:
+  // [re(a)==re(b), im(a)==im(b)]
+  Packet2d eq = pcmp_eq<Packet2d>(a.v, b.v);
+  // Swap real/imag elements in the mask in to get:
+  // [im(a)==im(b), re(a)==re(b)]
+  Packet2d eq_swapped = vrev64q_u32(eq);
+  // Return re(a)==re(b) & im(a)==im(b) by computing bitwise AND of eq and eq_swapped
+  return Packet1cd(pand<Packet2d>(eq, eq_swapped));
 }
 
 template<> EIGEN_STRONG_INLINE Packet1cd pand   <Packet1cd>(const Packet1cd& a, const Packet1cd& b)
