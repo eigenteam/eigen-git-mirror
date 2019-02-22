@@ -380,7 +380,7 @@ template<> EIGEN_STRONG_INLINE Packet1cd pcmp_eq(const Packet1cd& a, const Packe
   Packet2d eq = pcmp_eq<Packet2d>(a.v, b.v);
   // Swap real/imag elements in the mask in to get:
   // [im(a)==im(b), re(a)==re(b)]
-  Packet2d eq_swapped = vrev64q_u32(eq);
+  Packet2d eq_swapped = vreinterpretq_f64_u32(vrev64q_u32(vreinterpretq_u32_f64(eq)));
   // Return re(a)==re(b) & im(a)==im(b) by computing bitwise AND of eq and eq_swapped
   return Packet1cd(pand<Packet2d>(eq, eq_swapped));
 }
