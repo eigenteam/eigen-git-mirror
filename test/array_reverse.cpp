@@ -132,6 +132,28 @@ void array_reverse_extra()
   VERIFY(x.reverse() == y);
 }
 
+// Simpler version of reverseInPlace leveraging a bug
+// in clang 6/7 with -O2 and AVX or AVX512 enabled.
+// This simpler version ensure that the clang bug is not hidden
+// through mis-inlining of reverseInPlace or other minor changes.
+template<typename MatrixType>
+EIGEN_DONT_INLINE
+void bug1684_work(MatrixType& m1, MatrixType& m2)
+{
+  m2 = m1;
+  m2.col(0).swap(m2.col(3));
+  m2.col(1).swap(m2.col(2));
+}
+
+template<int>
+void bug1684()
+{
+  Matrix4f m1 = Matrix4f::Random();
+  Matrix4f m2 = Matrix4f::Random();
+  bug1684_work(m1,m2);
+  VERIFY_IS_APPROX(m2, m1.rowwise().reverse().eval());
+}
+
 EIGEN_DECLARE_TEST(array_reverse)
 {
   for(int i = 0; i < g_repeat; i++) {
@@ -144,6 +166,7 @@ EIGEN_DECLARE_TEST(array_reverse)
     CALL_SUBTEST_7( reverse(MatrixXcd(internal::random<int>(1,EIGEN_TEST_MAX_SIZE), internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
     CALL_SUBTEST_8( reverse(Matrix<float, 100, 100>()) );
     CALL_SUBTEST_9( reverse(Matrix<float,Dynamic,Dynamic,RowMajor>(internal::random<int>(1,EIGEN_TEST_MAX_SIZE), internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
+    CALL_SUBTEST_3( bug1684<0>() );
   }
   CALL_SUBTEST_3( array_reverse_extra<0>() );
 }
