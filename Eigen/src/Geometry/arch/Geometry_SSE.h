@@ -25,10 +25,12 @@ struct quat_product<Architecture::SSE, Derived, OtherDerived, float>
   };
   static inline Quaternion<float> run(const QuaternionBase<Derived>& _a, const QuaternionBase<OtherDerived>& _b)
   {
+    evaluator<typename Derived::Coefficients> ae(_a.coeffs());
+    evaluator<typename OtherDerived::Coefficients> be(_b.coeffs());
     Quaternion<float> res;
     const Packet4f mask = _mm_setr_ps(0.f,0.f,0.f,-0.f);
-    Packet4f a = _a.coeffs().template packet<AAlignment>(0);
-    Packet4f b = _b.coeffs().template packet<BAlignment>(0);
+    Packet4f a = ae.template packet<AAlignment,Packet4f>(0);
+    Packet4f b = be.template packet<BAlignment,Packet4f>(0);
     Packet4f s1 = pmul(vec4f_swizzle1(a,1,2,0,2),vec4f_swizzle1(b,2,0,1,2));
     Packet4f s2 = pmul(vec4f_swizzle1(a,3,3,3,1),vec4f_swizzle1(b,0,1,2,1));
     pstoret<float,Packet4f,ResAlignment>(
@@ -50,9 +52,10 @@ struct quat_conj<Architecture::SSE, Derived, float>
   };
   static inline Quaternion<float> run(const QuaternionBase<Derived>& q)
   {
+    evaluator<typename Derived::Coefficients> qe(q.coeffs());
     Quaternion<float> res;
-    const __m128 mask = _mm_setr_ps(-0.f,-0.f,-0.f,0.f);
-    pstoret<float,Packet4f,ResAlignment>(&res.x(), _mm_xor_ps(mask, q.coeffs().template packet<traits<Derived>::Alignment>(0)));
+    const Packet4f mask = _mm_setr_ps(-0.f,-0.f,-0.f,0.f);
+    pstoret<float,Packet4f,ResAlignment>(&res.x(), pxor(mask, qe.template packet<traits<Derived>::Alignment,Packet4f>(0)));
     return res;
   }
 };
@@ -67,12 +70,14 @@ struct cross3_impl<Architecture::SSE,VectorLhs,VectorRhs,float,true>
   static inline typename plain_matrix_type<VectorLhs>::type
   run(const VectorLhs& lhs, const VectorRhs& rhs)
   {
-    __m128 a = lhs.template packet<traits<VectorLhs>::Alignment>(0);
-    __m128 b = rhs.template packet<traits<VectorRhs>::Alignment>(0);
-    __m128 mul1=_mm_mul_ps(vec4f_swizzle1(a,1,2,0,3),vec4f_swizzle1(b,2,0,1,3));
-    __m128 mul2=_mm_mul_ps(vec4f_swizzle1(a,2,0,1,3),vec4f_swizzle1(b,1,2,0,3));
+    evaluator<VectorLhs> lhs_eval(lhs);
+    evaluator<VectorRhs> rhs_eval(rhs);
+    Packet4f a = lhs_eval.template packet<traits<VectorLhs>::Alignment,Packet4f>(0);
+    Packet4f b = rhs_eval.template packet<traits<VectorRhs>::Alignment,Packet4f>(0);
+    Packet4f mul1 = pmul(vec4f_swizzle1(a,1,2,0,3),vec4f_swizzle1(b,2,0,1,3));
+    Packet4f mul2 = pmul(vec4f_swizzle1(a,2,0,1,3),vec4f_swizzle1(b,1,2,0,3));
     typename plain_matrix_type<VectorLhs>::type res;
-    pstoret<float,Packet4f,ResAlignment>(&res.x(),_mm_sub_ps(mul1,mul2));
+    pstoret<float,Packet4f,ResAlignment>(&res.x(),psub(mul1,mul2));
     return res;
   }
 };
@@ -94,9 +99,12 @@ struct quat_product<Architecture::SSE, Derived, OtherDerived, double>
 
   Quaternion<double> res;
 
+  evaluator<typename Derived::Coefficients> ae(_a.coeffs());
+  evaluator<typename OtherDerived::Coefficients> be(_b.coeffs());
+
   const double* a = _a.coeffs().data();
-  Packet2d b_xy = _b.coeffs().template packet<BAlignment>(0);
-  Packet2d b_zw = _b.coeffs().template packet<BAlignment>(2);
+  Packet2d b_xy = be.template packet<BAlignment,Packet2d>(0);
+  Packet2d b_zw = be.template packet<BAlignment,Packet2d>(2);
   Packet2d a_xx = pset1<Packet2d>(a[0]);
   Packet2d a_yy = pset1<Packet2d>(a[1]);
   Packet2d a_zz = pset1<Packet2d>(a[2]);
@@ -145,11 +153,12 @@ struct quat_conj<Architecture::SSE, Derived, double>
   };
   static inline Quaternion<double> run(const QuaternionBase<Derived>& q)
   {
+    evaluator<typename Derived::Coefficients> qe(q.coeffs());
     Quaternion<double> res;
-    const __m128d mask0 = _mm_setr_pd(-0.,-0.);
-    const __m128d mask2 = _mm_setr_pd(-0.,0.);
-    pstoret<double,Packet2d,ResAlignment>(&res.x(), _mm_xor_pd(mask0, q.coeffs().template packet<traits<Derived>::Alignment>(0)));
-    pstoret<double,Packet2d,ResAlignment>(&res.z(), _mm_xor_pd(mask2, q.coeffs().template packet<traits<Derived>::Alignment>(2)));
+    const Packet2d mask0 = _mm_setr_pd(-0.,-0.);
+    const Packet2d mask2 = _mm_setr_pd(-0.,0.);
+    pstoret<double,Packet2d,ResAlignment>(&res.x(), pxor(mask0, qe.template packet<traits<Derived>::Alignment,Packet2d>(0)));
+    pstoret<double,Packet2d,ResAlignment>(&res.z(), pxor(mask2, qe.template packet<traits<Derived>::Alignment,Packet2d>(2)));
     return res;
   }
 };
