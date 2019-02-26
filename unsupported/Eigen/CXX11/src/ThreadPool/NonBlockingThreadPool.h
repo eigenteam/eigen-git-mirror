@@ -374,11 +374,11 @@ class ThreadPoolTempl : public Eigen::ThreadPoolInterface {
     eigen_plain_assert(!t->f);
     // We already did best-effort emptiness check in Steal, so prepare for
     // blocking.
-    ec_.Prewait(waiter);
+    if (!ec_.Prewait()) return true;
     // Now do a reliable emptiness check.
     int victim = NonEmptyQueueIndex();
     if (victim != -1) {
-      ec_.CancelWait(waiter);
+      ec_.CancelWait();
       if (cancelled_) {
         return false;
       } else {
@@ -392,7 +392,7 @@ class ThreadPoolTempl : public Eigen::ThreadPoolInterface {
     blocked_++;
     // TODO is blocked_ required to be unsigned?
     if (done_ && blocked_ == static_cast<unsigned>(num_threads_)) {
-      ec_.CancelWait(waiter);
+      ec_.CancelWait();
       // Almost done, but need to re-check queues.
       // Consider that all queues are empty and all worker threads are preempted
       // right after incrementing blocked_ above. Now a free-standing thread

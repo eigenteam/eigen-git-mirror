@@ -30,11 +30,11 @@ static void test_basic_eventcount()
   EventCount ec(waiters);
   EventCount::Waiter& w = waiters[0];
   ec.Notify(false);
-  ec.Prewait(&w);
+  VERIFY(ec.Prewait());
   ec.Notify(true);
   ec.CommitWait(&w);
-  ec.Prewait(&w);
-  ec.CancelWait(&w);
+  VERIFY(ec.Prewait());
+  ec.CancelWait();
 }
 
 // Fake bounded counter-based queue.
@@ -112,7 +112,7 @@ static void test_stress_eventcount()
         unsigned idx = rand_reentrant(&rnd) % kQueues;
         if (queues[idx].Pop()) continue;
         j--;
-        ec.Prewait(&w);
+        if (!ec.Prewait()) continue;
         bool empty = true;
         for (int q = 0; q < kQueues; q++) {
           if (!queues[q].Empty()) {
@@ -121,7 +121,7 @@ static void test_stress_eventcount()
           }
         }
         if (!empty) {
-          ec.CancelWait(&w);
+          ec.CancelWait();
           continue;
         }
         ec.CommitWait(&w);
