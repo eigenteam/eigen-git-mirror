@@ -51,7 +51,7 @@ int EIGEN_BLAS_FUNC(copy)(int *n, RealScalar *px, int *incx, RealScalar *py, int
   return 0;
 }
 
-int EIGEN_CAT(EIGEN_CAT(i,SCALAR_SUFFIX),amax_)(int *n, RealScalar *px, int *incx)
+int EIGEN_CAT(i, EIGEN_BLAS_FUNC(amax))(int *n, RealScalar *px, int *incx)
 {
   if(*n<=0) return 0;
   Scalar* x = reinterpret_cast<Scalar*>(px);
@@ -62,7 +62,7 @@ int EIGEN_CAT(EIGEN_CAT(i,SCALAR_SUFFIX),amax_)(int *n, RealScalar *px, int *inc
   return int(ret)+1;
 }
 
-int EIGEN_CAT(EIGEN_CAT(i,SCALAR_SUFFIX),amin_)(int *n, RealScalar *px, int *incx)
+int EIGEN_CAT(i, EIGEN_BLAS_FUNC(amin))(int *n, RealScalar *px, int *incx)
 {
   if(*n<=0) return 0;
   Scalar* x = reinterpret_cast<Scalar*>(px);

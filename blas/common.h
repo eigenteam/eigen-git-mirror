@@ -166,6 +166,10 @@ T* copy_back(T* x_cpy, T* x, int n, int incx)
   return x_cpy;
 }
 
-#define EIGEN_BLAS_FUNC(X) EIGEN_CAT(SCALAR_SUFFIX,X##_)
+#ifndef EIGEN_BLAS_FUNC_SUFFIX
+#define EIGEN_BLAS_FUNC_SUFFIX _
+#endif
+
+#define EIGEN_BLAS_FUNC(X) EIGEN_CAT(SCALAR_SUFFIX, EIGEN_CAT(X, EIGEN_BLAS_FUNC_SUFFIX))
 
 #endif // EIGEN_BLAS_COMMON_H
