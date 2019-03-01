@@ -244,11 +244,11 @@ class TensorBase<Derived, ReadOnlyAccessors>
     }
 
     EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE const typename internal::conditional<NumTraits<Scalar>::IsComplex,
+    EIGEN_STRONG_INLINE const typename internal::conditional<NumTraits<CoeffReturnType>::IsComplex,
                                                              TensorCwiseUnaryOp<internal::scalar_conjugate_op<Scalar>, const Derived>,
                                                              Derived>::type
     conjugate() const {
-      return choose(Cond<NumTraits<Scalar>::IsComplex>(), unaryExpr(internal::scalar_conjugate_op<Scalar>()), derived());
+      return choose(Cond<NumTraits<CoeffReturnType>::IsComplex>(), unaryExpr(internal::scalar_conjugate_op<Scalar>()), derived());
     }
 
     EIGEN_DEVICE_FUNC
