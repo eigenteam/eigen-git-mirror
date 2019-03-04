@@ -98,6 +98,8 @@ struct TensorEvaluator<const TensorGeneratorOp<Generator, ArgType>, Device>
     RawAccess = false
   };
 
+  typedef internal::TensorIntDivisor<Index> IndexDivisor;
+
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
       : m_generator(op.generator())
 #ifdef EIGEN_USE_SYCL
@@ -117,6 +119,9 @@ struct TensorEvaluator<const TensorGeneratorOp<Generator, ArgType>, Device>
       for (int i = NumDims - 2; i >= 0; --i) {
         m_strides[i] = m_strides[i + 1] * m_dimensions[i + 1];
       }
+    }
+    for (int i = 0; i < NumDims; ++i) {
+      m_fast_strides[i] = IndexDivisor(m_strides[i]);
     }
   }
 
@@ -150,6 +155,8 @@ struct TensorEvaluator<const TensorGeneratorOp<Generator, ArgType>, Device>
     return rslt;
   }
 
+  // TODO(ezhulenev): Add tiled evaluation support.
+
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorOpCost
   costPerCoeff(bool) const {
     // TODO(rmlarsen): This is just a placeholder. Define interface to make
@@ -170,14 +177,14 @@ struct TensorEvaluator<const TensorGeneratorOp<Generator, ArgType>, Device>
   void extract_coordinates(Index index, array<Index, NumDims>& coords) const {
     if (static_cast<int>(Layout) == static_cast<int>(ColMajor)) {
       for (int i = NumDims - 1; i > 0; --i) {
-        const Index idx = index / m_strides[i];
+        const Index idx = index / m_fast_strides[i];
         index -= idx * m_strides[i];
         coords[i] = idx;
       }
       coords[0] = index;
     } else {
       for (int i = 0; i < NumDims - 1; ++i) {
-        const Index idx = index / m_strides[i];
+        const Index idx = index / m_fast_strides[i];
         index -= idx * m_strides[i];
         coords[i] = idx;
       }
@@ -187,6 +194,7 @@ struct TensorEvaluator<const TensorGeneratorOp<Generator, ArgType>, Device>
 
   Dimensions m_dimensions;
   array<Index, NumDims> m_strides;
+  array<IndexDivisor, NumDims> m_fast_strides;
   Generator m_generator;
 #ifdef EIGEN_USE_SYCL
   TensorEvaluator<ArgType, Device> m_argImpl;
