@@ -90,13 +90,20 @@ struct TensorEvaluator<const TensorForcedEvalOp<ArgType>, Device>
   static const int PacketSize = PacketType<CoeffReturnType, Device>::size;
 
   enum {
-    IsAligned = true,
-    PacketAccess = (PacketType<CoeffReturnType, Device>::size > 1),
-    BlockAccess = false,
+    IsAligned         = true,
+    PacketAccess      = (PacketType<CoeffReturnType, Device>::size > 1),
+    BlockAccess       = internal::is_arithmetic<CoeffReturnType>::value,
     PreferBlockAccess = false,
-    Layout = TensorEvaluator<ArgType, Device>::Layout,
-    RawAccess = true
+    Layout            = TensorEvaluator<ArgType, Device>::Layout,
+    RawAccess         = true
   };
+
+  typedef typename internal::TensorBlock<
+      CoeffReturnType, Index, internal::traits<ArgType>::NumDimensions, Layout>
+      TensorBlock;
+  typedef typename internal::TensorBlockReader<
+      CoeffReturnType, Index, internal::traits<ArgType>::NumDimensions, Layout>
+      TensorBlockReader;
 
   EIGEN_DEVICE_FUNC TensorEvaluator(const XprType& op, const Device& device)
   /// op_ is used for sycl
@@ -137,6 +144,14 @@ struct TensorEvaluator<const TensorForcedEvalOp<ArgType>, Device>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE PacketReturnType packet(Index index) const
   {
     return internal::ploadt<PacketReturnType, LoadMode>(m_buffer + index);
+  }
+
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void getResourceRequirements(
+      std::vector<internal::TensorOpResourceRequirements>*) const {}
+
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void block(TensorBlock* block) const {
+    assert(m_buffer != NULL);
+    TensorBlockReader::Run(block, m_buffer);
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorOpCost costPerCoeff(bool vectorized) const {
