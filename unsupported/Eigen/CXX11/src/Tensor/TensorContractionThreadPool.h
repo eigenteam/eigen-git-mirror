@@ -216,11 +216,14 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
     const int num_worker_threads = this->m_device.numThreadsInPool();
 
     // With small number of threads we want to make sure that we do not reduce
-    // parallelism too much.
-    const int oversharding_factor =
-        num_worker_threads <= 4 ? 8 :
-        num_worker_threads <= 8 ? 4 :
-        num_worker_threads <= 16 ? 2 : 1;
+    // parallelism too much. With large number of threads we trade maximum
+    // parallelism for better memory locality.
+    const float oversharding_factor =
+        num_worker_threads <= 4  ? 8.0 :
+        num_worker_threads <= 8  ? 4.0 :
+        num_worker_threads <= 16 ? 2.0 :
+        num_worker_threads <= 32 ? 1.0 :
+        num_worker_threads <= 64 ? 0.8 : /* num_worker_threads > 64 */ 0.6;
 
     const bool parallelize_by_sharding_dim_only =
         sharding_dim_tasks >= oversharding_factor * num_worker_threads;
