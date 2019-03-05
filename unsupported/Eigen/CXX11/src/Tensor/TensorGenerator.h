@@ -113,15 +113,14 @@ struct TensorEvaluator<const TensorGeneratorOp<Generator, ArgType>, Device>
       m_strides[0] = 1;
       for (int i = 1; i < NumDims; ++i) {
         m_strides[i] = m_strides[i - 1] * m_dimensions[i - 1];
+        if (m_strides[i] != 0) m_fast_strides[i] = IndexDivisor(m_strides[i]);
       }
     } else {
       m_strides[NumDims - 1] = 1;
       for (int i = NumDims - 2; i >= 0; --i) {
         m_strides[i] = m_strides[i + 1] * m_dimensions[i + 1];
+        if (m_strides[i] != 0) m_fast_strides[i] = IndexDivisor(m_strides[i]);
       }
-    }
-    for (int i = 0; i < NumDims; ++i) {
-      m_fast_strides[i] = IndexDivisor(m_strides[i]);
     }
   }
 
