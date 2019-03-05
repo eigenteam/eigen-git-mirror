@@ -209,7 +209,9 @@ class RunQueue {
       } else {
         // This value will be 0 if the queue is empty, and undefined otherwise.
         unsigned maybe_zero = ((front ^ back) & kMask2);
-        eigen_assert(maybe_zero == 0 ? CalculateSize(front, back) == 0 : true);
+        // Queue size estimate must agree with maybe zero check on the queue
+        // empty/non-empty state.
+        eigen_assert((CalculateSize(front, back) == 0) == (maybe_zero == 0));
         return maybe_zero;
       }
     }
