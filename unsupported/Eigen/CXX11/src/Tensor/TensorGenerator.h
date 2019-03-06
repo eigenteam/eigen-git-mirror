@@ -197,6 +197,7 @@ struct TensorEvaluator<const TensorGeneratorOp<Generator, ArgType>, Device>
       it[i].span = it[i].stride * (it[i].size - 1);
       it[i].count = 0;
     }
+    eigen_assert(it[0].stride == 1);
 
     while (it[NumDims - 1].count < it[NumDims - 1].size) {
       // Generate data for the inner-most dimension.
