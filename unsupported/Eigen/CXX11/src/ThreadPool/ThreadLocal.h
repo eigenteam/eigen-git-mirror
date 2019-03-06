@@ -10,6 +10,14 @@
 #ifndef EIGEN_CXX11_THREADPOOL_THREAD_LOCAL_H
 #define EIGEN_CXX11_THREADPOOL_THREAD_LOCAL_H
 
+#ifdef EIGEN_AVOID_THREAD_LOCAL
+
+#ifdef EIGEN_THREAD_LOCAL
+#undef EIGEN_THREAD_LOCAL
+#endif
+
+#else
+
 #if EIGEN_MAX_CPP_VER >= 11 &&                         \
     ((EIGEN_COMP_GNUC && EIGEN_GNUC_AT_LEAST(4, 8)) || \
      __has_feature(cxx_thread_local)                || \
@@ -51,5 +59,7 @@
 #undef EIGEN_THREAD_LOCAL
 #endif
 #endif  // defined(__ANDROID__) && defined(__clang__)
+
+#endif // EIGEN_AVOID_THREAD_LOCAL
 
 #endif  // EIGEN_CXX11_THREADPOOL_THREAD_LOCAL_H
