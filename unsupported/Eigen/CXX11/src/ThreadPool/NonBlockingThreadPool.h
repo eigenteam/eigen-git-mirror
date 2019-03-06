@@ -358,7 +358,7 @@ class ThreadPoolTempl : public Eigen::ThreadPoolInterface {
     unsigned partition = GetStealPartition(pt->thread_id);
     // If thread steal partition is the same as global partition, there is no
     // need to go through the steal loop twice.
-    if (global_steal_partition_ == partition) Task();
+    if (global_steal_partition_ == partition) return Task();
     unsigned start, limit;
     DecodePartition(partition, &start, &limit);
     AssertBounds(start, limit);
