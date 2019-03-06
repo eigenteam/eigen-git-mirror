@@ -56,6 +56,7 @@ class ThreadPoolTempl : public Eigen::ThreadPoolInterface {
       thread_data_[i].thread.reset(
           env_.CreateThread([this, i]() { WorkerLoop(i); }));
     }
+    global_steal_partition_ = EncodePartition(0, num_threads_);
 #ifndef EIGEN_THREAD_LOCAL
     // Wait for workers to initialize per_thread_map_. Otherwise we might race
     // with them in Schedule or CurrentThreadId.
@@ -237,6 +238,7 @@ class ThreadPoolTempl : public Eigen::ThreadPoolInterface {
   MaxSizeVector<ThreadData> thread_data_;
   MaxSizeVector<MaxSizeVector<unsigned>> all_coprimes_;
   MaxSizeVector<EventCount::Waiter> waiters_;
+  unsigned global_steal_partition_;
   std::atomic<unsigned> blocked_;
   std::atomic<bool> spinning_;
   std::atomic<bool> done_;
@@ -354,6 +356,9 @@ class ThreadPoolTempl : public Eigen::ThreadPoolInterface {
   Task LocalSteal() {
     PerThread* pt = GetPerThread();
     unsigned partition = GetStealPartition(pt->thread_id);
+    // If thread steal partition is the same as global partition, there is no
+    // need to go through the steal loop twice.
+    if (global_steal_partition_ == partition) return Task();
     unsigned start, limit;
     DecodePartition(partition, &start, &limit);
     AssertBounds(start, limit);
