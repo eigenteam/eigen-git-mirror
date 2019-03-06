@@ -89,19 +89,22 @@ struct TensorEvaluator<const TensorGeneratorOp<Generator, ArgType>, Device>
   typedef typename XprType::CoeffReturnType CoeffReturnType;
   typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
   enum {
-    IsAligned = false,
-    PacketAccess = (PacketType<CoeffReturnType, Device>::size > 1),
-    BlockAccess = false,
-    PreferBlockAccess = false,
-    Layout = TensorEvaluator<ArgType, Device>::Layout,
-    CoordAccess = false,  // to be implemented
-    RawAccess = false
+    IsAligned         = false,
+    PacketAccess      = (PacketType<CoeffReturnType, Device>::size > 1),
+    BlockAccess       = true,
+    PreferBlockAccess = true,
+    Layout            = TensorEvaluator<ArgType, Device>::Layout,
+    CoordAccess       = false,  // to be implemented
+    RawAccess         = false
   };
 
   typedef internal::TensorIntDivisor<Index> IndexDivisor;
 
+  typedef internal::TensorBlock<CoeffReturnType, Index, NumDims, Layout>
+      TensorBlock;
+
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
-      : m_generator(op.generator())
+      : m_device(device), m_generator(op.generator())
 #ifdef EIGEN_USE_SYCL
       , m_argImpl(op.expression(), device)
 #endif
@@ -154,7 +157,71 @@ struct TensorEvaluator<const TensorGeneratorOp<Generator, ArgType>, Device>
     return rslt;
   }
 
-  // TODO(ezhulenev): Add tiled evaluation support.
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void getResourceRequirements(
+      std::vector<internal::TensorOpResourceRequirements>* resources) const {
+    Eigen::Index block_total_size_max = numext::maxi<Eigen::Index>(
+        1, m_device.firstLevelCacheSize() / sizeof(Scalar));
+    resources->push_back(internal::TensorOpResourceRequirements(
+        internal::kSkewedInnerDims, block_total_size_max));
+  }
+
+  struct BlockIteratorState {
+    Index stride;
+    Index span;
+    Index size;
+    Index count;
+  };
+
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void block(
+      TensorBlock* output_block) const {
+    if (NumDims <= 0) return;
+
+    static const bool is_col_major =
+        static_cast<int>(Layout) == static_cast<int>(ColMajor);
+
+    // Compute spatial coordinates for the first block element.
+    array<Index, NumDims> coords;
+    extract_coordinates(output_block->first_coeff_index(), coords);
+    array<Index, NumDims> initial_coords = coords;
+
+    CoeffReturnType* data = output_block->data();
+    Index offset = 0;
+
+    // Initialize output block iterator state. Dimension in this array are
+    // always in inner_most -> outer_most order (col major layout).
+    array<BlockIteratorState, NumDims> it;
+    for (Index i = 0; i < NumDims; ++i) {
+      const Index dim = is_col_major ? i : NumDims - 1 - i;
+      it[i].size = output_block->block_sizes()[dim];
+      it[i].stride = output_block->block_strides()[dim];
+      it[i].span = it[i].stride * (it[i].size - 1);
+      it[i].count = 0;
+    }
+    eigen_assert(it[0].stride == 1);
+
+    while (it[NumDims - 1].count < it[NumDims - 1].size) {
+      // Generate data for the inner-most dimension.
+      for (Index i = 0; i < it[0].size; ++i) {
+        *(data + offset + i) = m_generator(coords);
+        coords[is_col_major ? 0 : NumDims - 1]++;
+      }
+      coords[is_col_major ? 0 : NumDims - 1] =
+          initial_coords[is_col_major ? 0 : NumDims - 1];
+
+      // Update offset.
+      for (Index i = 1; i < NumDims; ++i) {
+        if (++it[i].count < it[i].size) {
+          offset += it[i].stride;
+          coords[is_col_major ? i : NumDims - 1 - i]++;
+          break;
+        }
+        if (i != NumDims - 1) it[i].count = 0;
+        coords[is_col_major ? i : NumDims - 1 - i] =
+            initial_coords[is_col_major ? i : NumDims - 1 - i];
+        offset -= it[i].span;
+      }
+    }
+  }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorOpCost
   costPerCoeff(bool) const {
@@ -191,6 +258,7 @@ struct TensorEvaluator<const TensorGeneratorOp<Generator, ArgType>, Device>
     }
   }
 
+  const Device& m_device;
   Dimensions m_dimensions;
   array<Index, NumDims> m_strides;
   array<IndexDivisor, NumDims> m_fast_strides;
