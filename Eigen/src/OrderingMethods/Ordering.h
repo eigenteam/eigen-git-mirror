@@ -38,8 +38,6 @@ void ordering_helper_at_plus_a(const MatrixType& A, MatrixType& symmat)
     
 }
 
-#ifndef EIGEN_MPL2_ONLY
-
 /** \ingroup OrderingMethods_Module
   * \class AMDOrdering
   *
@@ -80,8 +78,6 @@ class AMDOrdering
       internal::minimum_degree_ordering(C, perm);
     }
 };
-
-#endif // EIGEN_MPL2_ONLY
 
 /** \ingroup OrderingMethods_Module
   * \class NaturalOrdering
