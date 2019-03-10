@@ -209,20 +209,51 @@ template<> EIGEN_STRONG_INLINE Packet4d pmadd(const Packet4d& a, const Packet4d&
 #endif
 
 template<> EIGEN_STRONG_INLINE Packet8f pmin<Packet8f>(const Packet8f& a, const Packet8f& b) {
+#if EIGEN_COMP_GNUC && EIGEN_COMP_GNUC < 63
+  // There appears to be a bug in GCC, by which the optimizer may flip
+  // the argument order in calls to _mm_min_ps/_mm_max_ps, so we have to
+  // resort to inline ASM here. This is supposed to be fixed in gcc6.3,
+  // see also: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=72867
+  Packet8f res;
+  asm("vminps %[a], %[b], %[res]" : [res] "=x" (res) : [a] "x" (a), [b] "x" (b));
+  return res;
+#else
   // Arguments are swapped to match NaN propagation behavior of std::min.
   return _mm256_min_ps(b,a);
+#endif
 }
 template<> EIGEN_STRONG_INLINE Packet4d pmin<Packet4d>(const Packet4d& a, const Packet4d& b) {
+#if EIGEN_COMP_GNUC && EIGEN_COMP_GNUC < 63
+  // See pmin above
+  Packet4d res;
+  asm("vminpd %[a], %[b], %[res]" : [res] "=x" (res) : [a] "x" (a), [b] "x" (b));
+  return res;
+#else
   // Arguments are swapped to match NaN propagation behavior of std::min.
   return _mm256_min_pd(b,a);
+#endif
 }
 template<> EIGEN_STRONG_INLINE Packet8f pmax<Packet8f>(const Packet8f& a, const Packet8f& b) {
+#if EIGEN_COMP_GNUC && EIGEN_COMP_GNUC < 63
+  // See pmin above
+  Packet8f res;
+  asm("vmaxps %[a], %[b], %[res]" : [res] "=x" (res) : [a] "x" (a), [b] "x" (b));
+  return res;
+#else
   // Arguments are swapped to match NaN propagation behavior of std::max.
   return _mm256_max_ps(b,a);
+#endif
 }
 template<> EIGEN_STRONG_INLINE Packet4d pmax<Packet4d>(const Packet4d& a, const Packet4d& b) {
+#if EIGEN_COMP_GNUC && EIGEN_COMP_GNUC < 63
+  // See pmin above
+  Packet4d res;
+  asm("vmaxpd %[a], %[b], %[res]" : [res] "=x" (res) : [a] "x" (a), [b] "x" (b));
+  return res;
+#else
   // Arguments are swapped to match NaN propagation behavior of std::max.
   return _mm256_max_pd(b,a);
+#endif
 }
 
 template<> EIGEN_STRONG_INLINE Packet8f pcmp_le(const Packet8f& a, const Packet8f& b) { return _mm256_cmp_ps(a,b,_CMP_LE_OQ); }
