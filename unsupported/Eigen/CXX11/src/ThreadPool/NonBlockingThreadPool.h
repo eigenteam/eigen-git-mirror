@@ -29,6 +29,7 @@ class ThreadPoolTempl : public Eigen::ThreadPoolInterface {
         thread_data_(num_threads),
         all_coprimes_(num_threads),
         waiters_(num_threads),
+        global_steal_partition_(EncodePartition(0, num_threads_)),
         blocked_(0),
         spinning_(0),
         done_(false),
@@ -56,7 +57,6 @@ class ThreadPoolTempl : public Eigen::ThreadPoolInterface {
       thread_data_[i].thread.reset(
           env_.CreateThread([this, i]() { WorkerLoop(i); }));
     }
-    global_steal_partition_ = EncodePartition(0, num_threads_);
 #ifndef EIGEN_THREAD_LOCAL
     // Wait for workers to initialize per_thread_map_. Otherwise we might race
     // with them in Schedule or CurrentThreadId.
