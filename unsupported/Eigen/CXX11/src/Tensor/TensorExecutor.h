@@ -317,7 +317,6 @@ class TensorExecutor<Expression, ThreadPoolDevice, Vectorizable, /*Tileable*/ tr
 
 // GPU: the evaluation of the expression is offloaded to a GPU.
 #if defined(EIGEN_USE_GPU)
-#if defined(EIGEN_GPUCC)
 
 template <typename Expression, bool Vectorizable, bool Tileable>
 class TensorExecutor<Expression, GpuDevice, Vectorizable, Tileable> {
@@ -326,7 +325,7 @@ class TensorExecutor<Expression, GpuDevice, Vectorizable, Tileable> {
   static void run(const Expression& expr, const GpuDevice& device);
 };
 
-
+#if defined(EIGEN_GPUCC)
 template <typename Evaluator, typename StorageIndex, bool Vectorizable>
 struct EigenMetaKernelEval {
   static __device__ EIGEN_ALWAYS_INLINE
