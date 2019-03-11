@@ -208,6 +208,9 @@ struct TensorEvaluator<const TensorGeneratorOp<Generator, ArgType>, Device>
       coords[is_col_major ? 0 : NumDims - 1] =
           initial_coords[is_col_major ? 0 : NumDims - 1];
 
+      // For the 1d tensor we need to generate only one inner-most dimension.
+      if (NumDims == 1) break;
+
       // Update offset.
       for (Index i = 1; i < NumDims; ++i) {
         if (++it[i].count < it[i].size) {
