@@ -137,15 +137,21 @@ template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Eigen::half pfirst<half2>(const
 }
 
 template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE half2 pabs<half2>(const half2& a) {
-  half2 result;
-  unsigned temp = *(reinterpret_cast<const unsigned*>(&(a)));
-  *(reinterpret_cast<unsigned*>(&(result))) = temp & 0x7FFF7FFF;
-  return result;
+  half a1 = __low2half(a);
+  half a2 = __high2half(a);
+  half result1 = half_impl::raw_uint16_to_half(a1.x & 0x7FFF);
+  half result2 = half_impl::raw_uint16_to_half(a2.x & 0x7FFF);
+  return __halves2half2(result1, result2);
 }
 
 template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE half2 ptrue<half2>(const half2& a) {
-  half2 result;
-  *(reinterpret_cast<unsigned*>(&(result))) = 0xffffffffu;
+  half true_half = half_impl::raw_uint16_to_half(0xffffu);
+  return pset1<half2>(true_half);
+}
+
+template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE half2 pzero<half2>(const half2& a) {
+  half false_half = half_impl::raw_uint16_to_half(0x0000u);
+  return pset1<half2>(false_half);
 }
 
 EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void
@@ -173,6 +179,68 @@ template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE half2 plset<half2>(const Eigen:
 #endif
 
 #endif
+}
+
+template <>
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE half2 pcmp_eq<half2>(const half2& a,
+                                                           const half2& b) {
+  half true_half = half_impl::raw_uint16_to_half(0xffffu);
+  half false_half = half_impl::raw_uint16_to_half(0x0000u);
+  half a1 = __low2half(a);
+  half a2 = __high2half(a);
+  half b1 = __low2half(b);
+  half b2 = __high2half(b);
+  half eq1 = __half2float(a1) == __half2float(b1) ? true_half : false_half;
+  half eq2 = __half2float(a2) == __half2float(b2) ? true_half : false_half;
+  return __halves2half2(eq1, eq2);
+}
+
+template <>
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE half2 pand<half2>(const half2& a,
+                                                        const half2& b) {
+  half a1 = __low2half(a);
+  half a2 = __high2half(a);
+  half b1 = __low2half(b);
+  half b2 = __high2half(b);
+  half result1 = half_impl::raw_uint16_to_half(a1.x & b1.x);
+  half result2 = half_impl::raw_uint16_to_half(a2.x & b2.x);
+  return __halves2half2(result1, result2);
+}
+
+template <>
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE half2 por<half2>(const half2& a,
+                                                       const half2& b) {
+  half a1 = __low2half(a);
+  half a2 = __high2half(a);
+  half b1 = __low2half(b);
+  half b2 = __high2half(b);
+  half result1 = half_impl::raw_uint16_to_half(a1.x | b1.x);
+  half result2 = half_impl::raw_uint16_to_half(a2.x | b2.x);
+  return __halves2half2(result1, result2);
+}
+
+template <>
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE half2 pxor<half2>(const half2& a,
+                                                        const half2& b) {
+  half a1 = __low2half(a);
+  half a2 = __high2half(a);
+  half b1 = __low2half(b);
+  half b2 = __high2half(b);
+  half result1 = half_impl::raw_uint16_to_half(a1.x ^ b1.x);
+  half result2 = half_impl::raw_uint16_to_half(a2.x ^ b2.x);
+  return __halves2half2(result1, result2);
+}
+
+template <>
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE half2 pandnot<half2>(const half2& a,
+                                                           const half2& b) {
+  half a1 = __low2half(a);
+  half a2 = __high2half(a);
+  half b1 = __low2half(b);
+  half b2 = __high2half(b);
+  half result1 = half_impl::raw_uint16_to_half(a1.x & ~b1.x);
+  half result2 = half_impl::raw_uint16_to_half(a2.x & ~b2.x);
+  return __halves2half2(result1, result2);
 }
 
 template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE half2 padd<half2>(const half2& a, const half2& b) {
