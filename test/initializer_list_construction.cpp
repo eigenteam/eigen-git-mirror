@@ -340,7 +340,6 @@ EIGEN_DECLARE_TEST(initializer_list_construction)
   CALL_SUBTEST_1(initializerListVectorConstruction<int>());
   CALL_SUBTEST_1(initializerListVectorConstruction<long int>());
   CALL_SUBTEST_1(initializerListVectorConstruction<std::ptrdiff_t>());
-  CALL_SUBTEST_1(initializerListVectorConstruction<std::complex<int>>());
   CALL_SUBTEST_1(initializerListVectorConstruction<std::complex<double>>());
   CALL_SUBTEST_1(initializerListVectorConstruction<std::complex<float>>());
 
@@ -350,7 +349,6 @@ EIGEN_DECLARE_TEST(initializer_list_construction)
   CALL_SUBTEST_2(initializerListMatrixConstruction<int>());
   CALL_SUBTEST_2(initializerListMatrixConstruction<long int>());
   CALL_SUBTEST_2(initializerListMatrixConstruction<std::ptrdiff_t>());
-  CALL_SUBTEST_2(initializerListMatrixConstruction<std::complex<int>>());
   CALL_SUBTEST_2(initializerListMatrixConstruction<std::complex<double>>());
   CALL_SUBTEST_2(initializerListMatrixConstruction<std::complex<float>>());
 
@@ -360,7 +358,6 @@ EIGEN_DECLARE_TEST(initializer_list_construction)
   CALL_SUBTEST_3(initializerListArrayConstruction<int>());
   CALL_SUBTEST_3(initializerListArrayConstruction<long int>());
   CALL_SUBTEST_3(initializerListArrayConstruction<std::ptrdiff_t>());
-  CALL_SUBTEST_3(initializerListArrayConstruction<std::complex<int>>());
   CALL_SUBTEST_3(initializerListArrayConstruction<std::complex<double>>());
   CALL_SUBTEST_3(initializerListArrayConstruction<std::complex<float>>());
 
@@ -370,7 +367,6 @@ EIGEN_DECLARE_TEST(initializer_list_construction)
   CALL_SUBTEST_4(fixedsizeVariadicVectorConstruction<int>());
   CALL_SUBTEST_4(fixedsizeVariadicVectorConstruction<long int>());
   CALL_SUBTEST_4(fixedsizeVariadicVectorConstruction<std::ptrdiff_t>());
-  CALL_SUBTEST_4(fixedsizeVariadicVectorConstruction<std::complex<int>>());
   CALL_SUBTEST_4(fixedsizeVariadicVectorConstruction<std::complex<double>>());
   CALL_SUBTEST_4(fixedsizeVariadicVectorConstruction<std::complex<float>>());
   CALL_SUBTEST_4(fixedsizeVariadicVectorConstruction3<0>());
@@ -384,7 +380,6 @@ EIGEN_DECLARE_TEST(initializer_list_construction)
   CALL_SUBTEST_6(dynamicVectorConstruction<int>());
   CALL_SUBTEST_6(dynamicVectorConstruction<long int>());
   CALL_SUBTEST_6(dynamicVectorConstruction<std::ptrdiff_t>());
-  CALL_SUBTEST_6(dynamicVectorConstruction<std::complex<int>>());
   CALL_SUBTEST_6(dynamicVectorConstruction<std::complex<double>>());
   CALL_SUBTEST_6(dynamicVectorConstruction<std::complex<float>>());
 }
