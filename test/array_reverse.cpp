@@ -191,7 +191,7 @@ EIGEN_DECLARE_TEST(array_reverse)
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_1( reverse(Matrix<float, 1, 1>()) );
     CALL_SUBTEST_2( reverse(Matrix2f()) );
-    // CALL_SUBTEST_3( reverse(Matrix4f()) );
+    CALL_SUBTEST_3( reverse(Matrix4f()) );
     CALL_SUBTEST_4( reverse(Matrix4d()) );
     CALL_SUBTEST_5( reverse(MatrixXcf(internal::random<int>(1,EIGEN_TEST_MAX_SIZE), internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
     CALL_SUBTEST_6( reverse(MatrixXi(internal::random<int>(1,EIGEN_TEST_MAX_SIZE), internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
