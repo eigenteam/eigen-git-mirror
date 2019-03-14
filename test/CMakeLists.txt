@@ -290,6 +290,7 @@ ei_add_test(num_dimensions)
 ei_add_test(stl_iterators)
 if(EIGEN_TEST_CXX11)
   ei_add_test(initializer_list_construction)
+  ei_add_test(diagonal_matrix_variadic_ctor)
 endif()
 
 add_executable(bug1213 bug1213.cpp bug1213_main.cpp)
