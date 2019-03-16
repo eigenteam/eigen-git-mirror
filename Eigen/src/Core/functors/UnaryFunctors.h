@@ -927,8 +927,9 @@ template <>
 struct scalar_logistic_op<float> {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_logistic_op)
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE float operator()(const float& x) const {
-    const float one = 1.0f;
-    return one / (one + numext::exp(-x));
+    if (x < -18.0f) return 0.0f;
+    else if (x > 18.0f) return 1.0f;
+    else return 1.0f / (1.0f + numext::exp(-x));
   }
 
   template <typename Packet> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
