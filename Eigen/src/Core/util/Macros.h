@@ -396,6 +396,20 @@
 #endif
 #endif
 
+// Does the compiler support type_traits?
+// - full support of type traits was added only to GCC 5.1.0.
+// - 20150626 corresponds to the last release of 4.x libstdc++
+#ifndef EIGEN_HAS_TYPE_TRAITS
+#if EIGEN_MAX_CPP_VER>=11 && (EIGEN_HAS_CXX11 || EIGEN_COMP_MSVC >= 1700) \
+  && ((!EIGEN_COMP_GNUC_STRICT) || EIGEN_GNUC_AT_LEAST(5, 1)) \
+  && ((!defined(__GLIBCXX__))   || __GLIBCXX__ > 20150626)
+#define EIGEN_HAS_TYPE_TRAITS 1
+#define EIGEN_INCLUDE_TYPE_TRAITS
+#else
+#define EIGEN_HAS_TYPE_TRAITS 0
+#endif
+#endif
+
 // Does the compiler support variadic templates?
 #ifndef EIGEN_HAS_VARIADIC_TEMPLATES
 #if EIGEN_MAX_CPP_VER>=11 && (__cplusplus > 199711L || EIGEN_COMP_MSVC >= 1900) \
