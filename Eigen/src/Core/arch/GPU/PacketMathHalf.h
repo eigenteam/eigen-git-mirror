@@ -45,18 +45,7 @@ template<> struct packet_traits<Eigen::half> : default_packet_traits
 template<> struct unpacket_traits<half2> { typedef Eigen::half type; enum {size=2, alignment=Aligned16, vectorizable=true}; typedef half2 half; };
 
 template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE half2 pset1<half2>(const Eigen::half& from) {
-
-#if defined(EIGEN_HIP_DEVICE_COMPILE)
-
-#if defined(EIGEN_HAS_OLD_HIP_FP16)
-  return half2half2(from);
-#else  
   return __half2half2(from);
-#endif
-
-#else // EIGEN_CUDA_ARCH
-  return __half2half2(from);
-#endif
 }
 
 template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE half2 pload<half2>(const Eigen::half* from) {
@@ -85,11 +74,7 @@ template<>
 
 #if defined(EIGEN_HIP_DEVICE_COMPILE)
 
-#if defined(EIGEN_HAS_OLD_HIP_FP16)
-  return __halves2half2((*(from+0)), (*(from+1)));
-#else
   return __ldg((const half2*)from);
-#endif
 
 #else  // EIGEN_CUDA_ARCH
 
@@ -107,11 +92,7 @@ EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE half2 ploadt_ro<half2, Unaligned>(const Ei
 
 #if defined(EIGEN_HIP_DEVICE_COMPILE)
 
-#if defined(EIGEN_HAS_OLD_HIP_FP16)
-  return __halves2half2((*(from+0)), (*(from+1)));
-#else
   return __halves2half2(__ldg(from+0), __ldg(from+1));
-#endif
 
 #else  // EIGEN_CUDA_ARCH
 
@@ -357,11 +338,7 @@ template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE half2 pmadd<half2>(const half2&
 template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE half2 pdiv<half2>(const half2& a, const half2& b) {
 #if defined(EIGEN_HIP_DEVICE_COMPILE)
   
-#if defined(EIGEN_HAS_OLD_HIP_FP16)
-  return h2div(a, b);
-#else
   return __h2div(a, b);
-#endif
   
 #else // EIGEN_CUDA_ARCH
   

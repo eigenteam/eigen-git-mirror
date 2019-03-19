@@ -52,37 +52,13 @@ namespace half_impl {
 #if !defined(EIGEN_HAS_GPU_FP16)
 // Make our own __half_raw definition that is similar to CUDA's.
 struct __half_raw {
-  // The default constructor cannot initialize its member, otherwise the
-  // derived class Eigen::Half cannot be used as __shared__ variable in HIPCC.
-  EIGEN_DEVICE_FUNC __half_raw() {}
+  EIGEN_DEVICE_FUNC __half_raw() : x(0) {}
   explicit EIGEN_DEVICE_FUNC __half_raw(unsigned short raw) : x(raw) {}
   unsigned short x;
 };
 #elif defined(EIGEN_HAS_HIP_FP16)
- #if defined(EIGEN_HAS_OLD_HIP_FP16)
-// Make a __half_raw definition that is
-// ++ compatible with that of Eigen and
-// ++ add an implicit conversion to the native __half of the old HIP implementation.
-//
-// Keeping ".x" as "unsigned short" keeps the interface the same between the Eigen and HIP implementation.
-//
-// In the old HIP implementation,
-//   ++ __half is a typedef of __fp16
-//   ++ the "__h*" routines take "__half" arguments
-// so we need to implicitly convert "__half_raw" to "__half" to avoid having to explicitly make 
-// that conversiion in each call to a "__h*" routine...that is why we have "operator __half" routine
-struct __half_raw {
-  // The default constructor cannot initialize its member, otherwise the
-  // derived class Eigen::Half cannot be used as __shared__ variable in HIPCC.
-  EIGEN_DEVICE_FUNC __half_raw() {}
-  explicit EIGEN_DEVICE_FUNC __half_raw(unsigned short raw) : x(raw) {}
-  union {
-    unsigned short x;
-    __half data;
-  };
-  operator __half(void) const { return data; }
-};
- #endif
+  // Nothing to do here
+  // HIP fp16 header file has a definition for __half_raw
 #elif defined(EIGEN_HAS_CUDA_FP16)
  #if defined(EIGEN_CUDACC_VER) && EIGEN_CUDACC_VER < 90000
 // In CUDA < 9.0, __half is the equivalent of CUDA 9's __half_raw
@@ -105,11 +81,7 @@ struct half_base : public __half_raw {
 
 #if defined(EIGEN_HAS_GPU_FP16)
  #if defined(EIGEN_HAS_HIP_FP16)
-  #if defined(EIGEN_HAS_OLD_HIP_FP16)
-  EIGEN_DEVICE_FUNC half_base(const __half& h) : __half_raw(__half_as_ushort(h)) {}
-  #else
   EIGEN_DEVICE_FUNC half_base(const __half& h) { x = __half_as_ushort(h); }
-  #endif
  #elif defined(EIGEN_HAS_CUDA_FP16)
   #if (defined(EIGEN_CUDACC_VER) && EIGEN_CUDACC_VER >= 90000)
   EIGEN_DEVICE_FUNC half_base(const __half& h) : __half_raw(*(__half_raw*)&h) {}
@@ -128,9 +100,8 @@ struct half : public half_impl::half_base {
 #if !defined(EIGEN_HAS_GPU_FP16)
   typedef half_impl::__half_raw __half_raw;
 #elif defined(EIGEN_HAS_HIP_FP16)
- #if defined(EIGEN_HAS_OLD_HIP_FP16)
-  typedef half_impl::__half_raw __half_raw;
- #endif
+  // Nothing to do here
+  // HIP fp16 header file has a definition for __half_raw
 #elif defined(EIGEN_HAS_CUDA_FP16)
   // Note that EIGEN_CUDACC_VER is set to 0 even when compiling with HIP, so (EIGEN_CUDACC_VER < 90000) is true even for HIP!
   // So keeping this within #if defined(EIGEN_HAS_CUDA_FP16) is needed
