@@ -246,35 +246,22 @@ struct Assignment<DstXprType, SrcXprType, Functor, Diagonal2Sparse>
 {
   typedef typename DstXprType::StorageIndex StorageIndex;
   typedef typename DstXprType::Scalar Scalar;
-  typedef Array<StorageIndex,Dynamic,1> ArrayXI;
-  typedef Array<Scalar,Dynamic,1> ArrayXS;
-  template<int Options>
-  static void run(SparseMatrix<Scalar,Options,StorageIndex> &dst, const SrcXprType &src, const internal::assign_op<typename DstXprType::Scalar,typename SrcXprType::Scalar> &/*func*/)
-  {
-    Index dstRows = src.rows();
-    Index dstCols = src.cols();
-    if((dst.rows()!=dstRows) || (dst.cols()!=dstCols))
-      dst.resize(dstRows, dstCols);
 
-    Index size = src.diagonal().size();
-    dst.makeCompressed();
-    dst.resizeNonZeros(size);
-    Map<ArrayXI>(dst.innerIndexPtr(), size).setLinSpaced(0,StorageIndex(size)-1);
-    Map<ArrayXI>(dst.outerIndexPtr(), size+1).setLinSpaced(0,StorageIndex(size));
-    Map<ArrayXS>(dst.valuePtr(), size) = src.diagonal();
-  }
+  template<int Options, typename AssignFunc>
+  static void run(SparseMatrix<Scalar,Options,StorageIndex> &dst, const SrcXprType &src, const AssignFunc &func)
+  { dst.assignDiagonal(src.diagonal(), func); }
   
   template<typename DstDerived>
   static void run(SparseMatrixBase<DstDerived> &dst, const SrcXprType &src, const internal::assign_op<typename DstXprType::Scalar,typename SrcXprType::Scalar> &/*func*/)
-  {
-    dst.diagonal() = src.diagonal();
-  }
+  { dst.derived().diagonal() = src.diagonal(); }
   
-  static void run(DstXprType &dst, const SrcXprType &src, const internal::add_assign_op<typename DstXprType::Scalar,typename SrcXprType::Scalar> &/*func*/)
-  { dst.diagonal() += src.diagonal(); }
+  template<typename DstDerived>
+  static void run(SparseMatrixBase<DstDerived> &dst, const SrcXprType &src, const internal::add_assign_op<typename DstXprType::Scalar,typename SrcXprType::Scalar> &/*func*/)
+  { dst.derived().diagonal() += src.diagonal(); }
   
-  static void run(DstXprType &dst, const SrcXprType &src, const internal::sub_assign_op<typename DstXprType::Scalar,typename SrcXprType::Scalar> &/*func*/)
-  { dst.diagonal() -= src.diagonal(); }
+  template<typename DstDerived>
+  static void run(SparseMatrixBase<DstDerived> &dst, const SrcXprType &src, const internal::sub_assign_op<typename DstXprType::Scalar,typename SrcXprType::Scalar> &/*func*/)
+  { dst.derived().diagonal() -= src.diagonal(); }
 };
 } // end namespace internal
 

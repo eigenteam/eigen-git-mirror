@@ -178,6 +178,30 @@ class DiagonalMatrix
     EIGEN_DEVICE_FUNC
     inline DiagonalMatrix(const Scalar& x, const Scalar& y, const Scalar& z) : m_diagonal(x,y,z) {}
 
+    #if EIGEN_HAS_CXX11
+    /** \brief Construct a diagonal matrix with fixed size from an arbitrary number of coefficients. \cpp11
+      * 
+      * There exists C++98 anologue constructors for fixed-size diagonal matrices having 2 or 3 coefficients.
+      * 
+      * \warning To construct a diagonal matrix of fixed size, the number of values passed to this 
+      * constructor must match the fixed dimension of \c *this.
+      * 
+      * \sa DiagonalMatrix(const Scalar&, const Scalar&)
+      * \sa DiagonalMatrix(const Scalar&, const Scalar&, const Scalar&)
+      */
+    template <typename... ArgTypes>
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    DiagonalMatrix(const Scalar& a0, const Scalar& a1, const Scalar& a2, const ArgTypes&... args)
+      : m_diagonal(a0, a1, a2, args...) {}
+
+    /** \brief Constructs a DiagonalMatrix and initializes it by elements given by an initializer list of initializer
+      * lists \cpp11
+      */
+    EIGEN_DEVICE_FUNC
+    explicit EIGEN_STRONG_INLINE DiagonalMatrix(const std::initializer_list<std::initializer_list<Scalar>>& list)
+      : m_diagonal(list) {}
+    #endif  // EIGEN_HAS_CXX11
+
     /** Copy constructor. */
     template<typename OtherDerived>
     EIGEN_DEVICE_FUNC

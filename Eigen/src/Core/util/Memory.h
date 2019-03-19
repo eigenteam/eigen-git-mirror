@@ -360,7 +360,7 @@ template<typename T, bool Align> EIGEN_DEVICE_FUNC inline T* conditional_aligned
 template<typename T> EIGEN_DEVICE_FUNC inline void aligned_delete(T *ptr, std::size_t size)
 {
   destruct_elements_of_array<T>(ptr, size);
-  aligned_free(ptr);
+  Eigen::internal::aligned_free(ptr);
 }
 
 /** \internal Deletes objects constructed with conditional_aligned_new
@@ -768,6 +768,17 @@ template<typename T> void swap(scoped_array<T> &a,scoped_array<T> &b)
 *** Implementation of EIGEN_MAKE_ALIGNED_OPERATOR_NEW [_IF]                ***
 *****************************************************************************/
 
+#if EIGEN_HAS_CXX17_OVERALIGN
+
+// C++17 -> no need to bother about alignment anymore :)
+
+#define EIGEN_MAKE_ALIGNED_OPERATOR_NEW_NOTHROW(NeedsToAlign)
+#define EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(NeedsToAlign)
+#define EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+#define EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF_VECTORIZABLE_FIXED_SIZE(Scalar,Size)
+
+#else
+
 #if EIGEN_MAX_ALIGN_BYTES!=0
   #define EIGEN_MAKE_ALIGNED_OPERATOR_NEW_NOTHROW(NeedsToAlign) \
       void* operator new(std::size_t size, const std::nothrow_t&) EIGEN_NO_THROW { \
@@ -809,6 +820,8 @@ template<typename T> void swap(scoped_array<T> &a,scoped_array<T> &b)
         (((EIGEN_MAX_ALIGN_BYTES>=16) && ((sizeof(Scalar)*(Size))%(EIGEN_MAX_ALIGN_BYTES  )==0)) ||    \
          ((EIGEN_MAX_ALIGN_BYTES>=32) && ((sizeof(Scalar)*(Size))%(EIGEN_MAX_ALIGN_BYTES/2)==0)) ||    \
          ((EIGEN_MAX_ALIGN_BYTES>=64) && ((sizeof(Scalar)*(Size))%(EIGEN_MAX_ALIGN_BYTES/4)==0))   )))
+
+#endif
 
 /****************************************************************************/
 

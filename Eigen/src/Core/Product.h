@@ -90,18 +90,23 @@ class Product : public ProductImpl<_Lhs,_Rhs,Option,
     typedef typename internal::remove_all<LhsNested>::type LhsNestedCleaned;
     typedef typename internal::remove_all<RhsNested>::type RhsNestedCleaned;
 
-    EIGEN_DEVICE_FUNC Product(const Lhs& lhs, const Rhs& rhs) : m_lhs(lhs), m_rhs(rhs)
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    Product(const Lhs& lhs, const Rhs& rhs) : m_lhs(lhs), m_rhs(rhs)
     {
       eigen_assert(lhs.cols() == rhs.rows()
         && "invalid matrix product"
         && "if you wanted a coeff-wise or a dot product use the respective explicit functions");
     }
 
-    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Index rows() const { return m_lhs.rows(); }
-    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Index cols() const { return m_rhs.cols(); }
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    Index rows() const { return m_lhs.rows(); }
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    Index cols() const { return m_rhs.cols(); }
 
-    EIGEN_DEVICE_FUNC const LhsNestedCleaned& lhs() const { return m_lhs; }
-    EIGEN_DEVICE_FUNC const RhsNestedCleaned& rhs() const { return m_rhs; }
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    const LhsNestedCleaned& lhs() const { return m_lhs; }
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    const RhsNestedCleaned& rhs() const { return m_rhs; }
 
   protected:
 

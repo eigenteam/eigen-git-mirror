@@ -156,6 +156,12 @@ template<typename VectorsType, typename CoeffsType, int Side> class HouseholderS
       Side
     > TransposeReturnType;
 
+    typedef HouseholderSequence<
+      typename internal::add_const<VectorsType>::type,
+      typename internal::add_const<CoeffsType>::type,
+      Side
+    > ConstHouseholderSequence;
+
     /** \brief Constructor.
       * \param[in]  v      %Matrix containing the essential parts of the Householder vectors
       * \param[in]  h      Vector containing the Householder coefficients
@@ -242,6 +248,18 @@ template<typename VectorsType, typename CoeffsType, int Side> class HouseholderS
              .setReverseFlag(m_reverse)
              .setLength(m_length)
              .setShift(m_shift);
+    }
+
+    /** \returns an expression of the complex conjugate of \c *this if Cond==true,
+     *           returns \c *this otherwise.
+     */
+    template<bool Cond>
+    EIGEN_DEVICE_FUNC
+    inline typename internal::conditional<Cond,ConjugateReturnType,ConstHouseholderSequence>::type
+    conjugateIf() const
+    {
+      typedef typename internal::conditional<Cond,ConjugateReturnType,ConstHouseholderSequence>::type ReturnType;
+      return ReturnType(m_vectors.template conjugateIf<Cond>(), m_coeffs.template conjugateIf<Cond>());
     }
 
     /** \brief Adjoint (conjugate transpose) of the Householder sequence. */

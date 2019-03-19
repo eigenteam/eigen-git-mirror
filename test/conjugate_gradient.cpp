@@ -10,9 +10,9 @@
 #include "sparse_solver.h"
 #include <Eigen/IterativeLinearSolvers>
 
-template<typename T, typename I> void test_conjugate_gradient_T()
+template<typename T, typename I_> void test_conjugate_gradient_T()
 {
-  typedef SparseMatrix<T,0,I> SparseMatrixType;
+  typedef SparseMatrix<T,0,I_> SparseMatrixType;
   ConjugateGradient<SparseMatrixType, Lower      > cg_colmajor_lower_diag;
   ConjugateGradient<SparseMatrixType, Upper      > cg_colmajor_upper_diag;
   ConjugateGradient<SparseMatrixType, Lower|Upper> cg_colmajor_loup_diag;

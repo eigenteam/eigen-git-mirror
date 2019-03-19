@@ -17,6 +17,18 @@
 #define EIGEN_SVDBASE_H
 
 namespace Eigen {
+
+namespace internal {
+template<typename Derived> struct traits<SVDBase<Derived> >
+ : traits<Derived>
+{
+  typedef MatrixXpr XprKind;
+  typedef SolverStorage StorageKind;
+  typedef int StorageIndex;
+  enum { Flags = 0 };
+};
+}
+
 /** \ingroup SVD_Module
  *
  *
@@ -44,15 +56,18 @@ namespace Eigen {
  * terminate in finite (and reasonable) time.
  * \sa class BDCSVD, class JacobiSVD
  */
-template<typename Derived>
-class SVDBase
+template<typename Derived> class SVDBase
+ : public SolverBase<SVDBase<Derived> >
 {
+public: 
+   
+  template<typename Derived_>
+  friend struct internal::solve_assertion;
 
-public:
   typedef typename internal::traits<Derived>::MatrixType MatrixType;
   typedef typename MatrixType::Scalar Scalar;
   typedef typename NumTraits<typename MatrixType::Scalar>::Real RealScalar;
-  typedef typename MatrixType::StorageIndex StorageIndex;
+  typedef typename Eigen::internal::traits<SVDBase>::StorageIndex StorageIndex;
   typedef Eigen::Index Index; ///< \deprecated since Eigen 3.3
   enum {
     RowsAtCompileTime = MatrixType::RowsAtCompileTime,
@@ -180,8 +195,10 @@ public:
   RealScalar threshold() const
   {
     eigen_assert(m_isInitialized || m_usePrescribedThreshold);
+    // this temporary is needed to workaround a MSVC issue
+    Index diagSize = (std::max<Index>)(1,m_diagSize);
     return m_usePrescribedThreshold ? m_prescribedThreshold
-                                    : (std::max<Index>)(1,m_diagSize)*NumTraits<Scalar>::epsilon();
+                                    : diagSize*NumTraits<Scalar>::epsilon();
   }
 
   /** \returns true if \a U (full or thin) is asked for in this SVD decomposition */
@@ -192,6 +209,7 @@ public:
   inline Index rows() const { return m_rows; }
   inline Index cols() const { return m_cols; }
   
+  #ifdef EIGEN_PARSED_BY_DOXYGEN
   /** \returns a (least squares) solution of \f$ A x = b \f$ using the current SVD decomposition of A.
     *
     * \param b the right-hand-side of the equation to solve.
@@ -203,16 +221,15 @@ public:
     */
   template<typename Rhs>
   inline const Solve<Derived, Rhs>
-  solve(const MatrixBase<Rhs>& b) const
-  {
-    eigen_assert(m_isInitialized && "SVD is not initialized.");
-    eigen_assert(computeU() && computeV() && "SVD::solve() requires both unitaries U and V to be computed (thin unitaries suffice).");
-    return Solve<Derived, Rhs>(derived(), b.derived());
-  }
-  
+  solve(const MatrixBase<Rhs>& b) const;
+  #endif
+
   #ifndef EIGEN_PARSED_BY_DOXYGEN
   template<typename RhsType, typename DstType>
   void _solve_impl(const RhsType &rhs, DstType &dst) const;
+
+  template<bool Conjugate, typename RhsType, typename DstType>
+  void _solve_impl_transposed(const RhsType &rhs, DstType &dst) const;
   #endif
 
 protected:
@@ -220,6 +237,14 @@ protected:
   static void check_template_parameters()
   {
     EIGEN_STATIC_ASSERT_NON_INTEGER(Scalar);
+  }
+
+  template<bool Transpose_, typename Rhs>
+  void _check_solve_assertion(const Rhs& b) const {
+      EIGEN_ONLY_USED_FOR_DEBUG(b);
+      eigen_assert(m_isInitialized && "SVD is not initialized.");
+      eigen_assert(computeU() && computeV() && "SVDBase::solve(): Both unitaries U and V are required to be computed (thin unitaries suffice).");
+      eigen_assert((Transpose_?cols():rows())==b.rows() && "SVDBase::solve(): invalid number of rows of the right hand side matrix b");
   }
   
   // return true if already allocated
@@ -243,6 +268,10 @@ protected:
     : m_isInitialized(false),
       m_isAllocated(false),
       m_usePrescribedThreshold(false),
+      m_computeFullU(false),
+      m_computeThinU(false),
+      m_computeFullV(false),
+      m_computeThinV(false),
       m_computationOptions(0),
       m_rows(-1), m_cols(-1), m_diagSize(0)
   {
@@ -257,16 +286,29 @@ template<typename Derived>
 template<typename RhsType, typename DstType>
 void SVDBase<Derived>::_solve_impl(const RhsType &rhs, DstType &dst) const
 {
-  eigen_assert(rhs.rows() == rows());
-
   // A = U S V^*
   // So A^{-1} = V S^{-1} U^*
 
-  Matrix<Scalar, Dynamic, RhsType::ColsAtCompileTime, 0, MatrixType::MaxRowsAtCompileTime, RhsType::MaxColsAtCompileTime> tmp;
+  Matrix<typename RhsType::Scalar, Dynamic, RhsType::ColsAtCompileTime, 0, MatrixType::MaxRowsAtCompileTime, RhsType::MaxColsAtCompileTime> tmp;
   Index l_rank = rank();
   tmp.noalias() =  m_matrixU.leftCols(l_rank).adjoint() * rhs;
   tmp = m_singularValues.head(l_rank).asDiagonal().inverse() * tmp;
   dst = m_matrixV.leftCols(l_rank) * tmp;
+}
+
+template<typename Derived>
+template<bool Conjugate, typename RhsType, typename DstType>
+void SVDBase<Derived>::_solve_impl_transposed(const RhsType &rhs, DstType &dst) const
+{
+  // A = U S V^*
+  // So  A^{-*} = U S^{-1} V^*
+  // And A^{-T} = U_conj S^{-1} V^T
+  Matrix<typename RhsType::Scalar, Dynamic, RhsType::ColsAtCompileTime, 0, MatrixType::MaxRowsAtCompileTime, RhsType::MaxColsAtCompileTime> tmp;
+  Index l_rank = rank();
+
+  tmp.noalias() =  m_matrixV.leftCols(l_rank).transpose().template conjugateIf<Conjugate>() * rhs;
+  tmp = m_singularValues.head(l_rank).asDiagonal().inverse() * tmp;
+  dst = m_matrixU.template conjugateIf<!Conjugate>().leftCols(l_rank) * tmp;
 }
 #endif
 

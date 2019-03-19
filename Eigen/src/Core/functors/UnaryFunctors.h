@@ -117,7 +117,15 @@ template<typename Scalar>
 struct functor_traits<scalar_conjugate_op<Scalar> >
 {
   enum {
-    Cost = NumTraits<Scalar>::IsComplex ? NumTraits<Scalar>::AddCost : 0,
+    Cost = 0,
+    // Yes the cost is zero even for complexes because in most cases for which
+    // the cost is used, conjugation turns to be a no-op. Some examples:
+    //   cost(a*conj(b)) == cost(a*b)
+    //   cost(a+conj(b)) == cost(a+b)
+    //   <etc.
+    // If we don't set it to zero, then:
+    //   A.conjugate().lazyProduct(B.conjugate())
+    // will bake its operands. We definitely don't want that!
     PacketAccess = packet_traits<Scalar>::HasConj
   };
 };
@@ -548,6 +556,23 @@ struct functor_traits<scalar_tanh_op<Scalar> > {
   };
 };
 
+#if EIGEN_HAS_CXX11_MATH
+/** \internal
+  * \brief Template functor to compute the atanh of a scalar
+  * \sa class CwiseUnaryOp, ArrayBase::atanh()
+  */
+template <typename Scalar>
+struct scalar_atanh_op {
+  EIGEN_EMPTY_STRUCT_CTOR(scalar_atanh_op)
+  EIGEN_DEVICE_FUNC inline const Scalar operator()(const Scalar& a) const { return numext::atanh(a); }
+};
+
+template <typename Scalar>
+struct functor_traits<scalar_atanh_op<Scalar> > {
+  enum { Cost = 5 * NumTraits<Scalar>::MulCost, PacketAccess = false };
+};
+#endif
+
 /** \internal
   * \brief Template functor to compute the sinh of a scalar
   * \sa class CwiseUnaryOp, ArrayBase::sinh()
@@ -566,6 +591,23 @@ struct functor_traits<scalar_sinh_op<Scalar> >
     PacketAccess = packet_traits<Scalar>::HasSinh
   };
 };
+
+#if EIGEN_HAS_CXX11_MATH
+/** \internal
+  * \brief Template functor to compute the asinh of a scalar
+  * \sa class CwiseUnaryOp, ArrayBase::asinh()
+  */
+template <typename Scalar>
+struct scalar_asinh_op {
+  EIGEN_EMPTY_STRUCT_CTOR(scalar_asinh_op)
+  EIGEN_DEVICE_FUNC inline const Scalar operator()(const Scalar& a) const { return numext::asinh(a); }
+};
+
+template <typename Scalar>
+struct functor_traits<scalar_asinh_op<Scalar> > {
+  enum { Cost = 5 * NumTraits<Scalar>::MulCost, PacketAccess = false };
+};
+#endif
 
 /** \internal
   * \brief Template functor to compute the cosh of a scalar
@@ -586,6 +628,23 @@ struct functor_traits<scalar_cosh_op<Scalar> >
   };
 };
 
+#if EIGEN_HAS_CXX11_MATH
+/** \internal
+  * \brief Template functor to compute the acosh of a scalar
+  * \sa class CwiseUnaryOp, ArrayBase::acosh()
+  */
+template <typename Scalar>
+struct scalar_acosh_op {
+  EIGEN_EMPTY_STRUCT_CTOR(scalar_acosh_op)
+  EIGEN_DEVICE_FUNC inline const Scalar operator()(const Scalar& a) const { return numext::acosh(a); }
+};
+
+template <typename Scalar>
+struct functor_traits<scalar_acosh_op<Scalar> > {
+  enum { Cost = 5 * NumTraits<Scalar>::MulCost, PacketAccess = false };
+};
+#endif
+
 /** \internal
   * \brief Template functor to compute the inverse of a scalar
   * \sa class CwiseUnaryOp, Cwise::inverse()
@@ -598,9 +657,13 @@ struct scalar_inverse_op {
   EIGEN_DEVICE_FUNC inline const Packet packetOp(const Packet& a) const
   { return internal::pdiv(pset1<Packet>(Scalar(1)),a); }
 };
-template<typename Scalar>
-struct functor_traits<scalar_inverse_op<Scalar> >
-{ enum { Cost = NumTraits<Scalar>::MulCost, PacketAccess = packet_traits<Scalar>::HasDiv }; };
+template <typename Scalar>
+struct functor_traits<scalar_inverse_op<Scalar> > {
+  enum {
+    PacketAccess = packet_traits<Scalar>::HasDiv,
+    Cost = scalar_div_cost<Scalar, PacketAccess>::value
+  };
+};
 
 /** \internal
   * \brief Template functor to compute the square of a scalar
@@ -864,8 +927,9 @@ template <>
 struct scalar_logistic_op<float> {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_logistic_op)
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE float operator()(const float& x) const {
-    const float one = 1.0f;
-    return one / (one + numext::exp(-x));
+    if (x < -18.0f) return 0.0f;
+    else if (x > 18.0f) return 1.0f;
+    else return 1.0f / (1.0f + numext::exp(-x));
   }
 
   template <typename Packet> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE

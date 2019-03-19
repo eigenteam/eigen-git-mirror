@@ -45,14 +45,23 @@ struct symm_pack_lhs
   }
   void operator()(Scalar* blockA, const Scalar* _lhs, Index lhsStride, Index cols, Index rows)
   {
-    enum { PacketSize = packet_traits<Scalar>::size };
+    typedef typename unpacket_traits<typename packet_traits<Scalar>::type>::half HalfPacket;
+    typedef typename unpacket_traits<typename unpacket_traits<typename packet_traits<Scalar>::type>::half>::half QuarterPacket;
+    enum { PacketSize = packet_traits<Scalar>::size,
+           HalfPacketSize = unpacket_traits<HalfPacket>::size,
+           QuarterPacketSize = unpacket_traits<QuarterPacket>::size,
+           HasHalf = (int)HalfPacketSize < (int)PacketSize,
+           HasQuarter = (int)QuarterPacketSize < (int)HalfPacketSize};
+
     const_blas_data_mapper<Scalar,Index,StorageOrder> lhs(_lhs,lhsStride);
     Index count = 0;
     //Index peeled_mc3 = (rows/Pack1)*Pack1;
     
     const Index peeled_mc3 = Pack1>=3*PacketSize ? (rows/(3*PacketSize))*(3*PacketSize) : 0;
     const Index peeled_mc2 = Pack1>=2*PacketSize ? peeled_mc3+((rows-peeled_mc3)/(2*PacketSize))*(2*PacketSize) : 0;
-    const Index peeled_mc1 = Pack1>=1*PacketSize ? (rows/(1*PacketSize))*(1*PacketSize) : 0;
+    const Index peeled_mc1 = Pack1>=1*PacketSize ? peeled_mc2+((rows-peeled_mc2)/(1*PacketSize))*(1*PacketSize) : 0;
+    const Index peeled_mc_half = Pack1>=HalfPacketSize ? peeled_mc1+((rows-peeled_mc1)/(HalfPacketSize))*(HalfPacketSize) : 0;
+    const Index peeled_mc_quarter = Pack1>=QuarterPacketSize ? peeled_mc_half+((rows-peeled_mc_half)/(QuarterPacketSize))*(QuarterPacketSize) : 0;
     
     if(Pack1>=3*PacketSize)
       for(Index i=0; i<peeled_mc3; i+=3*PacketSize)
@@ -66,8 +75,16 @@ struct symm_pack_lhs
       for(Index i=peeled_mc2; i<peeled_mc1; i+=1*PacketSize)
         pack<1*PacketSize>(blockA, lhs, cols, i, count);
 
+    if(HasHalf && Pack1>=HalfPacketSize)
+      for(Index i=peeled_mc1; i<peeled_mc_half; i+=HalfPacketSize)
+        pack<HalfPacketSize>(blockA, lhs, cols, i, count);
+
+    if(HasQuarter && Pack1>=QuarterPacketSize)
+      for(Index i=peeled_mc_half; i<peeled_mc_quarter; i+=QuarterPacketSize)
+        pack<QuarterPacketSize>(blockA, lhs, cols, i, count);
+
     // do the same with mr==1
-    for(Index i=peeled_mc1; i<rows; i++)
+    for(Index i=peeled_mc_quarter; i<rows; i++)
     {
       for(Index k=0; k<i; k++)
         blockA[count++] = lhs(i, k);                   // normal

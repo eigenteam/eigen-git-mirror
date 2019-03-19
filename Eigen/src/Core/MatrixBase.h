@@ -468,6 +468,11 @@ template<typename Derived> class MatrixBase
     const MatrixFunctionReturnValue<Derived> matrixFunction(StemFunction f) const;
     EIGEN_MATRIX_FUNCTION(MatrixFunctionReturnValue, cosh, hyperbolic cosine)
     EIGEN_MATRIX_FUNCTION(MatrixFunctionReturnValue, sinh, hyperbolic sine)
+#if EIGEN_HAS_CXX11_MATH
+    EIGEN_MATRIX_FUNCTION(MatrixFunctionReturnValue, atanh, inverse hyperbolic cosine)
+    EIGEN_MATRIX_FUNCTION(MatrixFunctionReturnValue, acosh, inverse hyperbolic cosine)
+    EIGEN_MATRIX_FUNCTION(MatrixFunctionReturnValue, asinh, inverse hyperbolic sine)
+#endif
     EIGEN_MATRIX_FUNCTION(MatrixFunctionReturnValue, cos, cosine)
     EIGEN_MATRIX_FUNCTION(MatrixFunctionReturnValue, sin, sine)
     EIGEN_MATRIX_FUNCTION(MatrixSquareRootReturnValue, sqrt, square root)

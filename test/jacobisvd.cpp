@@ -67,6 +67,23 @@ void jacobisvd_method()
   VERIFY_RAISES_ASSERT(m.jacobiSvd().matrixU());
   VERIFY_RAISES_ASSERT(m.jacobiSvd().matrixV());
   VERIFY_IS_APPROX(m.jacobiSvd(ComputeFullU|ComputeFullV).solve(m), m);
+  VERIFY_IS_APPROX(m.jacobiSvd(ComputeFullU|ComputeFullV).transpose().solve(m), m);
+  VERIFY_IS_APPROX(m.jacobiSvd(ComputeFullU|ComputeFullV).adjoint().solve(m), m);
+}
+
+namespace Foo {
+// older compiler require a default constructor for Bar
+// cf: https://stackoverflow.com/questions/7411515/
+class Bar {public: Bar() {}};
+bool operator<(const Bar&, const Bar&) { return true; }
+}
+// regression test for a very strange MSVC issue for which simply
+// including SVDBase.h messes up with std::max and custom scalar type
+void msvc_workaround()
+{
+  const Foo::Bar a;
+  const Foo::Bar b;
+  std::max EIGEN_NOT_A_MACRO (a,b);
 }
 
 EIGEN_DECLARE_TEST(jacobisvd)
@@ -122,4 +139,6 @@ EIGEN_DECLARE_TEST(jacobisvd)
   CALL_SUBTEST_9( svd_preallocate<void>() );
 
   CALL_SUBTEST_2( svd_underoverflow<void>() );
+
+  msvc_workaround();
 }

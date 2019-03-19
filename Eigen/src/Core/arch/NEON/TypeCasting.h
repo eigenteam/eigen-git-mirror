@@ -41,6 +41,14 @@ template<> EIGEN_STRONG_INLINE Packet4f pcast<Packet4i, Packet4f>(const Packet4i
   return vcvtq_f32_s32(a);
 }
 
+template<> EIGEN_STRONG_INLINE Packet4i preinterpret<Packet4i,Packet4f>(const Packet4f& a) {
+  return vreinterpretq_s32_f32(a);
+}
+
+template<> EIGEN_STRONG_INLINE Packet4f preinterpret<Packet4f,Packet4i>(const Packet4i& a) {
+  return vreinterpretq_f32_s32(a);
+}
+
 } // end namespace internal
 
 } // end namespace Eigen

@@ -23,6 +23,11 @@ typedef CwiseUnaryOp<internal::scalar_atan_op<Scalar>, const Derived> AtanReturn
 typedef CwiseUnaryOp<internal::scalar_tanh_op<Scalar>, const Derived> TanhReturnType;
 typedef CwiseUnaryOp<internal::scalar_logistic_op<Scalar>, const Derived> LogisticReturnType;
 typedef CwiseUnaryOp<internal::scalar_sinh_op<Scalar>, const Derived> SinhReturnType;
+#if EIGEN_HAS_CXX11_MATH
+typedef CwiseUnaryOp<internal::scalar_atanh_op<Scalar>, const Derived> AtanhReturnType;
+typedef CwiseUnaryOp<internal::scalar_asinh_op<Scalar>, const Derived> AsinhReturnType;
+typedef CwiseUnaryOp<internal::scalar_acosh_op<Scalar>, const Derived> AcoshReturnType;
+#endif
 typedef CwiseUnaryOp<internal::scalar_cosh_op<Scalar>, const Derived> CoshReturnType;
 typedef CwiseUnaryOp<internal::scalar_square_op<Scalar>, const Derived> SquareReturnType;
 typedef CwiseUnaryOp<internal::scalar_cube_op<Scalar>, const Derived> CubeReturnType;
@@ -327,7 +332,7 @@ sinh() const
   * Example: \include Cwise_cosh.cpp
   * Output: \verbinclude Cwise_cosh.out
   *
-  * \sa <a href="group__CoeffwiseMathFunctions.html#cwisetable_cosh">Math functions</a>, tan(), sinh(), cosh()
+  * \sa <a href="group__CoeffwiseMathFunctions.html#cwisetable_cosh">Math functions</a>, tanh(), sinh(), cosh()
   */
 EIGEN_DEVICE_FUNC
 inline const CoshReturnType
@@ -335,6 +340,41 @@ cosh() const
 {
   return CoshReturnType(derived());
 }
+
+#if EIGEN_HAS_CXX11_MATH
+/** \returns an expression of the coefficient-wise inverse hyperbolic tan of *this.
+  *
+  * \sa <a href="group__CoeffwiseMathFunctions.html#cwisetable_atanh">Math functions</a>, atanh(), asinh(), acosh()
+  */
+EIGEN_DEVICE_FUNC
+inline const AtanhReturnType
+atanh() const
+{
+  return AtanhReturnType(derived());
+}
+
+/** \returns an expression of the coefficient-wise inverse hyperbolic sin of *this.
+  *
+  * \sa <a href="group__CoeffwiseMathFunctions.html#cwisetable_asinh">Math functions</a>, atanh(), asinh(), acosh()
+  */
+EIGEN_DEVICE_FUNC
+inline const AsinhReturnType
+asinh() const
+{
+  return AsinhReturnType(derived());
+}
+
+/** \returns an expression of the coefficient-wise inverse hyperbolic cos of *this.
+  *
+  * \sa <a href="group__CoeffwiseMathFunctions.html#cwisetable_acosh">Math functions</a>, atanh(), asinh(), acosh()
+  */
+EIGEN_DEVICE_FUNC
+inline const AcoshReturnType
+acosh() const
+{
+  return AcoshReturnType(derived());
+}
+#endif
 
 /** \returns an expression of the coefficient-wise logistic of *this.
   */

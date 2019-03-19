@@ -64,8 +64,11 @@ do
     i=0
     while read line2
     do
-      if [ ! -z '$line2' ]; then
-        echo '{"r":'$i',"v":'`echo $line2 | cut -f $col -d ' '`'},' >> $WHAT.html
+      if [ ! -z "$line2" ]; then
+        val=`echo $line2 | cut -s -f $col -d ' '`
+        if [ -n "$val" ]; then # skip build failures
+          echo '{"r":'$i',"v":'$val'},' >> $WHAT.html
+        fi
       fi
       ((i++))
     done < $WHAT.out
@@ -80,6 +83,17 @@ while read line2
 do
   if [ ! -z '$line2' ]; then
     echo '"'`echo $line2 | cut -f 1 -d ' '`'",' >> $WHAT.html
+  fi
+done < $WHAT.out
+echo '];'  >> $WHAT.html
+
+echo 'var changesets_details = [' >> $WHAT.html
+while read line2
+do
+  if [ ! -z '$line2' ]; then
+    num=`echo "$line2" | cut -f 1 -d ' '`
+    comment=`grep ":$num" changesets.txt | cut -f 2 -d '#'`
+    echo '"'"$comment"'",' >> $WHAT.html
   fi
 done < $WHAT.out
 echo '];'  >> $WHAT.html

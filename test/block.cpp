@@ -227,6 +227,16 @@ template<typename MatrixType> void block(const MatrixType& m)
   VERIFY_IS_APPROX( (m1+m1).template subVector<Vertical>(c1), (m1+m1).col(c1) );
   VERIFY_IS_EQUAL( m1.template subVectors<Horizontal>(), m1.rows() );
   VERIFY_IS_EQUAL( m1.template subVectors<Vertical>(), m1.cols() );
+
+  if (rows>=2 || cols>=2) {
+    VERIFY_IS_EQUAL( int(m1.middleCols(0,0).IsRowMajor), int(m1.IsRowMajor) );
+    VERIFY_IS_EQUAL( m1.middleCols(0,0).outerSize(), m1.IsRowMajor ? rows : 0);
+    VERIFY_IS_EQUAL( m1.middleCols(0,0).innerSize(), m1.IsRowMajor ? 0 : rows);
+
+    VERIFY_IS_EQUAL( int(m1.middleRows(0,0).IsRowMajor), int(m1.IsRowMajor) );
+    VERIFY_IS_EQUAL( m1.middleRows(0,0).outerSize(), m1.IsRowMajor ? 0 : cols);
+    VERIFY_IS_EQUAL( m1.middleRows(0,0).innerSize(), m1.IsRowMajor ? cols : 0);
+  }
 }
 
 
@@ -287,11 +297,14 @@ EIGEN_DECLARE_TEST(block)
 {
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_1( block(Matrix<float, 1, 1>()) );
+    CALL_SUBTEST_1( block(Matrix<float, 1, Dynamic>(internal::random(2,50))) );
+    CALL_SUBTEST_1( block(Matrix<float, Dynamic, 1>(internal::random(2,50))) );
     CALL_SUBTEST_2( block(Matrix4d()) );
-    CALL_SUBTEST_3( block(MatrixXcf(3, 3)) );
-    CALL_SUBTEST_4( block(MatrixXi(8, 12)) );
-    CALL_SUBTEST_5( block(MatrixXcd(20, 20)) );
-    CALL_SUBTEST_6( block(MatrixXf(20, 20)) );
+    CALL_SUBTEST_3( block(MatrixXcf(internal::random(2,50), internal::random(2,50))) );
+    CALL_SUBTEST_4( block(MatrixXi(internal::random(2,50), internal::random(2,50))) );
+    CALL_SUBTEST_5( block(MatrixXcd(internal::random(2,50), internal::random(2,50))) );
+    CALL_SUBTEST_6( block(MatrixXf(internal::random(2,50), internal::random(2,50))) );
+    CALL_SUBTEST_7( block(Matrix<int,Dynamic,Dynamic,RowMajor>(internal::random(2,50), internal::random(2,50))) );
 
     CALL_SUBTEST_8( block(Matrix<float,Dynamic,4>(3, 4)) );
 

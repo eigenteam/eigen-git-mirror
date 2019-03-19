@@ -261,7 +261,7 @@ Packet4f psincos_inner_msa_float(const Packet4f& _x) {
   // x's from odd-numbered octants will translate to octant -1: [-Pi/4, 0].
   // Adjustment for odd-numbered octants: octant = (octant + 1) & (~1).
   Packet4i y_int1 = __builtin_msa_addvi_w(y_int, 1);
-  Packet4i y_int2 = (Packet4i)__builtin_msa_bclri_w((Packet4ui)y_int1, 0);
+  Packet4i y_int2 = (Packet4i)__builtin_msa_bclri_w((Packet4ui)y_int1, 0); // bclri = bit-clear
   y = __builtin_msa_ffint_s_w(y_int2);
 
   // Compute the sign to apply to the polynomial.
@@ -305,7 +305,7 @@ Packet4f psincos_inner_msa_float(const Packet4f& _x) {
 
   // Update the sign.
   sign_mask = pxor(sign_mask, (Packet4i)y);
-  y = (Packet4f)__builtin_msa_binsli_w((v4u32)y, (v4u32)sign_mask, 0);
+  y = (Packet4f)__builtin_msa_binsli_w((v4u32)y, (v4u32)sign_mask, 0); // binsli = bit-insert-left
   return y;
 }
 

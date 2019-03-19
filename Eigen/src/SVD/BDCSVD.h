@@ -39,6 +39,7 @@ namespace internal {
 
 template<typename _MatrixType> 
 struct traits<BDCSVD<_MatrixType> >
+        : traits<_MatrixType>
 {
   typedef _MatrixType MatrixType;
 };  
@@ -110,7 +111,7 @@ public:
    * The default constructor is useful in cases in which the user intends to
    * perform decompositions via BDCSVD::compute(const MatrixType&).
    */
-  BDCSVD() : m_algoswap(16), m_numIters(0)
+  BDCSVD() : m_algoswap(16), m_isTranspose(false), m_compU(false), m_compV(false), m_numIters(0)
   {}
 
 
@@ -1006,7 +1007,7 @@ void BDCSVD<MatrixType>::perturbCol0
 #ifdef EIGEN_BDCSVD_SANITY_CHECKS
       assert((std::isfinite)(tmp));
 #endif
-      zhat(k) = col0(k) > Literal(0) ? tmp : -tmp;
+      zhat(k) = col0(k) > Literal(0) ? RealScalar(tmp) : RealScalar(-tmp);
     }
   }
 }

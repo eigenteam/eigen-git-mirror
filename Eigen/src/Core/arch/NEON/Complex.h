@@ -62,7 +62,7 @@ template<> struct packet_traits<std::complex<float> >  : default_packet_traits
   };
 };
 
-template<> struct unpacket_traits<Packet2cf> { typedef std::complex<float> type; enum {size=2, alignment=Aligned16}; typedef Packet2cf half; };
+template<> struct unpacket_traits<Packet2cf> { typedef std::complex<float> type; enum {size=2, alignment=Aligned16, vectorizable=true}; typedef Packet2cf half; };
 
 template<> EIGEN_STRONG_INLINE Packet2cf pset1<Packet2cf>(const std::complex<float>&  from)
 {
@@ -99,6 +99,18 @@ template<> EIGEN_STRONG_INLINE Packet2cf pmul<Packet2cf>(const Packet2cf& a, con
   v2 = vrev64q_f32(v2);
   // Add and return the result
   return Packet2cf(vaddq_f32(v1, v2));
+}
+
+template<> EIGEN_STRONG_INLINE Packet2cf pcmp_eq(const Packet2cf& a, const Packet2cf& b)
+{
+  // Compare real and imaginary parts of a and b to get the mask vector:
+  // [re(a[0])==re(b[0]), im(a[0])==im(b[0]), re(a[1])==re(b[1]), im(a[1])==im(b[1])]
+  Packet4f eq = pcmp_eq<Packet4f>(a.v, b.v);
+  // Swap real/imag elements in the mask in to get:
+  // [im(a[0])==im(b[0]), re(a[0])==re(b[0]), im(a[1])==im(b[1]), re(a[1])==re(b[1])]
+  Packet4f eq_swapped = vrev64q_f32(eq);
+  // Return re(a)==re(b) && im(a)==im(b) by computing bitwise AND of eq and eq_swapped
+  return Packet2cf(pand<Packet4f>(eq, eq_swapped));
 }
 
 template<> EIGEN_STRONG_INLINE Packet2cf pand   <Packet2cf>(const Packet2cf& a, const Packet2cf& b)
@@ -146,7 +158,7 @@ template<> EIGEN_STRONG_INLINE void prefetch<std::complex<float> >(const std::co
 
 template<> EIGEN_STRONG_INLINE std::complex<float>  pfirst<Packet2cf>(const Packet2cf& a)
 {
-  std::complex<float> EIGEN_ALIGN16 x[2];
+  EIGEN_ALIGN16 std::complex<float> x[2];
   vst1q_f32((float *)x, a.v);
   return x[0];
 }
@@ -328,7 +340,7 @@ template<> struct packet_traits<std::complex<double> >  : default_packet_traits
   };
 };
 
-template<> struct unpacket_traits<Packet1cd> { typedef std::complex<double> type; enum {size=1, alignment=Aligned16}; typedef Packet1cd half; };
+template<> struct unpacket_traits<Packet1cd> { typedef std::complex<double> type; enum {size=1, alignment=Aligned16, vectorizable=true}; typedef Packet1cd half; };
 
 template<> EIGEN_STRONG_INLINE Packet1cd pload<Packet1cd>(const std::complex<double>* from) { EIGEN_DEBUG_ALIGNED_LOAD return Packet1cd(pload<Packet2d>((const double*)from)); }
 template<> EIGEN_STRONG_INLINE Packet1cd ploadu<Packet1cd>(const std::complex<double>* from) { EIGEN_DEBUG_UNALIGNED_LOAD return Packet1cd(ploadu<Packet2d>((const double*)from)); }
@@ -359,6 +371,18 @@ template<> EIGEN_STRONG_INLINE Packet1cd pmul<Packet1cd>(const Packet1cd& a, con
   v2 = preverse<Packet2d>(v2);
   // Add and return the result
   return Packet1cd(vaddq_f64(v1, v2));
+}
+
+template<> EIGEN_STRONG_INLINE Packet1cd pcmp_eq(const Packet1cd& a, const Packet1cd& b)
+{
+  // Compare real and imaginary parts of a and b to get the mask vector:
+  // [re(a)==re(b), im(a)==im(b)]
+  Packet2d eq = pcmp_eq<Packet2d>(a.v, b.v);
+  // Swap real/imag elements in the mask in to get:
+  // [im(a)==im(b), re(a)==re(b)]
+  Packet2d eq_swapped = vreinterpretq_f64_u32(vrev64q_u32(vreinterpretq_u32_f64(eq)));
+  // Return re(a)==re(b) & im(a)==im(b) by computing bitwise AND of eq and eq_swapped
+  return Packet1cd(pand<Packet2d>(eq, eq_swapped));
 }
 
 template<> EIGEN_STRONG_INLINE Packet1cd pand   <Packet1cd>(const Packet1cd& a, const Packet1cd& b)
@@ -401,7 +425,7 @@ template<> EIGEN_DEVICE_FUNC inline void pscatter<std::complex<double>, Packet1c
 
 template<> EIGEN_STRONG_INLINE std::complex<double>  pfirst<Packet1cd>(const Packet1cd& a)
 {
-  std::complex<double> EIGEN_ALIGN16 res;
+  EIGEN_ALIGN16 std::complex<double> res;
   pstore<std::complex<double> >(&res, a);
 
   return res;

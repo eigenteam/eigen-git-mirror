@@ -321,6 +321,42 @@ This also means that, unless specified, if the function \c std::foo is available
   <td></td>
 </tr>
 <tr>
+  <td class="code">
+  \anchor cwisetable_asinh
+  a.\link ArrayBase::asinh asinh\endlink(); \n
+  \link Eigen::asinh asinh\endlink(a);
+  </td>
+  <td>computes inverse hyperbolic sine</td>
+  <td class="code">
+  using <a href="http://en.cppreference.com/w/cpp/numeric/math/asinh">std::asinh</a>; \n
+  asinh(a[i]);</td>
+  <td></td>
+</tr>
+<tr>
+  <td class="code">
+  \anchor cwisetable_acosh
+  a.\link ArrayBase::acosh cohs\endlink(); \n
+  \link Eigen::acosh acosh\endlink(a);
+  </td>
+  <td>computes hyperbolic cosine</td>
+  <td class="code">
+  using <a href="http://en.cppreference.com/w/cpp/numeric/math/acosh">std::acosh</a>; \n
+  acosh(a[i]);</td>
+  <td></td>
+</tr>
+<tr>
+  <td class="code">
+  \anchor cwisetable_atanh
+  a.\link ArrayBase::atanh atanh\endlink(); \n
+  \link Eigen::atanh atanh\endlink(a);
+  </td>
+  <td>computes hyperbolic tangent</td>
+  <td class="code">
+  using <a href="http://en.cppreference.com/w/cpp/numeric/math/atanh">std::atanh</a>; \n
+  atanh(a[i]);</td>
+  <td></td>
+</tr>
+<tr>
 <th colspan="4">Nearest integer floating point operations</th>
 </tr>
 <tr>

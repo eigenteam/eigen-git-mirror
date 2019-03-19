@@ -153,35 +153,40 @@ using std::ptrdiff_t;
 
 #if defined EIGEN_VECTORIZE_AVX512
   #include "src/Core/arch/SSE/PacketMath.h"
+  #include "src/Core/arch/SSE/TypeCasting.h"
+  #include "src/Core/arch/SSE/Complex.h"
   #include "src/Core/arch/AVX/PacketMath.h"
+  #include "src/Core/arch/AVX/TypeCasting.h"
+  #include "src/Core/arch/AVX/Complex.h"
   #include "src/Core/arch/AVX512/PacketMath.h"
+  #include "src/Core/arch/AVX512/Complex.h"
   #include "src/Core/arch/SSE/MathFunctions.h"
   #include "src/Core/arch/AVX/MathFunctions.h"
   #include "src/Core/arch/AVX512/MathFunctions.h"
 #elif defined EIGEN_VECTORIZE_AVX
   // Use AVX for floats and doubles, SSE for integers
   #include "src/Core/arch/SSE/PacketMath.h"
-  #include "src/Core/arch/SSE/Complex.h"
-  #include "src/Core/arch/SSE/MathFunctions.h"
-  #include "src/Core/arch/AVX/PacketMath.h"
-  #include "src/Core/arch/AVX/MathFunctions.h"
-  #include "src/Core/arch/AVX/Complex.h"
-  #include "src/Core/arch/AVX/TypeCasting.h"
   #include "src/Core/arch/SSE/TypeCasting.h"
+  #include "src/Core/arch/SSE/Complex.h"
+  #include "src/Core/arch/AVX/PacketMath.h"
+  #include "src/Core/arch/AVX/TypeCasting.h"
+  #include "src/Core/arch/AVX/Complex.h"
+  #include "src/Core/arch/SSE/MathFunctions.h"
+  #include "src/Core/arch/AVX/MathFunctions.h"
 #elif defined EIGEN_VECTORIZE_SSE
   #include "src/Core/arch/SSE/PacketMath.h"
+  #include "src/Core/arch/SSE/TypeCasting.h"
   #include "src/Core/arch/SSE/MathFunctions.h"
   #include "src/Core/arch/SSE/Complex.h"
-  #include "src/Core/arch/SSE/TypeCasting.h"
 #elif defined(EIGEN_VECTORIZE_ALTIVEC) || defined(EIGEN_VECTORIZE_VSX)
   #include "src/Core/arch/AltiVec/PacketMath.h"
   #include "src/Core/arch/AltiVec/MathFunctions.h"
   #include "src/Core/arch/AltiVec/Complex.h"
 #elif defined EIGEN_VECTORIZE_NEON
   #include "src/Core/arch/NEON/PacketMath.h"
+  #include "src/Core/arch/NEON/TypeCasting.h"
   #include "src/Core/arch/NEON/MathFunctions.h"
   #include "src/Core/arch/NEON/Complex.h"
-  #include "src/Core/arch/NEON/TypeCasting.h"
 #elif defined EIGEN_VECTORIZE_ZVECTOR
   #include "src/Core/arch/ZVector/PacketMath.h"
   #include "src/Core/arch/ZVector/MathFunctions.h"

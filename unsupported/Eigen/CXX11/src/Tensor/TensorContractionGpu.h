@@ -1219,9 +1219,6 @@ template<typename Indices, typename LeftArgType, typename RightArgType, typename
 struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgType, OutputKernelType>, GpuDevice> :
     public TensorContractionEvaluatorBase<TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgType, OutputKernelType>, GpuDevice> > {
 
-  static_assert(std::is_same<OutputKernelType, const NoOpOutputKernel>::value,
-                "GPU tensor contraction does not support output kernels.");
-
   typedef GpuDevice Device;
 
   typedef TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgType, OutputKernelType>, Device> Self;
@@ -1274,7 +1271,11 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
   typedef typename RightEvaluator::Dimensions RightDimensions;
 
   EIGEN_DEVICE_FUNC TensorEvaluator(const XprType& op, const Device& device) :
-      Base(op, device) {}
+      Base(op, device)
+  {
+    EIGEN_STATIC_ASSERT( (internal::is_same<OutputKernelType, const NoOpOutputKernel>::value),
+                          GPU_TENSOR_CONTRACTION_DOES_NOT_SUPPORT_OUTPUT_KERNELS);
+  }
 
   // We need to redefine this method to make nvcc happy
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool evalSubExprsIfNeeded(Scalar* data) {

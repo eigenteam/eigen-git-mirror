@@ -9,17 +9,17 @@
 
 #include "sparse_solver.h"
 
-template<typename T, typename I> void test_simplicial_cholesky_T()
+template<typename T, typename I_> void test_simplicial_cholesky_T()
 {
-  typedef SparseMatrix<T,0,I> SparseMatrixType;
+  typedef SparseMatrix<T,0,I_> SparseMatrixType;
   SimplicialCholesky<SparseMatrixType, Lower> chol_colmajor_lower_amd;
   SimplicialCholesky<SparseMatrixType, Upper> chol_colmajor_upper_amd;
   SimplicialLLT<     SparseMatrixType, Lower> llt_colmajor_lower_amd;
   SimplicialLLT<     SparseMatrixType, Upper> llt_colmajor_upper_amd;
   SimplicialLDLT<    SparseMatrixType, Lower> ldlt_colmajor_lower_amd;
   SimplicialLDLT<    SparseMatrixType, Upper> ldlt_colmajor_upper_amd;
-  SimplicialLDLT<    SparseMatrixType, Lower, NaturalOrdering<I> > ldlt_colmajor_lower_nat;
-  SimplicialLDLT<    SparseMatrixType, Upper, NaturalOrdering<I> > ldlt_colmajor_upper_nat;
+  SimplicialLDLT<    SparseMatrixType, Lower, NaturalOrdering<I_> > ldlt_colmajor_lower_nat;
+  SimplicialLDLT<    SparseMatrixType, Upper, NaturalOrdering<I_> > ldlt_colmajor_upper_nat;
 
   check_sparse_spd_solving(chol_colmajor_lower_amd);
   check_sparse_spd_solving(chol_colmajor_upper_amd);

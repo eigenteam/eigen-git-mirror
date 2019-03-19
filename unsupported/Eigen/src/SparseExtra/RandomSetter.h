@@ -249,10 +249,10 @@ class RandomSetter
           }
         }
         // prefix sum
-        Index count = 0;
+        StorageIndex count = 0;
         for (Index j=0; j<mp_target->outerSize(); ++j)
         {
-          Index tmp = positions[j];
+          StorageIndex tmp = positions[j];
           mp_target->outerIndexPtr()[j] = count;
           positions[j] = count;
           count += tmp;
@@ -281,7 +281,7 @@ class RandomSetter
               mp_target->innerIndexPtr()[i+1] = mp_target->innerIndexPtr()[i];
               --i;
             }
-            mp_target->innerIndexPtr()[i+1] = inner;
+            mp_target->innerIndexPtr()[i+1] = internal::convert_index<StorageIndex>(inner);
             mp_target->valuePtr()[i+1] = it->second.value;
           }
         }

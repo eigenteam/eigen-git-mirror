@@ -40,6 +40,14 @@ struct visitor_impl<Visitor, Derived, 1>
   }
 };
 
+// This specialization enables visitors on empty matrices at compile-time
+template<typename Visitor, typename Derived>
+struct visitor_impl<Visitor, Derived, 0> {
+  EIGEN_DEVICE_FUNC
+  static inline void run(const Derived &/*mat*/, Visitor& /*visitor*/)
+  {}
+};
+
 template<typename Visitor, typename Derived>
 struct visitor_impl<Visitor, Derived, Dynamic>
 {
@@ -98,6 +106,8 @@ protected:
   *
   * \note compared to one or two \em for \em loops, visitors offer automatic
   * unrolling for small fixed size matrix.
+  * 
+  * \note if the matrix is empty, then the visitor is left unchanged.
   *
   * \sa minCoeff(Index*,Index*), maxCoeff(Index*,Index*), DenseBase::redux()
   */
@@ -106,6 +116,9 @@ template<typename Visitor>
 EIGEN_DEVICE_FUNC
 void DenseBase<Derived>::visit(Visitor& visitor) const
 {
+  if(size()==0)
+    return;
+  
   typedef typename internal::visitor_evaluator<Derived> ThisEvaluator;
   ThisEvaluator thisEval(derived());
   
@@ -124,6 +137,8 @@ namespace internal {
 template <typename Derived>
 struct coeff_visitor
 {
+  // default initialization to avoid countless invalid maybe-uninitialized warnings by gcc
+  coeff_visitor() : row(-1), col(-1), res(0) {}
   typedef typename Derived::Scalar Scalar;
   Index row, col;
   Scalar res;
@@ -196,6 +211,9 @@ struct functor_traits<max_coeff_visitor<Scalar> > {
 
 /** \fn DenseBase<Derived>::minCoeff(IndexType* rowId, IndexType* colId) const
   * \returns the minimum of all coefficients of *this and puts in *row and *col its location.
+  * 
+  * \warning the matrix must be not empty, otherwise an assertion is triggered.
+  * 
   * \warning the result is undefined if \c *this contains NaN.
   *
   * \sa DenseBase::minCoeff(Index*), DenseBase::maxCoeff(Index*,Index*), DenseBase::visit(), DenseBase::minCoeff()
@@ -206,6 +224,8 @@ EIGEN_DEVICE_FUNC
 typename internal::traits<Derived>::Scalar
 DenseBase<Derived>::minCoeff(IndexType* rowId, IndexType* colId) const
 {
+  eigen_assert(this->rows()>0 && this->cols()>0 && "you are using an empty matrix");
+
   internal::min_coeff_visitor<Derived> minVisitor;
   this->visit(minVisitor);
   *rowId = minVisitor.row;
@@ -214,6 +234,9 @@ DenseBase<Derived>::minCoeff(IndexType* rowId, IndexType* colId) const
 }
 
 /** \returns the minimum of all coefficients of *this and puts in *index its location.
+  * 
+  * \warning the matrix must be not empty, otherwise an assertion is triggered.
+  * 
   * \warning the result is undefined if \c *this contains NaN. 
   *
   * \sa DenseBase::minCoeff(IndexType*,IndexType*), DenseBase::maxCoeff(IndexType*,IndexType*), DenseBase::visit(), DenseBase::minCoeff()
@@ -224,6 +247,8 @@ EIGEN_DEVICE_FUNC
 typename internal::traits<Derived>::Scalar
 DenseBase<Derived>::minCoeff(IndexType* index) const
 {
+  eigen_assert(this->rows()>0 && this->cols()>0 && "you are using an empty matrix");
+
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
   internal::min_coeff_visitor<Derived> minVisitor;
   this->visit(minVisitor);
@@ -233,6 +258,9 @@ DenseBase<Derived>::minCoeff(IndexType* index) const
 
 /** \fn DenseBase<Derived>::maxCoeff(IndexType* rowId, IndexType* colId) const
   * \returns the maximum of all coefficients of *this and puts in *row and *col its location.
+  * 
+  * \warning the matrix must be not empty, otherwise an assertion is triggered.
+  * 
   * \warning the result is undefined if \c *this contains NaN. 
   *
   * \sa DenseBase::minCoeff(IndexType*,IndexType*), DenseBase::visit(), DenseBase::maxCoeff()
@@ -243,6 +271,8 @@ EIGEN_DEVICE_FUNC
 typename internal::traits<Derived>::Scalar
 DenseBase<Derived>::maxCoeff(IndexType* rowPtr, IndexType* colPtr) const
 {
+  eigen_assert(this->rows()>0 && this->cols()>0 && "you are using an empty matrix");
+
   internal::max_coeff_visitor<Derived> maxVisitor;
   this->visit(maxVisitor);
   *rowPtr = maxVisitor.row;
@@ -251,6 +281,9 @@ DenseBase<Derived>::maxCoeff(IndexType* rowPtr, IndexType* colPtr) const
 }
 
 /** \returns the maximum of all coefficients of *this and puts in *index its location.
+  * 
+  * \warning the matrix must be not empty, otherwise an assertion is triggered.
+  *
   * \warning the result is undefined if \c *this contains NaN.
   *
   * \sa DenseBase::maxCoeff(IndexType*,IndexType*), DenseBase::minCoeff(IndexType*,IndexType*), DenseBase::visitor(), DenseBase::maxCoeff()
@@ -261,6 +294,8 @@ EIGEN_DEVICE_FUNC
 typename internal::traits<Derived>::Scalar
 DenseBase<Derived>::maxCoeff(IndexType* index) const
 {
+  eigen_assert(this->rows()>0 && this->cols()>0 && "you are using an empty matrix");
+
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
   internal::max_coeff_visitor<Derived> maxVisitor;
   this->visit(maxVisitor);

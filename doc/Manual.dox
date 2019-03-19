@@ -15,7 +15,6 @@ namespace Eigen {
 
 
 /** \page UserManual_Generalities General topics
-  - \subpage Eigen2ToEigen3
   - \subpage TopicFunctionTakingEigenTypes
   - \subpage TopicPreprocessorDirectives
   - \subpage TopicAssertions
@@ -108,7 +107,7 @@ namespace Eigen {
 /** \addtogroup CoeffwiseMathFunctions
     \ingroup DenseMatrixManipulation_chapter */
 
-/** \addtogroup SparseQuickRefPage
+/** \addtogroup QuickRefPage
     \ingroup DenseMatrixManipulation_chapter */
 
 

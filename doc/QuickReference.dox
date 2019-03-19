@@ -529,6 +529,12 @@ if((array1 < array2).any()) ... // if there exist a pair i,j such that array1(i,
 
 <a href="#" class="top">top</a>\section QuickRef_Blocks Sub-matrices
 
+<div class="warningbox">
+<strong>PLEASE HELP US IMPROVING THIS SECTION.</strong>
+%Eigen 3.4 supports a much improved API for sub-matrices, including,
+slicing and indexing from arrays: \ref TutorialSlicingIndexing
+</div>
+
 Read-write access to a \link DenseBase::col(Index) column \endlink
 or a \link DenseBase::row(Index) row \endlink of a matrix (or array):
 \code
@@ -583,6 +589,11 @@ Read-write access to sub-matrices:</td></tr>
 
 
 <a href="#" class="top">top</a>\section QuickRef_Misc Miscellaneous operations
+
+<div class="warningbox">
+<strong>PLEASE HELP US IMPROVING THIS SECTION.</strong>
+%Eigen 3.4 supports a new API for reshaping: \ref TutorialReshape
+</div>
 
 \subsection QuickRef_Reverse Reverse
 Vectors, rows, and/or columns of a matrix can be reversed (see DenseBase::reverse(), DenseBase::reverseInPlace(), VectorwiseOp::reverse()).

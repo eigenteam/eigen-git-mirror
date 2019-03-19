@@ -88,7 +88,7 @@ SYCL_ARITHMETIC(cl::sycl::cl_double2)
 #define SYCL_UNPACKET_TRAITS(packet_type, unpacket_type, lengths)\
 template<> struct unpacket_traits<packet_type>  {\
   typedef unpacket_type  type;\
-  enum {size=lengths, alignment=Aligned16};\
+  enum {size=lengths, alignment=Aligned16, vectorizable=true};\
   typedef packet_type half;\
 };
 SYCL_UNPACKET_TRAITS(cl::sycl::cl_float4, float, 4)

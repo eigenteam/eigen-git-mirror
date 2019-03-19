@@ -188,6 +188,13 @@ span.cpp11,span.cpp14,span.cpp17 {
   font-weight: bold;
 }
 
+div.warningbox {
+  max-width:60em;
+  border-style: solid solid solid solid;
+  border-color: red;
+  border-width: 3px;
+}
+
 /**** old Eigen's styles ****/
 
 

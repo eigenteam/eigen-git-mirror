@@ -32,7 +32,7 @@ struct traits<TensorConversionOp<TargetType, XprType> >
   static const int NumDimensions = traits<XprType>::NumDimensions;
   static const int Layout = traits<XprType>::Layout;
   enum { Flags = 0 };
-   typedef typename TypeConversion<Scalar, typename traits<XprType>::PointerType>::type PointerType;
+  typedef typename TypeConversion<Scalar, typename traits<XprType>::PointerType>::type PointerType;
 };
 
 template<typename TargetType, typename XprType>
@@ -177,6 +177,81 @@ template <typename Eval, typename Scalar> struct ConversionSubExprEval<true, Eva
   }
 };
 
+namespace internal {
+
+template <typename SrcType, typename TargetType, bool IsSameT>
+struct CoeffConv {
+  template <typename ArgType, typename Device>
+  static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TargetType run(const TensorEvaluator<ArgType, Device>& impl, Index index) {
+    internal::scalar_cast_op<SrcType, TargetType> converter;
+    return converter(impl.coeff(index));
+  }
+};
+
+template <typename SrcType, typename TargetType>
+struct CoeffConv<SrcType, TargetType, true> {
+  template <typename ArgType, typename Device>
+  static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TargetType run(const TensorEvaluator<ArgType, Device>& impl, Index index) {
+    return impl.coeff(index);
+  }
+};
+
+template <typename SrcPacket, typename TargetPacket, int LoadMode, bool ActuallyVectorize, bool IsSameT>
+struct PacketConv {
+  typedef typename internal::unpacket_traits<SrcPacket>::type SrcType;
+  typedef typename internal::unpacket_traits<TargetPacket>::type TargetType;
+
+  static const int PacketSize = internal::unpacket_traits<TargetPacket>::size;
+
+  template <typename ArgType, typename Device>
+  static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TargetPacket run(const TensorEvaluator<ArgType, Device>& impl, Index index) {
+    internal::scalar_cast_op<SrcType, TargetType> converter;
+    EIGEN_ALIGN_MAX typename internal::remove_const<TargetType>::type values[PacketSize];
+    for (int i = 0; i < PacketSize; ++i) {
+      values[i] = converter(impl.coeff(index+i));
+    }
+    TargetPacket rslt = internal::pload<TargetPacket>(values);
+    return rslt;
+  }
+};
+
+template <typename SrcPacket, typename TargetPacket, int LoadMode, bool IsSameT>
+struct PacketConv<SrcPacket, TargetPacket, LoadMode, true, IsSameT> {
+  typedef typename internal::unpacket_traits<SrcPacket>::type SrcType;
+  typedef typename internal::unpacket_traits<TargetPacket>::type TargetType;
+
+  template <typename ArgType, typename Device>
+  static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TargetPacket run(const TensorEvaluator<ArgType, Device>& impl, Index index) {
+    const int SrcCoeffRatio = internal::type_casting_traits<SrcType, TargetType>::SrcCoeffRatio;
+    const int TgtCoeffRatio = internal::type_casting_traits<SrcType, TargetType>::TgtCoeffRatio;
+    PacketConverter<TensorEvaluator<ArgType, Device>, SrcPacket, TargetPacket,
+                    SrcCoeffRatio, TgtCoeffRatio> converter(impl);
+    return converter.template packet<LoadMode>(index);
+  }
+};
+
+template <typename SrcPacket, typename TargetPacket, int LoadMode>
+struct PacketConv<SrcPacket, TargetPacket, LoadMode, /*ActuallyVectorize=*/false, /*IsSameT=*/true> {
+  typedef typename internal::unpacket_traits<TargetPacket>::type TargetType;
+  static const int PacketSize = internal::unpacket_traits<TargetPacket>::size;
+
+  template <typename ArgType, typename Device>
+  static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TargetPacket run(const TensorEvaluator<ArgType, Device>& impl, Index index) {
+    EIGEN_ALIGN_MAX typename internal::remove_const<TargetType>::type values[PacketSize];
+    for (int i = 0; i < PacketSize; ++i) values[i] = impl.coeff(index+i);
+    return internal::pload<TargetPacket>(values);
+  }
+};
+
+template <typename SrcPacket, typename TargetPacket, int LoadMode>
+struct PacketConv<SrcPacket, TargetPacket, LoadMode, /*ActuallyVectorize=*/true, /*IsSameT=*/true> {
+  template <typename ArgType, typename Device>
+  static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TargetPacket run(const TensorEvaluator<ArgType, Device>& impl, Index index) {
+    return impl.template packet<LoadMode>(index);
+  }
+};
+
+}  // namespace internal
 
 // Eval as rvalue
 template<typename TargetType, typename ArgType, typename Device>
@@ -191,6 +266,7 @@ struct TensorEvaluator<const TensorConversionOp<TargetType, ArgType>, Device>
   typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
   typedef typename PacketType<SrcType, Device>::type PacketSourceType;
   static const int PacketSize = PacketType<CoeffReturnType, Device>::size;
+  static const bool IsSameType = internal::is_same<TargetType, SrcType>::value;
 
   enum {
     IsAligned = false,
@@ -210,7 +286,7 @@ struct TensorEvaluator<const TensorConversionOp<TargetType, ArgType>, Device>
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool evalSubExprsIfNeeded(Scalar* data)
   {
-    return ConversionSubExprEval<internal::is_same<TargetType, SrcType>::value, TensorEvaluator<ArgType, Device>, Scalar>::run(m_impl, data);
+    return ConversionSubExprEval<IsSameType, TensorEvaluator<ArgType, Device>, Scalar>::run(m_impl, data);
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void cleanup()
@@ -220,16 +296,23 @@ struct TensorEvaluator<const TensorConversionOp<TargetType, ArgType>, Device>
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE CoeffReturnType coeff(Index index) const
   {
-    internal::scalar_cast_op<SrcType, TargetType> converter;
-    return converter(m_impl.coeff(index));
+    return internal::CoeffConv<SrcType, TargetType, IsSameType>::run(m_impl,index);
   }
 
   template<int LoadMode>
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE PacketReturnType packet(Index index) const
-  {
-    const bool Vectorizable = TensorEvaluator<ArgType, Device>::PacketAccess &
-        internal::type_casting_traits<SrcType, TargetType>::VectorizedCast;
-    return PacketConv<LoadMode, Vectorizable>::run(m_impl, index);
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE PacketReturnType
+  packet(Index index) const {
+    // If we are not going to do the cast, we just need to check that base
+    // TensorEvaluator has packet access. Otherwise we also need to make sure,
+    // that we have an implementation of vectorized cast.
+    const bool Vectorizable =
+        IsSameType
+        ? TensorEvaluator<ArgType, Device>::PacketAccess
+        : TensorEvaluator<ArgType, Device>::PacketAccess &
+          internal::type_casting_traits<SrcType, TargetType>::VectorizedCast;
+
+    return internal::PacketConv<PacketSourceType, PacketReturnType, LoadMode,
+                                Vectorizable, IsSameType>::run(m_impl, index);
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorOpCost
@@ -252,31 +335,7 @@ struct TensorEvaluator<const TensorConversionOp<TargetType, ArgType>, Device>
   /// required by sycl in order to extract the sycl accessor
   const TensorEvaluator<ArgType, Device>& impl() const { return m_impl; }
 
-  protected:
-  template <int LoadMode, bool ActuallyVectorize>
-  struct PacketConv {
-    static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE PacketReturnType run(const TensorEvaluator<ArgType, Device>& impl, Index index) {
-      internal::scalar_cast_op<SrcType, TargetType> converter;
-      EIGEN_ALIGN_MAX typename internal::remove_const<CoeffReturnType>::type values[PacketSize];
-      for (int i = 0; i < PacketSize; ++i) {
-        values[i] = converter(impl.coeff(index+i));
-      }
-      PacketReturnType rslt = internal::pload<PacketReturnType>(values);
-      return rslt;
-    }
-  };
-
-  template <int LoadMode>
-  struct PacketConv<LoadMode, true> {
-    static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE PacketReturnType run(const TensorEvaluator<ArgType, Device>& impl, Index index) {
-      const int SrcCoeffRatio = internal::type_casting_traits<SrcType, TargetType>::SrcCoeffRatio;
-      const int TgtCoeffRatio = internal::type_casting_traits<SrcType, TargetType>::TgtCoeffRatio;
-      PacketConverter<TensorEvaluator<ArgType, Device>, PacketSourceType, PacketReturnType,
-                      SrcCoeffRatio, TgtCoeffRatio> converter(impl);
-      return converter.template packet<LoadMode>(index);
-    }
-  };
-
+ protected:
   TensorEvaluator<ArgType, Device> m_impl;
 };
 

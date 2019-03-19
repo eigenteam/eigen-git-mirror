@@ -129,16 +129,21 @@
   #define EIGEN_COMP_MSVC_STRICT 0
 #endif
 
-/// \internal EIGEN_COMP_IBM set to 1 if the compiler is IBM XL C++
-#if defined(__IBMCPP__) || defined(__xlc__)
-  #define EIGEN_COMP_IBM 1
+/// \internal EIGEN_COMP_IBM set to xlc version if the compiler is IBM XL C++
+// XLC   version
+// 3.1   0x0301	
+// 4.5   0x0405	
+// 5.0   0x0500
+// 12.1  0x0C01
+#if defined(__IBMCPP__) || defined(__xlc__) || defined(__ibmxl__)
+  #define EIGEN_COMP_IBM __xlC__
 #else
   #define EIGEN_COMP_IBM 0
 #endif
 
-/// \internal EIGEN_COMP_PGI set to 1 if the compiler is Portland Group Compiler
+/// \internal EIGEN_COMP_PGI set to PGI version if the compiler is Portland Group Compiler
 #if defined(__PGI)
-  #define EIGEN_COMP_PGI 1
+  #define EIGEN_COMP_PGI (__PGIC__*100+__PGIC_MINOR__)
 #else
   #define EIGEN_COMP_PGI 0
 #endif
@@ -347,9 +352,17 @@
   #define EIGEN_OS_WIN_STRICT 0
 #endif
 
-/// \internal EIGEN_OS_SUN set to 1 if the OS is SUN
+/// \internal EIGEN_OS_SUN set to __SUNPRO_C if the OS is SUN
+// compiler  solaris   __SUNPRO_C
+// version   studio
+// 5.7       10        0x570
+// 5.8       11        0x580
+// 5.9       12        0x590
+// 5.10	     12.1      0x5100
+// 5.11	     12.2      0x5110
+// 5.12	     12.3      0x5120
 #if (defined(sun) || defined(__sun)) && !(defined(__SVR4) || defined(__svr4__))
-  #define EIGEN_OS_SUN 1
+  #define EIGEN_OS_SUN __SUNPRO_C
 #else
   #define EIGEN_OS_SUN 0
 #endif
@@ -495,13 +508,33 @@
 #define EIGEN_HAS_STATIC_ARRAY_TEMPLATE 0
 #endif
 
-#if EIGEN_MAX_CPP_VER>=11 && (defined(__cplusplus) && (__cplusplus >= 201103L) || EIGEN_COMP_MSVC >= 1900)
+
+// The macro EIGEN_COMP_CXXVER defines the c++ verson expected by the compiler.
+// For instance, if compiling with gcc and -std=c++17, then EIGEN_COMP_CXXVER
+// is defined to 17.
+#if   (defined(__cplusplus) && (__cplusplus >  201402L) || EIGEN_COMP_MSVC >= 1914)
+#define EIGEN_COMP_CXXVER 17
+#elif (defined(__cplusplus) && (__cplusplus >  201103L) || EIGEN_COMP_MSVC >= 1910)
+#define EIGEN_COMP_CXXVER 14
+#elif (defined(__cplusplus) && (__cplusplus >= 201103L) || EIGEN_COMP_MSVC >= 1900)
+#define EIGEN_COMP_CXXVER 11
+#else
+#define EIGEN_COMP_CXXVER 03
+#endif
+
+
+// The macros EIGEN_HAS_CXX?? defines a rough estimate of available c++ features
+// but in practice we should not rely on them but rather on the availabilty of
+// individual features as defined later.
+// This is why there is no EIGEN_HAS_CXX17.
+// FIXME: get rid of EIGEN_HAS_CXX14 and maybe even EIGEN_HAS_CXX11.
+#if EIGEN_MAX_CPP_VER>=11 && EIGEN_COMP_CXXVER>=11
 #define EIGEN_HAS_CXX11 1
 #else
 #define EIGEN_HAS_CXX11 0
 #endif
 
-#if EIGEN_MAX_CPP_VER>=14 && (defined(__cplusplus) && (__cplusplus > 201103L) || EIGEN_COMP_MSVC >= 1910)
+#if EIGEN_MAX_CPP_VER>=14 && EIGEN_COMP_CXXVER>=14
 #define EIGEN_HAS_CXX14 1
 #else
 #define EIGEN_HAS_CXX14 0
@@ -543,6 +576,22 @@
 #define EIGEN_HAS_STD_RESULT_OF 1
 #else
 #define EIGEN_HAS_STD_RESULT_OF 0
+#endif
+#endif
+
+#ifndef EIGEN_HAS_ALIGNAS
+#if EIGEN_MAX_CPP_VER>=11 && EIGEN_HAS_CXX11 &&   \
+      (     __has_feature(cxx_alignas)            \
+        ||  EIGEN_HAS_CXX14                       \
+        || (EIGEN_COMP_MSVC >= 1800)              \
+        || (EIGEN_GNUC_AT_LEAST(4,8))             \
+        || (EIGEN_COMP_CLANG>=305)                \
+        || (EIGEN_COMP_ICC>=1500)                 \
+        || (EIGEN_COMP_PGI>=1500)                 \
+        || (EIGEN_COMP_SUNCC>=0x5130))
+#define EIGEN_HAS_ALIGNAS 1
+#else
+#define EIGEN_HAS_ALIGNAS 0
 #endif
 #endif
 
@@ -649,6 +698,23 @@
   #endif
 #endif
 
+// NOTE: the required Apple's clang version is very conservative 
+//       and it could be that XCode 9 works just fine.
+// NOTE: the MSVC version is based on https://en.cppreference.com/w/cpp/compiler_support
+//       and not tested.
+#ifndef EIGEN_HAS_CXX17_OVERALIGN
+#if EIGEN_MAX_CPP_VER>=17 && EIGEN_COMP_CXXVER>=17 && (                                 \
+           (EIGEN_COMP_MSVC >= 1912)                                                    \
+        || (EIGEN_GNUC_AT_LEAST(7,0))                                                   \
+        || ((!defined(__apple_build_version__)) && (EIGEN_COMP_CLANG>=500))             \
+        || (( defined(__apple_build_version__)) && (__apple_build_version__>=10000000)) \
+      )
+#define EIGEN_HAS_CXX17_OVERALIGN 1
+#else
+#define EIGEN_HAS_CXX17_OVERALIGN 0
+#endif
+#endif
+
 #if defined(EIGEN_CUDACC) && EIGEN_HAS_CONSTEXPR
   // While available already with c++11, this is useful mostly starting with c++14 and relaxed constexpr rules
   #if defined(__NVCC__)
@@ -742,10 +808,6 @@
 
 // All functions callable from CUDA/HIP code must be qualified with __device__
 #ifdef EIGEN_GPUCC
-  #ifndef EIGEN_DONT_VECTORIZE
-  #define EIGEN_DONT_VECTORIZE
-  #endif
-
   #define EIGEN_DEVICE_FUNC __host__ __device__
 #else
   #define EIGEN_DEVICE_FUNC
@@ -841,7 +903,7 @@
 // Suppresses 'unused variable' warnings.
 namespace Eigen {
   namespace internal {
-    template<typename T> EIGEN_DEVICE_FUNC void ignore_unused_variable(const T&) {}
+    template<typename T> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void ignore_unused_variable(const T&) {}
   }
 }
 #define EIGEN_UNUSED_VARIABLE(var) Eigen::internal::ignore_unused_variable(var);
@@ -1035,7 +1097,7 @@ namespace Eigen {
 #endif
 
 #define EIGEN_MAKE_SCALAR_BINARY_OP_ONTHERIGHT(METHOD,OPNAME) \
-  template <typename T> EIGEN_DEVICE_FUNC inline \
+  template <typename T> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE \
   EIGEN_MSVC10_WORKAROUND_BINARYOP_RETURN_TYPE(const EIGEN_EXPR_BINARYOP_SCALAR_RETURN_TYPE(Derived,typename internal::promote_scalar_arg<Scalar EIGEN_COMMA T EIGEN_COMMA EIGEN_SCALAR_BINARY_SUPPORTED(OPNAME,Scalar,T)>::type,OPNAME))\
   (METHOD)(const T& scalar) const { \
     typedef typename internal::promote_scalar_arg<Scalar,T,EIGEN_SCALAR_BINARY_SUPPORTED(OPNAME,Scalar,T)>::type PromotedT; \
@@ -1044,7 +1106,7 @@ namespace Eigen {
   }
 
 #define EIGEN_MAKE_SCALAR_BINARY_OP_ONTHELEFT(METHOD,OPNAME) \
-  template <typename T> EIGEN_DEVICE_FUNC inline friend \
+  template <typename T> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE friend \
   EIGEN_MSVC10_WORKAROUND_BINARYOP_RETURN_TYPE(const EIGEN_SCALAR_BINARYOP_EXPR_RETURN_TYPE(typename internal::promote_scalar_arg<Scalar EIGEN_COMMA T EIGEN_COMMA EIGEN_SCALAR_BINARY_SUPPORTED(OPNAME,T,Scalar)>::type,Derived,OPNAME)) \
   (METHOD)(const T& scalar, const StorageBaseType& matrix) { \
     typedef typename internal::promote_scalar_arg<Scalar,T,EIGEN_SCALAR_BINARY_SUPPORTED(OPNAME,T,Scalar)>::type PromotedT; \
@@ -1093,9 +1155,9 @@ namespace Eigen {
 #   define EIGEN_NOEXCEPT
 #   define EIGEN_NOEXCEPT_IF(x)
 #   define EIGEN_NO_THROW throw()
-#   if EIGEN_COMP_MSVC
+#   if EIGEN_COMP_MSVC || EIGEN_COMP_CXXVER>=17
       // MSVC does not support exception specifications (warning C4290),
-      // and they are deprecated in c++11 anyway.
+      // and they are deprecated in c++11 anyway. This is even an error in c++17.
 #     define EIGEN_EXCEPTION_SPEC(X) throw()
 #   else
 #     define EIGEN_EXCEPTION_SPEC(X) throw(X)

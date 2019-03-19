@@ -177,9 +177,9 @@ namespace Eigen
       // I, J, K are the pivot indexes permutation for the rotation matrix, that match this Euler system. 
       // They are used in this class converters.
       // They are always different from each other, and their possible values are: 0, 1, or 2.
-      I = AlphaAxisAbs - 1,
-      J = (AlphaAxisAbs - 1 + 1 + IsOdd)%3,
-      K = (AlphaAxisAbs - 1 + 2 - IsOdd)%3
+      I_ = AlphaAxisAbs - 1,
+      J_ = (AlphaAxisAbs - 1 + 1 + IsOdd)%3,
+      K_ = (AlphaAxisAbs - 1 + 2 - IsOdd)%3
     ;
     
     // TODO: Get @mat parameter in form that avoids double evaluation.
@@ -194,24 +194,24 @@ namespace Eigen
       const Scalar plusMinus = IsEven? 1 : -1;
       const Scalar minusPlus = IsOdd?  1 : -1;
 
-      const Scalar Rsum = sqrt((mat(I,I) * mat(I,I) + mat(I,J) * mat(I,J) + mat(J,K) * mat(J,K) + mat(K,K) * mat(K,K))/2);
-      res[1] = atan2(plusMinus * mat(I,K), Rsum);
+      const Scalar Rsum = sqrt((mat(I_,I_) * mat(I_,I_) + mat(I_,J_) * mat(I_,J_) + mat(J_,K_) * mat(J_,K_) + mat(K_,K_) * mat(K_,K_))/2);
+      res[1] = atan2(plusMinus * mat(I_,K_), Rsum);
 
       // There is a singularity when cos(beta) == 0
       if(Rsum > 4 * NumTraits<Scalar>::epsilon()) {// cos(beta) != 0
-        res[0] = atan2(minusPlus * mat(J, K), mat(K, K));
-        res[2] = atan2(minusPlus * mat(I, J), mat(I, I));
+        res[0] = atan2(minusPlus * mat(J_, K_), mat(K_, K_));
+        res[2] = atan2(minusPlus * mat(I_, J_), mat(I_, I_));
       }
-      else if(plusMinus * mat(I, K) > 0) {// cos(beta) == 0 and sin(beta) == 1
-        Scalar spos = mat(J, I) + plusMinus * mat(K, J); // 2*sin(alpha + plusMinus * gamma
-        Scalar cpos = mat(J, J) + minusPlus * mat(K, I); // 2*cos(alpha + plusMinus * gamma)
+      else if(plusMinus * mat(I_, K_) > 0) {// cos(beta) == 0 and sin(beta) == 1
+        Scalar spos = mat(J_, I_) + plusMinus * mat(K_, J_); // 2*sin(alpha + plusMinus * gamma
+        Scalar cpos = mat(J_, J_) + minusPlus * mat(K_, I_); // 2*cos(alpha + plusMinus * gamma)
         Scalar alphaPlusMinusGamma = atan2(spos, cpos);
         res[0] = alphaPlusMinusGamma;
         res[2] = 0;
       }
       else {// cos(beta) == 0 and sin(beta) == -1
-        Scalar sneg = plusMinus * (mat(K, J) + minusPlus * mat(J, I)); // 2*sin(alpha + minusPlus*gamma)
-        Scalar cneg = mat(J, J) + plusMinus * mat(K, I);               // 2*cos(alpha + minusPlus*gamma)
+        Scalar sneg = plusMinus * (mat(K_, J_) + minusPlus * mat(J_, I_)); // 2*sin(alpha + minusPlus*gamma)
+        Scalar cneg = mat(J_, J_) + plusMinus * mat(K_, I_);               // 2*cos(alpha + minusPlus*gamma)
         Scalar alphaMinusPlusBeta = atan2(sneg, cneg);
         res[0] = alphaMinusPlusBeta;
         res[2] = 0;
@@ -230,24 +230,24 @@ namespace Eigen
       const Scalar plusMinus = IsEven? 1 : -1;
       const Scalar minusPlus = IsOdd?  1 : -1;
 
-      const Scalar Rsum = sqrt((mat(I, J) * mat(I, J) + mat(I, K) * mat(I, K) + mat(J, I) * mat(J, I) + mat(K, I) * mat(K, I)) / 2);
+      const Scalar Rsum = sqrt((mat(I_, J_) * mat(I_, J_) + mat(I_, K_) * mat(I_, K_) + mat(J_, I_) * mat(J_, I_) + mat(K_, I_) * mat(K_, I_)) / 2);
 
-      res[1] = atan2(Rsum, mat(I, I));
+      res[1] = atan2(Rsum, mat(I_, I_));
 
       // There is a singularity when sin(beta) == 0
       if(Rsum > 4 * NumTraits<Scalar>::epsilon()) {// sin(beta) != 0
-        res[0] = atan2(mat(J, I), minusPlus * mat(K, I));
-        res[2] = atan2(mat(I, J), plusMinus * mat(I, K));
+        res[0] = atan2(mat(J_, I_), minusPlus * mat(K_, I_));
+        res[2] = atan2(mat(I_, J_), plusMinus * mat(I_, K_));
       }
-      else if(mat(I, I) > 0) {// sin(beta) == 0 and cos(beta) == 1
-        Scalar spos = plusMinus * mat(K, J) + minusPlus * mat(J, K); // 2*sin(alpha + gamma)
-        Scalar cpos = mat(J, J) + mat(K, K);                         // 2*cos(alpha + gamma)
+      else if(mat(I_, I_) > 0) {// sin(beta) == 0 and cos(beta) == 1
+        Scalar spos = plusMinus * mat(K_, J_) + minusPlus * mat(J_, K_); // 2*sin(alpha + gamma)
+        Scalar cpos = mat(J_, J_) + mat(K_, K_);                         // 2*cos(alpha + gamma)
         res[0] = atan2(spos, cpos);
         res[2] = 0;
       }
       else {// sin(beta) == 0 and cos(beta) == -1
-        Scalar sneg = plusMinus * mat(K, J) + plusMinus * mat(J, K); // 2*sin(alpha - gamma)
-        Scalar cneg = mat(J, J) - mat(K, K);                         // 2*cos(alpha - gamma)
+        Scalar sneg = plusMinus * mat(K_, J_) + plusMinus * mat(J_, K_); // 2*sin(alpha - gamma)
+        Scalar cneg = mat(J_, J_) - mat(K_, K_);                         // 2*cos(alpha - gamma)
         res[0] = atan2(sneg, cneg);
         res[2] = 0;
       }

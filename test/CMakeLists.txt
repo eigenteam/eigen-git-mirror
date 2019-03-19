@@ -164,6 +164,7 @@ ei_add_test(sizeof)
 ei_add_test(dynalloc)
 ei_add_test(nomalloc)
 ei_add_test(first_aligned)
+ei_add_test(type_alias)
 ei_add_test(nullary)
 ei_add_test(mixingtypes)
 ei_add_test(packetmath "-DEIGEN_FAST_MATH=1")
@@ -268,6 +269,7 @@ ei_add_test(sparselu)
 ei_add_test(sparseqr)
 ei_add_test(umeyama)
 ei_add_test(nesting_ops "${CMAKE_CXX_FLAGS_DEBUG}")
+ei_add_test(nestbyvalue)
 ei_add_test(zerosized)
 ei_add_test(dontalign)
 ei_add_test(evaluators)
@@ -286,6 +288,10 @@ ei_add_test(half_float)
 ei_add_test(array_of_string)
 ei_add_test(num_dimensions)
 ei_add_test(stl_iterators)
+if(EIGEN_TEST_CXX11)
+  ei_add_test(initializer_list_construction)
+  ei_add_test(diagonal_matrix_variadic_ctor)
+endif()
 
 add_executable(bug1213 bug1213.cpp bug1213_main.cpp)
 
@@ -359,7 +365,7 @@ if(EIGEN_TEST_EIGEN2)
 endif()
 
 # boost MP unit test
-find_package(Boost)
+find_package(Boost 1.53.0)
 if(Boost_FOUND)
   include_directories(${Boost_INCLUDE_DIRS})
   ei_add_test(boostmultiprec "" "${Boost_LIBRARIES}")
@@ -438,11 +444,6 @@ if (EIGEN_TEST_HIP)
   endif()
     
 endif(EIGEN_TEST_HIP)
-
-
-
-file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/failtests)    
-add_test(NAME failtests WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/failtests COMMAND ${CMAKE_COMMAND} ${Eigen_SOURCE_DIR} -G "${CMAKE_GENERATOR}" -DEIGEN_FAILTEST=ON)
 
 option(EIGEN_TEST_BUILD_DOCUMENTATION "Test building the doxygen documentation" OFF)
 IF(EIGEN_TEST_BUILD_DOCUMENTATION)

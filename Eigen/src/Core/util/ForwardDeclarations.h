@@ -47,11 +47,7 @@ template<typename T> struct NumTraits;
 template<typename Derived> struct EigenBase;
 template<typename Derived> class DenseBase;
 template<typename Derived> class PlainObjectBase;
-
-
-template<typename Derived,
-         int Level = internal::accessors_level<Derived>::value >
-class DenseCoeffsBase;
+template<typename Derived, int Level> class DenseCoeffsBase;
 
 template<typename _Scalar, int _Rows, int _Cols,
          int _Options = AutoAlign |
@@ -260,6 +256,7 @@ template<typename MatrixType> class HouseholderQR;
 template<typename MatrixType> class ColPivHouseholderQR;
 template<typename MatrixType> class FullPivHouseholderQR;
 template<typename MatrixType> class CompleteOrthogonalDecomposition;
+template<typename MatrixType> class SVDBase;
 template<typename MatrixType, int QRPreconditioner = ColPivHouseholderQRPreconditioner> class JacobiSVD;
 template<typename MatrixType> class BDCSVD;
 template<typename MatrixType, int UpLo = Lower> class LLT;

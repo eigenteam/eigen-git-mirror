@@ -87,13 +87,13 @@ struct ThreadPoolDevice {
     const size_t kMinBlockSize = 32768;
     typedef TensorCostModel<ThreadPoolDevice> CostModel;
     const size_t num_threads = CostModel::numThreads(n, TensorOpCost(1.0, 1.0, 0), 4);
-    if (n <= kMinBlockSize || num_threads == 1) {
+    if (n <= kMinBlockSize || num_threads < 2) {
       ::memcpy(dst, src, n);
     } else {
       const char* src_ptr = static_cast<const char*>(src);
       char* dst_ptr = static_cast<char*>(dst);
       const size_t blocksize = (n + (num_threads - 1)) / num_threads;
-      Barrier barrier(num_threads - 1);
+      Barrier barrier(static_cast<int>(num_threads - 1));
       // Launch the last 3 blocks on worker threads.
       for (size_t i = 1; i < num_threads; ++i) {
         enqueue_with_barrier(&barrier, [n, i, src_ptr, dst_ptr, blocksize] {
@@ -120,6 +120,12 @@ struct ThreadPoolDevice {
 
   EIGEN_STRONG_INLINE int numThreads() const {
     return num_threads_;
+  }
+
+  // Number of theads available in the underlying thread pool. This number can
+  // be different from the value returned by numThreads().
+  EIGEN_STRONG_INLINE int numThreadsInPool() const {
+    return pool_->NumThreads();
   }
 
   EIGEN_STRONG_INLINE size_t firstLevelCacheSize() const {

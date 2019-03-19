@@ -46,6 +46,8 @@ void bdcsvd_method()
   VERIFY_RAISES_ASSERT(m.bdcSvd().matrixU());
   VERIFY_RAISES_ASSERT(m.bdcSvd().matrixV());
   VERIFY_IS_APPROX(m.bdcSvd(ComputeFullU|ComputeFullV).solve(m), m);
+  VERIFY_IS_APPROX(m.bdcSvd(ComputeFullU|ComputeFullV).transpose().solve(m), m);
+  VERIFY_IS_APPROX(m.bdcSvd(ComputeFullU|ComputeFullV).adjoint().solve(m), m);
 }
 
 // compare the Singular values returned with Jacobi and Bdc

@@ -71,8 +71,8 @@ template<typename VectorType, int Size> class VectorBlock
 
     /** Dynamic-size constructor
       */
-    EIGEN_DEVICE_FUNC
-    inline VectorBlock(VectorType& vector, Index start, Index size)
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    VectorBlock(VectorType& vector, Index start, Index size)
       : Base(vector,
              IsColVector ? start : 0, IsColVector ? 0 : start,
              IsColVector ? size  : 1, IsColVector ? 1 : size)
@@ -82,8 +82,8 @@ template<typename VectorType, int Size> class VectorBlock
 
     /** Fixed-size constructor
       */
-    EIGEN_DEVICE_FUNC
-    inline VectorBlock(VectorType& vector, Index start)
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    VectorBlock(VectorType& vector, Index start)
       : Base(vector, IsColVector ? start : 0, IsColVector ? 0 : start)
     {
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(VectorBlock);

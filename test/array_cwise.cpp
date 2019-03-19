@@ -92,15 +92,30 @@ template<typename ArrayType> void array(const ArrayType& m)
                 ArrayType::RowsAtCompileTime==Dynamic?2:ArrayType::RowsAtCompileTime,
                 ArrayType::ColsAtCompileTime==Dynamic?2:ArrayType::ColsAtCompileTime,
                 ArrayType::Options> FixedArrayType;
-  FixedArrayType f1(s1);
-  VERIFY_IS_APPROX(f1, FixedArrayType::Constant(s1));
-  FixedArrayType f2(numext::real(s1));
-  VERIFY_IS_APPROX(f2, FixedArrayType::Constant(numext::real(s1)));
-  FixedArrayType f3((int)100*numext::real(s1));
-  VERIFY_IS_APPROX(f3, FixedArrayType::Constant((int)100*numext::real(s1)));
-  f1.setRandom();
-  FixedArrayType f4(f1.data());
-  VERIFY_IS_APPROX(f4, f1);
+  {
+    FixedArrayType f1(s1);
+    VERIFY_IS_APPROX(f1, FixedArrayType::Constant(s1));
+    FixedArrayType f2(numext::real(s1));
+    VERIFY_IS_APPROX(f2, FixedArrayType::Constant(numext::real(s1)));
+    FixedArrayType f3((int)100*numext::real(s1));
+    VERIFY_IS_APPROX(f3, FixedArrayType::Constant((int)100*numext::real(s1)));
+    f1.setRandom();
+    FixedArrayType f4(f1.data());
+    VERIFY_IS_APPROX(f4, f1);
+  }
+  #if EIGEN_HAS_CXX11
+  {
+    FixedArrayType f1{s1};
+    VERIFY_IS_APPROX(f1, FixedArrayType::Constant(s1));
+    FixedArrayType f2{numext::real(s1)};
+    VERIFY_IS_APPROX(f2, FixedArrayType::Constant(numext::real(s1)));
+    FixedArrayType f3{(int)100*numext::real(s1)};
+    VERIFY_IS_APPROX(f3, FixedArrayType::Constant((int)100*numext::real(s1)));
+    f1.setRandom();
+    FixedArrayType f4{f1.data()};
+    VERIFY_IS_APPROX(f4, f1);
+  }
+  #endif
 
   // pow
   VERIFY_IS_APPROX(m1.pow(2), m1.square());
@@ -120,10 +135,51 @@ template<typename ArrayType> void array(const ArrayType& m)
 
   // Check possible conflicts with 1D ctor
   typedef Array<Scalar, Dynamic, 1> OneDArrayType;
-  OneDArrayType o1(rows);
-  VERIFY(o1.size()==rows);
-  OneDArrayType o4((int)rows);
-  VERIFY(o4.size()==rows);
+  {
+    OneDArrayType o1(rows);
+    VERIFY(o1.size()==rows);
+    OneDArrayType o2(static_cast<int>(rows));
+    VERIFY(o2.size()==rows);
+  }
+  #if EIGEN_HAS_CXX11
+  {
+    OneDArrayType o1{rows};
+    VERIFY(o1.size()==rows);
+    OneDArrayType o4{int(rows)};
+    VERIFY(o4.size()==rows);
+  }
+  #endif
+  // Check possible conflicts with 2D ctor
+  typedef Array<Scalar, Dynamic, Dynamic> TwoDArrayType;
+  typedef Array<Scalar, 2, 1> ArrayType2;
+  {
+    TwoDArrayType o1(rows,cols);
+    VERIFY(o1.rows()==rows);
+    VERIFY(o1.cols()==cols);
+    TwoDArrayType o2(static_cast<int>(rows),static_cast<int>(cols));
+    VERIFY(o2.rows()==rows);
+    VERIFY(o2.cols()==cols);
+
+    ArrayType2 o3(rows,cols);
+    VERIFY(o3(0)==Scalar(rows) && o3(1)==Scalar(cols));
+    ArrayType2 o4(static_cast<int>(rows),static_cast<int>(cols));
+    VERIFY(o4(0)==Scalar(rows) && o4(1)==Scalar(cols));
+  }
+  #if EIGEN_HAS_CXX11
+  {
+    TwoDArrayType o1{rows,cols};
+    VERIFY(o1.rows()==rows);
+    VERIFY(o1.cols()==cols);
+    TwoDArrayType o2{int(rows),int(cols)};
+    VERIFY(o2.rows()==rows);
+    VERIFY(o2.cols()==cols);
+
+    ArrayType2 o3{rows,cols};
+    VERIFY(o3(0)==Scalar(rows) && o3(1)==Scalar(cols));
+    ArrayType2 o4{int(rows),int(cols)};
+    VERIFY(o4(0)==Scalar(rows) && o4(1)==Scalar(cols));
+  }
+  #endif
 }
 
 template<typename ArrayType> void comparisons(const ArrayType& m)
@@ -231,6 +287,11 @@ template<typename ArrayType> void array_real(const ArrayType& m)
   VERIFY_IS_APPROX(m1.sinh(), sinh(m1));
   VERIFY_IS_APPROX(m1.cosh(), cosh(m1));
   VERIFY_IS_APPROX(m1.tanh(), tanh(m1));
+#if EIGEN_HAS_CXX11_MATH
+  VERIFY_IS_APPROX(m1.tanh().atanh(), atanh(tanh(m1)));
+  VERIFY_IS_APPROX(m1.sinh().asinh(), asinh(sinh(m1)));
+  VERIFY_IS_APPROX(m1.cosh().acosh(), acosh(cosh(m1)));
+#endif
   VERIFY_IS_APPROX(m1.logistic(), logistic(m1));
 
   VERIFY_IS_APPROX(m1.arg(), arg(m1));
@@ -462,6 +523,7 @@ EIGEN_DECLARE_TEST(array_cwise)
     CALL_SUBTEST_4( array(ArrayXXcf(internal::random<int>(1,EIGEN_TEST_MAX_SIZE), internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
     CALL_SUBTEST_5( array(ArrayXXf(internal::random<int>(1,EIGEN_TEST_MAX_SIZE), internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
     CALL_SUBTEST_6( array(ArrayXXi(internal::random<int>(1,EIGEN_TEST_MAX_SIZE), internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
+    CALL_SUBTEST_6( array(Array<Index,Dynamic,Dynamic>(internal::random<int>(1,EIGEN_TEST_MAX_SIZE), internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
   }
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_1( comparisons(Array<float, 1, 1>()) );

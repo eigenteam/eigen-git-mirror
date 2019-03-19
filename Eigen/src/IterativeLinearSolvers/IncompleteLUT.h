@@ -225,7 +225,6 @@ void IncompleteLUT<Scalar,StorageIndex>::analyzePattern(const _MatrixType& amat)
   // Compute the Fill-reducing permutation
   // Since ILUT does not perform any numerical pivoting,
   // it is highly preferable to keep the diagonal through symmetric permutations.
-#ifndef EIGEN_MPL2_ONLY
   // To this end, let's symmetrize the pattern and perform AMD on it.
   SparseMatrix<Scalar,ColMajor, StorageIndex> mat1 = amat;
   SparseMatrix<Scalar,ColMajor, StorageIndex> mat2 = amat.transpose();
@@ -235,14 +234,6 @@ void IncompleteLUT<Scalar,StorageIndex>::analyzePattern(const _MatrixType& amat)
   AMDOrdering<StorageIndex> ordering;
   ordering(AtA,m_P);
   m_Pinv  = m_P.inverse(); // cache the inverse permutation
-#else
-  // If AMD is not available, (MPL2-only), then let's use the slower COLAMD routine.
-  SparseMatrix<Scalar,ColMajor, StorageIndex> mat1 = amat;
-  COLAMDOrdering<StorageIndex> ordering;
-  ordering(mat1,m_Pinv);
-  m_P = m_Pinv.inverse();
-#endif
-
   m_analysisIsOk = true;
   m_factorizationIsOk = false;
   m_isInitialized = true;

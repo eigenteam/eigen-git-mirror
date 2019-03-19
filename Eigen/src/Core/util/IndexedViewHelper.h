@@ -23,7 +23,7 @@ struct symbolic_last_tag {};
   * Can be used as a parameter to Eigen::seq and Eigen::seqN functions to symbolically reference the last element/row/columns
   * of the underlying vector or matrix once passed to DenseBase::operator()(const RowIndices&, const ColIndices&).
   *
-  * This symbolic placeholder support standard arithmetic operation.
+  * This symbolic placeholder supports standard arithmetic operations.
   *
   * A typical usage example would be:
   * \code
@@ -44,7 +44,7 @@ static const symbolic::SymbolExpr<internal::symbolic_last_tag> last; // PLEASE u
   * reference the last+1 element/row/columns of the underlying vector or matrix once
   * passed to DenseBase::operator()(const RowIndices&, const ColIndices&).
   *
-  * This symbolic placeholder support standard arithmetic operation.
+  * This symbolic placeholder supports standard arithmetic operations.
   * It is essentially an alias to last+fix<1>.
   *
   * \sa last

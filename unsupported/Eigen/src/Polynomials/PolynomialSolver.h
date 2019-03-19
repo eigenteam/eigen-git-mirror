@@ -126,7 +126,7 @@ class PolynomialSolverBase
 
       for( Index i=0; i<m_roots.size(); ++i )
       {
-        if( abs( m_roots[i].imag() ) < absImaginaryThreshold )
+        if( abs( m_roots[i].imag() ) <= absImaginaryThreshold )
         {
           if( !hasArealRoot )
           {
@@ -144,10 +144,10 @@ class PolynomialSolverBase
             }
           }
         }
-        else
+        else if(!hasArealRoot)
         {
           if( abs( m_roots[i].imag() ) < abs( m_roots[res].imag() ) ){
-            res = i; }
+            res = i;}
         }
       }
       return numext::real_ref(m_roots[res]);
@@ -167,7 +167,7 @@ class PolynomialSolverBase
 
       for( Index i=0; i<m_roots.size(); ++i )
       {
-        if( abs( m_roots[i].imag() ) < absImaginaryThreshold )
+        if( abs( m_roots[i].imag() ) <= absImaginaryThreshold )
         {
           if( !hasArealRoot )
           {
@@ -340,6 +340,7 @@ class PolynomialSolver : public PolynomialSolverBase<_Scalar,_Deg>
     typedef typename internal::conditional<NumTraits<Scalar>::IsComplex,
                                           ComplexEigenSolver<CompanionMatrixType>,
                                           EigenSolver<CompanionMatrixType> >::type EigenSolverType;
+    typedef typename internal::conditional<NumTraits<Scalar>::IsComplex, Scalar, std::complex<Scalar> >::type ComplexScalar;
 
   public:
     /** Computes the complex roots of a new polynomial. */
@@ -354,6 +355,25 @@ class PolynomialSolver : public PolynomialSolverBase<_Scalar,_Deg>
         companion.balance();
         m_eigenSolver.compute( companion.denseMatrix() );
         m_roots = m_eigenSolver.eigenvalues();
+        // cleanup noise in imaginary part of real roots:
+        // if the imaginary part is rather small compared to the real part
+        // and that cancelling the imaginary part yield a smaller evaluation,
+        // then it's safe to keep the real part only.
+        RealScalar coarse_prec = RealScalar(std::pow(4,poly.size()+1))*NumTraits<RealScalar>::epsilon();
+        for(Index i = 0; i<m_roots.size(); ++i)
+        {
+          if( internal::isMuchSmallerThan(numext::abs(numext::imag(m_roots[i])),
+                                          numext::abs(numext::real(m_roots[i])),
+                                          coarse_prec) )
+          {
+            ComplexScalar as_real_root = ComplexScalar(numext::real(m_roots[i]));
+            if(    numext::abs(poly_eval(poly, as_real_root))
+                <= numext::abs(poly_eval(poly, m_roots[i])))
+            {
+              m_roots[i] = as_real_root;
+            }
+          }
+        }
       }
       else if(poly.size () == 2)
       {

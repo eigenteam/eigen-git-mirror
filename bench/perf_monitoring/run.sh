@@ -148,9 +148,10 @@ make_backup $WORKING_DIR_PREFIX"c"$bench
 cut -f1 -d"#" < changesets.txt | grep -E '[[:alnum:]]' | while read rev
 do
   if [ ! -z '$rev' ]; then
-    echo "Testing rev $rev"
+    rev2=`echo $rev | cut -f 2 -d':'`
+    echo "Testing rev $rev, $rev2"
     cd eigen_src
-    hg up -C $rev > /dev/null
+    hg up -C $rev2 > /dev/null
     actual_rev=`hg identify | cut -f1 -d' '`
     cd ..
     

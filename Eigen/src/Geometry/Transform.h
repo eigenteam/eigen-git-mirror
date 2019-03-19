@@ -97,6 +97,9 @@ template<int Mode> struct transform_make_affine;
   *              - #AffineCompact: the transformation is stored as a (Dim)x(Dim+1) matrix.
   *              - #Projective: the transformation is stored as a (Dim+1)^2 matrix
   *                             without any assumption.
+  *              - #Isometry: same as #Affine with the additional assumption that
+  *                           the linear part represents a rotation. This assumption is exploited
+  *                           to speed up some functions such as inverse() and rotation().
   * \tparam _Options has the same meaning as in class Matrix. It allows to specify DontAlign and/or RowMajor.
   *                  These Options are passed directly to the underlying matrix type.
   *
@@ -252,11 +255,11 @@ protected:
 public:
 
   /** Default constructor without initialization of the meaningful coefficients.
-    * If Mode==Affine, then the last row is set to [0 ... 0 1] */
+    * If Mode==Affine or Mode==Isometry, then the last row is set to [0 ... 0 1] */
   EIGEN_DEVICE_FUNC inline Transform()
   {
     check_template_params();
-    internal::transform_make_affine<(int(Mode)==Affine) ? Affine : AffineCompact>::run(m_matrix);
+    internal::transform_make_affine<(int(Mode)==Affine || int(Mode)==Isometry) ? Affine : AffineCompact>::run(m_matrix);
   }
 
   EIGEN_DEVICE_FUNC inline Transform(const Transform& other)
@@ -602,7 +605,9 @@ public:
   template<typename Derived>
   EIGEN_DEVICE_FUNC inline Transform operator*(const RotationBase<Derived,Dim>& r) const;
 
-  EIGEN_DEVICE_FUNC const LinearMatrixType rotation() const;
+  typedef typename internal::conditional<int(Mode)==Isometry,ConstLinearPart,const LinearMatrixType>::type RotationReturnType;
+  EIGEN_DEVICE_FUNC RotationReturnType rotation() const;
+
   template<typename RotationMatrixType, typename ScalingMatrixType>
   EIGEN_DEVICE_FUNC
   void computeRotationScaling(RotationMatrixType *rotation, ScalingMatrixType *scaling) const;
@@ -1046,20 +1051,43 @@ EIGEN_DEVICE_FUNC inline Transform<Scalar,Dim,Mode,Options> Transform<Scalar,Dim
 *** Special functions ***
 ************************/
 
+namespace internal {
+template<int Mode> struct transform_rotation_impl {
+  template<typename TransformType>
+  EIGEN_DEVICE_FUNC static inline
+  const typename TransformType::LinearMatrixType run(const TransformType& t)
+  {
+    typedef typename TransformType::LinearMatrixType LinearMatrixType; 
+    LinearMatrixType result;
+    t.computeRotationScaling(&result, (LinearMatrixType*)0);
+    return result;
+  }
+};
+template<> struct transform_rotation_impl<Isometry> {
+  template<typename TransformType>
+  EIGEN_DEVICE_FUNC static inline
+  typename TransformType::ConstLinearPart run(const TransformType& t)
+  {
+    return t.linear();
+  }
+};
+}
 /** \returns the rotation part of the transformation
   *
+  * If Mode==Isometry, then this method is an alias for linear(),
+  * otherwise it calls computeRotationScaling() to extract the rotation
+  * through a SVD decomposition.
   *
   * \svd_module
   *
   * \sa computeRotationScaling(), computeScalingRotation(), class SVD
   */
 template<typename Scalar, int Dim, int Mode, int Options>
-EIGEN_DEVICE_FUNC const typename Transform<Scalar,Dim,Mode,Options>::LinearMatrixType
+EIGEN_DEVICE_FUNC
+typename Transform<Scalar,Dim,Mode,Options>::RotationReturnType
 Transform<Scalar,Dim,Mode,Options>::rotation() const
 {
-  LinearMatrixType result;
-  computeRotationScaling(&result, (LinearMatrixType*)0);
-  return result;
+  return internal::transform_rotation_impl<Mode>::run(*this);
 }
 
 

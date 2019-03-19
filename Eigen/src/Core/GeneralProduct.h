@@ -239,7 +239,7 @@ template<> struct gemv_dense_selector<OnTheRight,ColMajor,true>
       // on, the other hand it is good for the cache to pack the vector anyways...
       EvalToDestAtCompileTime = (ActualDest::InnerStrideAtCompileTime==1),
       ComplexByReal = (NumTraits<LhsScalar>::IsComplex) && (!NumTraits<RhsScalar>::IsComplex),
-      MightCannotUseDest = (!EvalToDestAtCompileTime) || ComplexByReal
+      MightCannotUseDest = ((!EvalToDestAtCompileTime) || ComplexByReal) && (ActualDest::MaxSizeAtCompileTime!=0)
     };
 
     typedef const_blas_data_mapper<LhsScalar,Index,ColMajor> LhsMapper;
@@ -326,7 +326,7 @@ template<> struct gemv_dense_selector<OnTheRight,RowMajor,true>
     enum {
       // FIXME find a way to allow an inner stride on the result if packet_traits<Scalar>::size==1
       // on, the other hand it is good for the cache to pack the vector anyways...
-      DirectlyUseRhs = ActualRhsTypeCleaned::InnerStrideAtCompileTime==1
+      DirectlyUseRhs = ActualRhsTypeCleaned::InnerStrideAtCompileTime==1 || ActualRhsTypeCleaned::MaxSizeAtCompileTime==0
     };
 
     gemv_static_vector_if<RhsScalar,ActualRhsTypeCleaned::SizeAtCompileTime,ActualRhsTypeCleaned::MaxSizeAtCompileTime,!DirectlyUseRhs> static_rhs;
@@ -396,8 +396,8 @@ template<> struct gemv_dense_selector<OnTheRight,RowMajor,false>
   */
 template<typename Derived>
 template<typename OtherDerived>
-EIGEN_DEVICE_FUNC
-inline const Product<Derived, OtherDerived>
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+const Product<Derived, OtherDerived>
 MatrixBase<Derived>::operator*(const MatrixBase<OtherDerived> &other) const
 {
   // A note regarding the function declaration: In MSVC, this function will sometimes
@@ -439,8 +439,9 @@ MatrixBase<Derived>::operator*(const MatrixBase<OtherDerived> &other) const
   */
 template<typename Derived>
 template<typename OtherDerived>
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
 const Product<Derived,OtherDerived,LazyProduct>
-EIGEN_DEVICE_FUNC MatrixBase<Derived>::lazyProduct(const MatrixBase<OtherDerived> &other) const
+MatrixBase<Derived>::lazyProduct(const MatrixBase<OtherDerived> &other) const
 {
   enum {
     ProductIsValid =  Derived::ColsAtCompileTime==Dynamic

@@ -25,7 +25,7 @@ namespace Eigen {
 
 // computes the sum of magnitudes of all vector elements or, for a complex vector x, the sum
 // res = |Rex1| + |Imx1| + |Rex2| + |Imx2| + ... + |Rexn| + |Imxn|, where x is a vector of order n
-RealScalar EIGEN_CAT(EIGEN_CAT(REAL_SCALAR_SUFFIX,SCALAR_SUFFIX),asum_)(int *n, RealScalar *px, int *incx)
+RealScalar EIGEN_CAT(REAL_SCALAR_SUFFIX, EIGEN_BLAS_FUNC(asum))(int *n, RealScalar *px, int *incx)
 {
 //   std::cerr << "__asum " << *n << " " << *incx << "\n";
   Complex* x = reinterpret_cast<Complex*>(px);
@@ -81,7 +81,7 @@ int EIGEN_BLAS_FUNC(dotuw)(int *n, RealScalar *px, int *incx, RealScalar *py, in
   return 0;
 }
 
-RealScalar EIGEN_CAT(EIGEN_CAT(REAL_SCALAR_SUFFIX,SCALAR_SUFFIX),nrm2_)(int *n, RealScalar *px, int *incx)
+RealScalar EIGEN_CAT(REAL_SCALAR_SUFFIX, EIGEN_BLAS_FUNC(nrm2))(int *n, RealScalar *px, int *incx)
 {
 //   std::cerr << "__nrm2 " << *n << " " << *incx << "\n";
   if(*n<=0) return 0;
@@ -94,7 +94,7 @@ RealScalar EIGEN_CAT(EIGEN_CAT(REAL_SCALAR_SUFFIX,SCALAR_SUFFIX),nrm2_)(int *n, 
   return make_vector(x,*n,*incx).stableNorm();
 }
 
-int EIGEN_CAT(EIGEN_CAT(SCALAR_SUFFIX,REAL_SCALAR_SUFFIX),rot_)(int *n, RealScalar *px, int *incx, RealScalar *py, int *incy, RealScalar *pc, RealScalar *ps)
+int EIGEN_BLAS_FUNC(EIGEN_CAT(REAL_SCALAR_SUFFIX, rot))(int *n, RealScalar *px, int *incx, RealScalar *py, int *incy, RealScalar *pc, RealScalar *ps)
 {
   if(*n<=0) return 0;
 
@@ -117,7 +117,7 @@ int EIGEN_CAT(EIGEN_CAT(SCALAR_SUFFIX,REAL_SCALAR_SUFFIX),rot_)(int *n, RealScal
   return 0;
 }
 
-int EIGEN_CAT(EIGEN_CAT(SCALAR_SUFFIX,REAL_SCALAR_SUFFIX),scal_)(int *n, RealScalar *palpha, RealScalar *px, int *incx)
+int EIGEN_BLAS_FUNC(EIGEN_CAT(REAL_SCALAR_SUFFIX, scal))(int *n, RealScalar *palpha, RealScalar *px, int *incx)
 {
   if(*n<=0) return 0;
 

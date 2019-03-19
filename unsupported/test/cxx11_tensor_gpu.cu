@@ -17,6 +17,8 @@
 
 #include <unsupported/Eigen/CXX11/src/Tensor/TensorGpuHipCudaDefines.h>
 
+#define EIGEN_GPU_TEST_C99_MATH  EIGEN_HAS_CXX11
+
 using Eigen::Tensor;
 
 void test_gpu_nullary() {
@@ -617,6 +619,7 @@ void test_gpu_convolution_3d()
 }
 
 
+#if EIGEN_GPU_TEST_C99_MATH
 template <typename Scalar>
 void test_gpu_lgamma(const Scalar stddev)
 {
@@ -655,6 +658,7 @@ void test_gpu_lgamma(const Scalar stddev)
   gpuFree(d_in);
   gpuFree(d_out);
 }
+#endif
 
 template <typename Scalar>
 void test_gpu_digamma()
@@ -986,6 +990,7 @@ void test_gpu_igammac()
   gpuFree(d_out);
 }
 
+#if EIGEN_GPU_TEST_C99_MATH
 template <typename Scalar>
 void test_gpu_erf(const Scalar stddev)
 {
@@ -1063,6 +1068,7 @@ void test_gpu_erfc(const Scalar stddev)
   gpuFree(d_in);
   gpuFree(d_out);
 }
+#endif
 
 template <typename Scalar>
 void test_gpu_betainc()
@@ -1494,7 +1500,7 @@ EIGEN_DECLARE_TEST(cxx11_tensor_gpu)
   CALL_SUBTEST_3(test_gpu_convolution_3d<RowMajor>());
 #endif
 
-#if __cplusplus > 199711L
+#if EIGEN_GPU_TEST_C99_MATH
   // std::erf, std::erfc, and so on where only added in c++11. We use them
   // as a golden reference to validate the results produced by Eigen. Therefore
   // we can only run these tests if we use a c++11 compiler.

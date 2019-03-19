@@ -10,11 +10,11 @@
 #include "sparse_solver.h"
 #include <Eigen/IterativeLinearSolvers>
 
-template<typename T, typename I> void test_bicgstab_T()
+template<typename T, typename I_> void test_bicgstab_T()
 {
-  BiCGSTAB<SparseMatrix<T,0,I>, DiagonalPreconditioner<T> >     bicgstab_colmajor_diag;
-  BiCGSTAB<SparseMatrix<T,0,I>, IdentityPreconditioner    >     bicgstab_colmajor_I;
-  BiCGSTAB<SparseMatrix<T,0,I>, IncompleteLUT<T,I> >              bicgstab_colmajor_ilut;
+  BiCGSTAB<SparseMatrix<T,0,I_>, DiagonalPreconditioner<T> >     bicgstab_colmajor_diag;
+  BiCGSTAB<SparseMatrix<T,0,I_>, IdentityPreconditioner    >     bicgstab_colmajor_I;
+  BiCGSTAB<SparseMatrix<T,0,I_>, IncompleteLUT<T,I_> >              bicgstab_colmajor_ilut;
   //BiCGSTAB<SparseMatrix<T>, SSORPreconditioner<T> >     bicgstab_colmajor_ssor;
 
   bicgstab_colmajor_diag.setTolerance(NumTraits<T>::epsilon()*4);

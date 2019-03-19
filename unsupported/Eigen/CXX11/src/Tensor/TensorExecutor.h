@@ -325,7 +325,6 @@ class TensorExecutor<Expression, GpuDevice, Vectorizable, Tileable> {
   static void run(const Expression& expr, const GpuDevice& device);
 };
 
-
 #if defined(EIGEN_GPUCC)
 template <typename Evaluator, typename StorageIndex, bool Vectorizable>
 struct EigenMetaKernelEval {

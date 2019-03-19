@@ -198,6 +198,7 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularView
     typedef typename internal::traits<TriangularView>::MatrixTypeNestedNonRef MatrixTypeNestedNonRef;
 
     typedef typename internal::remove_all<typename MatrixType::ConjugateReturnType>::type MatrixConjugateReturnType;
+    typedef TriangularView<typename internal::add_const<MatrixType>::type, _Mode> ConstTriangularView;
     
   public:
 
@@ -242,6 +243,18 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularView
     EIGEN_DEVICE_FUNC
     inline const ConjugateReturnType conjugate() const
     { return ConjugateReturnType(m_matrix.conjugate()); }
+
+    /** \returns an expression of the complex conjugate of \c *this if Cond==true,
+     *           returns \c *this otherwise.
+     */
+    template<bool Cond>
+    EIGEN_DEVICE_FUNC
+    inline typename internal::conditional<Cond,ConjugateReturnType,ConstTriangularView>::type
+    conjugateIf() const
+    {
+      typedef typename internal::conditional<Cond,ConjugateReturnType,ConstTriangularView>::type ReturnType;
+      return ReturnType(m_matrix.template conjugateIf<Cond>());
+    }
 
     typedef TriangularView<const typename MatrixType::AdjointReturnType,TransposeMode> AdjointReturnType;
     /** \sa MatrixBase::adjoint() const */

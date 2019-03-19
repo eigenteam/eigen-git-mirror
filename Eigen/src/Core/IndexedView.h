@@ -132,7 +132,7 @@ public:
 
   /** \returns the nested expression */
   typename internal::remove_reference<XprType>::type&
-  nestedExpression() { return m_xpr.const_cast_derived(); }
+  nestedExpression() { return m_xpr; }
 
   /** \returns a const reference to the object storing/generating the row indices */
   const RowIndices& rowIndices() const { return m_rowIndices; }

@@ -21,7 +21,8 @@ namespace internal {
 /** \internal */
 inline void manage_multi_threading(Action action, int* v)
 {
-  static EIGEN_UNUSED int m_maxThreads = -1;
+  static int m_maxThreads = -1;
+  EIGEN_UNUSED_VARIABLE(m_maxThreads);
 
   if(action==SetAction)
   {

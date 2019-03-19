@@ -23,15 +23,6 @@ inline const typename Derived::Scalar bruteforce_det3_helper
          * (matrix.coeff(1,b) * matrix.coeff(2,c) - matrix.coeff(1,c) * matrix.coeff(2,b));
 }
 
-template<typename Derived>
-EIGEN_DEVICE_FUNC
-const typename Derived::Scalar bruteforce_det4_helper
-(const MatrixBase<Derived>& matrix, int j, int k, int m, int n)
-{
-  return (matrix.coeff(j,0) * matrix.coeff(k,1) - matrix.coeff(k,0) * matrix.coeff(j,1))
-       * (matrix.coeff(m,2) * matrix.coeff(n,3) - matrix.coeff(n,2) * matrix.coeff(m,3));
-}
-
 template<typename Derived,
          int DeterminantType = Derived::RowsAtCompileTime
 > struct determinant_impl
@@ -75,16 +66,34 @@ template<typename Derived> struct determinant_impl<Derived, 3>
 
 template<typename Derived> struct determinant_impl<Derived, 4>
 {
+  typedef typename traits<Derived>::Scalar Scalar;
   static EIGEN_DEVICE_FUNC
-  typename traits<Derived>::Scalar run(const Derived& m)
+  Scalar run(const Derived& m)
   {
-    // trick by Martin Costabel to compute 4x4 det with only 30 muls
-    return bruteforce_det4_helper(m,0,1,2,3)
-          - bruteforce_det4_helper(m,0,2,1,3)
-          + bruteforce_det4_helper(m,0,3,1,2)
-          + bruteforce_det4_helper(m,1,2,0,3)
-          - bruteforce_det4_helper(m,1,3,0,2)
-          + bruteforce_det4_helper(m,2,3,0,1);
+    Scalar d2_01 = det2(m, 0, 1);
+    Scalar d2_02 = det2(m, 0, 2);
+    Scalar d2_03 = det2(m, 0, 3);
+    Scalar d2_12 = det2(m, 1, 2);
+    Scalar d2_13 = det2(m, 1, 3);
+    Scalar d2_23 = det2(m, 2, 3);
+    Scalar d3_0 = det3(m, 1,d2_23, 2,d2_13, 3,d2_12);
+    Scalar d3_1 = det3(m, 0,d2_23, 2,d2_03, 3,d2_02);
+    Scalar d3_2 = det3(m, 0,d2_13, 1,d2_03, 3,d2_01);
+    Scalar d3_3 = det3(m, 0,d2_12, 1,d2_02, 2,d2_01);
+    return internal::pmadd(-m(0,3),d3_0, m(1,3)*d3_1) +
+           internal::pmadd(-m(2,3),d3_2, m(3,3)*d3_3);
+  }
+protected:
+  static EIGEN_DEVICE_FUNC
+  Scalar det2(const Derived& m, Index i0, Index i1)
+  {
+    return m(i0,0) * m(i1,1) - m(i1,0) * m(i0,1);
+  }
+
+  static EIGEN_DEVICE_FUNC
+  Scalar det3(const Derived& m, Index i0, const Scalar& d0, Index i1, const Scalar& d1, Index i2, const Scalar& d2)
+  {
+    return internal::pmadd(m(i0,2), d0, internal::pmadd(-m(i1,2), d1, m(i2,2)*d2));
   }
 };
 

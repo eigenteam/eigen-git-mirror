@@ -99,6 +99,8 @@ class SparseMatrix
     typedef SparseCompressedBase<SparseMatrix> Base;
     using Base::convert_index;
     friend class SparseVector<_Scalar,0,_StorageIndex>;
+    template<typename, typename, typename, typename, typename>
+    friend struct internal::Assignment;
   public:
     using Base::isCompressed;
     using Base::nonZeros;
@@ -502,7 +504,7 @@ class SparseMatrix
         m_innerNonZeros[i] = m_outerIndex[i+1] - m_outerIndex[i]; 
       }
     }
-    
+
     /** Suppresses all nonzeros which are \b much \b smaller \b than \a reference under the tolerance \a epsilon */
     void prune(const Scalar& reference, const RealScalar& epsilon = NumTraits<RealScalar>::dummy_precision())
     {
@@ -894,6 +896,113 @@ public:
       Index p = m_outerIndex[outer] + m_innerNonZeros[outer]++;
       m_data.index(p) = convert_index(inner);
       return (m_data.value(p) = Scalar(0));
+    }
+protected:
+    struct IndexPosPair {
+      IndexPosPair(Index a_i, Index a_p) : i(a_i), p(a_p) {}
+      Index i;
+      Index p;
+    };
+
+    /** \internal assign \a diagXpr to the diagonal of \c *this
+      * There are different strategies:
+      *   1 - if *this is overwritten (Func==assign_op) or *this is empty, then we can work treat *this as a dense vector expression.
+      *   2 - otherwise, for each diagonal coeff,
+      *     2.a - if it already exists, then we update it,
+      *     2.b - otherwise, if *this is uncompressed and that the current inner-vector has empty room for at least 1 element, then we perform an in-place insertion.
+      *     2.c - otherwise, we'll have to reallocate and copy everything, so instead of doing so for each new element, it is recorded in a std::vector.
+      *   3 - at the end, if some entries failed to be inserted in-place, then we alloc a new buffer, copy each chunk at the right position, and insert the new elements.
+      * 
+      * TODO: some piece of code could be isolated and reused for a general in-place update strategy.
+      * TODO: if we start to defer the insertion of some elements (i.e., case 2.c executed once),
+      *       then it *might* be better to disable case 2.b since they will have to be copied anyway.
+      */
+    template<typename DiagXpr, typename Func>
+    void assignDiagonal(const DiagXpr diagXpr, const Func& assignFunc)
+    {
+      Index n = diagXpr.size();
+
+      const bool overwrite = internal::is_same<Func, internal::assign_op<Scalar,Scalar> >::value;
+      if(overwrite)
+      {
+        if((this->rows()!=n) || (this->cols()!=n))
+          this->resize(n, n);
+      }
+
+      if(m_data.size()==0 || overwrite)
+      {
+        typedef Array<StorageIndex,Dynamic,1> ArrayXI;  
+        this->makeCompressed();
+        this->resizeNonZeros(n);
+        Eigen::Map<ArrayXI>(this->innerIndexPtr(), n).setLinSpaced(0,StorageIndex(n)-1);
+        Eigen::Map<ArrayXI>(this->outerIndexPtr(), n+1).setLinSpaced(0,StorageIndex(n));
+        Eigen::Map<Array<Scalar,Dynamic,1> > values = this->coeffs();
+        values.setZero();
+        internal::call_assignment_no_alias(values, diagXpr, assignFunc);
+      }
+      else
+      {
+        bool isComp = isCompressed();
+        internal::evaluator<DiagXpr> diaEval(diagXpr);
+        std::vector<IndexPosPair> newEntries;
+
+        // 1 - try in-place update and record insertion failures
+        for(Index i = 0; i<n; ++i)
+        {
+          internal::LowerBoundIndex lb = this->lower_bound(i,i);
+          Index p = lb.value;
+          if(lb.found)
+          {
+            // the coeff already exists
+            assignFunc.assignCoeff(m_data.value(p), diaEval.coeff(i));
+          }
+          else if((!isComp) && m_innerNonZeros[i] < (m_outerIndex[i+1]-m_outerIndex[i]))
+          {
+            // non compressed mode with local room for inserting one element
+            m_data.moveChunk(p, p+1, m_outerIndex[i]+m_innerNonZeros[i]-p);
+            m_innerNonZeros[i]++;
+            m_data.value(p) = Scalar(0);
+            m_data.index(p) = StorageIndex(i);
+            assignFunc.assignCoeff(m_data.value(p), diaEval.coeff(i));
+          }
+          else
+          {
+            // defer insertion
+            newEntries.push_back(IndexPosPair(i,p));
+          }
+        }
+        // 2 - insert deferred entries
+        Index n_entries = Index(newEntries.size());
+        if(n_entries>0)
+        {
+          Storage newData(m_data.size()+n_entries);
+          Index prev_p = 0;
+          Index prev_i = 0;
+          for(Index k=0; k<n_entries;++k)
+          {
+            Index i = newEntries[k].i;
+            Index p = newEntries[k].p;
+            internal::smart_copy(m_data.valuePtr()+prev_p, m_data.valuePtr()+p, newData.valuePtr()+prev_p+k);
+            internal::smart_copy(m_data.indexPtr()+prev_p, m_data.indexPtr()+p, newData.indexPtr()+prev_p+k);
+            for(Index j=prev_i;j<i;++j)
+              m_outerIndex[j+1] += k;
+            if(!isComp)
+              m_innerNonZeros[i]++;
+            prev_p = p;
+            prev_i = i;
+            newData.value(p+k) = Scalar(0);
+            newData.index(p+k) = StorageIndex(i);
+            assignFunc.assignCoeff(newData.value(p+k), diaEval.coeff(i));
+          }
+          {
+            internal::smart_copy(m_data.valuePtr()+prev_p, m_data.valuePtr()+m_data.size(), newData.valuePtr()+prev_p+n_entries);
+            internal::smart_copy(m_data.indexPtr()+prev_p, m_data.indexPtr()+m_data.size(), newData.indexPtr()+prev_p+n_entries);
+            for(Index j=prev_i+1;j<=m_outerSize;++j)
+              m_outerIndex[j] += n_entries;
+          }
+          m_data.swap(newData);
+        }
+      }
     }
 
 private:

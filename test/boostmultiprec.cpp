@@ -66,6 +66,7 @@
 #undef isnan
 #undef isinf
 #undef isfinite
+#undef I
 
 #include <boost/multiprecision/cpp_dec_float.hpp>
 #include <boost/multiprecision/number.hpp>

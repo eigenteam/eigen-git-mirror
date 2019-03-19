@@ -37,26 +37,27 @@ template<typename Scalar>
 struct functor_traits<scalar_identity_op<Scalar> >
 { enum { Cost = NumTraits<Scalar>::AddCost, PacketAccess = false, IsRepeatable = true }; };
 
-template <typename Scalar, typename Packet, bool IsInteger> struct linspaced_op_impl;
+template <typename Scalar, bool IsInteger> struct linspaced_op_impl;
 
-template <typename Scalar, typename Packet>
-struct linspaced_op_impl<Scalar,Packet,/*IsInteger*/false>
+template <typename Scalar>
+struct linspaced_op_impl<Scalar,/*IsInteger*/false>
 {
+  typedef typename NumTraits<Scalar>::Real RealScalar;
+
   linspaced_op_impl(const Scalar& low, const Scalar& high, Index num_steps) :
-    m_low(low), m_high(high), m_size1(num_steps==1 ? 1 : num_steps-1), m_step(num_steps==1 ? Scalar() : (high-low)/Scalar(num_steps-1)),
+    m_low(low), m_high(high), m_size1(num_steps==1 ? 1 : num_steps-1), m_step(num_steps==1 ? Scalar() : (high-low)/RealScalar(num_steps-1)),
     m_flip(numext::abs(high)<numext::abs(low))
   {}
 
   template<typename IndexType>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar operator() (IndexType i) const {
-    typedef typename NumTraits<Scalar>::Real RealScalar;
     if(m_flip)
       return (i==0)? m_low : (m_high - RealScalar(m_size1-i)*m_step);
     else
       return (i==m_size1)? m_high : (m_low + RealScalar(i)*m_step);
   }
 
-  template<typename IndexType>
+  template<typename Packet, typename IndexType>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Packet packetOp(IndexType i) const
   {
     // Principle:
@@ -86,8 +87,8 @@ struct linspaced_op_impl<Scalar,Packet,/*IsInteger*/false>
   const bool m_flip;
 };
 
-template <typename Scalar, typename Packet>
-struct linspaced_op_impl<Scalar,Packet,/*IsInteger*/true>
+template <typename Scalar>
+struct linspaced_op_impl<Scalar,/*IsInteger*/true>
 {
   linspaced_op_impl(const Scalar& low, const Scalar& high, Index num_steps) :
     m_low(low),
@@ -115,8 +116,8 @@ struct linspaced_op_impl<Scalar,Packet,/*IsInteger*/true>
 // Forward declaration (we default to random access which does not really give
 // us a speed gain when using packet access but it allows to use the functor in
 // nested expressions).
-template <typename Scalar, typename PacketType> struct linspaced_op;
-template <typename Scalar, typename PacketType> struct functor_traits< linspaced_op<Scalar,PacketType> >
+template <typename Scalar> struct linspaced_op;
+template <typename Scalar> struct functor_traits< linspaced_op<Scalar> >
 {
   enum
   {
@@ -126,7 +127,7 @@ template <typename Scalar, typename PacketType> struct functor_traits< linspaced
     IsRepeatable = true
   };
 };
-template <typename Scalar, typename PacketType> struct linspaced_op
+template <typename Scalar> struct linspaced_op
 {
   linspaced_op(const Scalar& low, const Scalar& high, Index num_steps)
     : impl((num_steps==1 ? high : low),high,num_steps)
@@ -136,11 +137,11 @@ template <typename Scalar, typename PacketType> struct linspaced_op
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar operator() (IndexType i) const { return impl(i); }
 
   template<typename Packet,typename IndexType>
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Packet packetOp(IndexType i) const { return impl.packetOp(i); }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Packet packetOp(IndexType i) const { return impl.template packetOp<Packet>(i); }
 
   // This proxy object handles the actual required temporaries and the different
   // implementations (integer vs. floating point).
-  const linspaced_op_impl<Scalar,PacketType,NumTraits<Scalar>::IsInteger> impl;
+  const linspaced_op_impl<Scalar,NumTraits<Scalar>::IsInteger> impl;
 };
 
 // Linear access is automatically determined from the operator() prototypes available for the given functor.
@@ -166,12 +167,12 @@ struct has_unary_operator<scalar_identity_op<Scalar>,IndexType> { enum { value =
 template<typename Scalar,typename IndexType>
 struct has_binary_operator<scalar_identity_op<Scalar>,IndexType> { enum { value = 1}; };
 
-template<typename Scalar, typename PacketType,typename IndexType>
-struct has_nullary_operator<linspaced_op<Scalar,PacketType>,IndexType> { enum { value = 0}; };
-template<typename Scalar, typename PacketType,typename IndexType>
-struct has_unary_operator<linspaced_op<Scalar,PacketType>,IndexType> { enum { value = 1}; };
-template<typename Scalar, typename PacketType,typename IndexType>
-struct has_binary_operator<linspaced_op<Scalar,PacketType>,IndexType> { enum { value = 0}; };
+template<typename Scalar,typename IndexType>
+struct has_nullary_operator<linspaced_op<Scalar>,IndexType> { enum { value = 0}; };
+template<typename Scalar,typename IndexType>
+struct has_unary_operator<linspaced_op<Scalar>,IndexType> { enum { value = 1}; };
+template<typename Scalar,typename IndexType>
+struct has_binary_operator<linspaced_op<Scalar>,IndexType> { enum { value = 0}; };
 
 template<typename Scalar,typename IndexType>
 struct has_nullary_operator<scalar_random_op<Scalar>,IndexType> { enum { value = 1}; };

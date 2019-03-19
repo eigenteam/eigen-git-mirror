@@ -469,6 +469,20 @@ struct generic_product_impl<Lhs,Rhs,DenseShape,DenseShape,GemmProduct>
     if(a_lhs.cols()==0 || a_lhs.rows()==0 || a_rhs.cols()==0)
       return;
 
+    // Fallback to GEMV if either the lhs or rhs is a runtime vector
+    if (dst.cols() == 1)
+    {
+      typename Dest::ColXpr dst_vec(dst.col(0));
+      return internal::generic_product_impl<Lhs,typename Rhs::ConstColXpr,DenseShape,DenseShape,GemvProduct>
+        ::scaleAndAddTo(dst_vec, a_lhs, a_rhs.col(0), alpha);
+    }
+    else if (dst.rows() == 1)
+    {
+      typename Dest::RowXpr dst_vec(dst.row(0));
+      return internal::generic_product_impl<typename Lhs::ConstRowXpr,Rhs,DenseShape,DenseShape,GemvProduct>
+        ::scaleAndAddTo(dst_vec, a_lhs.row(0), a_rhs, alpha);
+    }
+
     typename internal::add_const_on_value_type<ActualLhsType>::type lhs = LhsBlasTraits::extract(a_lhs);
     typename internal::add_const_on_value_type<ActualRhsType>::type rhs = RhsBlasTraits::extract(a_rhs);
 

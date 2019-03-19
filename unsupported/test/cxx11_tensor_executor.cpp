@@ -452,6 +452,81 @@ static void test_execute_slice_lvalue(Device d)
   }
 }
 
+template <typename T, int NumDims, typename Device, bool Vectorizable,
+    bool Tileable, int Layout>
+static void test_execute_broadcasting_of_forced_eval(Device d)
+{
+  static constexpr int Options = 0 | Layout;
+
+  auto dims = RandomDims<NumDims>(1, 10);
+  Tensor<T, NumDims, Options, Index> src(dims);
+  src.setRandom();
+
+  const auto broadcasts = RandomDims<NumDims>(1, 7);
+  const auto expr = src.square().eval().broadcast(broadcasts);
+
+  // We assume that broadcasting on a default device is tested and correct, so
+  // we can rely on it to verify correctness of tensor executor and tiling.
+  Tensor<T, NumDims, Options, Index> golden;
+  golden = expr;
+
+  // Now do the broadcasting using configured tensor executor.
+  Tensor<T, NumDims, Options, Index> dst(golden.dimensions());
+
+  using Assign = TensorAssignOp<decltype(dst), const decltype(expr)>;
+  using Executor =
+      internal::TensorExecutor<const Assign, Device, Vectorizable, Tileable>;
+
+  Executor::run(Assign(dst, expr), d);
+
+  for (Index i = 0; i < dst.dimensions().TotalSize(); ++i) {
+    VERIFY_IS_EQUAL(dst.coeff(i), golden.coeff(i));
+  }
+}
+
+template<typename T, int NumDims>
+struct DummyGenerator {
+  EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+  T operator()(const array <Index, NumDims>& dims) const {
+    T result = static_cast<T>(0);
+    for (int i = 0; i < NumDims; ++i) {
+      result += static_cast<T>((i + 1) * dims[i]);
+    }
+    return result;
+  }
+};
+
+template <typename T, int NumDims, typename Device, bool Vectorizable,
+    bool Tileable, int Layout>
+static void test_execute_generator_op(Device d)
+{
+  static constexpr int Options = 0 | Layout;
+
+  auto dims = RandomDims<NumDims>(20, 30);
+  Tensor<T, NumDims, Options, Index> src(dims);
+  src.setRandom();
+
+  const auto expr = src.generate(DummyGenerator<T, NumDims>());
+
+  // We assume that generator on a default device is tested and correct, so
+  // we can rely on it to verify correctness of tensor executor and tiling.
+  Tensor<T, NumDims, Options, Index> golden;
+  golden = expr;
+
+  // Now do the broadcasting using configured tensor executor.
+  Tensor<T, NumDims, Options, Index> dst(golden.dimensions());
+
+  using Assign = TensorAssignOp<decltype(dst), const decltype(expr)>;
+  using Executor =
+    internal::TensorExecutor<const Assign, Device, Vectorizable, Tileable>;
+
+  Executor::run(Assign(dst, expr), d);
+
+  for (Index i = 0; i < dst.dimensions().TotalSize(); ++i) {
+    VERIFY_IS_EQUAL(dst.coeff(i), golden.coeff(i));
+  }
+}
+
 #define CALL_SUBTEST_PART(PART) \
   CALL_SUBTEST_##PART
 
@@ -528,8 +603,18 @@ EIGEN_DECLARE_TEST(cxx11_tensor_executor) {
   CALL_SUBTEST_COMBINATIONS(11, test_execute_slice_lvalue, float, 4);
   CALL_SUBTEST_COMBINATIONS(11, test_execute_slice_lvalue, float, 5);
 
+  CALL_SUBTEST_COMBINATIONS(12, test_execute_broadcasting_of_forced_eval, float, 2);
+  CALL_SUBTEST_COMBINATIONS(12, test_execute_broadcasting_of_forced_eval, float, 3);
+  CALL_SUBTEST_COMBINATIONS(12, test_execute_broadcasting_of_forced_eval, float, 4);
+  CALL_SUBTEST_COMBINATIONS(12, test_execute_broadcasting_of_forced_eval, float, 5);
+
+  CALL_SUBTEST_COMBINATIONS(13, test_execute_generator_op, float, 2);
+  CALL_SUBTEST_COMBINATIONS(13, test_execute_generator_op, float, 3);
+  CALL_SUBTEST_COMBINATIONS(13, test_execute_generator_op, float, 4);
+  CALL_SUBTEST_COMBINATIONS(13, test_execute_generator_op, float, 5);
+
   // Force CMake to split this test.
-  // EIGEN_SUFFIXES;1;2;3;4;5;6;7;8;9;10;11
+  // EIGEN_SUFFIXES;1;2;3;4;5;6;7;8;9;10;11;12;13
 }
 
 #undef CALL_SUBTEST_COMBINATIONS

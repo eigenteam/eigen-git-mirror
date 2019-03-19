@@ -41,13 +41,7 @@ namespace Eigen {
   * the info() method, then you can either increase the initial shift, or better use another preconditioning technique.
   *
   */
-template <typename Scalar, int _UpLo = Lower, typename _OrderingType =
-#ifndef EIGEN_MPL2_ONLY
-AMDOrdering<int>
-#else
-NaturalOrdering<int>
-#endif
->
+template <typename Scalar, int _UpLo = Lower, typename _OrderingType = AMDOrdering<int> >
 class IncompleteCholesky : public SparseSolverBase<IncompleteCholesky<Scalar,_UpLo,_OrderingType> >
 {
   protected:
@@ -76,12 +70,12 @@ class IncompleteCholesky : public SparseSolverBase<IncompleteCholesky<Scalar,_Up
       *
       * \sa IncompleteCholesky(const MatrixType&)
       */
-    IncompleteCholesky() : m_initialShift(1e-3),m_factorizationIsOk(false) {}
+    IncompleteCholesky() : m_initialShift(1e-3),m_analysisIsOk(false),m_factorizationIsOk(false) {}
     
     /** Constructor computing the incomplete factorization for the given matrix \a matrix.
       */
     template<typename MatrixType>
-    IncompleteCholesky(const MatrixType& matrix) : m_initialShift(1e-3),m_factorizationIsOk(false)
+    IncompleteCholesky(const MatrixType& matrix) : m_initialShift(1e-3),m_analysisIsOk(false),m_factorizationIsOk(false)
     {
       compute(matrix);
     }

@@ -546,13 +546,35 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
   {
     DenseVector d = DenseVector::Random(rows);
     DenseMatrix refMat2 = d.asDiagonal();
-    SparseMatrixType m2(rows, rows);
+    SparseMatrixType m2;
     m2 = d.asDiagonal();
     VERIFY_IS_APPROX(m2, refMat2);
     SparseMatrixType m3(d.asDiagonal());
     VERIFY_IS_APPROX(m3, refMat2);
     refMat2 += d.asDiagonal();
     m2 += d.asDiagonal();
+    VERIFY_IS_APPROX(m2, refMat2);
+    m2.setZero();       m2 += d.asDiagonal();
+    refMat2.setZero();  refMat2 += d.asDiagonal();
+    VERIFY_IS_APPROX(m2, refMat2);
+    m2.setZero();       m2 -= d.asDiagonal();
+    refMat2.setZero();  refMat2 -= d.asDiagonal();
+    VERIFY_IS_APPROX(m2, refMat2);
+
+    initSparse<Scalar>(density, refMat2, m2);
+    m2.makeCompressed();
+    m2 += d.asDiagonal();
+    refMat2 += d.asDiagonal();
+    VERIFY_IS_APPROX(m2, refMat2);
+
+    initSparse<Scalar>(density, refMat2, m2);
+    m2.makeCompressed();
+    VectorXi res(rows);
+    for(Index i=0; i<rows; ++i)
+      res(i) = internal::random<int>(0,3);
+    m2.reserve(res);
+    m2 -= d.asDiagonal();
+    refMat2 -= d.asDiagonal();
     VERIFY_IS_APPROX(m2, refMat2);
   }
   
@@ -658,7 +680,8 @@ void big_sparse_triplet(Index rows, Index cols, double density) {
   {
     Index r = internal::random<Index>(0,rows-1);
     Index c = internal::random<Index>(0,cols-1);
-    Scalar v = internal::random<Scalar>();
+    // use positive values to prevent numerical cancellation errors in sum
+    Scalar v = numext::abs(internal::random<Scalar>());
     triplets.push_back(TripletType(r,c,v));
     sum += v;
   }

@@ -160,11 +160,11 @@ template<typename MatrixType>
 void MatrixPowerAtomic<MatrixType>::computePade(int degree, const MatrixType& IminusT, ResultType& res) const
 {
   int i = 2*degree;
-  res = (m_p-degree) / (2*i-2) * IminusT;
+  res = (m_p-RealScalar(degree)) / RealScalar(2*i-2) * IminusT;
 
   for (--i; i; --i) {
     res = (MatrixType::Identity(IminusT.rows(), IminusT.cols()) + res).template triangularView<Upper>()
-	.solve((i==1 ? -m_p : i&1 ? (-m_p-i/2)/(2*i) : (m_p-i/2)/(2*i-2)) * IminusT).eval();
+	.solve((i==1 ? -m_p : i&1 ? (-m_p-RealScalar(i/2))/RealScalar(2*i) : (m_p-RealScalar(i/2))/RealScalar(2*i-2)) * IminusT).eval();
   }
   res += MatrixType::Identity(IminusT.rows(), IminusT.cols());
 }
@@ -194,11 +194,12 @@ void MatrixPowerAtomic<MatrixType>::computeBig(ResultType& res) const
 {
   using std::ldexp;
   const int digits = std::numeric_limits<RealScalar>::digits;
-  const RealScalar maxNormForPade = digits <=  24? 4.3386528e-1L                            // single precision
+  const RealScalar maxNormForPade = RealScalar(
+                                    digits <=  24? 4.3386528e-1L                            // single precision
                                   : digits <=  53? 2.789358995219730e-1L                    // double precision
                                   : digits <=  64? 2.4471944416607995472e-1L                // extended precision
                                   : digits <= 106? 1.1016843812851143391275867258512e-1L    // double-double
-                                  :                9.134603732914548552537150753385375e-2L; // quadruple precision
+                                  :                9.134603732914548552537150753385375e-2L); // quadruple precision
   MatrixType IminusT, sqrtT, T = m_A.template triangularView<Upper>();
   RealScalar normIminusT;
   int degree, degree2, numberOfSquareRoots = 0;
@@ -296,8 +297,8 @@ MatrixPowerAtomic<MatrixType>::computeSuperDiag(const ComplexScalar& curr, const
 
   ComplexScalar logCurr = log(curr);
   ComplexScalar logPrev = log(prev);
-  int unwindingNumber = ceil((numext::imag(logCurr - logPrev) - RealScalar(EIGEN_PI)) / RealScalar(2*EIGEN_PI));
-  ComplexScalar w = numext::log1p((curr-prev)/prev)/RealScalar(2) + ComplexScalar(0, EIGEN_PI*unwindingNumber);
+  RealScalar unwindingNumber = ceil((numext::imag(logCurr - logPrev) - RealScalar(EIGEN_PI)) / RealScalar(2*EIGEN_PI));
+  ComplexScalar w = numext::log1p((curr-prev)/prev)/RealScalar(2) + ComplexScalar(0, RealScalar(EIGEN_PI)*unwindingNumber);
   return RealScalar(2) * exp(RealScalar(0.5) * p * (logCurr + logPrev)) * sinh(p * w) / (curr - prev);
 }
 

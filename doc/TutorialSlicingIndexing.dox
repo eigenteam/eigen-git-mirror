@@ -2,7 +2,7 @@ namespace Eigen {
 
 /** \eigenManualPage TutorialSlicingIndexing Slicing and Indexing
 
-This pape presents the numerous possibilities offered by `operator()` to index sub-set of rows and columns.
+This page presents the numerous possibilities offered by `operator()` to index sub-set of rows and columns.
 This API has been introduced in %Eigen 3.4.
 It supports all the feature proposed by the \link TutorialBlockOperations block API \endlink, and much more.
 In particular, it supports \b slicing that consists in taking a set of rows, columns, or elements, uniformly spaced within a matrix or indexed from an array of indices.
