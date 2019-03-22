@@ -319,7 +319,7 @@ inline float trig_reduce_huge (float xf, int *quadrant)
 template<bool ComputeSine,typename Packet>
 EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
 EIGEN_UNUSED
-#if EIGEN_GNUC_AT_LEAST(4,4)
+#if EIGEN_GNUC_AT_LEAST(4,4) && EIGEN_COMP_GNUC_STRICT
 __attribute__((optimize("-fno-unsafe-math-optimizations")))
 #endif
 Packet psincos_float(const Packet& _x)
