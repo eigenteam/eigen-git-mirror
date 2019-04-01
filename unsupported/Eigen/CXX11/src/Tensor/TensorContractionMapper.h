@@ -24,12 +24,17 @@ enum {
  */
 /// The make pointer class is used by sycl in order to build the mapper class on the device. For other platform the default make pointer is used which
 /// is scalar * for CoeffLoader.
-template <typename Tensor, bool HasRawAccess, template <class> class MakePointer_ = MakePointer> struct CoeffLoader;
-template<typename Scalar, typename Index, int side, typename Tensor, typename nocontract_t, typename contract_t,
-         int packet_size, bool inner_dim_contiguous, bool inner_dim_reordered, int Alignment,
-         template <class> class MakePointer_ = MakePointer> class BaseTensorContractionMapper;
+template <typename Tensor, bool HasRawAccess, template <class> class MakePointer_ = MakePointer>
+struct CoeffLoader;
 
-template <typename Tensor, bool HasRawAccess, template <class> class MakePointer_> struct CoeffLoader {
+template <typename Scalar, typename Index, int side, typename Tensor,
+          typename nocontract_t, typename contract_t, int packet_size,
+          bool inner_dim_contiguous, bool inner_dim_reordered, int Alignment,
+          template <class> class MakePointer_ = MakePointer>
+class BaseTensorContractionMapper;
+
+template <typename Tensor, bool HasRawAccess, template <class> class MakePointer_>
+struct CoeffLoader {
   enum {
     DirectOffsets = false
   };
@@ -40,6 +45,12 @@ template <typename Tensor, bool HasRawAccess, template <class> class MakePointer
     eigen_assert(false && "unsupported");
   }
 
+  EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE const typename MakePointer_<const typename Tensor::Scalar>::Type
+  data() const {
+    eigen_assert(false && "unsupported");
+    return NULL;
+  }
+
   EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE typename Tensor::Scalar coeff(typename Tensor::Index index) const { return m_tensor.coeff(index); }
 
  template<int LoadMode> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
@@ -48,12 +59,12 @@ template <typename Tensor, bool HasRawAccess, template <class> class MakePointer
     return m_tensor.template packet<LoadMode>(index);
   }
 
-
  private:
   const Tensor m_tensor;
 };
 
-template <typename Tensor, template <class> class MakePointer_> struct CoeffLoader<Tensor, true, MakePointer_> {
+template <typename Tensor, template <class> class MakePointer_>
+struct CoeffLoader<Tensor, true, MakePointer_> {
   enum {
     DirectOffsets = true
   };
@@ -62,6 +73,11 @@ template <typename Tensor, template <class> class MakePointer_> struct CoeffLoad
 
   EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE void offsetBuffer(typename Tensor::Index offset) {
     m_data += offset;
+  }
+
+  EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE const typename MakePointer_<const typename Tensor::Scalar>::Type
+  data() const {
+    return m_data;
   }
 
   EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE typename Tensor::Scalar coeff(typename Tensor::Index index) const { return loadConstant(m_data+index); }
@@ -213,6 +229,17 @@ class SimpleTensorContractionMapper {
   EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE Index stride() const {
     return ((side == Lhs) && inner_dim_contiguous && array_size<contract_t>::value > 0) ? m_contract_strides[0] : 1;
   }
+
+  const CoeffLoader<Tensor, Tensor::RawAccess, MakePointer_>& tensor() const {
+    return m_tensor;
+  }
+
+  const nocontract_t& nocontract_strides() const {
+    return m_nocontract_strides;
+  }
+  const nocontract_t& ij_strides() const { return m_ij_strides; }
+  const contract_t& contract_strides() const { return m_contract_strides; }
+  const contract_t& k_strides() const { return m_k_strides; }
 
  protected:
   CoeffLoader<Tensor, Tensor::RawAccess, MakePointer_> m_tensor;
@@ -444,6 +471,10 @@ class TensorContractionSubMapper {
   EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE bool aligned(Index) const {
     return false;
   }
+
+  const ParentMapper& base_mapper() const { return m_base_mapper; }
+  Index vert_offset() const { return m_vert_offset; }
+  Index horiz_offset() const { return m_horiz_offset; }
 
  private:
   ParentMapper m_base_mapper;
