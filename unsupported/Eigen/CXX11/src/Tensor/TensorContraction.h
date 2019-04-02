@@ -166,7 +166,7 @@ struct TensorContractionBlockMemAllocator {
       std::vector<LhsScalar*>* lhs_blocks,
       std::vector<RhsScalar*>* rhs_blocks) {
     eigen_assert(num_slices > 0);
-    eigen_assert(num_lhs >= 0 && num_rhs >= 0)
+    eigen_assert(num_lhs >= 0 && num_rhs >= 0);
     eigen_assert(num_lhs == 0 || lhs_blocks);
     eigen_assert(num_rhs == 0 || rhs_blocks);
     BlockSizes sz = ComputeLhsRhsBlockSizes(bm, bk, bn);
