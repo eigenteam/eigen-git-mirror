@@ -244,6 +244,7 @@ template <typename ResScalar, typename LhsScalar, typename RhsScalar,
     typename StorageIndex, typename OutputMapper, typename LhsMapper,
     typename RhsMapper>
 struct TensorContractionKernel {
+  EIGEN_DEVICE_FUNC
   TensorContractionKernel(StorageIndex m, StorageIndex k, StorageIndex n,
                           StorageIndex bm, StorageIndex bk, StorageIndex bn)
       : m(m), k(k), n(n), bm(bm), bk(bk), bn(bn) {}
