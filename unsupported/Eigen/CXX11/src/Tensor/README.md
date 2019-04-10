@@ -430,8 +430,11 @@ This is exactly the same as not inserting a `device()` call.
 
 #### Evaluating with a Thread Pool
 
+    // Create the Eigen ThreadPool
+    Eigen::ThreadPool pool(8 /* number of threads in pool */)
+
     // Create the Eigen ThreadPoolDevice.
-    Eigen::ThreadPoolDevice my_device(4 /* number of threads to use */);
+    Eigen::ThreadPoolDevice my_device(&pool, 4 /* number of threads to use */);
 
     // Now just use the device when evaluating expressions.
     Eigen::Tensor<float, 2> c(30, 50);
