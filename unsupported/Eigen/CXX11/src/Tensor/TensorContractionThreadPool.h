@@ -1169,7 +1169,7 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
   TensorOpCost contractionCostPerInnerDim(Index m, Index n, Index k) const {
     // Compute cost.
     const int output_packet_size = internal::unpacket_traits<PacketReturnType>::size;
-    TensorOpCost cost(0, 0, (computeBandwidth(true, m, n, k) * m) * n);
+    TensorOpCost cost(0, 0, (computeBandwidth(true, m, n, k) * m) * n, true, output_packet_size);
     // Output stores.
     cost += TensorOpCost(0, sizeof(CoeffReturnType), 0, true, output_packet_size);
     TensorOpCost lhsCost = this->m_leftImpl.costPerCoeff(true) * m;
@@ -1192,8 +1192,8 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
     int num_threads = 1;
     double min_cost = total_parallel_cost;
     double kPerThreadOverHead = 4000;
-    double kFixedOverHead = 100000;
-    for (int nt = 2; nt <= this->m_device.numThreads(); nt++) {
+    double kFixedOverHead = 50000;
+    for (int nt = 2; nt <= this->m_device.numThreads(); nt += 2) {
       double sequential_cost =
           kFixedOverHead + nt * (reduction_cost + kPerThreadOverHead);
       double parallel_cost = total_parallel_cost / nt + sequential_cost;
