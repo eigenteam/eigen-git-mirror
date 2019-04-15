@@ -36,6 +36,28 @@ RealScalar EIGEN_CAT(REAL_SCALAR_SUFFIX, EIGEN_BLAS_FUNC(asum))(int *n, RealScal
   else          return make_vector(x,*n,std::abs(*incx)).unaryExpr<scalar_norm1_op>().sum();
 }
 
+int EIGEN_CAT(i, EIGEN_BLAS_FUNC(amax))(int *n, RealScalar *px, int *incx)
+{
+  if(*n<=0) return 0;
+  Scalar* x = reinterpret_cast<Scalar*>(px);
+
+  DenseIndex ret;
+  if(*incx==1)  make_vector(x,*n).unaryExpr<scalar_norm1_op>().maxCoeff(&ret);
+  else          make_vector(x,*n,std::abs(*incx)).unaryExpr<scalar_norm1_op>().maxCoeff(&ret);
+  return int(ret)+1;
+}
+
+int EIGEN_CAT(i, EIGEN_BLAS_FUNC(amin))(int *n, RealScalar *px, int *incx)
+{
+  if(*n<=0) return 0;
+  Scalar* x = reinterpret_cast<Scalar*>(px);
+
+  DenseIndex ret;
+  if(*incx==1)  make_vector(x,*n).unaryExpr<scalar_norm1_op>().minCoeff(&ret);
+  else          make_vector(x,*n,std::abs(*incx)).unaryExpr<scalar_norm1_op>().minCoeff(&ret);
+  return int(ret)+1;
+}
+
 // computes a dot product of a conjugated vector with another vector.
 int EIGEN_BLAS_FUNC(dotcw)(int *n, RealScalar *px, int *incx, RealScalar *py, int *incy, RealScalar* pres)
 {
