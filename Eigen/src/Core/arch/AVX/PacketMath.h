@@ -117,14 +117,15 @@ template<> struct unpacket_traits<Packet8f> {
   typedef float     type;
   typedef Packet4f  half;
   typedef Packet8i  integer_packet;
-  enum {size=8, alignment=Aligned32, vectorizable=true};
+  typedef uint8_t   mask_t;
+  enum {size=8, alignment=Aligned32, vectorizable=true, masked_load_available=true};
 };
 template<> struct unpacket_traits<Packet4d> {
   typedef double type;
   typedef Packet2d half;
-  enum {size=4, alignment=Aligned32, vectorizable=true};
+  enum {size=4, alignment=Aligned32, vectorizable=true, masked_load_available=false};
 };
-template<> struct unpacket_traits<Packet8i> { typedef int    type; typedef Packet4i half; enum {size=8, alignment=Aligned32, vectorizable=false}; };
+template<> struct unpacket_traits<Packet8i> { typedef int    type; typedef Packet4i half; enum {size=8, alignment=Aligned32, vectorizable=false, masked_load_available=false}; };
 
 template<> EIGEN_STRONG_INLINE Packet8f pset1<Packet8f>(const float&  from) { return _mm256_set1_ps(from); }
 template<> EIGEN_STRONG_INLINE Packet4d pset1<Packet4d>(const double& from) { return _mm256_set1_pd(from); }
@@ -384,6 +385,14 @@ template<> EIGEN_STRONG_INLINE Packet8i pload<Packet8i>(const int*     from) { E
 template<> EIGEN_STRONG_INLINE Packet8f ploadu<Packet8f>(const float* from) { EIGEN_DEBUG_UNALIGNED_LOAD return _mm256_loadu_ps(from); }
 template<> EIGEN_STRONG_INLINE Packet4d ploadu<Packet4d>(const double* from) { EIGEN_DEBUG_UNALIGNED_LOAD return _mm256_loadu_pd(from); }
 template<> EIGEN_STRONG_INLINE Packet8i ploadu<Packet8i>(const int* from) { EIGEN_DEBUG_UNALIGNED_LOAD return _mm256_loadu_si256(reinterpret_cast<const __m256i*>(from)); }
+
+template<> EIGEN_STRONG_INLINE Packet8f ploadu<Packet8f>(const float* from, uint8_t umask) {
+  __m256i mask = _mm256_set1_epi8(static_cast<char>(umask));
+  const __m256i bit_mask = _mm256_set_epi32(0xffffff7f, 0xffffffbf, 0xffffffdf, 0xffffffef, 0xfffffff7, 0xfffffffb, 0xfffffffd, 0xfffffffe);
+  mask = _mm256_or_si256(mask, bit_mask);
+  mask = _mm256_cmpeq_epi32(mask, _mm256_set1_epi32(0xffffffff));
+  EIGEN_DEBUG_UNALIGNED_LOAD return _mm256_maskload_ps(from, mask);
+}
 
 // Loads 4 floats from memory a returns the packet {a0, a0  a1, a1, a2, a2, a3, a3}
 template<> EIGEN_STRONG_INLINE Packet8f ploaddup<Packet8f>(const float* from)

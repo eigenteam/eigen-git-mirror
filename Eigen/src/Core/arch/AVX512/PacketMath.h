@@ -102,19 +102,20 @@ struct unpacket_traits<Packet16f> {
   typedef float type;
   typedef Packet8f half;
   typedef Packet16i integer_packet;
-  enum { size = 16, alignment=Aligned64, vectorizable=true };
+  typedef uint16_t mask_t;
+  enum { size = 16, alignment=Aligned64, vectorizable=true, masked_load_available=true };
 };
 template <>
 struct unpacket_traits<Packet8d> {
   typedef double type;
   typedef Packet4d half;
-  enum { size = 8, alignment=Aligned64, vectorizable=true };
+  enum { size = 8, alignment=Aligned64, vectorizable=true, masked_load_available=false };
 };
 template <>
 struct unpacket_traits<Packet16i> {
   typedef int type;
   typedef Packet8i half;
-  enum { size = 16, alignment=Aligned64, vectorizable=false };
+  enum { size = 16, alignment=Aligned64, vectorizable=false, masked_load_available=false };
 };
 
 template <>
@@ -483,6 +484,12 @@ template <>
 EIGEN_STRONG_INLINE Packet16i ploadu<Packet16i>(const int* from) {
   EIGEN_DEBUG_UNALIGNED_LOAD return _mm512_loadu_si512(
       reinterpret_cast<const __m512i*>(from));
+}
+
+template <>
+EIGEN_STRONG_INLINE Packet16f ploadu<Packet16f>(const float* from, uint16_t umask) {
+  __mmask16 mask = static_cast<__mmask16>(umask);
+  EIGEN_DEBUG_UNALIGNED_LOAD return _mm512_maskz_loadu_ps(mask, from);
 }
 
 // Loads 8 floats from memory a returns the packet

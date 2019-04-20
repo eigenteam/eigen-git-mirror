@@ -95,6 +95,18 @@ struct TensorEvaluator
     return internal::ploadt<PacketReturnType, LoadMode>(m_data + index);
   }
 
+  // Return a packet starting at `index` where `umask` specifies which elements
+  // have to be loaded. Type/size of mask depends on PacketReturnType, e.g. for
+  // Packet16f, `umask` is of type uint16_t and if a bit is 1, corresponding
+  // float element will be loaded, otherwise 0 will be loaded.
+  // Function has been templatized to enable Sfinae.
+  template <typename PacketReturnTypeT = PacketReturnType> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+  typename internal::enable_if<internal::unpacket_traits<PacketReturnTypeT>::masked_load_available, PacketReturnTypeT>::type
+  partialPacket(Index index, typename internal::unpacket_traits<PacketReturnTypeT>::mask_t umask) const
+  {
+    return internal::ploadu<PacketReturnTypeT>(m_data + index, umask);
+  }
+
   template <int StoreMode> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
   void writePacket(Index index, const PacketReturnType& x)
   {
@@ -242,6 +254,18 @@ struct TensorEvaluator<const Derived, Device>
   PacketReturnType packet(Index index) const
   {
     return internal::ploadt_ro<PacketReturnType, LoadMode>(m_data + index);
+  }
+
+  // Return a packet starting at `index` where `umask` specifies which elements
+  // have to be loaded. Type/size of mask depends on PacketReturnType, e.g. for
+  // Packet16f, `umask` is of type uint16_t and if a bit is 1, corresponding
+  // float element will be loaded, otherwise 0 will be loaded.
+  // Function has been templatized to enable Sfinae.
+  template <typename PacketReturnTypeT = PacketReturnType> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+  typename internal::enable_if<internal::unpacket_traits<PacketReturnTypeT>::masked_load_available, PacketReturnTypeT>::type
+  partialPacket(Index index, typename internal::unpacket_traits<PacketReturnTypeT>::mask_t umask) const
+  {
+    return internal::ploadu<PacketReturnTypeT>(m_data + index, umask);
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE CoeffReturnType coeff(const array<DenseIndex, NumCoords>& coords) const {

@@ -119,6 +119,9 @@ struct packet_helper
   inline Packet load(const T* from) const { return internal::pload<Packet>(from); }
 
   template<typename T>
+  inline Packet load(const T* from, unsigned long long umask) const { return internal::ploadu<Packet>(from, umask); }
+
+  template<typename T>
   inline void store(T* to, const Packet& x) const { internal::pstore(to,x); }
 };
 
@@ -127,6 +130,9 @@ struct packet_helper<false,Packet>
 {
   template<typename T>
   inline T load(const T* from) const { return *from; }
+
+  template<typename T>
+  inline T load(const T* from, unsigned long long) const { return *from; }
 
   template<typename T>
   inline void store(T* to, const T& x) const { *to = x; }
@@ -169,6 +175,7 @@ template<typename Scalar,typename Packet> void packetmath()
   const int size = PacketSize*max_size;
   EIGEN_ALIGN_MAX Scalar data1[size];
   EIGEN_ALIGN_MAX Scalar data2[size];
+  EIGEN_ALIGN_MAX Scalar data3[size];
   EIGEN_ALIGN_MAX Packet packets[PacketSize*2];
   EIGEN_ALIGN_MAX Scalar ref[size];
   RealScalar refvalue = RealScalar(0);
@@ -192,6 +199,22 @@ template<typename Scalar,typename Packet> void packetmath()
   {
     internal::pstoreu(data2+offset, internal::pload<Packet>(data1));
     VERIFY(areApprox(data1, data2+offset, PacketSize) && "internal::pstoreu");
+  }
+
+  if (internal::unpacket_traits<Packet>::masked_load_available)
+  {
+    unsigned long long max_umask = (0x1ull << PacketSize);
+    for (int offset=0; offset<PacketSize; ++offset)
+    {
+      for (unsigned long long umask=0; umask<max_umask; ++umask)
+      {
+        packet_helper<internal::unpacket_traits<Packet>::masked_load_available, Packet> h;
+        h.store(data2, h.load(data1+offset, umask));
+        for (int k=0; k<PacketSize; ++k)
+          data3[k] = ((umask & ( 0x1ull << k )) >> k) ? data1[k+offset] : Scalar(0);
+        VERIFY(areApprox(data3, data2, PacketSize) && "internal::ploadu masked");
+      }
+    }
   }
 
   for (int offset=0; offset<PacketSize; ++offset)

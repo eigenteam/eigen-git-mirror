@@ -192,13 +192,13 @@ template<> struct unpacket_traits<Packet4f>
   typedef float     type;
   typedef Packet4f  half;
   typedef Packet4i  integer_packet;
-  enum {size=4, alignment=Aligned16, vectorizable=true};
+  enum {size=4, alignment=Aligned16, vectorizable=true, masked_load_available=false};
 };
 template<> struct unpacket_traits<Packet4i>
 {
   typedef int       type;
   typedef Packet4i  half;
-  enum {size=4, alignment=Aligned16, vectorizable=false};
+  enum {size=4, alignment=Aligned16, vectorizable=false, masked_load_available=false};
 };
 
 inline std::ostream & operator <<(std::ostream & s, const Packet16uc & v)
@@ -921,7 +921,7 @@ template<> struct packet_traits<double> : default_packet_traits
   };
 };
 
-template<> struct unpacket_traits<Packet2d> { typedef double type; enum {size=2, alignment=Aligned16, vectorizable=true}; typedef Packet2d half; };
+template<> struct unpacket_traits<Packet2d> { typedef double type; enum {size=2, alignment=Aligned16, vectorizable=true, masked_load_available=false}; typedef Packet2d half; };
 
 inline std::ostream & operator <<(std::ostream & s, const Packet2l & v)
 {
