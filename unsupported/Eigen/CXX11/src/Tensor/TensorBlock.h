@@ -41,7 +41,7 @@ struct cond<RowMajor> {
 }  // namespace
 
 /**
- * \class TensorBlockShapeType
+ * \enum TensorBlockShapeType
  * \ingroup CXX11_Tensor_Module
  *
  * \brief Tensor block shape type.

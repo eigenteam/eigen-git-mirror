@@ -35,7 +35,7 @@ template<typename Derived> struct EigenBase
     * \deprecated Since Eigen 3.3, its usage is deprecated. Use Eigen::Index instead.
     * \sa StorageIndex, \ref TopicPreprocessorDirectives.
     */
-  typedef Eigen::Index Index;
+  EIGEN_DEPRECATED typedef Eigen::Index Index;
 
   // FIXME is it needed?
   typedef typename internal::traits<Derived>::StorageKind StorageKind;

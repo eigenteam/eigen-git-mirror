@@ -235,7 +235,7 @@ DenseBase<Derived>::Constant(const Scalar& value)
   * \sa LinSpaced(Index,Scalar,Scalar), setLinSpaced(Index,const Scalar&,const Scalar&)
   */
 template<typename Derived>
-EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const typename DenseBase<Derived>::RandomAccessLinSpacedReturnType
+EIGEN_DEPRECATED EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const typename DenseBase<Derived>::RandomAccessLinSpacedReturnType
 DenseBase<Derived>::LinSpaced(Sequential_t, Index size, const Scalar& low, const Scalar& high)
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
@@ -247,7 +247,7 @@ DenseBase<Derived>::LinSpaced(Sequential_t, Index size, const Scalar& low, const
   * \sa LinSpaced(Scalar,Scalar)
   */
 template<typename Derived>
-EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const typename DenseBase<Derived>::RandomAccessLinSpacedReturnType
+EIGEN_DEPRECATED EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const typename DenseBase<Derived>::RandomAccessLinSpacedReturnType
 DenseBase<Derived>::LinSpaced(Sequential_t, const Scalar& low, const Scalar& high)
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)

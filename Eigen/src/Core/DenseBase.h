@@ -266,7 +266,7 @@ template<typename Derived> class DenseBase
     /** \internal Represents a matrix with all coefficients equal to one another*/
     typedef CwiseNullaryOp<internal::scalar_constant_op<Scalar>,PlainObject> ConstantReturnType;
     /** \internal \deprecated Represents a vector with linearly spaced coefficients that allows sequential access only. */
-    typedef CwiseNullaryOp<internal::linspaced_op<Scalar>,PlainObject> SequentialLinSpacedReturnType;
+    EIGEN_DEPRECATED typedef CwiseNullaryOp<internal::linspaced_op<Scalar>,PlainObject> SequentialLinSpacedReturnType;
     /** \internal Represents a vector with linearly spaced coefficients that allows random access. */
     typedef CwiseNullaryOp<internal::linspaced_op<Scalar>,PlainObject> RandomAccessLinSpacedReturnType;
     /** \internal the return type of MatrixBase::eigenvalues() */
@@ -305,7 +305,7 @@ template<typename Derived> class DenseBase
       * Copies \a other into *this without evaluating other. \returns a reference to *this.
       * \deprecated */
     template<typename OtherDerived>
-    EIGEN_DEVICE_FUNC
+    EIGEN_DEPRECATED EIGEN_DEVICE_FUNC
     Derived& lazyAssign(const DenseBase<OtherDerived>& other);
 
     EIGEN_DEVICE_FUNC

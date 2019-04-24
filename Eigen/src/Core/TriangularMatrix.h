@@ -451,12 +451,12 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularViewImpl<_Mat
 
     /** \deprecated */
     template<typename OtherDerived>
-    EIGEN_DEVICE_FUNC
+    EIGEN_DEPRECATED EIGEN_DEVICE_FUNC
     void lazyAssign(const TriangularBase<OtherDerived>& other);
 
     /** \deprecated */
     template<typename OtherDerived>
-    EIGEN_DEVICE_FUNC
+    EIGEN_DEPRECATED EIGEN_DEVICE_FUNC
     void lazyAssign(const MatrixBase<OtherDerived>& other);
 #endif
 
@@ -539,7 +539,7 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularViewImpl<_Mat
     /** \deprecated
       * Shortcut for \code (*this).swap(other.triangularView<(*this)::Mode>()) \endcode */
     template<typename OtherDerived>
-    EIGEN_DEVICE_FUNC
+    EIGEN_DEPRECATED EIGEN_DEVICE_FUNC
     void swap(MatrixBase<OtherDerived> const & other)
     {
       EIGEN_STATIC_ASSERT_LVALUE(OtherDerived);
