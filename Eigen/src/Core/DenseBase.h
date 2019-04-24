@@ -337,12 +337,20 @@ template<typename Derived> class DenseBase
     EIGEN_DEVICE_FUNC static const ConstantReturnType
     Constant(const Scalar& value);
 
-    EIGEN_DEVICE_FUNC static const SequentialLinSpacedReturnType
+    /** \deprecated because of accuracy loss.
+      * In Eigen 3.3, it is an alias for LinSpaced(Index,const Scalar&,const Scalar&)
+      */
+    EIGEN_DEPRECATED EIGEN_DEVICE_FUNC static const RandomAccessLinSpacedReturnType
     LinSpaced(Sequential_t, Index size, const Scalar& low, const Scalar& high);
+
+    /** \deprecated because of accuracy loss.
+      * In Eigen 3.3, it is an alias for LinSpaced(const Scalar&,const Scalar&)
+      */
+    EIGEN_DEPRECATED EIGEN_DEVICE_FUNC static const RandomAccessLinSpacedReturnType
+    LinSpaced(Sequential_t, const Scalar& low, const Scalar& high);
+
     EIGEN_DEVICE_FUNC static const RandomAccessLinSpacedReturnType
     LinSpaced(Index size, const Scalar& low, const Scalar& high);
-    EIGEN_DEVICE_FUNC static const SequentialLinSpacedReturnType
-    LinSpaced(Sequential_t, const Scalar& low, const Scalar& high);
     EIGEN_DEVICE_FUNC static const RandomAccessLinSpacedReturnType
     LinSpaced(const Scalar& low, const Scalar& high);
 
@@ -374,7 +382,7 @@ template<typename Derived> class DenseBase
     template<typename OtherDerived> EIGEN_DEVICE_FUNC
     bool isApprox(const DenseBase<OtherDerived>& other,
                   const RealScalar& prec = NumTraits<Scalar>::dummy_precision()) const;
-    EIGEN_DEVICE_FUNC 
+    EIGEN_DEVICE_FUNC
     bool isMuchSmallerThan(const RealScalar& other,
                            const RealScalar& prec = NumTraits<Scalar>::dummy_precision()) const;
     template<typename OtherDerived> EIGEN_DEVICE_FUNC
@@ -385,7 +393,7 @@ template<typename Derived> class DenseBase
     EIGEN_DEVICE_FUNC bool isConstant(const Scalar& value, const RealScalar& prec = NumTraits<Scalar>::dummy_precision()) const;
     EIGEN_DEVICE_FUNC bool isZero(const RealScalar& prec = NumTraits<Scalar>::dummy_precision()) const;
     EIGEN_DEVICE_FUNC bool isOnes(const RealScalar& prec = NumTraits<Scalar>::dummy_precision()) const;
-    
+
     inline bool hasNaN() const;
     inline bool allFinite() const;
 
@@ -399,7 +407,7 @@ template<typename Derived> class DenseBase
       *
       * Notice that in the case of a plain matrix or vector (not an expression) this function just returns
       * a const reference, in order to avoid a useless copy.
-      * 
+      *
       * \warning Be careful with eval() and the auto C++ keyword, as detailed in this \link TopicPitfalls_auto_keyword page \endlink.
       */
     EIGEN_DEVICE_FUNC
