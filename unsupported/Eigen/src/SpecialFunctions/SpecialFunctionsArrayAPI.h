@@ -143,7 +143,7 @@ betainc(const Eigen::ArrayBase<ArgADerived>& a, const Eigen::ArrayBase<ArgBDeriv
   *
   * It returns the Riemann zeta function of two arguments \a x and \a q:
   *
-  * \param x is the exposent, it must be > 1
+  * \param x is the exponent, it must be > 1
   * \param q is the shift, it must be > 0
   *
   * \note This function supports only float and double scalar types. To support other scalar types, the user has
