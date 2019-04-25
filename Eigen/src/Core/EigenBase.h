@@ -32,8 +32,9 @@ template<typename Derived> struct EigenBase
   
   /** \brief The interface type of indices
     * \details To change this, \c \#define the preprocessor symbol \c EIGEN_DEFAULT_DENSE_INDEX_TYPE.
-    * \deprecated Since Eigen 3.3, its usage is deprecated. Use Eigen::Index instead.
     * \sa StorageIndex, \ref TopicPreprocessorDirectives.
+    * DEPRECATED: Since Eigen 3.3, its usage is deprecated. Use Eigen::Index instead.
+    * Deprecation is not marked with a doxygen comment because there are too many existing usages to add the deprecation attribute.
     */
   typedef Eigen::Index Index;
 

@@ -302,17 +302,17 @@ template<typename Derived> class DenseBase
     Derived& operator=(const ReturnByValue<OtherDerived>& func);
 
     /** \internal
-      * Copies \a other into *this without evaluating other. \returns a reference to *this.
-      * \deprecated */
+      * Copies \a other into *this without evaluating other. \returns a reference to *this. */
     template<typename OtherDerived>
+    /** \deprecated */
     EIGEN_DEPRECATED EIGEN_DEVICE_FUNC
     Derived& lazyAssign(const DenseBase<OtherDerived>& other);
 
     EIGEN_DEVICE_FUNC
     CommaInitializer<Derived> operator<< (const Scalar& s);
 
-    /** \deprecated it now returns \c *this */
     template<unsigned int Added,unsigned int Removed>
+    /** \deprecated it now returns \c *this */
     EIGEN_DEPRECATED
     const Derived& flagged() const
     { return derived(); }

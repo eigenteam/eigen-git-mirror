@@ -449,13 +449,13 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularViewImpl<_Mat
     TriangularViewType& operator=(const TriangularViewImpl& other)
     { return *this = other.derived().nestedExpression(); }
 
-    /** \deprecated */
     template<typename OtherDerived>
+    /** \deprecated */
     EIGEN_DEPRECATED EIGEN_DEVICE_FUNC
     void lazyAssign(const TriangularBase<OtherDerived>& other);
 
-    /** \deprecated */
     template<typename OtherDerived>
+    /** \deprecated */
     EIGEN_DEPRECATED EIGEN_DEVICE_FUNC
     void lazyAssign(const MatrixBase<OtherDerived>& other);
 #endif
@@ -536,9 +536,9 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularViewImpl<_Mat
       call_assignment(derived(), other.const_cast_derived(), internal::swap_assign_op<Scalar>());
     }
 
-    /** \deprecated
-      * Shortcut for \code (*this).swap(other.triangularView<(*this)::Mode>()) \endcode */
+    /** Shortcut for \code (*this).swap(other.triangularView<(*this)::Mode>()) \endcode */
     template<typename OtherDerived>
+    /** \deprecated */
     EIGEN_DEPRECATED EIGEN_DEVICE_FUNC
     void swap(MatrixBase<OtherDerived> const & other)
     {
