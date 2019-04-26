@@ -15,13 +15,13 @@ namespace Eigen {
 
 namespace internal {
 
-enum PacketSizeType {
-  PacketFull = 0,
-  PacketHalf,
-  PacketQuarter
+enum GEBPPacketSizeType {
+  GEBPPacketFull = 0,
+  GEBPPacketHalf,
+  GEBPPacketQuarter
 };
 
-template<typename _LhsScalar, typename _RhsScalar, bool _ConjLhs=false, bool _ConjRhs=false, int Arch=Architecture::Target, int _PacketSize=PacketFull>
+template<typename _LhsScalar, typename _RhsScalar, bool _ConjLhs=false, bool _ConjRhs=false, int Arch=Architecture::Target, int _PacketSize=GEBPPacketFull>
 class gebp_traits;
 
 
@@ -375,10 +375,10 @@ template <int N, typename T1, typename T2, typename T3>
 struct packet_conditional { typedef T3 type; };
 
 template <typename T1, typename T2, typename T3>
-struct packet_conditional<PacketFull, T1, T2, T3> { typedef T1 type; };
+struct packet_conditional<GEBPPacketFull, T1, T2, T3> { typedef T1 type; };
 
 template <typename T1, typename T2, typename T3>
-struct packet_conditional<PacketHalf, T1, T2, T3> { typedef T2 type; };
+struct packet_conditional<GEBPPacketHalf, T1, T2, T3> { typedef T2 type; };
 
 #define PACKET_DECL_COND_PREFIX(prefix, name, packet_size)         \
   typedef typename packet_conditional<packet_size,                 \
@@ -1054,8 +1054,8 @@ protected:
 #if EIGEN_ARCH_ARM64 && defined EIGEN_VECTORIZE_NEON
 
 template<>
-struct gebp_traits <float, float, false, false,Architecture::NEON,PacketFull>
- : gebp_traits<float,float,false,false,Architecture::Generic,PacketFull>
+struct gebp_traits <float, float, false, false,Architecture::NEON,GEBPPacketFull>
+ : gebp_traits<float,float,false,false,Architecture::Generic,GEBPPacketFull>
 {
   typedef float RhsPacket;
 
@@ -1203,8 +1203,8 @@ template<typename LhsScalar, typename RhsScalar, typename Index, typename DataMa
 struct gebp_kernel
 {
   typedef gebp_traits<LhsScalar,RhsScalar,ConjugateLhs,ConjugateRhs,Architecture::Target> Traits;
-  typedef gebp_traits<LhsScalar,RhsScalar,ConjugateLhs,ConjugateRhs,Architecture::Target,PacketHalf> HalfTraits;
-  typedef gebp_traits<LhsScalar,RhsScalar,ConjugateLhs,ConjugateRhs,Architecture::Target,PacketQuarter> QuarterTraits;
+  typedef gebp_traits<LhsScalar,RhsScalar,ConjugateLhs,ConjugateRhs,Architecture::Target,GEBPPacketHalf> HalfTraits;
+  typedef gebp_traits<LhsScalar,RhsScalar,ConjugateLhs,ConjugateRhs,Architecture::Target,GEBPPacketQuarter> QuarterTraits;
   
   typedef typename Traits::ResScalar ResScalar;
   typedef typename Traits::LhsPacket LhsPacket;
