@@ -550,7 +550,7 @@ template<> EIGEN_STRONG_INLINE void pstore1<Packet2d>(double* to, const double& 
   pstore(to, Packet2d(vec2d_swizzle1(pa,0,0)));
 }
 
-#if EIGEN_COMP_PGI < 1900
+#if EIGEN_COMP_PGI && EIGEN_COMP_PGI < 1900
 typedef const void * SsePrefetchPtrType;
 #else
 typedef const char * SsePrefetchPtrType;
@@ -1051,7 +1051,7 @@ template<> EIGEN_STRONG_INLINE double pmadd(const double& a, const double& b, co
 
 } // end namespace Eigen
 
-#if EIGEN_COMP_PGI < 1900
+#if EIGEN_COMP_PGI && EIGEN_COMP_PGI < 1900
 // PGI++ does not define the following intrinsics in C++ mode.
 static inline __m128  _mm_castpd_ps   (__m128d x) { return reinterpret_cast<__m128&>(x);  }
 static inline __m128i _mm_castpd_si128(__m128d x) { return reinterpret_cast<__m128i&>(x); }
