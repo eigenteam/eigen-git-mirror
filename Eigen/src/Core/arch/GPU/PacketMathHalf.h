@@ -611,6 +611,11 @@ template<> EIGEN_STRONG_INLINE void pstoreu<half>(Eigen::half* to, const Packet1
   _mm256_storeu_si256((__m256i*)(void*)to, from.x);
 }
 
+template<> EIGEN_STRONG_INLINE void pstoreu<half>(Eigen::half* to, const Packet16h& from, int16_t umask) {
+  __mmask16 mask = static_cast<__mmask16>(umask);
+  _mm512_mask_storeu_epi16((__m256i*)(void*)to, mask, from.x);
+}
+
 template<> EIGEN_STRONG_INLINE Packet16h
 ploaddup<Packet16h>(const Eigen::half*  from) {
   Packet16h result;
