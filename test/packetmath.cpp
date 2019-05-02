@@ -228,6 +228,12 @@ template<typename Scalar,typename Packet> void packetmath()
         VERIFY(areApprox(data3, data2, PacketSize) && "internal::ploadu masked");
       }
     }
+  }
+
+  if (internal::unpacket_traits<Packet>::masked_store_available)
+  {
+    packet_helper<internal::unpacket_traits<Packet>::masked_store_available, Packet> h;
+    unsigned long long max_umask = (0x1ull << PacketSize);
 
     for (int offset=0; offset<PacketSize; ++offset)
     {

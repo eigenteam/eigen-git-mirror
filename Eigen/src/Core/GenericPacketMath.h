@@ -377,7 +377,7 @@ template<typename Scalar, typename Packet> EIGEN_DEVICE_FUNC inline void pstoreu
  */
 template<typename Scalar, typename Packet>
 EIGEN_DEVICE_FUNC inline
-typename enable_if<unpacket_traits<Packet>::masked_load_available, void>::type
+typename enable_if<unpacket_traits<Packet>::masked_store_available, void>::type
 pstoreu(Scalar* to, const Packet& from, typename unpacket_traits<Packet>::mask_t umask);
 
  template<typename Scalar, typename Packet> EIGEN_DEVICE_FUNC inline Packet pgather(const Scalar* from, Index /*stride*/)
