@@ -905,9 +905,11 @@ struct scalar_logistic_op {
   }
 };
 template <typename T>
-struct functor_traits<scalar_logistic_op<T> > {
+struct functor_traits<scalar_logistic_op<T>> {
   enum {
-    Cost = NumTraits<T>::AddCost * 2 + NumTraits<T>::MulCost * 6,
+    Cost = NumTraits<T>::AddCost * 2 + NumTraits<T>::MulCost * 6 +
+           scalar_div_cost<T, packet_traits<T>::HasDiv>::value +
+           functor_traits<scalar_exp_op<T>>::Cost,
     PacketAccess = packet_traits<T>::HasAdd && packet_traits<T>::HasDiv &&
                    packet_traits<T>::HasNegate && packet_traits<T>::HasExp
   };
@@ -974,6 +976,18 @@ struct scalar_logistic_op<float> {
     return pmax(pmin(padd(pdiv(p, q), pset1<Packet>(0.5)), pset1<Packet>(1.0)),
                 pset1<Packet>(0.0));
   }
+};
+
+template <>
+struct functor_traits<scalar_logistic_op<float>> {
+  enum {
+    Cost = NumTraits<float>::AddCost * 12 + NumTraits<float>::MulCost * 11 +
+           scalar_div_cost<float, packet_traits<float>::HasDiv>::value,
+    PacketAccess = packet_traits<float>::HasAdd &&
+                   packet_traits<float>::HasMul &&
+                   packet_traits<float>::HasDiv &&
+                   packet_traits<float>::HasMax && packet_traits<float>::HasMin
+  };
 };
 
 } // end namespace internal
