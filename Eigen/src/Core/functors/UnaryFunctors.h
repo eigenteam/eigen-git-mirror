@@ -905,11 +905,11 @@ struct scalar_logistic_op {
   }
 };
 template <typename T>
-struct functor_traits<scalar_logistic_op<T>> {
+struct functor_traits<scalar_logistic_op<T> > {
   enum {
     Cost = NumTraits<T>::AddCost * 2 + NumTraits<T>::MulCost * 6 +
            scalar_div_cost<T, packet_traits<T>::HasDiv>::value +
-           functor_traits<scalar_exp_op<T>>::Cost,
+           functor_traits<scalar_exp_op<T> >::Cost,
     PacketAccess = packet_traits<T>::HasAdd && packet_traits<T>::HasDiv &&
                    packet_traits<T>::HasNegate && packet_traits<T>::HasExp
   };
@@ -979,7 +979,7 @@ struct scalar_logistic_op<float> {
 };
 
 template <>
-struct functor_traits<scalar_logistic_op<float>> {
+struct functor_traits<scalar_logistic_op<float> > {
   enum {
     Cost = NumTraits<float>::AddCost * 12 + NumTraits<float>::MulCost * 11 +
            scalar_div_cost<float, packet_traits<float>::HasDiv>::value,
