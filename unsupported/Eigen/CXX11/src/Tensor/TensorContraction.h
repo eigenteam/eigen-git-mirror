@@ -245,9 +245,9 @@ template <typename ResScalar, typename LhsScalar, typename RhsScalar,
     typename RhsMapper>
 struct TensorContractionKernel {
   EIGEN_DEVICE_FUNC
-  TensorContractionKernel(StorageIndex m, StorageIndex k, StorageIndex n,
-                          StorageIndex bm, StorageIndex bk, StorageIndex bn)
-      : m(m), k(k), n(n), bm(bm), bk(bk), bn(bn) {}
+  TensorContractionKernel(StorageIndex m_, StorageIndex k_, StorageIndex n_,
+                          StorageIndex bm_, StorageIndex bk_, StorageIndex bn_)
+      : m(m_), k(k_), n(n_), bm(bm_), bk(bk_), bn(bn_) {}
 
   // Pack blocks of Lhs and Rhs into contiguous blocks in memory.
   typedef LhsScalar* LhsBlock;
