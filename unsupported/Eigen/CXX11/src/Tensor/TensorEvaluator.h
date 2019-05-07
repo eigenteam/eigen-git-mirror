@@ -100,7 +100,7 @@ struct TensorEvaluator
   // Packet16f, `umask` is of type uint16_t and if a bit is 1, corresponding
   // float element will be loaded, otherwise 0 will be loaded.
   // Function has been templatized to enable Sfinae.
-  template <typename PacketReturnTypeT = PacketReturnType> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+  template <typename PacketReturnTypeT> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
   typename internal::enable_if<internal::unpacket_traits<PacketReturnTypeT>::masked_load_available, PacketReturnTypeT>::type
   partialPacket(Index index, typename internal::unpacket_traits<PacketReturnTypeT>::mask_t umask) const
   {
@@ -261,7 +261,7 @@ struct TensorEvaluator<const Derived, Device>
   // Packet16f, `umask` is of type uint16_t and if a bit is 1, corresponding
   // float element will be loaded, otherwise 0 will be loaded.
   // Function has been templatized to enable Sfinae.
-  template <typename PacketReturnTypeT = PacketReturnType> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+  template <typename PacketReturnTypeT> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
   typename internal::enable_if<internal::unpacket_traits<PacketReturnTypeT>::masked_load_available, PacketReturnTypeT>::type
   partialPacket(Index index, typename internal::unpacket_traits<PacketReturnTypeT>::mask_t umask) const
   {
