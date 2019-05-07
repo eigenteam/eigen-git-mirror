@@ -595,7 +595,7 @@ template<> EIGEN_STRONG_INLINE Packet16h ploadu<Packet16h>(const Eigen::half* fr
                                                            uint16_t umask) {
   __mmask16 mask = static_cast<__mmask16>(umask);
   Packet16h result;
-  result.x = _mm256_maskz_loadu_epi16(mask, from);
+  result.x = _mm256_maskz_loadu_epi16(mask, reinterpret_cast<const __m256i*>(from));
   return result;
 }
 
