@@ -30,10 +30,10 @@ static void test_basic_eventcount()
   EventCount ec(waiters);
   EventCount::Waiter& w = waiters[0];
   ec.Notify(false);
-  VERIFY(ec.Prewait());
+  ec.Prewait();
   ec.Notify(true);
   ec.CommitWait(&w);
-  VERIFY(ec.Prewait());
+  ec.Prewait();
   ec.CancelWait();
 }
 
@@ -112,7 +112,7 @@ static void test_stress_eventcount()
         unsigned idx = rand_reentrant(&rnd) % kQueues;
         if (queues[idx].Pop()) continue;
         j--;
-        if (!ec.Prewait()) continue;
+        ec.Prewait();
         bool empty = true;
         for (int q = 0; q < kQueues; q++) {
           if (!queues[q].Empty()) {
