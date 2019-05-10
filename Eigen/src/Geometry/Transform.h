@@ -1111,12 +1111,12 @@ EIGEN_DEVICE_FUNC void Transform<Scalar,Dim,Mode,Options>::computeRotationScalin
   Scalar x = (svd.matrixU() * svd.matrixV().adjoint()).determinant(); // so x has absolute value 1
   VectorType sv(svd.singularValues());
   sv.coeffRef(0) *= x;
-  if(scaling) scaling->lazyAssign(svd.matrixV() * sv.asDiagonal() * svd.matrixV().adjoint());
+  if(scaling) *scaling = svd.matrixV() * sv.asDiagonal() * svd.matrixV().adjoint();
   if(rotation)
   {
     LinearMatrixType m(svd.matrixU());
     m.col(0) /= x;
-    rotation->lazyAssign(m * svd.matrixV().adjoint());
+    *rotation = m * svd.matrixV().adjoint();
   }
 }
 
@@ -1140,12 +1140,12 @@ EIGEN_DEVICE_FUNC void Transform<Scalar,Dim,Mode,Options>::computeScalingRotatio
   Scalar x = (svd.matrixU() * svd.matrixV().adjoint()).determinant(); // so x has absolute value 1
   VectorType sv(svd.singularValues());
   sv.coeffRef(0) *= x;
-  if(scaling) scaling->lazyAssign(svd.matrixU() * sv.asDiagonal() * svd.matrixU().adjoint());
+  if(scaling) *scaling = svd.matrixU() * sv.asDiagonal() * svd.matrixU().adjoint();
   if(rotation)
   {
     LinearMatrixType m(svd.matrixU());
     m.col(0) /= x;
-    rotation->lazyAssign(m * svd.matrixV().adjoint());
+    *rotation = m * svd.matrixV().adjoint();
   }
 }
 

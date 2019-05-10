@@ -214,9 +214,9 @@ template<typename Scalar> void eulerangles_manual()
   check_singular_cases(-PI);
   
   // non-singular cases
-  VectorX alpha = VectorX::LinSpaced(Eigen::Sequential, 20, Scalar(-0.99) * PI, PI);
-  VectorX beta =  VectorX::LinSpaced(Eigen::Sequential, 20, Scalar(-0.49) * PI, Scalar(0.49) * PI);
-  VectorX gamma = VectorX::LinSpaced(Eigen::Sequential, 20, Scalar(-0.99) * PI, PI);
+  VectorX alpha = VectorX::LinSpaced(20, Scalar(-0.99) * PI, PI);
+  VectorX beta =  VectorX::LinSpaced(20, Scalar(-0.49) * PI, Scalar(0.49) * PI);
+  VectorX gamma = VectorX::LinSpaced(20, Scalar(-0.99) * PI, PI);
   for (int i = 0; i < alpha.size(); ++i) {
     for (int j = 0; j < beta.size(); ++j) {
       for (int k = 0; k < gamma.size(); ++k) {

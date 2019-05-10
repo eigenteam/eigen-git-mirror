@@ -7,8 +7,34 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+#ifdef EIGEN_TEST_PART_100
+#  define EIGEN_NO_DEPRECATED_WARNING
+#endif
+
 #include "main.h"
 
+
+template<typename MatrixType> void triangular_deprecated(const MatrixType &m)
+{
+  Index rows = m.rows();
+  Index cols = m.cols();
+  MatrixType m1, m2, m3, m4;
+  m1.setRandom(rows,cols);
+  m2.setRandom(rows,cols);
+  m3 = m1; m4 = m2;
+  // deprecated method:
+  m1.template triangularView<Eigen::Upper>().swap(m2);
+  // use this method instead:
+  m3.template triangularView<Eigen::Upper>().swap(m4.template triangularView<Eigen::Upper>());
+  VERIFY_IS_APPROX(m1,m3);
+  VERIFY_IS_APPROX(m2,m4);
+  // deprecated method:
+  m1.template triangularView<Eigen::Lower>().swap(m4);
+  // use this method instead:
+  m3.template triangularView<Eigen::Lower>().swap(m2.template triangularView<Eigen::Lower>());
+  VERIFY_IS_APPROX(m1,m3);
+  VERIFY_IS_APPROX(m2,m4);
+}
 
 
 template<typename MatrixType> void triangular_square(const MatrixType& m)
@@ -109,11 +135,12 @@ template<typename MatrixType> void triangular_square(const MatrixType& m)
   // test swap
   m1.setOnes();
   m2.setZero();
-  m2.template triangularView<Upper>().swap(m1);
+  m2.template triangularView<Upper>().swap(m1.template triangularView<Eigen::Upper>());
   m3.setZero();
   m3.template triangularView<Upper>().setOnes();
   VERIFY_IS_APPROX(m2,m3);
-  
+  VERIFY_RAISES_STATIC_ASSERT(m1.template triangularView<Eigen::Lower>().swap(m2.template triangularView<Eigen::Upper>()));
+
   m1.setRandom();
   m3 = m1.template triangularView<Upper>();
   Matrix<Scalar, MatrixType::ColsAtCompileTime, Dynamic> m5(cols, internal::random<int>(1,20));  m5.setRandom();
@@ -224,7 +251,7 @@ template<typename MatrixType> void triangular_rect(const MatrixType& m)
   // test swap
   m1.setOnes();
   m2.setZero();
-  m2.template triangularView<Upper>().swap(m1);
+  m2.template triangularView<Upper>().swap(m1.template triangularView<Eigen::Upper>());
   m3.setZero();
   m3.template triangularView<Upper>().setOnes();
   VERIFY_IS_APPROX(m2,m3);
@@ -256,6 +283,9 @@ EIGEN_DECLARE_TEST(triangular)
     CALL_SUBTEST_9( triangular_rect(MatrixXcf(r, c)) );
     CALL_SUBTEST_5( triangular_rect(MatrixXcd(r, c)) );
     CALL_SUBTEST_6( triangular_rect(Matrix<float,Dynamic,Dynamic,RowMajor>(r, c)) );
+
+    CALL_SUBTEST_100( triangular_deprecated(Matrix<float, 5, 7>()) );
+    CALL_SUBTEST_100( triangular_deprecated(MatrixXd(r,c)) );
   }
   
   CALL_SUBTEST_1( bug_159() );
