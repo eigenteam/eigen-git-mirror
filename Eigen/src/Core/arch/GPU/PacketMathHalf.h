@@ -567,7 +567,7 @@ struct packet_traits<half> : default_packet_traits {
 };
 
 
-template<> struct unpacket_traits<Packet16h> { typedef Eigen::half type; typedef uint16_t mask_t; enum {size=16, alignment=Aligned32, vectorizable=true, masked_load_available=true, masked_store_available=false}; typedef Packet16h half; };
+template<> struct unpacket_traits<Packet16h> { typedef Eigen::half type; enum {size=16, alignment=Aligned32, vectorizable=true, masked_load_available=false, masked_store_available=false}; typedef Packet16h half; };
 
 template<> EIGEN_STRONG_INLINE Packet16h pset1<Packet16h>(const Eigen::half& from) {
   Packet16h result;
@@ -588,14 +588,6 @@ template<> EIGEN_STRONG_INLINE Packet16h pload<Packet16h>(const Eigen::half* fro
 template<> EIGEN_STRONG_INLINE Packet16h ploadu<Packet16h>(const Eigen::half* from) {
   Packet16h result;
   result.x = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(from));
-  return result;
-}
-
-template<> EIGEN_STRONG_INLINE Packet16h ploadu<Packet16h>(const Eigen::half* from,
-                                                           uint16_t umask) {
-  __mmask16 mask = static_cast<__mmask16>(umask);
-  Packet16h result;
-  result.x = _mm256_maskz_loadu_epi16(mask, reinterpret_cast<const __m256i*>(from));
   return result;
 }
 
