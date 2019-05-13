@@ -379,7 +379,7 @@ class ThreadPoolTempl : public Eigen::ThreadPoolInterface {
     eigen_plain_assert(!t->f);
     // We already did best-effort emptiness check in Steal, so prepare for
     // blocking.
-    if (!ec_.Prewait()) return true;
+    ec_.Prewait();
     // Now do a reliable emptiness check.
     int victim = NonEmptyQueueIndex();
     if (victim != -1) {

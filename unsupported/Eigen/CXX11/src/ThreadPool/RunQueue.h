@@ -97,11 +97,9 @@ class RunQueue {
   }
 
   // PopBack removes and returns the last elements in the queue.
-  // Can fail spuriously.
   Work PopBack() {
     if (Empty()) return Work();
-    std::unique_lock<std::mutex> lock(mutex_, std::try_to_lock);
-    if (!lock) return Work();
+    std::unique_lock<std::mutex> lock(mutex_);
     unsigned back = back_.load(std::memory_order_relaxed);
     Elem* e = &array_[back & kMask];
     uint8_t s = e->state.load(std::memory_order_relaxed);
@@ -115,11 +113,10 @@ class RunQueue {
   }
 
   // PopBackHalf removes and returns half last elements in the queue.
-  // Returns number of elements removed. But can also fail spuriously.
+  // Returns number of elements removed.
   unsigned PopBackHalf(std::vector<Work>* result) {
     if (Empty()) return 0;
-    std::unique_lock<std::mutex> lock(mutex_, std::try_to_lock);
-    if (!lock) return 0;
+    std::unique_lock<std::mutex> lock(mutex_);
     unsigned back = back_.load(std::memory_order_relaxed);
     unsigned size = Size();
     unsigned mid = back;

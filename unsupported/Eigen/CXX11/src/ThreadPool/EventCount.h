@@ -20,8 +20,7 @@ namespace Eigen {
 //   if (predicate)
 //     return act();
 //   EventCount::Waiter& w = waiters[my_index];
-//   if (!ec.Prewait(&w))
-//     return act();
+//   ec.Prewait(&w);
 //   if (predicate) {
 //     ec.CancelWait(&w);
 //     return act();
@@ -62,23 +61,17 @@ class EventCount {
   }
 
   // Prewait prepares for waiting.
-  // If Prewait returns true, the thread must re-check the wait predicate
+  // After calling Prewait, the thread must re-check the wait predicate
   // and then call either CancelWait or CommitWait.
-  // Otherwise, the thread should assume the predicate may be true
-  // and don't call CancelWait/CommitWait (there was a concurrent Notify call).
-  bool Prewait() {
+  void Prewait() {
     uint64_t state = state_.load(std::memory_order_relaxed);
     for (;;) {
       CheckState(state);
       uint64_t newstate = state + kWaiterInc;
-      if ((state & kSignalMask) != 0) {
-        // Consume the signal and cancel waiting.
-        newstate -= kSignalInc + kWaiterInc;
-      }
       CheckState(newstate);
       if (state_.compare_exchange_weak(state, newstate,
                                        std::memory_order_seq_cst))
-        return (state & kSignalMask) == 0;
+        return;
     }
   }
 
@@ -118,8 +111,13 @@ class EventCount {
     for (;;) {
       CheckState(state, true);
       uint64_t newstate = state - kWaiterInc;
-      // Also take away a signal if any.
-      if ((state & kSignalMask) != 0) newstate -= kSignalInc;
+      // We don't know if the thread was also notified or not,
+      // so we should not consume a signal unconditionaly.
+      // Only if number of waiters is equal to number of signals,
+      // we know that the thread was notified and we must take away the signal.
+      if (((state & kWaiterMask) >> kWaiterShift) ==
+          ((state & kSignalMask) >> kSignalShift))
+        newstate -= kSignalInc;
       CheckState(newstate);
       if (state_.compare_exchange_weak(state, newstate,
                                        std::memory_order_acq_rel))
