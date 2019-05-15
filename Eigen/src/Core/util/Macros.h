@@ -395,11 +395,8 @@
   #define EIGEN_CUDA_ARCH __CUDA_ARCH__
 #endif
 
-// Starting with CUDA 9 the composite __CUDACC_VER__ is not available.
-#if defined(__CUDACC_VER_MAJOR__) && (__CUDACC_VER_MAJOR__ >= 9)
-  #define EIGEN_CUDACC_VER  ((__CUDACC_VER_MAJOR__ * 10000) + (__CUDACC_VER_MINOR__ * 100))
-#elif defined(__CUDACC_VER__)
-  #define EIGEN_CUDACC_VER __CUDACC_VER__
+#if defined(CUDA_VERSION)
+  #define EIGEN_CUDACC_VER (CUDA_VERSION*10)
 #else
   #define EIGEN_CUDACC_VER 0
 #endif
