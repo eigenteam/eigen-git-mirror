@@ -239,13 +239,17 @@ namespace Eigen {
 namespace half_impl {
 
 #if (defined(EIGEN_HAS_CUDA_FP16) && defined(EIGEN_CUDA_ARCH) && EIGEN_CUDA_ARCH >= 530) || \
-  (defined(EIGEN_HAS_HIP_FP16) && defined(HIP_DEVICE_COMPILE))
+  (defined(EIGEN_HAS_HIP_FP16) && defined(HIP_DEVICE_COMPILE)) || \
+  (defined(EIGEN_HAS_CUDA_FP16) && defined(__clang__) && defined(__CUDA__))
+#define __EIGEN_NATIVE_FP16
+#endif
 
 // Intrinsics for native fp16 support. Note that on current hardware,
 // these are no faster than fp32 arithmetic (you need to use the half2
 // versions to get the ALU speed increased), but you do save the
 // conversion steps back and forth.
 
+#if defined(__EIGEN_NATIVE_FP16)
 EIGEN_STRONG_INLINE __device__ half operator + (const half& a, const half& b) {
 #if defined(EIGEN_CUDACC_VER) && EIGEN_CUDACC_VER >= 90000
   return __hadd(::__half(a), ::__half(b));
@@ -306,7 +310,20 @@ EIGEN_STRONG_INLINE __device__ bool operator >= (const half& a, const half& b) {
   return __hge(a, b);
 }
 
-#else  // Emulate support for half floats
+#endif
+
+#if !defined(__EIGEN_NATIVE_FP16) || defined(__clang__) // Emulate support for half floats
+
+#if defined(__clang__) && defined(__CUDA__)
+// We need to provide emulated *host-side* FP16 operators for clang.
+#pragma push_macro("EIGEN_DEVICE_FUNC")
+#undef EIGEN_DEVICE_FUNC
+#if defined(EIGEN_HAS_CUDA_FP16)
+#define EIGEN_DEVICE_FUNC __host__
+#else // both host and device need emulated ops.
+#define EIGEN_DEVICE_FUNC __host__ __device__
+#endif
+#endif
 
 // Definitions for CPUs and older HIP+CUDA, mostly working through conversion
 // to/from fp32.
@@ -363,6 +380,9 @@ EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC bool operator >= (const half& a, const hal
   return float(a) >= float(b);
 }
 
+#if defined(__clang__) && defined(__CUDA__)
+#pragma pop_macro("EIGEN_DEVICE_FUNC")
+#endif
 #endif  // Emulate support for half floats
 
 // Division by an index. Do it in full float precision to avoid accuracy

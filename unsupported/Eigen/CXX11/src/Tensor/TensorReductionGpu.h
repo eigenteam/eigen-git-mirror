@@ -674,10 +674,6 @@ struct InnerReductionLauncher<Self, Op, Eigen::half, true> {
     if (num_blocks > 1) {
       // We initialize the outputs outside the reduction kernel when we can't be sure that there
       // won't be a race conditions between multiple thread blocks.
-      const int dyn_blocks = divup<int>(num_preserved_vals, 1024);
-      const int max_blocks = device.getNumGpuMultiProcessors() *
-                           device.maxGpuThreadsPerMultiProcessor() / 1024;
-      const int num_blocks = numext::mini<int>(max_blocks, dyn_blocks);
       LAUNCH_GPU_KERNEL((ReductionInitKernelHalfFloat<Self, Op, Index>),
                          1, 1, 0, device, reducer, self, num_preserved_vals, output);
     }
