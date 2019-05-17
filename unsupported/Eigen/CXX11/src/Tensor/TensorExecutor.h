@@ -333,9 +333,9 @@ class TensorExecutor<Expression, ThreadPoolDevice, Vectorizable, /*Tileable*/ tr
           typename TensorBlockMapper::Dimensions(evaluator.dimensions()),
           block_shape, block_size);
       block_size = block_mapper.block_dims_total_size();
+      const size_t align = numext::maxi(EIGEN_MAX_ALIGN_BYTES, 1);
       const size_t aligned_blocksize =
-          EIGEN_MAX_ALIGN_BYTES *
-          divup<size_t>(block_size * sizeof(Scalar), EIGEN_MAX_ALIGN_BYTES);
+          align * divup<size_t>(block_size * sizeof(Scalar), align);
       void* buf = device.allocate((num_threads + 1) * aligned_blocksize);
       device.parallelFor(
           block_mapper.total_block_count(), cost * block_size,
