@@ -304,7 +304,6 @@ struct general_matrix_vector_product<Index,LhsScalar,LhsMapper,RowMajor,Conjugat
   typedef typename ScalarBinaryOpTraits<LhsScalar, RhsScalar>::ReturnType ResScalar;
 
   typedef typename Traits::LhsPacket LhsPacket;
-  static const Index LhsPacketSize = Traits::LhsPacketSize;
   typedef typename Traits::RhsPacket RhsPacket;
   typedef typename Traits::ResPacket ResPacket;
 
