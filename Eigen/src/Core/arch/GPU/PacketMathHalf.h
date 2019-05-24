@@ -46,7 +46,7 @@ template<> struct packet_traits<Eigen::half> : default_packet_traits
 template<> struct unpacket_traits<half2> { typedef Eigen::half type; enum {size=2, alignment=Aligned16, vectorizable=true, masked_load_available=false, masked_store_available=false}; typedef half2 half; };
 
 template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE half2 pset1<half2>(const Eigen::half& from) {
-#if !defined(EIGEN_CUDA_ARCH)
+#if !defined(EIGEN_CUDA_ARCH) && !defined(EIGEN_HIP_DEVICE_COMPILE)
   half2 r;
   r.x = from;
   r.y = from;

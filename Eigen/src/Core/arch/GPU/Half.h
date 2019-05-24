@@ -318,7 +318,7 @@ EIGEN_STRONG_INLINE __device__ bool operator >= (const half& a, const half& b) {
 // We need to provide emulated *host-side* FP16 operators for clang.
 #pragma push_macro("EIGEN_DEVICE_FUNC")
 #undef EIGEN_DEVICE_FUNC
-#if defined(EIGEN_HAS_CUDA_FP16)
+#if defined(EIGEN_HAS_GPU_FP16)
 #define EIGEN_DEVICE_FUNC __host__
 #else // both host and device need emulated ops.
 #define EIGEN_DEVICE_FUNC __host__ __device__
