@@ -81,8 +81,8 @@
 // gpu_assert can be overridden
 #ifndef gpu_assert
 
-#if defined(EIGEN_HIP_DEVICE_COMPILE) || (defined(EIGEN_CUDACC) && (EIGEN_CUDACC_VER==0))
-// clang-cuda and HIPCC do not support the use of assert on the GPU side.
+#if defined(EIGEN_HIP_DEVICE_COMPILE)
+// HIPCC do not support the use of assert on the GPU side.
 #define gpu_assert(COND)
 #else
 #define gpu_assert(COND) assert(COND)

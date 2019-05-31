@@ -138,6 +138,7 @@ template <typename Derived>
 struct coeff_visitor
 {
   // default initialization to avoid countless invalid maybe-uninitialized warnings by gcc
+  EIGEN_DEVICE_FUNC
   coeff_visitor() : row(-1), col(-1), res(0) {}
   typedef typename Derived::Scalar Scalar;
   Index row, col;

@@ -73,8 +73,13 @@ template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void pstore<Eigen::half>(Eigen:
 }
 
 template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void pstoreu<Eigen::half>(Eigen::half* to, const half2& from) {
+#if !defined(EIGEN_CUDA_ARCH) && !defined(EIGEN_HIP_DEVICE_COMPILE)
+  to[0] = from.x;
+  to[1] = from.y;
+#else
   to[0] = __low2half(from);
   to[1] = __high2half(from);
+#endif
 }
 
 template<>
@@ -477,7 +482,7 @@ template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE half2 pexpm1<half2>(const half2
   return __floats2half2_rn(r1, r2);
 }
 
-#if (EIGEN_CUDACC_VER >= 80000 && defined EIGEN_CUDA_ARCH && EIGEN_CUDA_ARCH >= 530) || \
+#if (EIGEN_CUDA_SDK_VER >= 80000 && defined EIGEN_CUDA_ARCH && EIGEN_CUDA_ARCH >= 530) || \
   defined(EIGEN_HIP_DEVICE_COMPILE)
 
 template<>  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE

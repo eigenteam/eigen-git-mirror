@@ -108,6 +108,18 @@
   #define EIGEN_COMP_MSVC 0
 #endif
 
+#if defined(__NVCC__)
+#if defined(__CUDACC_VER_MAJOR__) && (__CUDACC_VER_MAJOR__ >= 9)
+  #define EIGEN_COMP_NVCC  ((__CUDACC_VER_MAJOR__ * 10000) + (__CUDACC_VER_MINOR__ * 100))
+#elif defined(__CUDACC_VER__)
+  #define EIGEN_COMP_NVCC __CUDACC_VER__
+#else
+  #error "NVCC did not define compiler version."
+#endif
+#else
+  #define EIGEN_COMP_NVCC 0
+#endif
+
 // For the record, here is a table summarizing the possible values for EIGEN_COMP_MSVC:
 //  name        ver   MSC_VER
 //  2008         9      1500
@@ -408,10 +420,11 @@
   #define EIGEN_CUDA_ARCH __CUDA_ARCH__
 #endif
 
-#if defined(CUDA_VERSION)
-  #define EIGEN_CUDACC_VER (CUDA_VERSION*10)
+#if defined(EIGEN_CUDACC)
+#include <cuda.h>
+  #define EIGEN_CUDA_SDK_VER (CUDA_VERSION * 10)
 #else
-  #define EIGEN_CUDACC_VER 0
+  #define EIGEN_CUDA_SDK_VER 0
 #endif
 
 #if defined(__HIPCC__) && !defined(EIGEN_NO_HIP)
@@ -622,7 +635,7 @@
 // Does the compiler support variadic templates?
 #ifndef EIGEN_HAS_VARIADIC_TEMPLATES
 #if EIGEN_MAX_CPP_VER>=11 && (__cplusplus > 199711L || EIGEN_COMP_MSVC >= 1900) \
-  && (!defined(__NVCC__) || !EIGEN_ARCH_ARM_OR_ARM64 || (EIGEN_CUDACC_VER >= 80000) )
+  && (!defined(__NVCC__) || !EIGEN_ARCH_ARM_OR_ARM64 || (EIGEN_COMP_NVCC >= 80000) )
     // ^^ Disable the use of variadic templates when compiling with versions of nvcc older than 8.0 on ARM devices:
     //    this prevents nvcc from crashing when compiling Eigen on Tegra X1
 #define EIGEN_HAS_VARIADIC_TEMPLATES 1
@@ -637,7 +650,7 @@
 #ifndef EIGEN_HAS_CONSTEXPR
   #if defined(EIGEN_CUDACC)
   // Const expressions are supported provided that c++11 is enabled and we're using either clang or nvcc 7.5 or above
-    #if EIGEN_MAX_CPP_VER>=14 && (__cplusplus > 199711L && (EIGEN_COMP_CLANG || EIGEN_CUDACC_VER >= 70500))
+    #if EIGEN_MAX_CPP_VER>=14 && (__cplusplus > 199711L && (EIGEN_COMP_CLANG || EIGEN_COMP_NVCC >= 70500))
       #define EIGEN_HAS_CONSTEXPR 1
     #endif
   #elif EIGEN_MAX_CPP_VER>=14 && (__has_feature(cxx_relaxed_constexpr) || (defined(__cplusplus) && __cplusplus >= 201402L) || \
@@ -981,7 +994,7 @@ namespace Eigen {
 #endif
 
 
-#if EIGEN_COMP_MSVC_STRICT && (EIGEN_COMP_MSVC < 1900 || EIGEN_CUDACC_VER>0)
+#if EIGEN_COMP_MSVC_STRICT && (EIGEN_COMP_MSVC < 1900 || EIGEN_COMP_NVCC)
   // for older MSVC versions, as well as 1900 && CUDA 8, using the base operator is sufficient (cf Bugs 1000, 1324)
   #define EIGEN_INHERIT_ASSIGNMENT_EQUAL_OPERATOR(Derived) \
     using Base::operator =;

@@ -1,4 +1,3 @@
-
 #ifndef EIGEN_TEST_GPU_COMMON_H
 #define EIGEN_TEST_GPU_COMMON_H
 
@@ -130,10 +129,14 @@ void ei_test_init_gpu()
   std::cout << "  EIGEN_CUDACC:                 " << int(EIGEN_CUDACC) << "\n";
   #endif
   
-  #ifdef EIGEN_CUDACC_VER
-  std::cout << "  EIGEN_CUDACC_VER:             " << int(EIGEN_CUDACC_VER) << "\n";
+  #ifdef EIGEN_CUDA_SDK_VER
+  std::cout << "  EIGEN_CUDA_SDK_VER:             " << int(EIGEN_CUDA_SDK_VER) << "\n";
   #endif
 
+  #ifdef EIGEN_COMP_NVCC
+  std::cout << "  EIGEN_COMP_NVCC:             " << int(EIGEN_COMP_NVCC) << "\n";
+  #endif
+  
   #ifdef EIGEN_HIPCC
   std::cout << "  EIGEN_HIPCC:                 " << int(EIGEN_HIPCC) << "\n";
   #endif

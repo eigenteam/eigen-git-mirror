@@ -380,7 +380,7 @@
 #if defined EIGEN_CUDACC
   #define EIGEN_VECTORIZE_GPU
   #include <vector_types.h>
-  #if EIGEN_CUDACC_VER >= 70500
+  #if EIGEN_CUDA_SDK_VER >= 70500
     #define EIGEN_HAS_CUDA_FP16
   #endif
 #endif

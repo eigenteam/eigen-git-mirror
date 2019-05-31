@@ -102,6 +102,7 @@ template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE double2 pset1<double2>(const do
   return make_double2(from, from);
 }
 
+#if defined(EIGEN_CUDA_ARCH) || defined(EIGEN_HIP_DEVICE_COMPILE) || (defined(EIGEN_CUDACC) && EIGEN_COMP_CLANG)
 namespace {
 
 EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE float bitwise_and(const float& a,
@@ -213,6 +214,7 @@ EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE double2
 pcmp_eq<double2>(const double2& a, const double2& b) {
   return make_double2(eq_mask(a.x, b.x), eq_mask(a.y, b.y));
 }
+#endif  // EIGEN_CUDA_ARCH || defined(EIGEN_HIP_DEVICE_COMPILE)
 
 template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE float4 plset<float4>(const float& a) {
   return make_float4(a, a+1, a+2, a+3);

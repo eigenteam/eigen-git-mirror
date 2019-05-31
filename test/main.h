@@ -52,15 +52,17 @@
 #endif
 
 // Same for cuda_fp16.h
-#if defined(__CUDACC_VER_MAJOR__) && (__CUDACC_VER_MAJOR__ >= 9)
-#define EIGEN_TEST_CUDACC_VER  ((__CUDACC_VER_MAJOR__ * 10000) + (__CUDACC_VER_MINOR__ * 100))
-#elif defined(__CUDACC_VER__)
-#define EIGEN_TEST_CUDACC_VER __CUDACC_VER__
-#else
-#define EIGEN_TEST_CUDACC_VER 0
+#if defined(__CUDACC__) && !defined(EIGEN_NO_CUDA)
+  // Means the compiler is either nvcc or clang with CUDA enabled
+  #define EIGEN_CUDACC __CUDACC__
 #endif
-
-#if EIGEN_TEST_CUDACC_VER >= 70500
+#if defined(EIGEN_CUDACC)
+#include <cuda.h>
+  #define EIGEN_CUDA_SDK_VER (CUDA_VERSION * 10)
+#else
+  #define EIGEN_CUDA_SDK_VER 0
+#endif
+#if EIGEN_CUDA_SDK_VER >= 70500
 #include <cuda_fp16.h>
 #endif
 
