@@ -105,8 +105,8 @@ namespace internal {
 #define COLAMD_EMPTY (-1)
 
 /* Row and column status */
-#define ALIVE (0)
-#define DEAD  (-1)
+#define COLAMD_ALIVE (0)
+#define COLAMD_DEAD  (-1)
 
 /* Column status */
 #define DEAD_PRINCIPAL    (-1)
@@ -114,12 +114,12 @@ namespace internal {
 
 /* Macros for row and column status update and checking. */
 #define ROW_IS_DEAD(r)      ROW_IS_MARKED_DEAD (Row[r].shared2.mark)
-#define ROW_IS_MARKED_DEAD(row_mark)  (row_mark < ALIVE)
-#define ROW_IS_ALIVE(r)     (Row [r].shared2.mark >= ALIVE)
-#define COL_IS_DEAD(c)      (Col [c].start < ALIVE)
-#define COL_IS_ALIVE(c)     (Col [c].start >= ALIVE)
+#define ROW_IS_MARKED_DEAD(row_mark)  (row_mark < COLAMD_ALIVE)
+#define ROW_IS_ALIVE(r)     (Row [r].shared2.mark >= COLAMD_ALIVE)
+#define COL_IS_DEAD(c)      (Col [c].start < COLAMD_ALIVE)
+#define COL_IS_ALIVE(c)     (Col [c].start >= COLAMD_ALIVE)
 #define COL_IS_DEAD_PRINCIPAL(c)  (Col [c].start == DEAD_PRINCIPAL)
-#define KILL_ROW(r)     { Row [r].shared2.mark = DEAD ; }
+#define KILL_ROW(r)     { Row [r].shared2.mark = COLAMD_DEAD ; }
 #define KILL_PRINCIPAL_COL(c)   { Col [c].start = DEAD_PRINCIPAL ; }
 #define KILL_NON_PRINCIPAL_COL(c) { Col [c].start = DEAD_NON_PRINCIPAL ; }
 
