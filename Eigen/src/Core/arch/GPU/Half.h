@@ -313,7 +313,7 @@ EIGEN_STRONG_INLINE __device__ bool operator >= (const half& a, const half& b) {
 
 #endif
 
-#if !defined(EIGEN_HAS_NATIVE_FP16) || EIGEN_COMP_CLANG // Emulate support for half floats
+#if !defined(EIGEN_HAS_NATIVE_FP16) || (EIGEN_COMP_CLANG && !EIGEN_COMP_NVCC) // Emulate support for half floats
 
 #if EIGEN_COMP_CLANG && defined(EIGEN_CUDACC)
 // We need to provide emulated *host-side* FP16 operators for clang.
