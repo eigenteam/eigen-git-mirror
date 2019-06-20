@@ -166,6 +166,16 @@ struct packet_helper<false,Packet>
   VERIFY(areApprox(ref, data2, PacketSize) && #POP); \
 }
 
+#define CHECK_CWISE3_IF(COND, REFOP, POP) if (COND) {                      \
+  packet_helper<COND, Packet> h;                                           \
+  for (int i = 0; i < PacketSize; ++i)                                     \
+    ref[i] =                                                               \
+        REFOP(data1[i], data1[i + PacketSize], data1[i + 2 * PacketSize]); \
+  h.store(data2, POP(h.load(data1), h.load(data1 + PacketSize),            \
+                     h.load(data1 + 2 * PacketSize)));                     \
+  VERIFY(areApprox(ref, data2, PacketSize) && #POP);                       \
+}
+
 #define REF_ADD(a,b) ((a)+(b))
 #define REF_SUB(a,b) ((a)-(b))
 #define REF_MUL(a,b) ((a)*(b))
@@ -447,19 +457,35 @@ template<typename Scalar,typename Packet> void packetmath()
       data1[i] = internal::random<Scalar>();
       unsigned char v = internal::random<bool>() ? 0xff : 0;
       char* bytes = (char*)(data1+PacketSize+i);
-      for(int k=0; k<int(sizeof(Scalar)); ++k)
+      for(int k=0; k<int(sizeof(Scalar)); ++k) {
         bytes[k] = v;
+      }
     }
     CHECK_CWISE2_IF(true, internal::por, internal::por);
     CHECK_CWISE2_IF(true, internal::pxor, internal::pxor);
     CHECK_CWISE2_IF(true, internal::pand, internal::pand);
     CHECK_CWISE2_IF(true, internal::pandnot, internal::pandnot);
   }
+  {
+    for (int i = 0; i < PacketSize; ++i) {
+      // "if" mask
+      unsigned char v = internal::random<bool>() ? 0xff : 0;
+      char* bytes = (char*)(data1+i);
+      for(int k=0; k<int(sizeof(Scalar)); ++k) {
+        bytes[k] = v;
+      }
+      // "then" packet
+      data1[i+PacketSize] = internal::random<Scalar>();
+      // "else" packet
+      data1[i+2*PacketSize] = internal::random<Scalar>();
+    }
+    CHECK_CWISE3_IF(true, internal::pselect, internal::pselect);
+  }
 
   {
     for (int i = 0; i < PacketSize; ++i) {
-      data1[i] = internal::random<Scalar>();
-      data2[i] = (i % 2) ? data1[i] : Scalar(0);
+      data1[i] = Scalar(i);
+      data1[i + PacketSize] = internal::random<bool>() ? data1[i] : Scalar(0);
     }
     CHECK_CWISE2_IF(true, internal::pcmp_eq, internal::pcmp_eq);
   }

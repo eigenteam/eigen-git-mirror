@@ -253,6 +253,24 @@ EIGEN_STRONG_INLINE Packet8d pmadd(const Packet8d& a, const Packet8d& b,
 #endif
 
 template <>
+EIGEN_DEVICE_FUNC inline Packet16f pselect(const Packet16f& mask,
+                                           const Packet16f& a,
+                                           const Packet16f& b) {
+  __mmask16 mask16 = _mm512_cmp_epi32_mask(
+      _mm512_castps_si512(mask), _mm512_setzero_epi32(), _MM_CMPINT_EQ);
+  return _mm512_mask_blend_ps(mask16, a, b);
+}
+
+template <>
+EIGEN_DEVICE_FUNC inline Packet8d pselect(const Packet8d& mask,
+                                          const Packet8d& a,
+                                          const Packet8d& b) {
+  __mmask8 mask8 = _mm512_cmp_epi64_mask(_mm512_castpd_si512(mask),
+                                         _mm512_setzero_epi32(), _MM_CMPINT_EQ);
+  return _mm512_mask_blend_pd(mask8, a, b);
+}
+
+template <>
 EIGEN_STRONG_INLINE Packet16f pmin<Packet16f>(const Packet16f& a,
                                               const Packet16f& b) {
   // Arguments are reversed to match NaN propagation behavior of std::min.
