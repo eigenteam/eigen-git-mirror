@@ -314,7 +314,7 @@ EIGEN_STRONG_INLINE __device__ bool operator >= (const half& a, const half& b) {
 #endif
 
 // The EIGEN_COMP_CLANG && !EIGEN_COMP_NVCC clause is necessary on Mac where we
-// that suspect NVCC doing device-side preprocessing with clang, but actually
+// suspect that NVCC is doing device-side preprocessing with clang, but actually
 // compiling with cicc, which is obviously not clang.
 #if !defined(EIGEN_HAS_NATIVE_FP16) || (EIGEN_COMP_CLANG && !EIGEN_COMP_NVCC) // Emulate support for half floats
 
