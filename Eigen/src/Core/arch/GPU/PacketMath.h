@@ -102,6 +102,9 @@ template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE double2 pset1<double2>(const do
   return make_double2(from, from);
 }
 
+// The EIGEN_COMP_CLANG && !EIGEN_COMP_NVCC clause is necessary on Mac where we
+// that suspect NVCC doing device-side preprocessing with clang, but actually
+// compiling with cicc, which is obviously not clang.
 #if defined(EIGEN_CUDA_ARCH) || defined(EIGEN_HIP_DEVICE_COMPILE) || (defined(EIGEN_CUDACC) && EIGEN_COMP_CLANG && !EIGEN_COMP_NVCC)
 namespace {
 
