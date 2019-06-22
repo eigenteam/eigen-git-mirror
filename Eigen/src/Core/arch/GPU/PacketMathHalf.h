@@ -180,8 +180,8 @@ template <>
 EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE half2 pselect<half2>(const half2& mask,
                                                            const half2& a,
                                                            const half2& b) {
-  half result_low = __low2half(mask) == half(0) ? __low2half(b) : __low2half(a);
-  half result_high = __high2half(mask) == half(0) ? __high2half(b) : __high2half(a);
+  half result_low = __low2half(mask) == __half(0) ? __low2half(b) : __low2half(a);
+  half result_high = __high2half(mask) == __half(0) ? __high2half(b) : __high2half(a);
   return __halves2half2(result_low, result_high);
 }
 
