@@ -145,10 +145,18 @@ struct TensorEvaluator<const TensorChippingOp<DimId, ArgType>, Device>
     // Alignment can't be guaranteed at compile time since it depends on the
     // slice offsets.
     IsAligned         = false,
+    Layout            = TensorEvaluator<ArgType, Device>::Layout,
     PacketAccess      = TensorEvaluator<ArgType, Device>::PacketAccess,
     BlockAccess       = TensorEvaluator<ArgType, Device>::BlockAccess,
-    PreferBlockAccess = true,
-    Layout            = TensorEvaluator<ArgType, Device>::Layout,
+    // Chipping of outer-most dimension is a trivial operation, because we can
+    // read and write directly from the underlying tensor using single offset.
+    IsOuterChipping   = (static_cast<int>(Layout) == ColMajor && DimId == NumInputDims - 1) ||
+                        (static_cast<int>(Layout) == RowMajor && DimId == 0),
+    // Chipping inner-most dimension.
+    IsInnerChipping   = (static_cast<int>(Layout) == ColMajor && DimId == 0) ||
+                        (static_cast<int>(Layout) == RowMajor && DimId == NumInputDims - 1),
+    // Do not choose block access if chipping is trivial.
+    PreferBlockAccess = !IsOuterChipping,
     CoordAccess       = false,  // to be implemented
     RawAccess         = false
   };
@@ -230,8 +238,7 @@ struct TensorEvaluator<const TensorChippingOp<DimId, ArgType>, Device>
     EIGEN_STATIC_ASSERT((PacketSize > 1), YOU_MADE_A_PROGRAMMING_MISTAKE)
     eigen_assert(index+PacketSize-1 < dimensions().TotalSize());
 
-    if ((static_cast<int>(Layout) == static_cast<int>(ColMajor) && m_dim.actualDim() == 0) ||
-  (static_cast<int>(Layout) == static_cast<int>(RowMajor) && m_dim.actualDim() == NumInputDims-1)) {
+    if (IsInnerChipping) {
       // m_stride is equal to 1, so let's avoid the integer division.
       eigen_assert(m_stride == 1);
       Index inputIndex = index * m_inputStride + m_inputOffset;
@@ -242,8 +249,7 @@ struct TensorEvaluator<const TensorChippingOp<DimId, ArgType>, Device>
       }
       PacketReturnType rslt = internal::pload<PacketReturnType>(values);
       return rslt;
-    } else if ((static_cast<int>(Layout) == static_cast<int>(ColMajor) && m_dim.actualDim() == NumInputDims - 1) ||
-         (static_cast<int>(Layout) == static_cast<int>(RowMajor) && m_dim.actualDim() == 0)) {
+    } else if (IsOuterChipping) {
       // m_stride is always greater than index, so let's avoid the integer division.
       eigen_assert(m_stride > index);
       return m_impl.template packet<LoadMode>(index + m_inputOffset);
@@ -345,9 +351,7 @@ struct TensorEvaluator<const TensorChippingOp<DimId, ArgType>, Device>
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE typename Eigen::internal::traits<XprType>::PointerType data() const {
     CoeffReturnType* result = const_cast<CoeffReturnType*>(m_impl.data());
-    if (((static_cast<int>(Layout) == static_cast<int>(ColMajor) && m_dim.actualDim() == NumDims) ||
-         (static_cast<int>(Layout) == static_cast<int>(RowMajor) && m_dim.actualDim() == 0)) &&
-        result) {
+    if (IsOuterChipping && result) {
       return result + m_inputOffset;
     } else {
       return NULL;
@@ -370,13 +374,11 @@ struct TensorEvaluator<const TensorChippingOp<DimId, ArgType>, Device>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Index srcCoeff(Index index) const
   {
     Index inputIndex;
-    if ((static_cast<int>(Layout) == static_cast<int>(ColMajor) && m_dim.actualDim() == 0) ||
-        (static_cast<int>(Layout) == static_cast<int>(RowMajor) && m_dim.actualDim() == NumInputDims - 1)) {
+    if (IsInnerChipping) {
       // m_stride is equal to 1, so let's avoid the integer division.
       eigen_assert(m_stride == 1);
       inputIndex = index * m_inputStride + m_inputOffset;
-    } else if ((static_cast<int>(Layout) == static_cast<int>(ColMajor) && m_dim.actualDim() == NumInputDims - 1) ||
-               (static_cast<int>(Layout) == static_cast<int>(RowMajor) && m_dim.actualDim() == 0)) {
+    } else if (IsOuterChipping) {
       // m_stride is always greater than index, so let's avoid the integer
       // division.
       eigen_assert(m_stride > index);
@@ -425,7 +427,16 @@ struct TensorEvaluator<TensorChippingOp<DimId, ArgType>, Device>
     PacketAccess = TensorEvaluator<ArgType, Device>::PacketAccess,
     BlockAccess  = TensorEvaluator<ArgType, Device>::BlockAccess,
     Layout       = TensorEvaluator<ArgType, Device>::Layout,
-    RawAccess    = false
+    RawAccess    = false,
+    // Chipping of outer-most dimension is a trivial operation, because we can
+    // read and write directly from the underlying tensor using single offset.
+    IsOuterChipping =
+        (static_cast<int>(Layout) == ColMajor && DimId == NumInputDims - 1) ||
+        (static_cast<int>(Layout) == RowMajor && DimId == 0),
+    // Chipping inner-most dimension.
+    IsInnerChipping =
+        (static_cast<int>(Layout) == ColMajor && DimId == 0) ||
+        (static_cast<int>(Layout) == RowMajor && DimId == NumInputDims - 1),
   };
 
   typedef typename internal::remove_const<Scalar>::type ScalarNoConst;
@@ -449,8 +460,7 @@ struct TensorEvaluator<TensorChippingOp<DimId, ArgType>, Device>
   {
     EIGEN_STATIC_ASSERT((PacketSize > 1), YOU_MADE_A_PROGRAMMING_MISTAKE)
 
-    if ((static_cast<int>(this->Layout) == static_cast<int>(ColMajor) && this->m_dim.actualDim() == 0) ||
-  (static_cast<int>(this->Layout) == static_cast<int>(RowMajor) && this->m_dim.actualDim() == NumInputDims-1)) {
+    if (IsInnerChipping) {
       // m_stride is equal to 1, so let's avoid the integer division.
       eigen_assert(this->m_stride == 1);
       EIGEN_ALIGN_MAX typename internal::remove_const<CoeffReturnType>::type values[PacketSize];
@@ -460,8 +470,7 @@ struct TensorEvaluator<TensorChippingOp<DimId, ArgType>, Device>
         this->m_impl.coeffRef(inputIndex) = values[i];
         inputIndex += this->m_inputStride;
       }
-    } else if ((static_cast<int>(this->Layout) == static_cast<int>(ColMajor) && this->m_dim.actualDim() == NumInputDims-1) ||
-         (static_cast<int>(this->Layout) == static_cast<int>(RowMajor) && this->m_dim.actualDim() == 0)) {
+    } else if (IsOuterChipping) {
       // m_stride is always greater than index, so let's avoid the integer division.
       eigen_assert(this->m_stride > index);
       this->m_impl.template writePacket<StoreMode>(index + this->m_inputOffset, x);
