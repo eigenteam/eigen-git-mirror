@@ -436,7 +436,7 @@ struct TensorEvaluator<TensorChippingOp<DimId, ArgType>, Device>
     // Chipping inner-most dimension.
     IsInnerChipping =
         (static_cast<int>(Layout) == ColMajor && DimId == 0) ||
-        (static_cast<int>(Layout) == RowMajor && DimId == NumInputDims - 1),
+        (static_cast<int>(Layout) == RowMajor && DimId == NumInputDims - 1)
   };
 
   typedef typename internal::remove_const<Scalar>::type ScalarNoConst;
