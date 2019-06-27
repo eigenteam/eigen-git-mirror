@@ -762,7 +762,7 @@ template<typename Scalar> struct scalar_isnan_op {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_isnan_op)
   typedef bool result_type;
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE result_type operator() (const Scalar& a) const {
-#if defined(__SYCL_DEVICE_ONLY__)
+#if defined(SYCL_DEVICE_ONLY)
     return numext::isnan(a);
 #else
     return (numext::isnan)(a);
@@ -786,7 +786,7 @@ template<typename Scalar> struct scalar_isinf_op {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_isinf_op)
   typedef bool result_type;
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE result_type operator() (const Scalar& a) const {
-#if defined(__SYCL_DEVICE_ONLY__)
+#if defined(SYCL_DEVICE_ONLY)
     return numext::isinf(a);
 #else
     return (numext::isinf)(a);
@@ -810,7 +810,7 @@ template<typename Scalar> struct scalar_isfinite_op {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_isfinite_op)
   typedef bool result_type;
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE result_type operator() (const Scalar& a) const {
-#if defined(__SYCL_DEVICE_ONLY__)
+#if defined(SYCL_DEVICE_ONLY)
     return numext::isfinite(a);
 #else
     return (numext::isfinite)(a);

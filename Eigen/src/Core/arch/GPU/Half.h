@@ -65,7 +65,7 @@ struct __half_raw {
  typedef __half __half_raw;
  #endif // defined(EIGEN_HAS_CUDA_FP16)
 
-#elif defined(EIGEN_USE_SYCL) && defined(__SYCL_DEVICE_ONLY__)
+#elif defined(SYCL_DEVICE_ONLY)
 typedef cl::sycl::half __half_raw;
 
 #endif

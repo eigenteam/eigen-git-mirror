@@ -70,7 +70,7 @@
 // protected by parenthesis against macro expansion, the min()/max() macros
 // are defined here and any not-parenthesized min/max call will cause a
 // compiler error.
-#if !defined(__HIPCC__)
+#if !defined(__HIPCC__) && !defined(EIGEN_USE_SYCL)
   //
   // HIP header files include the following files
   //  <thread>
@@ -277,7 +277,7 @@ namespace Eigen
       }
     #endif //EIGEN_EXCEPTIONS
 
-  #elif !defined(__CUDACC__) && !defined(__HIPCC__) && !defined(__SYCL_DEVICE_ONLY__) // EIGEN_DEBUG_ASSERTS
+  #elif !defined(__CUDACC__) && !defined(__HIPCC__) && !defined(SYCL_DEVICE_ONLY) // EIGEN_DEBUG_ASSERTS
     // see bug 89. The copy_bool here is working around a bug in gcc <= 4.3
     #define eigen_assert(a) \
       if( (!Eigen::internal::copy_bool(a)) && (!no_more_assert) )\
@@ -334,7 +334,7 @@ namespace Eigen
     std::cout << "Can't VERIFY_RAISES_STATIC_ASSERT( " #a " ) with exceptions disabled\n";
 #endif
 
-  #if !defined(__CUDACC__) && !defined(__HIPCC__) && !defined(__SYCL_DEVICE_ONLY__)
+  #if !defined(__CUDACC__) && !defined(__HIPCC__) && !defined(SYCL_DEVICE_ONLY)
   #define EIGEN_USE_CUSTOM_ASSERT
   #endif
 

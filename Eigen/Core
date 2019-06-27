@@ -101,13 +101,23 @@
   #include <intrin.h>
 #endif
 
-#if defined(__SYCL_DEVICE_ONLY__)
+#if defined(EIGEN_USE_SYCL)
   #undef min
   #undef max
   #undef isnan
   #undef isinf
   #undef isfinite
   #include <SYCL/sycl.hpp>
+  #include <map>
+  #include <memory>
+  #include <utility>
+  #include <thread>
+  #ifndef EIGEN_SYCL_LOCAL_THREAD_DIM0
+  #define EIGEN_SYCL_LOCAL_THREAD_DIM0 16
+  #endif
+  #ifndef EIGEN_SYCL_LOCAL_THREAD_DIM1
+  #define EIGEN_SYCL_LOCAL_THREAD_DIM1 16
+  #endif
 #endif
 
 
@@ -207,11 +217,14 @@ using std::ptrdiff_t;
   #include "src/Core/arch/GPU/MathFunctions.h"
 #endif
 
-#if defined EIGEN_VECTORIZE_SYCL
+#if defined(EIGEN_USE_SYCL)
+  #include "src/Core/arch/SYCL/SyclMemoryModel.h"
   #include "src/Core/arch/SYCL/InteropHeaders.h"
+#if !defined(EIGEN_DONT_VECTORIZE_SYCL)
   #include "src/Core/arch/SYCL/PacketMath.h"
   #include "src/Core/arch/SYCL/MathFunctions.h"
   #include "src/Core/arch/SYCL/TypeCasting.h"
+#endif
 #endif
 #include "src/Core/arch/Default/Settings.h"
 

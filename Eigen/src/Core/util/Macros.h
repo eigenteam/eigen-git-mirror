@@ -497,6 +497,12 @@
 //
 #endif
 
+#if defined(EIGEN_USE_SYCL) && defined(__SYCL_DEVICE_ONLY__)
+// EIGEN_USE_SYCL is a user-defined macro while __SYCL_DEVICE_ONLY__ is a compiler-defined macro.
+// In most cases we want to check if both macros are defined which can be done using the define below.
+#define SYCL_DEVICE_ONLY
+#endif
+
 //------------------------------------------------------------------------------------------
 // Detect Compiler/Architecture/OS specific features
 //------------------------------------------------------------------------------------------
@@ -583,7 +589,7 @@
     ((defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 199901))       \
   || (defined(__GNUC__) && defined(_GLIBCXX_USE_C99)) \
   || (defined(_LIBCPP_VERSION) && !defined(_MSC_VER)) \
-  || (EIGEN_COMP_MSVC >= 1900) || defined(__SYCL_DEVICE_ONLY__))
+  || (EIGEN_COMP_MSVC >= 1900) || defined(SYCL_DEVICE_ONLY))
   #define EIGEN_HAS_C99_MATH 1
 #else
   #define EIGEN_HAS_C99_MATH 0
@@ -639,7 +645,7 @@
     // ^^ Disable the use of variadic templates when compiling with versions of nvcc older than 8.0 on ARM devices:
     //    this prevents nvcc from crashing when compiling Eigen on Tegra X1
 #define EIGEN_HAS_VARIADIC_TEMPLATES 1
-#elif  EIGEN_MAX_CPP_VER>=11 && (__cplusplus > 199711L || EIGEN_COMP_MSVC >= 1900) && defined(__SYCL_DEVICE_ONLY__)
+#elif  EIGEN_MAX_CPP_VER>=11 && (__cplusplus > 199711L || EIGEN_COMP_MSVC >= 1900) && defined(SYCL_DEVICE_ONLY)
 #define EIGEN_HAS_VARIADIC_TEMPLATES 1
 #else
 #define EIGEN_HAS_VARIADIC_TEMPLATES 0
@@ -791,7 +797,7 @@
 //   Eval.h:91: sorry, unimplemented: inlining failed in call to 'const Eigen::Eval<Derived> Eigen::MatrixBase<Scalar, Derived>::eval() const'
 //    : function body not available
 //   See also bug 1367
-#if EIGEN_GNUC_AT_LEAST(4,2)
+#if EIGEN_GNUC_AT_LEAST(4,2) && !defined(SYCL_DEVICE_ONLY)
 #define EIGEN_ALWAYS_INLINE __attribute__((always_inline)) inline
 #else
 #define EIGEN_ALWAYS_INLINE EIGEN_STRONG_INLINE
@@ -814,7 +820,7 @@
 // GPU stuff
 
 // Disable some features when compiling with GPU compilers (NVCC/clang-cuda/SYCL/HIPCC)
-#if defined(EIGEN_CUDACC) || defined(__SYCL_DEVICE_ONLY__) || defined(EIGEN_HIPCC)
+#if defined(EIGEN_CUDACC) || defined(SYCL_DEVICE_ONLY) || defined(EIGEN_HIPCC)
   // Do not try asserts on device code
   #ifndef EIGEN_NO_DEBUG
   #define EIGEN_NO_DEBUG
@@ -829,9 +835,14 @@
   #endif
 #endif
 
+#if defined(SYCL_DEVICE_ONLY)
+  #ifndef EIGEN_DONT_VECTORIZE
+    #define EIGEN_DONT_VECTORIZE
+  #endif
+  #define EIGEN_DEVICE_FUNC __attribute__((always_inline))
 // All functions callable from CUDA/HIP code must be qualified with __device__
-#ifdef EIGEN_GPUCC
-  #define EIGEN_DEVICE_FUNC __host__ __device__
+#elif defined(EIGEN_GPUCC) 
+    #define EIGEN_DEVICE_FUNC __host__ __device__
 #else
   #define EIGEN_DEVICE_FUNC
 #endif
@@ -852,8 +863,12 @@
 
 // eigen_plain_assert is where we implement the workaround for the assert() bug in GCC <= 4.3, see bug 89
 #ifdef EIGEN_NO_DEBUG
-  #define eigen_plain_assert(x)
-#else
+  #ifdef SYCL_DEVICE_ONLY // used to silence the warning on SYCL device
+    #define eigen_plain_assert(x) EIGEN_UNUSED_VARIABLE(x)
+  #else
+    #define eigen_plain_assert(x)
+  #endif
+#else 
   #if EIGEN_SAFE_TO_USE_STANDARD_ASSERT_MACRO
     namespace Eigen {
     namespace internal {
@@ -1211,7 +1226,7 @@ bool all(T t, Ts ... ts){ return t && all(ts...); }
 #endif
 
 // Wrapping #pragma unroll in a macro since it is required for SYCL
-#if defined(__SYCL_DEVICE_ONLY__)
+#if defined(SYCL_DEVICE_ONLY)
   #if defined(_MSC_VER)
     #define EIGEN_UNROLL_LOOP __pragma(unroll)
   #else
