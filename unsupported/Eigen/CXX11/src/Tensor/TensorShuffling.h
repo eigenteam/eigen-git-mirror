@@ -109,6 +109,8 @@ struct TensorEvaluator<const TensorShufflingOp<Shuffle, ArgType>, Device>
   typedef typename XprType::CoeffReturnType CoeffReturnType;
   typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
   static const int PacketSize = PacketType<CoeffReturnType, Device>::size;
+  typedef StorageMemory<CoeffReturnType, Device> Storage;
+  typedef typename Storage::Type EvaluatorPointerType;
 
   enum {
     IsAligned         = false,
@@ -130,8 +132,7 @@ struct TensorEvaluator<const TensorShufflingOp<Shuffle, ArgType>, Device>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op,
                                                         const Device& device)
       : m_device(device),
-        m_impl(op.expression(), device),
-        m_shuffle(op.shufflePermutation())
+        m_impl(op.expression(), device)
   {
     const typename TensorEvaluator<ArgType, Device>::Dimensions& input_dims = m_impl.dimensions();
     const Shuffle& shuffle = op.shufflePermutation();
@@ -172,7 +173,7 @@ struct TensorEvaluator<const TensorShufflingOp<Shuffle, ArgType>, Device>
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Dimensions& dimensions() const { return m_dimensions; }
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool evalSubExprsIfNeeded(Scalar* /*data*/) {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool evalSubExprsIfNeeded(EvaluatorPointerType /*data*/) {
     m_impl.evalSubExprsIfNeeded(NULL);
     return true;
   }
@@ -194,6 +195,7 @@ struct TensorEvaluator<const TensorShufflingOp<Shuffle, ArgType>, Device>
     EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
     static PacketReturnType Run(const Self& self, Index index) {
       EIGEN_ALIGN_MAX typename internal::remove_const<CoeffReturnType>::type values[PacketSize];
+      EIGEN_UNROLL_LOOP
       for (int i = 0; i < PacketSize; ++i) {
         values[i] = self.coeff(index + i);
       }
@@ -210,6 +212,7 @@ struct TensorEvaluator<const TensorShufflingOp<Shuffle, ArgType>, Device>
         return self.m_impl.template packet<LoadMode>(index);
       } else {
         EIGEN_ALIGN_MAX typename internal::remove_const<CoeffReturnType>::type values[PacketSize];
+        EIGEN_UNROLL_LOOP
         for (int i = 0; i < PacketSize; ++i) {
           values[i] = self.coeff(index + i);
         }
@@ -330,13 +333,14 @@ struct TensorEvaluator<const TensorShufflingOp<Shuffle, ArgType>, Device>
            TensorOpCost(0, 0, compute_cost, m_is_identity /* vectorized */, PacketSize);
   }
 
-  EIGEN_DEVICE_FUNC typename Eigen::internal::traits<XprType>::PointerType data() const { return NULL; }
+  EIGEN_DEVICE_FUNC typename Storage::Type data() const { return NULL; }
 
-  // required by sycl
-  EIGEN_STRONG_INLINE const Shuffle& shufflePermutation() const {return m_shuffle;}
-  // required by sycl
-  EIGEN_STRONG_INLINE const TensorEvaluator<ArgType, Device>& impl() const {return m_impl;}
-
+#ifdef EIGEN_USE_SYCL
+   // binding placeholder accessors to a command group handler for SYCL
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void bind(cl::sycl::handler &cgh) const {
+    m_impl.bind(cgh);
+  }
+#endif
  protected:
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Index GetBlockOutputIndex(
       Index input_index,
@@ -389,10 +393,8 @@ struct TensorEvaluator<const TensorShufflingOp<Shuffle, ArgType>, Device>
   array<Index, NumDims> m_inputStrides;
   array<Index, NumDims> m_unshuffledInputStrides;
 
-  const Device& m_device;
+  const Device EIGEN_DEVICE_REF m_device;
   TensorEvaluator<ArgType, Device> m_impl;
-  /// required by sycl
-  Shuffle m_shuffle;
 };
 
 
@@ -444,6 +446,7 @@ struct TensorEvaluator<TensorShufflingOp<Shuffle, ArgType>, Device>
 
     EIGEN_ALIGN_MAX typename internal::remove_const<CoeffReturnType>::type values[PacketSize];
     internal::pstore<CoeffReturnType, PacketReturnType>(values, x);
+    EIGEN_UNROLL_LOOP
     for (int i = 0; i < PacketSize; ++i) {
       this->coeffRef(index+i) = values[i];
     }

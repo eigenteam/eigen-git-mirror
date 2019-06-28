@@ -92,6 +92,8 @@ struct TensorEvaluator<const TensorPaddingOp<PaddingDimensions, ArgType>, Device
   typedef typename XprType::CoeffReturnType CoeffReturnType;
   typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
   static const int PacketSize = PacketType<CoeffReturnType, Device>::size;
+  typedef StorageMemory<CoeffReturnType, Device> Storage;
+  typedef typename Storage::Type EvaluatorPointerType;
 
   enum {
     IsAligned = true,
@@ -138,7 +140,7 @@ struct TensorEvaluator<const TensorPaddingOp<PaddingDimensions, ArgType>, Device
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Dimensions& dimensions() const { return m_dimensions; }
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool evalSubExprsIfNeeded(Scalar*) {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool evalSubExprsIfNeeded(EvaluatorPointerType) {
     m_impl.evalSubExprsIfNeeded(NULL);
     return true;
   }
@@ -151,6 +153,7 @@ struct TensorEvaluator<const TensorPaddingOp<PaddingDimensions, ArgType>, Device
     eigen_assert(index < dimensions().TotalSize());
     Index inputIndex = 0;
     if (static_cast<int>(Layout) == static_cast<int>(ColMajor)) {
+      EIGEN_UNROLL_LOOP
       for (int i = NumDims - 1; i > 0; --i) {
         const Index idx = index / m_outputStrides[i];
         if (isPaddingAtIndexForDim(idx, i)) {
@@ -164,6 +167,7 @@ struct TensorEvaluator<const TensorPaddingOp<PaddingDimensions, ArgType>, Device
       }
       inputIndex += (index - m_padding[0].first);
     } else {
+      EIGEN_UNROLL_LOOP
       for (int i = 0; i < NumDims - 1; ++i) {
         const Index idx = index / m_outputStrides[i+1];
         if (isPaddingAtIndexForDim(idx, i)) {
@@ -192,23 +196,25 @@ struct TensorEvaluator<const TensorPaddingOp<PaddingDimensions, ArgType>, Device
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorOpCost costPerCoeff(bool vectorized) const {
     TensorOpCost cost = m_impl.costPerCoeff(vectorized);
     if (static_cast<int>(Layout) == static_cast<int>(ColMajor)) {
+      EIGEN_UNROLL_LOOP
       for (int i = 0; i < NumDims; ++i)
         updateCostPerDimension(cost, i, i == 0);
     } else {
+      EIGEN_UNROLL_LOOP
       for (int i = NumDims - 1; i >= 0; --i)
         updateCostPerDimension(cost, i, i == NumDims - 1);
     }
     return cost;
   }
 
-  EIGEN_DEVICE_FUNC EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE typename Eigen::internal::traits<XprType>::PointerType data() const { return NULL; }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE EvaluatorPointerType data() const { return NULL; }
 
-  /// used by sycl
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const PaddingDimensions& padding() const { return m_padding; }
-  /// used by sycl
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar& padding_value() const { return m_paddingValue; }
-  /// used by sycl
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const TensorEvaluator<ArgType, Device>& impl() const{return m_impl;}
+#ifdef EIGEN_USE_SYCL
+  // binding placeholder accessors to a command group handler for SYCL
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void bind(cl::sycl::handler &cgh) const {
+    m_impl.bind(cgh);
+  }
+#endif
 
  private:
   EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE bool isPaddingAtIndexForDim(
@@ -272,6 +278,7 @@ struct TensorEvaluator<const TensorPaddingOp<PaddingDimensions, ArgType>, Device
 
     const Index initialIndex = index;
     Index inputIndex = 0;
+    EIGEN_UNROLL_LOOP
     for (int i = NumDims - 1; i > 0; --i) {
       const Index firstIdx = index;
       const Index lastIdx = index + PacketSize - 1;
@@ -329,7 +336,7 @@ struct TensorEvaluator<const TensorPaddingOp<PaddingDimensions, ArgType>, Device
 
     const Index initialIndex = index;
     Index inputIndex = 0;
-
+    EIGEN_UNROLL_LOOP
     for (int i = 0; i < NumDims - 1; ++i) {
       const Index firstIdx = index;
       const Index lastIdx = index + PacketSize - 1;
@@ -383,6 +390,7 @@ struct TensorEvaluator<const TensorPaddingOp<PaddingDimensions, ArgType>, Device
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE PacketReturnType packetWithPossibleZero(Index index) const
   {
     EIGEN_ALIGN_MAX typename internal::remove_const<CoeffReturnType>::type values[PacketSize];
+    EIGEN_UNROLL_LOOP
     for (int i = 0; i < PacketSize; ++i) {
       values[i] = coeff(index+i);
     }

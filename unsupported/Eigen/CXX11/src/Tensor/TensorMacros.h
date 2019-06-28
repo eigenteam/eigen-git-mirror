@@ -59,4 +59,39 @@
 #define EIGEN_SLEEP(n) sleep(std::max<unsigned>(1, n/1000))
 #endif
 
+// Define a macro to use a reference on the host but a value on the device
+#if defined(SYCL_DEVICE_ONLY)
+  #define EIGEN_DEVICE_REF
+#else
+  #define EIGEN_DEVICE_REF &
+#endif
+
+// Define a macro for catching SYCL exceptions if exceptions are enabled
+#if defined(EIGEN_EXCEPTIONS)
+  #define EIGEN_SYCL_TRY_CATCH(X) \
+    do { \
+      try { X; } \
+      catch(const cl::sycl::exception& e) { \
+        std::cerr << "SYCL exception at " \
+                  << __FILE__ << ":" << __LINE__ << std::endl \
+                  << e.what() << std::endl; \
+        std::rethrow_exception(std::current_exception()); \
+      } \
+    } while (false)
+#else
+  #define EIGEN_SYCL_TRY_CATCH(X) X
+#endif
+
+// Define a macro if local memory flags are unset or one of them is set
+// Setting both flags is the same as unsetting them
+#if (!defined(EIGEN_SYCL_LOCAL_MEM) && !defined(EIGEN_SYCL_NO_LOCAL_MEM)) || \
+     (defined(EIGEN_SYCL_LOCAL_MEM) &&  defined(EIGEN_SYCL_NO_LOCAL_MEM))
+  #define EIGEN_SYCL_LOCAL_MEM_UNSET_OR_ON 1
+  #define EIGEN_SYCL_LOCAL_MEM_UNSET_OR_OFF 1
+#elif defined(EIGEN_SYCL_LOCAL_MEM) && !defined(EIGEN_SYCL_NO_LOCAL_MEM)
+  #define EIGEN_SYCL_LOCAL_MEM_UNSET_OR_ON 1
+#elif !defined(EIGEN_SYCL_LOCAL_MEM) && defined(EIGEN_SYCL_NO_LOCAL_MEM)
+  #define EIGEN_SYCL_LOCAL_MEM_UNSET_OR_OFF 1
+#endif
+
 #endif

@@ -353,6 +353,7 @@ namespace internal {
 template<typename FirstType, typename... OtherTypes>
 EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Index array_prod(const IndexList<FirstType, OtherTypes...>& sizes) {
   Index result = 1;
+  EIGEN_UNROLL_LOOP
   for (size_t i = 0; i < array_size<IndexList<FirstType, OtherTypes...> >::value; ++i) {
     result *= sizes[i];
   }

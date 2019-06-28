@@ -31,8 +31,12 @@ template<typename PlainObjectType, int Options_, template <class> class MakePoin
   public:
     typedef TensorMap<PlainObjectType, Options_, MakePointer_> Self;
     typedef typename PlainObjectType::Base Base;
-    typedef typename Eigen::internal::nested<Self>::type Nested;
-    typedef typename internal::traits<PlainObjectType>::StorageKind StorageKind;
+  #ifdef EIGEN_USE_SYCL
+    typedef  typename Eigen::internal::remove_reference<typename Eigen::internal::nested<Self>::type>::type Nested;
+  #else
+     typedef typename Eigen::internal::nested<Self>::type Nested;
+  #endif
+   typedef typename internal::traits<PlainObjectType>::StorageKind StorageKind;
     typedef typename internal::traits<PlainObjectType>::Index Index;
     typedef typename internal::traits<PlainObjectType>::Scalar Scalar;
     typedef typename NumTraits<Scalar>::Real RealScalar;
