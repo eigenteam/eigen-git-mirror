@@ -109,6 +109,8 @@ struct TensorEvaluator<const TensorReverseOp<ReverseDimensions, ArgType>, Device
   typedef typename XprType::CoeffReturnType CoeffReturnType;
   typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
   static const int PacketSize = PacketType<CoeffReturnType, Device>::size;
+  typedef StorageMemory<CoeffReturnType, Device> Storage;
+  typedef typename Storage::Type EvaluatorPointerType;
 
   enum {
     IsAligned         = false,
@@ -156,7 +158,7 @@ struct TensorEvaluator<const TensorReverseOp<ReverseDimensions, ArgType>, Device
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
   const Dimensions& dimensions() const { return m_dimensions; }
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool evalSubExprsIfNeeded(Scalar*) {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool evalSubExprsIfNeeded(EvaluatorPointerType) {
     m_impl.evalSubExprsIfNeeded(NULL);
     return true;
   }
@@ -169,6 +171,7 @@ struct TensorEvaluator<const TensorReverseOp<ReverseDimensions, ArgType>, Device
     eigen_assert(index < dimensions().TotalSize());
     Index inputIndex = 0;
     if (static_cast<int>(Layout) == static_cast<int>(ColMajor)) {
+      EIGEN_UNROLL_LOOP
       for (int i = NumDims - 1; i > 0; --i) {
         Index idx = index / m_fastStrides[i];
         index -= idx * m_strides[i];
@@ -183,6 +186,7 @@ struct TensorEvaluator<const TensorReverseOp<ReverseDimensions, ArgType>, Device
         inputIndex += index;
       }
     } else {
+      EIGEN_UNROLL_LOOP
       for (int i = 0; i < NumDims - 1; ++i) {
         Index idx = index / m_fastStrides[i];
         index -= idx * m_strides[i];
@@ -216,6 +220,7 @@ struct TensorEvaluator<const TensorReverseOp<ReverseDimensions, ArgType>, Device
     // local structure.
     EIGEN_ALIGN_MAX typename internal::remove_const<CoeffReturnType>::type
                                                             values[PacketSize];
+    EIGEN_UNROLL_LOOP
     for (int i = 0; i < PacketSize; ++i) {
       values[i] = coeff(index+i);
     }
@@ -361,12 +366,14 @@ struct TensorEvaluator<const TensorReverseOp<ReverseDimensions, ArgType>, Device
            TensorOpCost(0, 0, compute_cost, false /* vectorized */, PacketSize);
   }
 
-  EIGEN_DEVICE_FUNC typename Eigen::internal::traits<XprType>::PointerType data() const { return NULL; }
+  EIGEN_DEVICE_FUNC typename Storage::Type data() const { return NULL; }
 
-  /// required by sycl in order to extract the accessor
-  const TensorEvaluator<ArgType, Device> & impl() const { return m_impl; }
-  /// added for sycl in order to construct the buffer from sycl device
-  ReverseDimensions functor() const { return m_reverse; }
+#ifdef EIGEN_USE_SYCL
+  // binding placeholder accessors to a command group handler for SYCL
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void bind(cl::sycl::handler &cgh) const {
+    m_impl.bind(cgh);
+  }
+#endif
 
  protected:
   Dimensions m_dimensions;
@@ -407,7 +414,7 @@ struct TensorEvaluator<TensorReverseOp<ReverseDimensions, ArgType>, Device>
   typedef typename XprType::CoeffReturnType CoeffReturnType;
   typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
   static const int PacketSize = PacketType<CoeffReturnType, Device>::size;
-
+  
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
   const Dimensions& dimensions() const { return this->m_dimensions; }
 
@@ -423,11 +430,11 @@ struct TensorEvaluator<TensorReverseOp<ReverseDimensions, ArgType>, Device>
     // This code is pilfered from TensorMorphing.h
     EIGEN_ALIGN_MAX CoeffReturnType values[PacketSize];
     internal::pstore<CoeffReturnType, PacketReturnType>(values, x);
+    EIGEN_UNROLL_LOOP
     for (int i = 0; i < PacketSize; ++i) {
       this->coeffRef(index+i) = values[i];
     }
   }
-
 };
 
 

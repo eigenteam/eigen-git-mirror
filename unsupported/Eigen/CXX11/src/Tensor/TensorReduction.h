@@ -299,7 +299,7 @@ template <typename Self, typename Op, typename Device, bool Vectorizable = (Self
 struct FullReducer {
   static const bool HasOptimizedImplementation = false;
 
-  static EIGEN_DEVICE_FUNC void run(const Self& self, Op& reducer, const Device&, typename Self::CoeffReturnType* output) {
+  static EIGEN_DEVICE_FUNC void run(const Self& self, Op& reducer, const Device&, typename Self::EvaluatorPointerType output) {
     const typename Self::Index num_coeffs = array_prod(self.m_impl.dimensions());
     *output = InnerMostDimReducer<Self, Op, Vectorizable>::reduce(self, 0, num_coeffs, reducer);
   }
@@ -400,6 +400,18 @@ struct OuterReducer {
   }
 };
 
+#ifdef EIGEN_USE_SYCL
+// Default Generic reducer
+template <typename Self, typename Op, typename Device>
+struct GenericReducer {
+  static const bool HasOptimizedImplementation = false;
+
+  EIGEN_DEVICE_FUNC static bool run(const Self&, Op&, const Device&, typename Self::CoeffReturnType*, typename Self::Index, typename Self::Index) {
+    eigen_assert(false && "Not implemented");
+    return true;
+  }
+};
+#endif
 
 #if defined(EIGEN_USE_GPU) && (defined(EIGEN_GPUCC))
 template <int B, int N, typename S, typename R, typename I_>
@@ -422,6 +434,23 @@ __global__ void InnerReductionKernel(R, const S, I_, I_, typename S::CoeffReturn
 template <int NPT, typename S, typename R, typename I_>
 __global__ void OuterReductionKernel(R, const S, I_, I_, typename S::CoeffReturnType*);
 #endif
+
+/**
+ * For SYCL, the return type of the reduction is deduced from the initialize method of the given Op.
+ * This allows the reduction to have a different type for the accumulator than the input data type.
+ * If this is the case, the functor needs to have two reduce method: one for reducing an element of the input
+ * with the accumulator and the other for reducing two accumulators.
+ * Such a reducer can be useful for instance when the accumulator is a boolean or a bitset that checks for
+ * some properties of the input.
+ */
+template <typename Op, typename CoeffReturnType>
+struct ReductionReturnType {
+#if EIGEN_HAS_CXX11 && defined(EIGEN_USE_SYCL)
+  typedef typename remove_const<decltype(std::declval<Op>().initialize())>::type type;
+#else
+  typedef typename remove_const<CoeffReturnType>::type type;
+#endif
+};
 
 template <typename Self, typename Op,
           bool Vectorizable =
@@ -520,12 +549,15 @@ class TensorReductionOp : public TensorBase<TensorReductionOp<Op, Dims, XprType,
     const Op m_reducer;
 };
 
+template<typename ArgType, typename Device>
+struct TensorReductionEvaluatorBase;
 
 // Eval as rvalue
 template<typename Op, typename Dims, typename ArgType, template <class> class MakePointer_, typename Device>
-struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType, MakePointer_>, Device>
+struct TensorReductionEvaluatorBase<const TensorReductionOp<Op, Dims, ArgType, MakePointer_>, Device>
 {
   typedef internal::reducer_traits<Op, Device> ReducerTraits;
+  typedef Dims ReducedDims;
   typedef TensorReductionOp<Op, Dims, ArgType, MakePointer_> XprType;
   typedef typename XprType::Index Index;
   typedef ArgType ChildType;
@@ -535,11 +567,19 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType, MakePointer_>,
   static const int NumOutputDims = NumInputDims - NumReducedDims;
   typedef typename internal::conditional<NumOutputDims==0, Sizes<>, DSizes<Index, NumOutputDims> >::type Dimensions;
   typedef typename XprType::Scalar Scalar;
-  typedef TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType, MakePointer_>, Device> Self;
+  typedef TensorReductionEvaluatorBase<const TensorReductionOp<Op, Dims, ArgType, MakePointer_>, Device> Self;
   static const bool InputPacketAccess = TensorEvaluator<ArgType, Device>::PacketAccess;
-  typedef typename internal::remove_const<typename XprType::CoeffReturnType>::type CoeffReturnType;
+  typedef typename internal::ReductionReturnType<Op, typename XprType::CoeffReturnType>::type CoeffReturnType;
   typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
   static const Index PacketSize = PacketType<CoeffReturnType, Device>::size;
+
+  typedef typename Eigen::internal::traits<XprType>::PointerType TensorPointerType;
+  typedef StorageMemory<CoeffReturnType, Device> Storage;
+  typedef typename Storage::Type EvaluatorPointerType;
+
+    // Subset of strides of the input tensor for the non-reduced dimensions.
+  // Indexed by output dimensions.
+  static const int NumPreservedStrides = max_n_1<NumOutputDims>::size;
 
   enum {
     IsAligned = false,
@@ -562,11 +602,8 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType, MakePointer_>,
   static const bool PreservingInnerMostDims = internal::preserve_inner_most_dims<Dims, NumInputDims, Layout>::value;
   static const bool RunningFullReduction = (NumOutputDims==0);
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorReductionEvaluatorBase(const XprType& op, const Device& device)
       : m_impl(op.expression(), device), m_reducer(op.reducer()), m_result(NULL), m_device(device)
-#if defined(EIGEN_USE_SYCL)
-      , m_xpr_dims(op.dims())
-#endif
   {
     EIGEN_STATIC_ASSERT((NumInputDims >= NumReducedDims), YOU_MADE_A_PROGRAMMING_MISTAKE);
     EIGEN_STATIC_ASSERT((!ReducingInnerMostDims | !PreservingInnerMostDims | (NumReducedDims == NumInputDims)),
@@ -653,7 +690,7 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType, MakePointer_>,
     // of which will eventually result in an NVCC error
     EIGEN_DEVICE_FUNC
     #endif
-    bool evalSubExprsIfNeeded(typename MakePointer_<CoeffReturnType>::Type data) {
+    bool evalSubExprsIfNeeded(EvaluatorPointerType data) {
     m_impl.evalSubExprsIfNeeded(NULL);
 
     // Use the FullReducer if possible.
@@ -663,7 +700,7 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType, MakePointer_>,
          !RunningOnGPU))) {
       bool need_assign = false;
       if (!data) {
-        m_result = static_cast<CoeffReturnType*>(m_device.allocate_temp(sizeof(CoeffReturnType)));
+        m_result = static_cast<EvaluatorPointerType>(m_device.get((CoeffReturnType*)m_device.allocate_temp(sizeof(CoeffReturnType))));
         data = m_result;
         need_assign = true;
       }
@@ -671,20 +708,9 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType, MakePointer_>,
       internal::FullReducer<Self, Op, Device>::run(*this, reducer, m_device, data);
       return need_assign;
     }
-    else if(RunningOnSycl){
-      const Index num_values_to_reduce = internal::array_prod(m_reducedDims);
-      const Index num_coeffs_to_preserve = internal::array_prod(m_dimensions);
-      if (!data) {
-        data = static_cast<CoeffReturnType*>(m_device.allocate_temp(sizeof(CoeffReturnType) * num_coeffs_to_preserve));
-        m_result = data;
-      }
-      Op reducer(m_reducer);
-      internal::InnerReducer<Self, Op, Device>::run(*this, reducer, m_device, data, num_values_to_reduce, num_coeffs_to_preserve);
-      return (m_result != NULL);
-    }
 
     // Attempt to use an optimized reduction.
-    else if (RunningOnGPU && (m_device.majorDeviceVersion() >= 3)) {
+    else if ((RunningOnGPU && (m_device.majorDeviceVersion() >= 3)) || (RunningOnSycl)) {
       bool reducing_inner_dims = true;
       for (int i = 0; i < NumReducedDims; ++i) {
         if (static_cast<int>(Layout) == static_cast<int>(ColMajor)) {
@@ -698,8 +724,8 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType, MakePointer_>,
         const Index num_values_to_reduce = internal::array_prod(m_reducedDims);
         const Index num_coeffs_to_preserve = internal::array_prod(m_dimensions);
         if (!data) {
-          if (num_coeffs_to_preserve < 1024 && num_values_to_reduce > num_coeffs_to_preserve && num_values_to_reduce > 128) {
-            data = static_cast<CoeffReturnType*>(m_device.allocate_temp(sizeof(CoeffReturnType) * num_coeffs_to_preserve));
+          if ((num_coeffs_to_preserve < 1024 && num_values_to_reduce > num_coeffs_to_preserve && num_values_to_reduce > 128) || (RunningOnSycl)) {
+            data = static_cast<EvaluatorPointerType>(m_device.get((CoeffReturnType*)m_device.allocate_temp(sizeof(CoeffReturnType) * num_coeffs_to_preserve)));
             m_result = data;
           }
           else {
@@ -707,6 +733,7 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType, MakePointer_>,
           }
         }
         Op reducer(m_reducer);
+        // For SYCL this if always return false
         if (internal::InnerReducer<Self, Op, Device>::run(*this, reducer, m_device, data, num_values_to_reduce, num_coeffs_to_preserve)) {
           if (m_result) {
             m_device.deallocate_temp(m_result);
@@ -731,8 +758,8 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType, MakePointer_>,
         const Index num_values_to_reduce = internal::array_prod(m_reducedDims);
         const Index num_coeffs_to_preserve = internal::array_prod(m_dimensions);
         if (!data) {
-          if (num_coeffs_to_preserve < 1024 && num_values_to_reduce > num_coeffs_to_preserve && num_values_to_reduce > 32) {
-            data = static_cast<CoeffReturnType*>(m_device.allocate_temp(sizeof(CoeffReturnType) * num_coeffs_to_preserve));
+          if ((num_coeffs_to_preserve < 1024 && num_values_to_reduce > num_coeffs_to_preserve && num_values_to_reduce > 32) || (RunningOnSycl)) {
+            data = static_cast<EvaluatorPointerType>(m_device.get((CoeffReturnType*)m_device.allocate_temp(sizeof(CoeffReturnType) * num_coeffs_to_preserve)));
             m_result = data;
           }
           else {
@@ -740,6 +767,7 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType, MakePointer_>,
           }
         }
         Op reducer(m_reducer);
+        // For SYCL this if always return false
         if (internal::OuterReducer<Self, Op, Device>::run(*this, reducer, m_device, data, num_values_to_reduce, num_coeffs_to_preserve)) {
           if (m_result) {
             m_device.deallocate_temp(m_result);
@@ -750,6 +778,21 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType, MakePointer_>,
           return (m_result != NULL);
         }
       }
+      #if defined(EIGEN_USE_SYCL)
+      // If there is no Optimised version for SYCL, the reduction expression 
+      // must break into two subexpression and use the SYCL generic Reducer on the device.
+      if(RunningOnSycl) {
+         const Index num_values_to_reduce = internal::array_prod(m_reducedDims);
+         const Index num_coeffs_to_preserve = internal::array_prod(m_dimensions);
+         if (!data) {
+           data = static_cast<EvaluatorPointerType>(m_device.get((CoeffReturnType*)m_device.allocate_temp(sizeof(CoeffReturnType) * num_coeffs_to_preserve)));
+           m_result = data;
+         }
+         Op reducer(m_reducer);
+         internal::GenericReducer<Self, Op, Device>::run(*this, reducer, m_device, data, num_values_to_reduce, num_coeffs_to_preserve);
+         return (m_result != NULL);
+       }
+      #endif
     }
     return true;
   }
@@ -764,7 +807,7 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType, MakePointer_>,
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE CoeffReturnType coeff(Index index) const
   {
-    if ((RunningOnSycl || RunningFullReduction || RunningOnGPU) && m_result) {
+    if (( RunningFullReduction || RunningOnGPU) && m_result ) {
       return *(m_result + index);
     }
     Op reducer(m_reducer);
@@ -1097,12 +1140,15 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType, MakePointer_>,
     m_device.deallocate(reducers);
   }
 
-  EIGEN_DEVICE_FUNC typename MakePointer_<CoeffReturnType>::Type data() const { return m_result; }
-
-#if defined(EIGEN_USE_SYCL)
-  const TensorEvaluator<ArgType, Device>& impl() const { return m_impl; }
-  const Device& device() const { return m_device; }
-  const Dims& xprDims() const { return m_xpr_dims; }
+  EIGEN_DEVICE_FUNC EvaluatorPointerType data() const { return m_result; }
+  EIGEN_DEVICE_FUNC const TensorEvaluator<ArgType, Device>& impl() const { return m_impl; }
+  EIGEN_DEVICE_FUNC const Device& device() const { return m_device; }
+#ifdef EIGEN_USE_SYCL
+  // binding placeholder accessors to a command group handler for SYCL
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void bind(cl::sycl::handler &cgh) const {
+    m_impl.bind(cgh);
+    m_result.bind(cgh);
+  }
 #endif
 
   private:
@@ -1126,8 +1172,9 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType, MakePointer_>,
 #endif
 
 #if defined(EIGEN_USE_SYCL)
- template < typename HostExpr_, typename FunctorExpr_, typename Tuple_of_Acc_, typename Dims_, typename Op_, typename Index_> friend class TensorSycl::internal::ReductionFunctor;
- template<typename CoeffReturnType_ ,typename OutAccessor_, typename HostExpr_, typename FunctorExpr_, typename Op_, typename Dims_, typename Index_, typename TupleType_> friend class TensorSycl::internal::FullReductionKernelFunctor;
+ template < typename Evaluator_, typename Op__> friend class TensorSycl::internal::ReductionFunctor;
+ // SYCL need the Generic reducer for the case the recution algorithm is neither inner, outer, and full reducer
+ template <typename, typename, typename> friend struct internal::GenericReducer;
 #endif
 
 
@@ -1255,9 +1302,6 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType, MakePointer_>,
   // Precomputed strides for the output tensor.
   array<Index, NumOutputDims> m_outputStrides;
   array<internal::TensorIntDivisor<Index>, NumOutputDims> m_fastOutputStrides;
-  // Subset of strides of the input tensor for the non-reduced dimensions.
-  // Indexed by output dimensions.
-  static const int NumPreservedStrides = max_n_1<NumOutputDims>::size;
   array<Index, NumPreservedStrides> m_preservedStrides;
   // Map from output to input dimension index.
   array<Index, NumOutputDims> m_output_to_input_dim_map;
@@ -1288,13 +1332,36 @@ static const bool RunningOnGPU = false;
   static const bool RunningOnGPU = false;
   static const bool RunningOnSycl = false;
 #endif
-  typename MakePointer_<CoeffReturnType>::Type m_result;
+  EvaluatorPointerType m_result;
 
-  const Device& m_device;
+  const Device EIGEN_DEVICE_REF m_device;
+};
 
-#if defined(EIGEN_USE_SYCL)
-  const Dims m_xpr_dims;
-#endif
+template<typename Op, typename Dims, typename ArgType, template <class> class MakePointer_, typename Device>
+struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType, MakePointer_>, Device>
+: public TensorReductionEvaluatorBase<const TensorReductionOp<Op, Dims, ArgType, MakePointer_>, Device> {
+  typedef TensorReductionEvaluatorBase<const TensorReductionOp<Op, Dims, ArgType, MakePointer_>, Device> Base;
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const typename Base::XprType& op, const Device& device) : Base(op, device){}
+};
+
+
+template<typename Op, typename Dims, typename ArgType, template <class> class MakePointer_>
+struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType, MakePointer_>, Eigen::SyclDevice>
+: public TensorReductionEvaluatorBase<const TensorReductionOp<Op, Dims, ArgType, MakePointer_>, Eigen::SyclDevice> {
+
+  typedef TensorReductionEvaluatorBase<const TensorReductionOp<Op, Dims, ArgType, MakePointer_>, Eigen::SyclDevice> Base;
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const typename Base::XprType& op, const Eigen::SyclDevice& device) : Base(op, device){}
+  // The coeff function in the base the recursive method which is not an standard layout and cannot be used in the SYCL kernel
+  //Therefore the coeff function should be overridden by for SYCL kernel
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE typename Base::CoeffReturnType coeff(typename Base::Index index) const {
+    return *(this->data() + index);
+  }
+  // The packet function in the base the recursive method which is not an standard layout and cannot be used in the SYCL kernel
+  //Therefore the packet function should be overridden by for SYCL kernel
+  template<int LoadMode>
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE typename Base::PacketReturnType packet(typename Base::Index index) const {
+    return internal::pload<typename Base::PacketReturnType>(this->data() + index);
+  }
 };
 
 } // end namespace Eigen

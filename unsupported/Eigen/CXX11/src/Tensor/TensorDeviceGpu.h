@@ -215,6 +215,10 @@ struct GpuDevice {
     stream_->deallocate(buffer);
   }
 
+  template<typename Type>
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Type get(Type data) const { 
+    return data;
+  }
 
   EIGEN_STRONG_INLINE void* scratchpad() const {
     return stream_->scratchpad();

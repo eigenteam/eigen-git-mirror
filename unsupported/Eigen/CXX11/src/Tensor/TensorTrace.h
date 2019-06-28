@@ -91,6 +91,8 @@ struct TensorEvaluator<const TensorTraceOp<Dims, ArgType>, Device>
   typedef typename XprType::CoeffReturnType CoeffReturnType;
   typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
   static const int PacketSize = internal::unpacket_traits<PacketReturnType>::size;
+  typedef StorageMemory<CoeffReturnType, Device> Storage;
+  typedef typename Storage::Type EvaluatorPointerType;
 
   enum {
     IsAligned = false,
@@ -205,7 +207,7 @@ struct TensorEvaluator<const TensorTraceOp<Dims, ArgType>, Device>
     return m_dimensions;
   }
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool evalSubExprsIfNeeded(Scalar* /*data*/) {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool evalSubExprsIfNeeded(EvaluatorPointerType /*data*/) {
     m_impl.evalSubExprsIfNeeded(NULL);
     return true;
   }
@@ -249,6 +251,13 @@ struct TensorEvaluator<const TensorTraceOp<Dims, ArgType>, Device>
     return result;
   }
 
+#ifdef EIGEN_USE_SYCL
+  // binding placeholder accessors to a command group handler for SYCL
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void bind(cl::sycl::handler &cgh) const {
+    m_impl.bind(cgh);
+  }
+#endif
+
  protected:
   // Given the output index, finds the first index in the input tensor used to compute the trace
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Index firstInput(Index index) const {
@@ -276,7 +285,7 @@ struct TensorEvaluator<const TensorTraceOp<Dims, ArgType>, Device>
   TensorEvaluator<ArgType, Device> m_impl;
   // Initialize the size of the trace dimension
   Index m_traceDim;
-  const Device& m_device;
+  const Device EIGEN_DEVICE_REF m_device;
   array<bool, NumInputDims> m_reduced;
   array<Index, NumReducedDims> m_reducedDims;
   array<Index, NumOutputDims> m_outputStrides;

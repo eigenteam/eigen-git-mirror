@@ -59,6 +59,13 @@ struct CoeffLoader {
     return m_tensor.template packet<LoadMode>(index);
   }
 
+  #ifdef EIGEN_USE_SYCL
+  // The placeholder accessors require to be bound to a command group handler for SYCL
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void bind(cl::sycl::handler &cgh) const {
+    m_tensor.bind(cgh);
+  }
+  #endif
+
  private:
   const Tensor m_tensor;
 };
@@ -87,6 +94,13 @@ struct CoeffLoader<Tensor, true, MakePointer_> {
   {
     return internal::ploadt_ro<typename Tensor::PacketReturnType, LoadMode>(m_data + index);
   }
+
+  #ifdef EIGEN_USE_SYCL
+  // The placeholder accessors require to be bound to a command group handler for SYCL
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void bind(cl::sycl::handler &cgh) const {
+    m_data.bind(cgh);
+  }
+  #endif
  private:
   typedef typename Tensor::Scalar Scalar;
 
@@ -139,6 +153,7 @@ class SimpleTensorContractionMapper {
     EIGEN_UNUSED_VARIABLE(left); // annoying bug in g++8.1: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=85963
     Index nocontract_val = left ? row : col;
     Index linidx = 0;
+    EIGEN_UNROLL_LOOP
     for (int i = static_cast<int>(array_size<nocontract_t>::value) - 1; i > 0; i--) {
       const Index idx = nocontract_val / m_ij_strides[i];
       linidx += idx * m_nocontract_strides[i];
@@ -155,6 +170,7 @@ class SimpleTensorContractionMapper {
 
     Index contract_val = left ? col : row;
     if(array_size<contract_t>::value > 0) {
+      EIGEN_UNROLL_LOOP
       for (int i = static_cast<int>(array_size<contract_t>::value) - 1; i > 0; i--) {
         const Index idx = contract_val / m_k_strides[i];
         linidx += idx * m_contract_strides[i];
@@ -179,6 +195,7 @@ class SimpleTensorContractionMapper {
     Index nocontract_val[2] = {left ? row : col, left ? row + distance : col};
     Index linidx[2] = {0, 0};
     if (array_size<typename Tensor::Dimensions>::value > array_size<contract_t>::value) {
+      EIGEN_UNROLL_LOOP
       for (int i = static_cast<int>(array_size<nocontract_t>::value) - 1; i > 0; i--) {
         const Index idx0 = nocontract_val[0] / m_ij_strides[i];
         const Index idx1 = nocontract_val[1] / m_ij_strides[i];
@@ -199,6 +216,7 @@ class SimpleTensorContractionMapper {
 
     Index contract_val[2] = {left ? col : row, left ? col : row + distance};
     if (array_size<contract_t>::value> 0) {
+      EIGEN_UNROLL_LOOP
       for (int i = static_cast<int>(array_size<contract_t>::value) - 1; i > 0; i--) {
         const Index idx0 = contract_val[0] / m_k_strides[i];
         const Index idx1 = contract_val[1] / m_k_strides[i];
@@ -229,6 +247,13 @@ class SimpleTensorContractionMapper {
   EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE Index stride() const {
     return ((side == Lhs) && inner_dim_contiguous && array_size<contract_t>::value > 0) ? m_contract_strides[0] : 1;
   }
+
+  #ifdef EIGEN_USE_SYCL
+  // The placeholder accessors require to be bound to a command group handler for SYCL
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void bind(cl::sycl::handler &cgh) const {
+    m_tensor.bind(cgh);
+  }
+  #endif
 
   const CoeffLoader<Tensor, Tensor::RawAccess, MakePointer_>& tensor() const {
     return m_tensor;
@@ -302,6 +327,7 @@ class BaseTensorContractionMapper : public SimpleTensorContractionMapper<Scalar,
     EIGEN_ALIGN_MAX Scalar data[packet_size];
 
     data[0] = this->m_tensor.coeff(first);
+    EIGEN_UNROLL_LOOP
     for (Index k = 1; k < packet_size - 1; k += 2) {
       const IndexPair<Index> internal_pair = this->computeIndexPair(i + k, j, 1);
       data[k] = this->m_tensor.coeff(internal_pair.first);
@@ -472,6 +498,13 @@ class TensorContractionSubMapper {
     return false;
   }
 
+  #ifdef EIGEN_USE_SYCL
+  // The placeholder accessors require to be bound to a command group handler for SYCL
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void bind(cl::sycl::handler &cgh) const {
+    m_base_mapper.bind(cgh);
+  }
+  #endif
+
   const ParentMapper& base_mapper() const { return m_base_mapper; }
   Index vert_offset() const { return m_vert_offset; }
   Index horiz_offset() const { return m_horiz_offset; }
@@ -514,6 +547,22 @@ class TensorContractionInputMapper
   }
 };
 
+
+template <typename T> struct TensorContractionInputMapperTrait;
+
+template<typename Scalar_, typename Index_, int side_,
+         typename Tensor_,
+         typename nocontract_t_, typename contract_t_,
+         int packet_size_,
+         bool inner_dim_contiguous_, bool inner_dim_reordered_, int Alignment_,  template <class> class MakePointer_>
+struct TensorContractionInputMapperTrait<TensorContractionInputMapper<Scalar_, Index_, side_, Tensor_, 
+                                                    nocontract_t_, contract_t_, packet_size_, inner_dim_contiguous_, 
+                                                    inner_dim_reordered_, Alignment_, MakePointer_> > {
+
+      typedef Tensor_ XprType;
+      static const bool  inner_dim_contiguous = inner_dim_contiguous_;
+      static const bool  inner_dim_reordered = inner_dim_reordered_;
+  };  
 
 
 }  // end namespace internal

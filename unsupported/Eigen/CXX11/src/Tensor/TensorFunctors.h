@@ -421,6 +421,7 @@ class GaussianGenerator {
                                       const array<T, NumDims>& std_devs)
       : m_means(means)
   {
+    EIGEN_UNROLL_LOOP
     for (size_t i = 0; i < NumDims; ++i) {
       m_two_sigmas[i] = std_devs[i] * std_devs[i] * 2;
     }
@@ -428,6 +429,7 @@ class GaussianGenerator {
 
   EIGEN_DEVICE_FUNC T operator()(const array<Index, NumDims>& coordinates) const {
     T tmp = T(0);
+    EIGEN_UNROLL_LOOP
     for (size_t i = 0; i < NumDims; ++i) {
       T offset = coordinates[i] - m_means[i];
       tmp += offset * offset / m_two_sigmas[i];

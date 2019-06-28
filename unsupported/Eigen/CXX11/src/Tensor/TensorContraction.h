@@ -433,6 +433,8 @@ struct TensorContractionEvaluatorBase
   typedef typename XprType::Index Index;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
   typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
+  typedef StorageMemory<Scalar, Device> Storage;
+  typedef typename Storage::Type EvaluatorPointerType;
 
   enum {
     IsAligned = true,
@@ -452,6 +454,9 @@ struct TensorContractionEvaluatorBase
     static_cast<int>(Layout) == static_cast<int>(ColMajor), LeftArgType, RightArgType>::type EvalLeftArgType;
   typedef typename internal::conditional<
     static_cast<int>(Layout) == static_cast<int>(ColMajor), RightArgType, LeftArgType>::type EvalRightArgType;
+  
+  typedef TensorEvaluator<EvalLeftArgType, Device> LeftEvaluatorType;
+  typedef TensorEvaluator<EvalRightArgType, Device> RightEvaluatorType;
 
   static const int LDims =
       internal::array_size<typename TensorEvaluator<EvalLeftArgType, Device>::Dimensions>::value;
@@ -653,14 +658,14 @@ struct TensorContractionEvaluatorBase
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Dimensions& dimensions() const { return m_dimensions; }
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool evalSubExprsIfNeeded(Scalar * data) {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool evalSubExprsIfNeeded(EvaluatorPointerType data) {
     m_leftImpl.evalSubExprsIfNeeded(NULL);
     m_rightImpl.evalSubExprsIfNeeded(NULL);
     if (data) {
       evalTo(data);
       return false;
     } else {
-      m_result = static_cast<Scalar *>(m_device.allocate(dimensions().TotalSize() * sizeof(Scalar)));
+      m_result = static_cast<EvaluatorPointerType>(m_device.allocate(dimensions().TotalSize() * sizeof(Scalar)));
       evalTo(m_result);
       return true;
     }
@@ -934,7 +939,7 @@ struct TensorContractionEvaluatorBase
     return internal::ploadt<PacketReturnType, LoadMode>(m_result + index);
   }
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE typename Eigen::internal::traits<XprType>::PointerType data() const { return m_result; }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE EvaluatorPointerType data() const { return m_result; }
 
 protected:
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void EnableXSMMIfPossible(const array<IndexPair<Index>, ContractDims>& eval_op_indices) {
@@ -1169,9 +1174,9 @@ protected:
 
   TensorEvaluator<EvalLeftArgType, Device> m_leftImpl;
   TensorEvaluator<EvalRightArgType, Device> m_rightImpl;
-  const Device& m_device;
+  const Device EIGEN_DEVICE_REF m_device;
   OutputKernelType m_output_kernel;
-  Scalar* m_result;
+  EvaluatorPointerType m_result;
   bool m_can_use_xsmm;
 };
 

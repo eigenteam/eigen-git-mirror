@@ -42,7 +42,6 @@ struct traits<TensorEvalToOp<XprType, MakePointer_> >
     // Intermediate typedef to workaround MSVC issue.
     typedef MakePointer_<T> MakePointerT;
     typedef typename MakePointerT::Type Type;
-    typedef typename MakePointerT::RefType RefType;
 
 
   };
@@ -105,7 +104,9 @@ struct TensorEvaluator<const TensorEvalToOp<ArgType, MakePointer_>, Device>
   typedef typename internal::remove_const<typename XprType::CoeffReturnType>::type CoeffReturnType;
   typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
   static const int PacketSize = PacketType<CoeffReturnType, Device>::size;
-
+  typedef typename Eigen::internal::traits<XprType>::PointerType TensorPointerType;
+  typedef StorageMemory<CoeffReturnType, Device> Storage;
+  typedef typename Storage::Type EvaluatorPointerType;
   enum {
     IsAligned         = TensorEvaluator<ArgType, Device>::IsAligned,
     PacketAccess      = TensorEvaluator<ArgType, Device>::PacketAccess,
@@ -124,22 +125,16 @@ struct TensorEvaluator<const TensorEvalToOp<ArgType, MakePointer_>, Device>
       TensorBlockReader;
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
-      : m_impl(op.expression(), device), m_device(device),
-          m_buffer(op.buffer()), m_op(op), m_expression(op.expression())
-  { }
+      : m_impl(op.expression(), device), m_buffer(device.get(op.buffer())), m_expression(op.expression()){}
 
-  // Used for accessor extraction in SYCL Managed TensorMap:
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const XprType& op() const {
-    return m_op;
-  }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE ~TensorEvaluator() {
   }
 
-  typedef typename internal::traits<const TensorEvalToOp<ArgType, MakePointer_> >::template MakePointer<CoeffReturnType>::Type DevicePointer;
+
   EIGEN_DEVICE_FUNC const Dimensions& dimensions() const { return m_impl.dimensions(); }
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool evalSubExprsIfNeeded(DevicePointer scalar) {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool evalSubExprsIfNeeded(EvaluatorPointerType scalar) {
     EIGEN_UNUSED_VARIABLE(scalar);
     eigen_assert(scalar == NULL);
     return m_impl.evalSubExprsIfNeeded(m_buffer);
@@ -191,19 +186,20 @@ struct TensorEvaluator<const TensorEvalToOp<ArgType, MakePointer_>, Device>
         TensorOpCost(0, sizeof(CoeffReturnType), 0, vectorized, PacketSize);
   }
 
-  EIGEN_DEVICE_FUNC DevicePointer data() const { return m_buffer; }
+  EIGEN_DEVICE_FUNC EvaluatorPointerType data() const { return m_buffer; }
   ArgType expression() const { return m_expression; }
+  #ifdef EIGEN_USE_SYCL
+  // binding placeholder accessors to a command group handler for SYCL
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void bind(cl::sycl::handler &cgh) const {
+    m_impl.bind(cgh);
+    m_buffer.bind(cgh);
+  }
+  #endif
 
-  /// required by sycl in order to extract the accessor
-  const TensorEvaluator<ArgType, Device>& impl() const { return m_impl; }
-  /// added for sycl in order to construct the buffer from the sycl device
-  const Device& device() const{return m_device;}
 
  private:
   TensorEvaluator<ArgType, Device> m_impl;
-  const Device& m_device;
-  DevicePointer m_buffer;
-  const XprType& m_op;
+  EvaluatorPointerType m_buffer;
   const ArgType m_expression;
 };
 

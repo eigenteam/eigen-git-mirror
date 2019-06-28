@@ -20,17 +20,20 @@ namespace Eigen {
 // map_allocator.
 template<typename T> struct MakePointer {
   typedef T* Type;
-  typedef T& RefType;
-  typedef T ScalarType;
 };
 
-// The PointerType class is a container of the device specefic pointer
-// used for referring to a Pointer on TensorEvaluator class. While the TensorExpression
+template <typename T>
+EIGEN_STRONG_INLINE T* constCast(const T* data) {
+  return const_cast<T*>(data);
+}
+
+// The StorageMemory class is a container of the device specific pointer
+// used for refering to a Pointer on TensorEvaluator class. While the TensorExpression
 // is a device-agnostic type and need MakePointer class for type conversion,
-// the TensorEvaluator calls can be specialized for a device, hence it is possible
+// the TensorEvaluator class can be specialized for a device, hence it is possible
 // to construct different types of temproray storage memory in TensorEvaluator
-// for different devices by specializing the following PointerType class.
-template<typename T, typename Device> struct PointerType : MakePointer<T>{};
+// for different devices by specializing the following StorageMemory class.
+template<typename T, typename device> struct StorageMemory: MakePointer <T> {};
 
 namespace internal{
 template<typename A, typename B> struct Pointer_type_promotion {
@@ -39,24 +42,10 @@ template<typename A, typename B> struct Pointer_type_promotion {
 template<typename A> struct Pointer_type_promotion<A, A> {
   static const bool val = true;
 };
-template<typename A, typename B> struct TypeConversion;
-#ifndef __SYCL_DEVICE_ONLY__
-template<typename A, typename B> struct TypeConversion{
+template<typename A, typename B> struct TypeConversion {
   typedef A* type;
 };
-#endif
 }
-
-#if defined(EIGEN_USE_SYCL)
-namespace TensorSycl {
-namespace internal{
-template <typename HostExpr, typename FunctorExpr, typename Tuple_of_Acc, typename Dims, typename Op, typename Index> class ReductionFunctor;
-template<typename CoeffReturnType ,typename OutAccessor, typename HostExpr, typename FunctorExpr, typename Op, typename Dims, typename Index, typename TupleType>
-class FullReductionKernelFunctor;
-}
-}
-#endif
-
 
 
 template<typename PlainObjectType, int Options_ = Unaligned, template <class> class MakePointer_ = MakePointer> class TensorMap;
@@ -112,6 +101,31 @@ struct DefaultDevice;
 struct ThreadPoolDevice;
 struct GpuDevice;
 struct SyclDevice;
+
+#ifdef EIGEN_USE_SYCL
+
+template <typename T> struct MakeSYCLPointer {
+  typedef Eigen::TensorSycl::internal::RangeAccess<cl::sycl::access::mode::read_write, T> Type;
+};
+
+template <typename T>
+EIGEN_STRONG_INLINE const Eigen::TensorSycl::internal::RangeAccess<cl::sycl::access::mode::read_write, T>&
+constCast(const Eigen::TensorSycl::internal::RangeAccess<cl::sycl::access::mode::read_write, T>& data) {
+  return data;
+}
+
+template <typename T>
+struct StorageMemory<T, SyclDevice> : MakeSYCLPointer<T> {};
+template <typename T>
+struct StorageMemory<T, const SyclDevice> : StorageMemory<T, SyclDevice> {};
+
+namespace TensorSycl {
+namespace internal{
+template <typename Evaluator, typename Op> class ReductionFunctor;
+}
+}
+#endif
+
 
 enum FFTResultType {
   RealPart = 0,
