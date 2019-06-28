@@ -111,18 +111,25 @@ struct TensorEvaluator<const TensorReverseOp<ReverseDimensions, ArgType>, Device
   static const int PacketSize = PacketType<CoeffReturnType, Device>::size;
 
   enum {
-    IsAligned = false,
-    PacketAccess = TensorEvaluator<ArgType, Device>::PacketAccess,
-    BlockAccess = false,
-    PreferBlockAccess = false,
-    Layout = TensorEvaluator<ArgType, Device>::Layout,
-    CoordAccess = false,  // to be implemented
-    RawAccess = false
+    IsAligned         = false,
+    PacketAccess      = TensorEvaluator<ArgType, Device>::PacketAccess,
+    BlockAccess       = true,
+    PreferBlockAccess = true,
+    Layout            = TensorEvaluator<ArgType, Device>::Layout,
+    CoordAccess       = false,  // to be implemented
+    RawAccess         = false,
+
   };
+
+  typedef typename internal::remove_const<Scalar>::type ScalarNoConst;
+  typedef internal::TensorBlock<ScalarNoConst, Index, NumDims, Layout>
+      OutputTensorBlock;
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op,
                                                         const Device& device)
-      : m_impl(op.expression(), device), m_reverse(op.reverse())
+      : m_impl(op.expression(), device),
+        m_reverse(op.reverse()),
+        m_device(device)
   {
     // Reversing a scalar isn't supported yet. It would be a no-op anyway.
     EIGEN_STATIC_ASSERT((NumDims > 0), YOU_MADE_A_PROGRAMMING_MISTAKE);
@@ -139,6 +146,10 @@ struct TensorEvaluator<const TensorReverseOp<ReverseDimensions, ArgType>, Device
       for (int i = NumDims - 2; i >= 0; --i) {
         m_strides[i] = m_strides[i+1] * m_dimensions[i+1];
       }
+    }
+    // Remember the strides for fast division.
+    for (int i = 0; i < NumDims; ++i) {
+      m_fastStrides[i] = internal::TensorIntDivisor<Index>(m_strides[i]);
     }
   }
 
@@ -159,7 +170,7 @@ struct TensorEvaluator<const TensorReverseOp<ReverseDimensions, ArgType>, Device
     Index inputIndex = 0;
     if (static_cast<int>(Layout) == static_cast<int>(ColMajor)) {
       for (int i = NumDims - 1; i > 0; --i) {
-        Index idx = index / m_strides[i];
+        Index idx = index / m_fastStrides[i];
         index -= idx * m_strides[i];
         if (m_reverse[i]) {
           idx = m_dimensions[i] - idx - 1;
@@ -173,7 +184,7 @@ struct TensorEvaluator<const TensorReverseOp<ReverseDimensions, ArgType>, Device
       }
     } else {
       for (int i = 0; i < NumDims - 1; ++i) {
-        Index idx = index / m_strides[i];
+        Index idx = index / m_fastStrides[i];
         index -= idx * m_strides[i];
         if (m_reverse[i]) {
           idx = m_dimensions[i] - idx - 1;
@@ -212,6 +223,131 @@ struct TensorEvaluator<const TensorReverseOp<ReverseDimensions, ArgType>, Device
     return rslt;
   }
 
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void getResourceRequirements(
+      std::vector<internal::TensorOpResourceRequirements>* resources) const {
+    Eigen::Index block_total_size_max = numext::maxi<Eigen::Index>(
+        1, m_device.lastLevelCacheSize() / sizeof(Scalar));
+    resources->push_back(internal::TensorOpResourceRequirements(
+        internal::kSkewedInnerDims, block_total_size_max));
+  }
+
+  struct BlockIteratorState {
+    Index block_size;
+    Index block_stride;
+    Index block_span;
+    Index input_size;
+    Index input_stride;
+    Index input_span;
+    Index count;
+    bool reverse;
+  };
+
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void block(
+      OutputTensorBlock* output_block) const {
+    if (NumDims <= 0) return;
+
+    // TODO(ezhulenev): If underlying tensor expression supports and prefers
+    // block evaluation we must use it. Currently we use coeff and packet
+    // access into the underlying tensor expression.
+    // static const bool useBlockAccessForArgType =
+    //     TensorEvaluator<ArgType, Device>::BlockAccess &&
+    //     TensorEvaluator<ArgType, Device>::PreferBlockAccess;
+
+    static const bool isColMajor =
+        static_cast<int>(Layout) == static_cast<int>(ColMajor);
+
+    static const Index inner_dim_idx = isColMajor ? 0 : NumDims - 1;
+    const bool inner_dim_reversed = m_reverse[inner_dim_idx];
+
+    CoeffReturnType* data = output_block->data();
+    Index block_offset = 0;
+
+    Index input_offset = reverseIndex(output_block->first_coeff_index());
+
+    // Initialize output block iterator state. Dimension in this array are
+    // always in inner_most -> outer_most order (col major layout).
+    array<BlockIteratorState, NumDims> it;
+    for (Index i = 0; i < NumDims; ++i) {
+      const Index dim = isColMajor ? i : NumDims - 1 - i;
+      it[i].block_size = output_block->block_sizes()[dim];
+      it[i].block_stride = output_block->block_strides()[dim];
+      it[i].block_span = it[i].block_stride * (it[i].block_size - 1);
+      it[i].input_size = m_dimensions[dim];
+      it[i].input_stride = m_strides[dim];
+      it[i].input_span = it[i].input_stride * (it[i].input_size - 1);
+      it[i].count = 0;
+      it[i].reverse = m_reverse[dim];
+
+      if (it[i].reverse) {
+        it[i].input_stride = -1 * it[i].input_stride;
+        it[i].input_span = -1 * it[i].input_span;
+      }
+    }
+
+    // If multiple inner dimensions have the same reverse flag, check if we can
+    // merge them into a single virtual inner dimension.
+    int effective_inner_dim = 0;
+    for (int i = 1; i < NumDims; ++i) {
+      if (it[i].reverse != it[effective_inner_dim].reverse) break;
+      if (it[i].block_stride != it[effective_inner_dim].input_size) break;
+      if (it[i].block_stride != numext::abs(it[i].input_stride)) break;
+
+      it[i].block_size = it[effective_inner_dim].block_size * it[i].block_size;
+      it[i].input_size = it[effective_inner_dim].input_size * it[i].input_size;
+
+      it[i].block_stride = 1;
+      it[i].input_stride = (inner_dim_reversed ? -1 : 1);
+
+      it[i].block_span = it[i].block_stride * (it[i].block_size - 1);
+      it[i].input_span = it[i].input_stride * (it[i].input_size - 1);
+
+      effective_inner_dim = i;
+    }
+
+    eigen_assert(it[effective_inner_dim].block_stride == 1);
+    eigen_assert(it[effective_inner_dim].input_stride ==
+                 (inner_dim_reversed ? -1 : 1));
+
+    const Index inner_dim_size = it[effective_inner_dim].block_size;
+
+    while (it[NumDims - 1].count < it[NumDims - 1].block_size) {
+      // Copy inner-most dimension data from reversed location in input.
+      Index dst = block_offset;
+      Index src = input_offset;
+
+      // NOTE(ezhulenev): Adding vectorized path with internal::preverse showed
+      // worse results in benchmarks than a simple coefficient loop.
+      if (inner_dim_reversed) {
+        for (Index i = 0; i < inner_dim_size; ++i) {
+          data[dst] = m_impl.coeff(src);
+          ++dst;
+          --src;
+        }
+      } else {
+        for (Index i = 0; i < inner_dim_size; ++i) {
+          data[dst] = m_impl.coeff(src);
+          ++dst;
+          ++src;
+        }
+      }
+
+      // For the 1d tensor we need to generate only one inner-most dimension.
+      if ((NumDims - effective_inner_dim) == 1) break;
+
+      // Update offset.
+      for (Index i = effective_inner_dim + 1; i < NumDims; ++i) {
+        if (++it[i].count < it[i].block_size) {
+          block_offset += it[i].block_stride;
+          input_offset += it[i].input_stride;
+          break;
+        }
+        if (i != NumDims - 1) it[i].count = 0;
+        block_offset -= it[i].block_span;
+        input_offset -= it[i].input_span;
+      }
+    }
+  }
+
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorOpCost costPerCoeff(bool vectorized) const {
     double compute_cost = NumDims * (2 * TensorOpCost::AddCost<Index>() +
                                      2 * TensorOpCost::MulCost<Index>() +
@@ -235,8 +371,10 @@ struct TensorEvaluator<const TensorReverseOp<ReverseDimensions, ArgType>, Device
  protected:
   Dimensions m_dimensions;
   array<Index, NumDims> m_strides;
+  array<internal::TensorIntDivisor<Index>, NumDims> m_fastStrides;
   TensorEvaluator<ArgType, Device> m_impl;
   ReverseDimensions m_reverse;
+  const Device& m_device;
 };
 
 // Eval as lvalue

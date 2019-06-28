@@ -527,6 +527,41 @@ static void test_execute_generator_op(Device d)
   }
 }
 
+template <typename T, int NumDims, typename Device, bool Vectorizable,
+    bool Tileable, int Layout>
+static void test_execute_reverse_rvalue(Device d)
+{
+  static constexpr int Options = 0 | Layout;
+
+  auto dims = RandomDims<NumDims>(1, numext::pow(1000000.0, 1.0 / NumDims));
+  Tensor <T, NumDims, Options, Index> src(dims);
+  src.setRandom();
+
+  // Reverse half of the dimensions.
+  Eigen::array<bool, NumDims> reverse;
+  for (int i = 0; i < NumDims; ++i) reverse[i] = (dims[i] % 2 == 0);
+
+  const auto expr = src.reverse(reverse);
+
+  // We assume that reversing on a default device is tested and correct, so
+  // we can rely on it to verify correctness of tensor executor and tiling.
+  Tensor <T, NumDims, Options, Index> golden;
+  golden = expr;
+
+  // Now do the reversing using configured tensor executor.
+  Tensor <T, NumDims, Options, Index> dst(golden.dimensions());
+
+  using Assign = TensorAssignOp<decltype(dst), const decltype(expr)>;
+  using Executor =
+    internal::TensorExecutor<const Assign, Device, Vectorizable, Tileable>;
+
+  Executor::run(Assign(dst, expr), d);
+
+  for (Index i = 0; i < dst.dimensions().TotalSize(); ++i) {
+    VERIFY_IS_EQUAL(dst.coeff(i), golden.coeff(i));
+  }
+}
+
 #define CALL_SUBTEST_PART(PART) \
   CALL_SUBTEST_##PART
 
@@ -613,8 +648,14 @@ EIGEN_DECLARE_TEST(cxx11_tensor_executor) {
   CALL_SUBTEST_COMBINATIONS(13, test_execute_generator_op, float, 4);
   CALL_SUBTEST_COMBINATIONS(13, test_execute_generator_op, float, 5);
 
+  CALL_SUBTEST_COMBINATIONS(14, test_execute_reverse_rvalue, float, 1);
+  CALL_SUBTEST_COMBINATIONS(14, test_execute_reverse_rvalue, float, 2);
+  CALL_SUBTEST_COMBINATIONS(14, test_execute_reverse_rvalue, float, 3);
+  CALL_SUBTEST_COMBINATIONS(14, test_execute_reverse_rvalue, float, 4);
+  CALL_SUBTEST_COMBINATIONS(14, test_execute_reverse_rvalue, float, 5);
+
   // Force CMake to split this test.
-  // EIGEN_SUFFIXES;1;2;3;4;5;6;7;8;9;10;11;12;13
+  // EIGEN_SUFFIXES;1;2;3;4;5;6;7;8;9;10;11;12;13;14
 }
 
 #undef CALL_SUBTEST_COMBINATIONS

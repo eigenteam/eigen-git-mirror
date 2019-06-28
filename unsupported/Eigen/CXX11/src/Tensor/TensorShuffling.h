@@ -270,6 +270,11 @@ struct TensorEvaluator<const TensorShufflingOp<Shuffle, ArgType>, Device>
             input_block_strides[i + 1] * input_block_sizes[i + 1];
       }
     }
+    DSizes<internal::TensorIntDivisor<Index>, NumDims> fast_input_block_strides;
+    for (int i = 0; i < NumDims; ++i) {
+      fast_input_block_strides[i] =
+          internal::TensorIntDivisor<Index>(input_block_strides[i]);
+    }
 
     // Read input block.
     TensorBlock input_block(srcCoeff(output_block->first_coeff_index()),
@@ -293,8 +298,9 @@ struct TensorEvaluator<const TensorShufflingOp<Shuffle, ArgType>, Device>
         continue;
       }
 
-      Index output_index = GetBlockOutputIndex(input_index, input_block_strides,
-                                               output_block_strides);
+      Index output_index =
+          GetBlockOutputIndex(input_index, input_block_strides,
+                              output_block_strides, fast_input_block_strides);
       if (output_index == input_index) {
         // Coefficient already in place.
         bitmap[output_index] = true;
@@ -312,8 +318,9 @@ struct TensorEvaluator<const TensorShufflingOp<Shuffle, ArgType>, Device>
         data[output_index] = shuffled_value;
         shuffled_value = evicted_value;
         bitmap[output_index] = true;
-        output_index = GetBlockOutputIndex(output_index, input_block_strides,
-                                           output_block_strides);
+        output_index =
+            GetBlockOutputIndex(output_index, input_block_strides,
+                                output_block_strides, fast_input_block_strides);
       } while (output_index != input_index);
 
       data[output_index] = shuffled_value;
@@ -341,11 +348,12 @@ struct TensorEvaluator<const TensorShufflingOp<Shuffle, ArgType>, Device>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Index GetBlockOutputIndex(
       Index input_index,
       const DSizes<Index, NumDims>& input_block_strides,
-      const DSizes<Index, NumDims>& output_block_strides) const {
+      const DSizes<Index, NumDims>& output_block_strides,
+      const DSizes<internal::TensorIntDivisor<Index>, NumDims>& fast_input_block_strides) const {
     Index output_index = 0;
     if (static_cast<int>(Layout) == static_cast<int>(ColMajor)) {
       for (int i = NumDims - 1; i > 0; --i) {
-        const Index idx = input_index / input_block_strides[i];
+        const Index idx = input_index / fast_input_block_strides[i];
         output_index += idx * output_block_strides[m_inverseShuffle[i]];
         input_index -= idx * input_block_strides[i];
       }
@@ -353,7 +361,7 @@ struct TensorEvaluator<const TensorShufflingOp<Shuffle, ArgType>, Device>
           output_block_strides[m_inverseShuffle[0]];
     } else {
       for (int i = 0; i < NumDims - 1; ++i) {
-        const Index idx = input_index / input_block_strides[i];
+        const Index idx = input_index / fast_input_block_strides[i];
         output_index += idx * output_block_strides[m_inverseShuffle[i]];
         input_index -= idx * input_block_strides[i];
       }

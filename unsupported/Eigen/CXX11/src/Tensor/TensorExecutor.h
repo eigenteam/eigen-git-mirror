@@ -346,7 +346,7 @@ class TensorExecutor<Expression, ThreadPoolDevice, Vectorizable, /*Tileable*/ tr
             // expressions.
             const int thread_idx = device.currentThreadId();
             eigen_assert(thread_idx >= -1 && thread_idx < num_threads);
-            Scalar* thread_buf = reinterpret_cast<Scalar*>(
+            ScalarNoConst* thread_buf = reinterpret_cast<ScalarNoConst*>(
                 static_cast<char*>(buf) + aligned_blocksize * (thread_idx + 1));
             for (StorageIndex i = firstIdx; i < lastIdx; ++i) {
               auto block = block_mapper.GetBlockForIndex(i, thread_buf);

@@ -77,6 +77,8 @@ class TensorEvalToOp : public TensorBase<TensorEvalToOp<XprType, MakePointer_>, 
   typedef typename Eigen::internal::traits<TensorEvalToOp>::StorageKind StorageKind;
   typedef typename Eigen::internal::traits<TensorEvalToOp>::Index Index;
 
+  static const int NumDims = Eigen::internal::traits<TensorEvalToOp>::NumDimensions;
+
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvalToOp(PointerType buffer, const XprType& expr)
       : m_xpr(expr), m_buffer(buffer) {}
 
@@ -105,14 +107,21 @@ struct TensorEvaluator<const TensorEvalToOp<ArgType, MakePointer_>, Device>
   static const int PacketSize = PacketType<CoeffReturnType, Device>::size;
 
   enum {
-    IsAligned = TensorEvaluator<ArgType, Device>::IsAligned,
-    PacketAccess = TensorEvaluator<ArgType, Device>::PacketAccess,
-    BlockAccess = false,
+    IsAligned         = TensorEvaluator<ArgType, Device>::IsAligned,
+    PacketAccess      = TensorEvaluator<ArgType, Device>::PacketAccess,
+    BlockAccess       = true,
     PreferBlockAccess = false,
-    Layout = TensorEvaluator<ArgType, Device>::Layout,
-    CoordAccess = false,  // to be implemented
-    RawAccess = true
+    Layout            = TensorEvaluator<ArgType, Device>::Layout,
+    CoordAccess       = false,  // to be implemented
+    RawAccess         = true
   };
+
+  typedef typename internal::TensorBlock<
+      CoeffReturnType, Index, internal::traits<ArgType>::NumDimensions, Layout>
+      TensorBlock;
+  typedef typename internal::TensorBlockReader<
+      CoeffReturnType, Index, internal::traits<ArgType>::NumDimensions, Layout>
+      TensorBlockReader;
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
       : m_impl(op.expression(), device), m_device(device),
@@ -143,6 +152,18 @@ struct TensorEvaluator<const TensorEvalToOp<ArgType, MakePointer_>, Device>
     internal::pstoret<CoeffReturnType, PacketReturnType, Aligned>(m_buffer + i, m_impl.template packet<TensorEvaluator<ArgType, Device>::IsAligned ? Aligned : Unaligned>(i));
   }
 
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void getResourceRequirements(
+      std::vector<internal::TensorOpResourceRequirements>* resources) const {
+    m_impl.getResourceRequirements(resources);
+  }
+
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void evalBlock(TensorBlock* block) {
+    TensorBlock eval_to_block(block->first_coeff_index(), block->block_sizes(),
+                              block->tensor_strides(), block->tensor_strides(),
+                              m_buffer + block->first_coeff_index());
+    m_impl.block(&eval_to_block);
+  }
+
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void cleanup() {
     m_impl.cleanup();
   }
@@ -156,6 +177,11 @@ struct TensorEvaluator<const TensorEvalToOp<ArgType, MakePointer_>, Device>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE PacketReturnType packet(Index index) const
   {
     return internal::ploadt<PacketReturnType, LoadMode>(m_buffer + index);
+  }
+
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void block(TensorBlock* block) const {
+    assert(m_buffer != NULL);
+    TensorBlockReader::Run(block, m_buffer);
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorOpCost costPerCoeff(bool vectorized) const {
