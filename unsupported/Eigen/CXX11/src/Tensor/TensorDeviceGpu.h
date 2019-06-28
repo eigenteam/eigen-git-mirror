@@ -283,7 +283,7 @@ struct GpuDevice {
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void synchronize() const {
-#if defined(EIGEN_GPUCC) && !defined(EIGEN_GPU_COMPILE_PHASE)
+#ifndef EIGEN_GPU_COMPILE_PHASE
     gpuError_t err = gpuStreamSynchronize(stream_->stream());
     if (err != gpuSuccess) {
       std::cerr << "Error detected in GPU stream: "
