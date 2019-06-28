@@ -75,6 +75,11 @@ struct ThreadPoolDevice {
   EIGEN_STRONG_INLINE void deallocate_temp(void* buffer) const {
     deallocate(buffer);
   }
+  
+  template<typename Type>
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Type get(Type data) const { 
+    return data;
+  }
 
   EIGEN_STRONG_INLINE void memcpy(void* dst, const void* src, size_t n) const {
 #ifdef __ANDROID__

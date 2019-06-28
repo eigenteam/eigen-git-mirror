@@ -841,7 +841,7 @@ struct TensorBlockView {
   const Scalar* data() const { return m_data; }
 
  private:
-  const Device& m_device;
+  const Device EIGEN_DEVICE_REF m_device;
   Dimensions m_block_sizes, m_block_strides;
   const Scalar* m_data;      // Not owned.
   Scalar* m_allocated_data;  // Owned.

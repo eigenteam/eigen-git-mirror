@@ -44,6 +44,9 @@ class TensorLazyEvaluatorReadOnly : public TensorLazyBaseEvaluator<Dimensions, t
  public:
   //  typedef typename TensorEvaluator<Expr, Device>::Dimensions Dimensions;
   typedef typename TensorEvaluator<Expr, Device>::Scalar Scalar;
+  typedef StorageMemory<Scalar, Device> Storage;
+  typedef typename Storage::Type EvaluatorPointerType;
+  typedef  TensorEvaluator<Expr, Device> EvalType;
 
   TensorLazyEvaluatorReadOnly(const Expr& expr, const Device& device) : m_impl(expr, device), m_dummy(Scalar(0)) {
     m_dims = m_impl.dimensions();
@@ -79,6 +82,8 @@ class TensorLazyEvaluatorWritable : public TensorLazyEvaluatorReadOnly<Dimension
  public:
   typedef TensorLazyEvaluatorReadOnly<Dimensions, Expr, Device> Base;
   typedef typename Base::Scalar Scalar;
+  typedef StorageMemory<Scalar, Device> Storage;
+  typedef typename Storage::Type EvaluatorPointerType;
 
   TensorLazyEvaluatorWritable(const Expr& expr, const Device& device) : Base(expr, device) {
   }
@@ -362,6 +367,8 @@ struct TensorEvaluator<const TensorRef<Derived>, Device>
   typedef typename Derived::Scalar CoeffReturnType;
   typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
   typedef typename Derived::Dimensions Dimensions;
+  typedef StorageMemory<CoeffReturnType, Device> Storage;
+  typedef typename Storage::Type EvaluatorPointerType;
 
   enum {
     IsAligned = false,
@@ -379,7 +386,7 @@ struct TensorEvaluator<const TensorRef<Derived>, Device>
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Dimensions& dimensions() const { return m_ref.dimensions(); }
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool evalSubExprsIfNeeded(Scalar*) {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool evalSubExprsIfNeeded(EvaluatorPointerType) {
     return true;
   }
 
@@ -394,7 +401,7 @@ struct TensorEvaluator<const TensorRef<Derived>, Device>
   }
 
   EIGEN_DEVICE_FUNC Scalar* data() const { return m_ref.data(); }
-
+  
  protected:
   TensorRef<Derived> m_ref;
 };

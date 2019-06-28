@@ -58,9 +58,6 @@ struct traits<Tensor<Scalar_, NumIndices_, Options_, IndexType_> >
   };
   template <typename T> struct MakePointer {
     typedef T* Type;
-    typedef T& RefType;
-    typedef T ScalarType;
-
   };
   typedef typename MakePointer<Scalar>::Type PointerType;
 };
@@ -80,9 +77,6 @@ struct traits<TensorFixedSize<Scalar_, Dimensions, Options_, IndexType_> >
   };
   template <typename T> struct MakePointer {
     typedef T* Type;
-    typedef T& RefType;
-    typedef T ScalarType;
-
   };
   typedef typename MakePointer<Scalar>::Type PointerType;
 };
@@ -106,10 +100,6 @@ struct traits<TensorMap<PlainObjectType, Options_, MakePointer_> >
     // Intermediate typedef to workaround MSVC issue.
     typedef MakePointer_<T> MakePointerT;
     typedef typename MakePointerT::Type Type;
-    typedef typename MakePointerT::RefType RefType;
-    typedef typename MakePointerT::ScalarType ScalarType;
-
-
   };
   typedef typename MakePointer<Scalar>::Type PointerType;
 };
@@ -135,49 +125,49 @@ struct traits<TensorRef<PlainObjectType> >
 template<typename _Scalar, int NumIndices_, int Options, typename IndexType_>
 struct eval<Tensor<_Scalar, NumIndices_, Options, IndexType_>, Eigen::Dense>
 {
-  typedef const Tensor<_Scalar, NumIndices_, Options, IndexType_>& type;
+  typedef const Tensor<_Scalar, NumIndices_, Options, IndexType_>EIGEN_DEVICE_REF type;
 };
 
 template<typename _Scalar, int NumIndices_, int Options, typename IndexType_>
 struct eval<const Tensor<_Scalar, NumIndices_, Options, IndexType_>, Eigen::Dense>
 {
-  typedef const Tensor<_Scalar, NumIndices_, Options, IndexType_>& type;
+  typedef const Tensor<_Scalar, NumIndices_, Options, IndexType_>EIGEN_DEVICE_REF type;
 };
 
 template<typename Scalar_, typename Dimensions, int Options, typename IndexType_>
 struct eval<TensorFixedSize<Scalar_, Dimensions, Options, IndexType_>, Eigen::Dense>
 {
-  typedef const TensorFixedSize<Scalar_, Dimensions, Options, IndexType_>& type;
+  typedef const TensorFixedSize<Scalar_, Dimensions, Options, IndexType_>EIGEN_DEVICE_REF type;
 };
 
 template<typename Scalar_, typename Dimensions, int Options, typename IndexType_>
 struct eval<const TensorFixedSize<Scalar_, Dimensions, Options, IndexType_>, Eigen::Dense>
 {
-  typedef const TensorFixedSize<Scalar_, Dimensions, Options, IndexType_>& type;
+  typedef const TensorFixedSize<Scalar_, Dimensions, Options, IndexType_>EIGEN_DEVICE_REF type;
 };
 
 template<typename PlainObjectType, int Options, template <class> class MakePointer>
 struct eval<TensorMap<PlainObjectType, Options, MakePointer>, Eigen::Dense>
 {
-  typedef const TensorMap<PlainObjectType, Options, MakePointer>& type;
+  typedef const TensorMap<PlainObjectType, Options, MakePointer>EIGEN_DEVICE_REF type;
 };
 
 template<typename PlainObjectType, int Options, template <class> class MakePointer>
 struct eval<const TensorMap<PlainObjectType, Options, MakePointer>, Eigen::Dense>
 {
-  typedef const TensorMap<PlainObjectType, Options, MakePointer>& type;
+  typedef const TensorMap<PlainObjectType, Options, MakePointer>EIGEN_DEVICE_REF type;
 };
 
 template<typename PlainObjectType>
 struct eval<TensorRef<PlainObjectType>, Eigen::Dense>
 {
-  typedef const TensorRef<PlainObjectType>& type;
+  typedef const TensorRef<PlainObjectType>EIGEN_DEVICE_REF type;
 };
 
 template<typename PlainObjectType>
 struct eval<const TensorRef<PlainObjectType>, Eigen::Dense>
 {
-  typedef const TensorRef<PlainObjectType>& type;
+  typedef const TensorRef<PlainObjectType>EIGEN_DEVICE_REF type;
 };
 
 // TODO nested<> does not exist anymore in Eigen/Core, and it thus has to be removed in favor of ref_selector.
@@ -189,50 +179,50 @@ template<typename T, int n=1, typename PlainObject = void> struct nested
 template <typename Scalar_, int NumIndices_, int Options_, typename IndexType_>
 struct nested<Tensor<Scalar_, NumIndices_, Options_, IndexType_> >
 {
-  typedef const Tensor<Scalar_, NumIndices_, Options_, IndexType_>& type;
+  typedef const Tensor<Scalar_, NumIndices_, Options_, IndexType_>EIGEN_DEVICE_REF type;
 };
 
 template <typename Scalar_, int NumIndices_, int Options_, typename IndexType_>
 struct nested<const Tensor<Scalar_, NumIndices_, Options_, IndexType_> >
 {
-  typedef const Tensor<Scalar_, NumIndices_, Options_, IndexType_>& type;
+  typedef const Tensor<Scalar_, NumIndices_, Options_, IndexType_>EIGEN_DEVICE_REF type;
 };
 
 template <typename Scalar_, typename Dimensions, int Options, typename IndexType_>
 struct nested<TensorFixedSize<Scalar_, Dimensions, Options, IndexType_> >
 {
-  typedef const TensorFixedSize<Scalar_, Dimensions, Options, IndexType_>& type;
+  typedef const TensorFixedSize<Scalar_, Dimensions, Options, IndexType_>EIGEN_DEVICE_REF type;
 };
 
 template <typename Scalar_, typename Dimensions, int Options, typename IndexType_>
 struct nested<const TensorFixedSize<Scalar_, Dimensions, Options, IndexType_> >
 {
-  typedef const TensorFixedSize<Scalar_, Dimensions, Options, IndexType_>& type;
+  typedef const TensorFixedSize<Scalar_, Dimensions, Options, IndexType_>EIGEN_DEVICE_REF type;
 };
 
 
 template <typename PlainObjectType, int Options, template <class> class MakePointer>
 struct nested<TensorMap<PlainObjectType, Options, MakePointer> >
 {
-  typedef const TensorMap<PlainObjectType, Options, MakePointer>& type;
+  typedef const TensorMap<PlainObjectType, Options, MakePointer>EIGEN_DEVICE_REF type;
 };
 
 template <typename PlainObjectType, int Options, template <class> class MakePointer>
 struct nested<const TensorMap<PlainObjectType, Options, MakePointer> >
 {
-  typedef const TensorMap<PlainObjectType, Options, MakePointer>& type;
+  typedef const TensorMap<PlainObjectType, Options, MakePointer>EIGEN_DEVICE_REF type;
 };
 
 template <typename PlainObjectType>
 struct nested<TensorRef<PlainObjectType> >
 {
-  typedef const TensorRef<PlainObjectType>& type;
+  typedef const TensorRef<PlainObjectType>EIGEN_DEVICE_REF type;
 };
 
 template <typename PlainObjectType>
 struct nested<const TensorRef<PlainObjectType> >
 {
-  typedef const TensorRef<PlainObjectType>& type;
+  typedef const TensorRef<PlainObjectType>EIGEN_DEVICE_REF type;
 };
 
 }  // end namespace internal

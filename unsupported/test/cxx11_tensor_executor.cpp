@@ -527,26 +527,32 @@ static void test_execute_generator_op(Device d)
   }
 }
 
+#ifdef EIGEN_DONT_VECTORIZE
+#define VECTORIZABLE(VAL) !EIGEN_DONT_VECTORIZE && VAL
+#else 
+#define VECTORIZABLE(VAL) VAL
+#endif
+
 #define CALL_SUBTEST_PART(PART) \
   CALL_SUBTEST_##PART
 
 #define CALL_SUBTEST_COMBINATIONS(PART, NAME, T, NUM_DIMS)                                                \
   CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, DefaultDevice,    false, false, ColMajor>(default_device))); \
   CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, DefaultDevice,    false, true,  ColMajor>(default_device))); \
-  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, DefaultDevice,    true,  false, ColMajor>(default_device))); \
-  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, DefaultDevice,    true,  true,  ColMajor>(default_device))); \
+  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, DefaultDevice,    VECTORIZABLE(true),  false, ColMajor>(default_device))); \
+  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, DefaultDevice,    VECTORIZABLE(true),  true,  ColMajor>(default_device))); \
   CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, DefaultDevice,    false, false, RowMajor>(default_device))); \
   CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, DefaultDevice,    false, true,  RowMajor>(default_device))); \
-  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, DefaultDevice,    true,  false, RowMajor>(default_device))); \
-  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, DefaultDevice,    true,  true,  RowMajor>(default_device))); \
+  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, DefaultDevice,    VECTORIZABLE(true),  false, RowMajor>(default_device))); \
+  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, DefaultDevice,    VECTORIZABLE(true),  true,  RowMajor>(default_device))); \
   CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, ThreadPoolDevice, false, false, ColMajor>(tp_device)));      \
   CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, ThreadPoolDevice, false, true,  ColMajor>(tp_device)));      \
-  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, ThreadPoolDevice, true,  false, ColMajor>(tp_device)));      \
-  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, ThreadPoolDevice, true,  true,  ColMajor>(tp_device)));      \
+  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, ThreadPoolDevice, VECTORIZABLE(true),  false, ColMajor>(tp_device)));      \
+  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, ThreadPoolDevice, VECTORIZABLE(true),  true,  ColMajor>(tp_device)));      \
   CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, ThreadPoolDevice, false, false, RowMajor>(tp_device)));      \
   CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, ThreadPoolDevice, false, true,  RowMajor>(tp_device)));      \
-  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, ThreadPoolDevice, true,  false, RowMajor>(tp_device)));      \
-  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, ThreadPoolDevice, true,  true,  RowMajor>(tp_device)))
+  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, ThreadPoolDevice, VECTORIZABLE(true),  false, RowMajor>(tp_device)));      \
+  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, ThreadPoolDevice, VECTORIZABLE(true),  true,  RowMajor>(tp_device)))
 
 EIGEN_DECLARE_TEST(cxx11_tensor_executor) {
   Eigen::DefaultDevice default_device;
