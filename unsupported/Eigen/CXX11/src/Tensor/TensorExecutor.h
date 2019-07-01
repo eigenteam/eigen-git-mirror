@@ -189,7 +189,7 @@ class TensorExecutor<Expression, DefaultDevice, Vectorizable,
           block_total_size);
       block_total_size = block_mapper.block_dims_total_size();
 
-      Scalar* data = static_cast<Scalar*>(
+      ScalarNoConst* data = static_cast<ScalarNoConst*>(
           device.allocate(block_total_size * sizeof(Scalar)));
 
       const StorageIndex total_block_count = block_mapper.total_block_count();
