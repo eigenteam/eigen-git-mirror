@@ -16,6 +16,7 @@
 #define EIGEN_CXX11_TENSOR_TENSOR_DEVICE_SYCL_H
 #include <unordered_set>
 
+
 namespace Eigen {
 
 namespace TensorSycl {
@@ -676,21 +677,12 @@ class QueueInterface {
     }
   }
 
-  bool sycl_async_handler(cl::sycl::exception_list l) const {
+  bool sycl_async_handler(cl::sycl::exception_list exceptions) const {
     bool exception_caught = false;
-    for (const auto &e : l) {
+    for (const auto &e : exceptions) {
       if (e) {
         exception_caught = true;
-#ifdef EIGEN_EXCEPTIONS
-        try {
-          std::rethrow_exception(e);
-        } catch (const cl::sycl::exception &e) {
-          std::cerr << e.what() << std::endl;
-        }
-#else
-        std::cerr << "Error detected inside Sycl device." << std::endl;
-        abort();
-#endif
+        EIGEN_THROW_X(e);
       }
     }
     return exception_caught;

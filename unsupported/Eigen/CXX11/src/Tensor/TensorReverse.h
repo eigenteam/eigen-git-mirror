@@ -380,7 +380,7 @@ struct TensorEvaluator<const TensorReverseOp<ReverseDimensions, ArgType>, Device
   array<IndexDivisor, NumDims> m_fastStrides;
   TensorEvaluator<ArgType, Device> m_impl;
   ReverseDimensions m_reverse;
-  const Device& m_device;
+  const Device EIGEN_DEVICE_REF m_device;
 };
 
 // Eval as lvalue

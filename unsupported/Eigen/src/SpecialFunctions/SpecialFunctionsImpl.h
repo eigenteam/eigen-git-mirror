@@ -193,7 +193,7 @@ struct lgamma_impl<float> {
 #if !defined(EIGEN_GPU_COMPILE_PHASE) && (defined(_BSD_SOURCE) || defined(_SVID_SOURCE)) && !defined(__APPLE__) 
     int dummy;
     return ::lgammaf_r(x, &dummy);
-#elif defined(EIGEN_USE_SYCL) && defined(__SYCL_DEVICE_ONLY__)
+#elif defined(SYCL_DEVICE_ONLY)
     return cl::sycl::lgamma(x);
 #else
     return ::lgammaf(x);
@@ -208,7 +208,7 @@ struct lgamma_impl<double> {
 #if !defined(EIGEN_GPU_COMPILE_PHASE) && (defined(_BSD_SOURCE) || defined(_SVID_SOURCE)) && !defined(__APPLE__) 
     int dummy;
     return ::lgamma_r(x, &dummy);
-#elif defined(EIGEN_USE_SYCL) && defined(__SYCL_DEVICE_ONLY__)
+#elif defined(SYCL_DEVICE_ONLY)
     return cl::sycl::lgamma(x);
 #else
     return ::lgamma(x);
@@ -428,7 +428,7 @@ template <>
 struct erf_impl<float> {
   EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE float run(float x) {
-#if defined(EIGEN_USE_SYCL) && defined(__SYCL_DEVICE_ONLY__)
+#if defined(SYCL_DEVICE_ONLY)
     return cl::sycl::erf(x);
 #else
     return ::erff(x);
@@ -440,7 +440,7 @@ template <>
 struct erf_impl<double> {
   EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE double run(double x) {
-#if defined(EIGEN_USE_SYCL) && defined(__SYCL_DEVICE_ONLY__)
+#if defined(SYCL_DEVICE_ONLY)
     return cl::sycl::erf(x);
 #else
     return ::erf(x);
@@ -473,7 +473,7 @@ template <>
 struct erfc_impl<float> {
   EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE float run(const float x) {
-#if defined(EIGEN_USE_SYCL) && defined(__SYCL_DEVICE_ONLY__)
+#if defined(SYCL_DEVICE_ONLY)
     return cl::sycl::erfc(x);
 #else
     return ::erfcf(x);
@@ -485,7 +485,7 @@ template <>
 struct erfc_impl<double> {
   EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE double run(const double x) {
-#if defined(EIGEN_USE_SYCL) && defined(__SYCL_DEVICE_ONLY__)
+#if defined(SYCL_DEVICE_ONLY)
     return cl::sycl::erfc(x);
 #else
     return ::erfc(x);
