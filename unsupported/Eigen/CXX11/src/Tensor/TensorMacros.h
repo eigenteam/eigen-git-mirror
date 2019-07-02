@@ -67,20 +67,16 @@
 #endif
 
 // Define a macro for catching SYCL exceptions if exceptions are enabled
-#if defined(EIGEN_EXCEPTIONS)
-  #define EIGEN_SYCL_TRY_CATCH(X) \
-    do { \
-      try { X; } \
-      catch(const cl::sycl::exception& e) { \
-        std::cerr << "SYCL exception at " \
-                  << __FILE__ << ":" << __LINE__ << std::endl \
-                  << e.what() << std::endl; \
-        std::rethrow_exception(std::current_exception()); \
-      } \
-    } while (false)
-#else
-  #define EIGEN_SYCL_TRY_CATCH(X) X
-#endif
+#define EIGEN_SYCL_TRY_CATCH(X) \
+  do { \
+    EIGEN_TRY {X;} \
+    EIGEN_CATCH(const cl::sycl::exception& e) { \
+      EIGEN_THROW_X(std::runtime_error("SYCL exception at " + \
+                                       std::string(__FILE__) + ":" + \
+                                       std::to_string(__LINE__) + "\n" + \
+                                       e.what())); \
+    } \
+  } while (false)
 
 // Define a macro if local memory flags are unset or one of them is set
 // Setting both flags is the same as unsetting them
