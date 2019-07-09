@@ -173,7 +173,8 @@ template<typename T> struct GenericNumTraits
 
   EIGEN_DEVICE_FUNC
   static inline T lowest()  {
-    return IsInteger ? (numext::numeric_limits<T>::min)() : (-(numext::numeric_limits<T>::max)());
+    return IsInteger ? (numext::numeric_limits<T>::min)()
+                     : static_cast<T>(-(numext::numeric_limits<T>::max)());
   }
 
   EIGEN_DEVICE_FUNC
