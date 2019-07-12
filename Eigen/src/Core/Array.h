@@ -162,23 +162,6 @@ class Array
     }
 #endif
 
-    #ifndef EIGEN_PARSED_BY_DOXYGEN
-    template<typename T>
-    EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE explicit Array(const T& x)
-    {
-      Base::_check_template_params();
-      Base::template _init1<T>(x);
-    }
-
-    template<typename T0, typename T1>
-    EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE Array(const T0& val0, const T1& val1)
-    {
-      Base::_check_template_params();
-      this->template _init2<T0,T1>(val0, val1);
-    }
-
     #if EIGEN_HAS_CXX11
     /** \copydoc PlainObjectBase(const Scalar& a0, const Scalar& a1, const Scalar& a2, const Scalar& a3, const ArgTypes&... args)
      *
@@ -186,7 +169,7 @@ class Array
      * Output: \verbinclude Array_variadic_ctor_cxx11.out
      *
      * \sa Array(const std::initializer_list<std::initializer_list<Scalar>>&)
-     * \sa Array(Scalar), Array(Scalar,Scalar)
+     * \sa Array(const Scalar&), Array(const Scalar&,const Scalar&)
      */
     template <typename... ArgTypes>
     EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
@@ -212,11 +195,28 @@ class Array
       * In the case of fixed-sized arrays, the initializer list sizes must exactly match the array sizes,
       * and implicit transposition is allowed for compile-time 1D arrays only.
       * 
-      * \sa Array(const Scalar& a0, const Scalar& a1, const Scalar& a2, const Scalar& a3, const ArgTypes&... args)
+      * \sa  Array(const Scalar& a0, const Scalar& a1, const Scalar& a2, const Scalar& a3, const ArgTypes&... args)
       */
     EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE Array(const std::initializer_list<std::initializer_list<Scalar> >& list) : Base(list) {}
+    EIGEN_STRONG_INLINE Array(const std::initializer_list<std::initializer_list<Scalar>>& list) : Base(list) {}
     #endif // end EIGEN_HAS_CXX11
+
+    #ifndef EIGEN_PARSED_BY_DOXYGEN
+    template<typename T>
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE explicit Array(const T& x)
+    {
+      Base::_check_template_params();
+      Base::template _init1<T>(x);
+    }
+
+    template<typename T0, typename T1>
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE Array(const T0& val0, const T1& val1)
+    {
+      Base::_check_template_params();
+      this->template _init2<T0,T1>(val0, val1);
+    }
 
     #else
     /** \brief Constructs a fixed-sized array initialized with coefficients starting at \a data */

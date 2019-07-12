@@ -532,7 +532,7 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
       * \only_for_vectors
       * 
       * This constructor is for 1D array or vectors with more than 4 coefficients.
-      * There exists C++98 anologue constructors for fixed-size array/vector having 1, 2, 3, or 4 coefficients.
+      * There exists C++98 analogue constructors for fixed-size array/vector having 1, 2, 3, or 4 coefficients.
       * 
       * \warning To construct a column (resp. row) vector of fixed length, the number of values passed to this 
       * constructor must match the the fixed number of rows (resp. columns) of \c *this.
