@@ -232,7 +232,12 @@ DenseBase<Derived>::Constant(const Scalar& value)
 
 /** \deprecated because of accuracy loss. In Eigen 3.3, it is an alias for LinSpaced(Index,const Scalar&,const Scalar&)
   *
-  * \sa LinSpaced(Index,Scalar,Scalar), setLinSpaced(Index,const Scalar&,const Scalar&)
+  * \only_for_vectors
+  *
+  * Example: \include DenseBase_LinSpaced_seq_deprecated.cpp
+  * Output: \verbinclude DenseBase_LinSpaced_seq_deprecated.out
+  *
+  * \sa LinSpaced(Index,const Scalar&, const Scalar&), setLinSpaced(Index,const Scalar&,const Scalar&)
   */
 template<typename Derived>
 EIGEN_DEPRECATED EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const typename DenseBase<Derived>::RandomAccessLinSpacedReturnType
@@ -244,7 +249,7 @@ DenseBase<Derived>::LinSpaced(Sequential_t, Index size, const Scalar& low, const
 
 /** \deprecated because of accuracy loss. In Eigen 3.3, it is an alias for LinSpaced(const Scalar&,const Scalar&)
   *
-  * \sa LinSpaced(Scalar,Scalar)
+  * \sa LinSpaced(const Scalar&, const Scalar&)
   */
 template<typename Derived>
 EIGEN_DEPRECATED EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const typename DenseBase<Derived>::RandomAccessLinSpacedReturnType

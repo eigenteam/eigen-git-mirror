@@ -337,15 +337,8 @@ template<typename Derived> class DenseBase
     EIGEN_DEVICE_FUNC static const ConstantReturnType
     Constant(const Scalar& value);
 
-    /** \deprecated because of accuracy loss.
-      * In Eigen 3.3, it is an alias for LinSpaced(Index,const Scalar&,const Scalar&)
-      */
     EIGEN_DEPRECATED EIGEN_DEVICE_FUNC static const RandomAccessLinSpacedReturnType
     LinSpaced(Sequential_t, Index size, const Scalar& low, const Scalar& high);
-
-    /** \deprecated because of accuracy loss.
-      * In Eigen 3.3, it is an alias for LinSpaced(const Scalar&,const Scalar&)
-      */
     EIGEN_DEPRECATED EIGEN_DEVICE_FUNC static const RandomAccessLinSpacedReturnType
     LinSpaced(Sequential_t, const Scalar& low, const Scalar& high);
 
