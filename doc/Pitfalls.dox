@@ -72,7 +72,7 @@ Note that DenseBase::eval() is smart enough to avoid copies when the underlying 
 \section TopicPitfalls_header_issues Header Issues (failure to compile)
 
 With all libraries, one must check the documentation for which header to include.
-The same is true with %Eigen, but slightly worse: with %Eigen, a method in a class may require an additional <code>#include</code> over what the class itself requires!
+The same is true with %Eigen, but slightly worse: with %Eigen, a method in a class may require an additional \c \#include over what the class itself requires!
 For example, if you want to use the \c cross() method on a vector (it computes a cross-product) then you need to:
 \code
 #include<Eigen/Geometry>
