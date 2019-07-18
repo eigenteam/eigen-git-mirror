@@ -315,7 +315,7 @@ class Matrix
       * In the case of fixed-sized matrices, the initializer list sizes must exactly match the matrix sizes,
       * and implicit transposition is allowed for compile-time vectors only.
       * 
-      * \sa {@ref Matrix(const Scalar& a0, const Scalar& a1, const Scalar& a2,  const Scalar& a3, const ArgTypes&... args)}
+      * \sa Matrix(const Scalar& a0, const Scalar& a1, const Scalar& a2,  const Scalar& a3, const ArgTypes&... args)
       */
     EIGEN_DEVICE_FUNC
     explicit EIGEN_STRONG_INLINE Matrix(const std::initializer_list<std::initializer_list<Scalar>>& list) : Base(list) {}
