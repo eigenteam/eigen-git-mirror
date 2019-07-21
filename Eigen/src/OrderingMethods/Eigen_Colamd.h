@@ -13,37 +13,37 @@
 //   Davis (davis@cise.ufl.edu), University of Florida.  The algorithm was
 //   developed in collaboration with John Gilbert, Xerox PARC, and Esmond
 //   Ng, Oak Ridge National Laboratory.
-// 
+//
 //     Date:
-// 
+//
 //   September 8, 2003.  Version 2.3.
-// 
+//
 //     Acknowledgements:
-// 
+//
 //   This work was supported by the National Science Foundation, under
 //   grants DMS-9504974 and DMS-9803599.
-// 
+//
 //     Notice:
-// 
+//
 //   Copyright (c) 1998-2003 by the University of Florida.
 //   All Rights Reserved.
-// 
+//
 //   THIS MATERIAL IS PROVIDED AS IS, WITH ABSOLUTELY NO WARRANTY
 //   EXPRESSED OR IMPLIED.  ANY USE IS AT YOUR OWN RISK.
-// 
+//
 //   Permission is hereby granted to use, copy, modify, and/or distribute
 //   this program, provided that the Copyright, this License, and the
 //   Availability of the original version is retained on all copies and made
 //   accessible to the end-user of any code or package that includes COLAMD
-//   or any modified version of COLAMD. 
-// 
+//   or any modified version of COLAMD.
+//
 //     Availability:
-// 
+//
 //   The colamd/symamd library is available at
-// 
+//
 //       http://www.suitesparse.com
 
-  
+
 #ifndef EIGEN_COLAMD_H
 #define EIGEN_COLAMD_H
 
@@ -57,42 +57,42 @@ namespace internal {
 /* ========================================================================== */
 
 /* size of the knobs [ ] array.  Only knobs [0..1] are currently used. */
-#define COLAMD_KNOBS 20
+const size_t ColamdKnobs = 20;
 
 /* number of output statistics.  Only stats [0..6] are currently used. */
-#define COLAMD_STATS 20 
+const size_t ColamdStats = 20;
 
 /* knobs [0] and stats [0]: dense row knob and output statistic. */
-#define COLAMD_DENSE_ROW 0
+const size_t ColamdDenseRow = 0;
 
 /* knobs [1] and stats [1]: dense column knob and output statistic. */
-#define COLAMD_DENSE_COL 1
+const size_t ColamdDenseCol = 1;
 
 /* stats [2]: memory defragmentation count output statistic */
-#define COLAMD_DEFRAG_COUNT 2
+const size_t ColamdDefragCount = 2;
 
 /* stats [3]: colamd status:  zero OK, > 0 warning or notice, < 0 error */
-#define COLAMD_STATUS 3
+const size_t ColamdStatus = 3;
 
-/* stats [4..6]: error info, or info on jumbled columns */ 
-#define COLAMD_INFO1 4
-#define COLAMD_INFO2 5
-#define COLAMD_INFO3 6
+/* stats [4..6]: error info, or info on jumbled columns */
+const size_t ColamdInfo1 = 4;
+const size_t ColamdInfo2 = 5;
+const size_t ColamdInfo3 = 6;
 
 /* error codes returned in stats [3]: */
-#define COLAMD_OK       (0)
-#define COLAMD_OK_BUT_JUMBLED     (1)
-#define COLAMD_ERROR_A_not_present    (-1)
-#define COLAMD_ERROR_p_not_present    (-2)
-#define COLAMD_ERROR_nrow_negative    (-3)
-#define COLAMD_ERROR_ncol_negative    (-4)
-#define COLAMD_ERROR_nnz_negative   (-5)
-#define COLAMD_ERROR_p0_nonzero     (-6)
-#define COLAMD_ERROR_A_too_small    (-7)
-#define COLAMD_ERROR_col_length_negative  (-8)
-#define COLAMD_ERROR_row_index_out_of_bounds  (-9)
-#define COLAMD_ERROR_out_of_memory    (-10)
-#define COLAMD_ERROR_internal_error   (-999)
+const int ColamdOk = 0;
+const int ColamdOkButJumbled = 1;
+const int ColamdErrorANotPresent = -1;
+const int ColamdErrorPNotPresent = -2;
+const int ColamdErrorNrowNegative = -3;
+const int ColamdErrorNcolNegative = -4;
+const int ColamdErrorNnzNegative = -5;
+const int ColamdErrorP0Nonzero = -6;
+const int ColamdErrorATooSmall = -7;
+const int ColamdErrorColLengthNegative = -8;
+const int ColamdErrorRowIndexOutOfBounds = -9;
+const int ColamdErrorOutOfMemory = -10;
+const int ColamdErrorInternalError = -999;
 
 /* ========================================================================== */
 /* === Definitions ========================================================== */
@@ -101,27 +101,26 @@ namespace internal {
 #define ONES_COMPLEMENT(r) (-(r)-1)
 
 /* -------------------------------------------------------------------------- */
-
-#define COLAMD_EMPTY (-1)
+const int ColamdEmpty = -1;
 
 /* Row and column status */
-#define COLAMD_ALIVE (0)
-#define COLAMD_DEAD  (-1)
+const int ColamdAlive = 0;
+const int ColamdDead = -1;
 
 /* Column status */
-#define DEAD_PRINCIPAL    (-1)
-#define DEAD_NON_PRINCIPAL  (-2)
+const int ColamdDeadPrincipal = -1;
+const int ColamdDeadNonPrincipal = -2;
 
 /* Macros for row and column status update and checking. */
 #define ROW_IS_DEAD(r)      ROW_IS_MARKED_DEAD (Row[r].shared2.mark)
-#define ROW_IS_MARKED_DEAD(row_mark)  (row_mark < COLAMD_ALIVE)
-#define ROW_IS_ALIVE(r)     (Row [r].shared2.mark >= COLAMD_ALIVE)
-#define COL_IS_DEAD(c)      (Col [c].start < COLAMD_ALIVE)
-#define COL_IS_ALIVE(c)     (Col [c].start >= COLAMD_ALIVE)
-#define COL_IS_DEAD_PRINCIPAL(c)  (Col [c].start == DEAD_PRINCIPAL)
-#define KILL_ROW(r)     { Row [r].shared2.mark = COLAMD_DEAD ; }
-#define KILL_PRINCIPAL_COL(c)   { Col [c].start = DEAD_PRINCIPAL ; }
-#define KILL_NON_PRINCIPAL_COL(c) { Col [c].start = DEAD_NON_PRINCIPAL ; }
+#define ROW_IS_MARKED_DEAD(row_mark)  (row_mark < ColamdAlive)
+#define ROW_IS_ALIVE(r)     (Row [r].shared2.mark >= ColamdAlive)
+#define COL_IS_DEAD(c)      (Col [c].start < ColamdAlive)
+#define COL_IS_ALIVE(c)     (Col [c].start >= ColamdAlive)
+#define COL_IS_DEAD_PRINCIPAL(c)  (Col [c].start == ColamdDeadPrincipal)
+#define KILL_ROW(r)     { Row [r].shared2.mark = ColamdDead ; }
+#define KILL_PRINCIPAL_COL(c)   { Col [c].start = ColamdDeadPrincipal ; }
+#define KILL_NON_PRINCIPAL_COL(c) { Col [c].start = ColamdDeadNonPrincipal ; }
 
 /* ========================================================================== */
 /* === Colamd reporting mechanism =========================================== */
@@ -131,7 +130,7 @@ namespace internal {
 template <typename IndexType>
 struct colamd_col
 {
-  IndexType start ;   /* index for A of first row in this column, or DEAD */
+  IndexType start ;   /* index for A of first row in this column, or ColamdDead */
   /* if column is dead */
   IndexType length ;  /* number of rows in this column */
   union
@@ -159,9 +158,9 @@ struct colamd_col
     IndexType degree_next ; /* next column, if col is in a degree list */
     IndexType hash_next ;   /* next column, if col is in a hash list */
   } shared4 ;
-  
+
 };
- 
+
 template <typename IndexType>
 struct Colamd_Row
 {
@@ -177,13 +176,13 @@ struct Colamd_Row
     IndexType mark ;  /* for computing set differences and marking dead rows*/
     IndexType first_column ;/* first column in row (used in garbage collection) */
   } shared2 ;
-  
+
 };
- 
+
 /* ========================================================================== */
 /* === Colamd recommended memory size ======================================= */
 /* ========================================================================== */
- 
+
 /*
   The recommended length Alen of the array A passed to colamd is given by
   the COLAMD_RECOMMENDED (nnz, n_row, n_col) macro.  It returns -1 if any
@@ -192,14 +191,14 @@ struct Colamd_Row
   required for the Col and Row arrays, respectively, which are internal to
   colamd.  An additional n_col space is the minimal amount of "elbow room",
   and nnz/5 more space is recommended for run time efficiency.
-  
+
   This macro is not needed when using symamd.
-  
+
   Explicit typecast to IndexType added Sept. 23, 2002, COLAMD version 2.2, to avoid
   gcc -pedantic warning messages.
 */
 template <typename IndexType>
-inline IndexType colamd_c(IndexType n_col) 
+inline IndexType colamd_c(IndexType n_col)
 { return IndexType( ((n_col) + 1) * sizeof (colamd_col<IndexType>) / sizeof (IndexType) ) ; }
 
 template <typename IndexType>
@@ -208,10 +207,10 @@ inline IndexType  colamd_r(IndexType n_row)
 
 // Prototypes of non-user callable routines
 template <typename IndexType>
-static IndexType init_rows_cols (IndexType n_row, IndexType n_col, Colamd_Row<IndexType> Row [], colamd_col<IndexType> col [], IndexType A [], IndexType p [], IndexType stats[COLAMD_STATS] ); 
+static IndexType init_rows_cols (IndexType n_row, IndexType n_col, Colamd_Row<IndexType> Row [], colamd_col<IndexType> col [], IndexType A [], IndexType p [], IndexType stats[ColamdStats] );
 
 template <typename IndexType>
-static void init_scoring (IndexType n_row, IndexType n_col, Colamd_Row<IndexType> Row [], colamd_col<IndexType> Col [], IndexType A [], IndexType head [], double knobs[COLAMD_KNOBS], IndexType *p_n_row2, IndexType *p_n_col2, IndexType *p_max_deg);
+static void init_scoring (IndexType n_row, IndexType n_col, Colamd_Row<IndexType> Row [], colamd_col<IndexType> Col [], IndexType A [], IndexType head [], double knobs[ColamdKnobs], IndexType *p_n_row2, IndexType *p_n_col2, IndexType *p_max_deg);
 
 template <typename IndexType>
 static IndexType find_ordering (IndexType n_row, IndexType n_col, IndexType Alen, Colamd_Row<IndexType> Row [], colamd_col<IndexType> Col [], IndexType A [], IndexType head [], IndexType n_col2, IndexType max_deg, IndexType pfree);
@@ -240,14 +239,14 @@ static inline  IndexType clear_mark (IndexType n_row, Colamd_Row<IndexType> Row 
 
 
 /**
- * \brief Returns the recommended value of Alen 
- * 
- * Returns recommended value of Alen for use by colamd.  
- * Returns -1 if any input argument is negative.  
- * The use of this routine or macro is optional.  
- * Note that the macro uses its arguments   more than once, 
- * so be careful for side effects, if you pass expressions as arguments to COLAMD_RECOMMENDED.  
- * 
+ * \brief Returns the recommended value of Alen
+ *
+ * Returns recommended value of Alen for use by colamd.
+ * Returns -1 if any input argument is negative.
+ * The use of this routine or macro is optional.
+ * Note that the macro uses its arguments   more than once,
+ * so be careful for side effects, if you pass expressions as arguments to COLAMD_RECOMMENDED.
+ *
  * \param nnz nonzeros in A
  * \param n_row number of rows in A
  * \param n_col number of columns in A
@@ -259,18 +258,18 @@ inline IndexType colamd_recommended ( IndexType nnz, IndexType n_row, IndexType 
   if ((nnz) < 0 || (n_row) < 0 || (n_col) < 0)
     return (-1);
   else
-    return (2 * (nnz) + colamd_c (n_col) + colamd_r (n_row) + (n_col) + ((nnz) / 5)); 
+    return (2 * (nnz) + colamd_c (n_col) + colamd_r (n_row) + (n_col) + ((nnz) / 5));
 }
 
 /**
  * \brief set default parameters  The use of this routine is optional.
- * 
- * Colamd: rows with more than (knobs [COLAMD_DENSE_ROW] * n_col)
- * entries are removed prior to ordering.  Columns with more than
- * (knobs [COLAMD_DENSE_COL] * n_row) entries are removed prior to
- * ordering, and placed last in the output column ordering. 
  *
- * COLAMD_DENSE_ROW and COLAMD_DENSE_COL are defined as 0 and 1,
+ * Colamd: rows with more than (knobs [ColamdDenseRow] * n_col)
+ * entries are removed prior to ordering.  Columns with more than
+ * (knobs [ColamdDenseCol] * n_row) entries are removed prior to
+ * ordering, and placed last in the output column ordering.
+ *
+ * ColamdDenseRow and ColamdDenseCol are defined as 0 and 1,
  * respectively, in colamd.h.  Default values of these two knobs
  * are both 0.5.  Currently, only knobs [0] and knobs [1] are
  * used, but future versions may use more knobs.  If so, they will
@@ -279,37 +278,37 @@ inline IndexType colamd_recommended ( IndexType nnz, IndexType n_row, IndexType 
  * not need to change, assuming that you either use
  * colamd_set_defaults, or pass a (double *) NULL pointer as the
  * knobs array to colamd or symamd.
- * 
+ *
  * \param knobs parameter settings for colamd
  */
 
-static inline void colamd_set_defaults(double knobs[COLAMD_KNOBS])
+static inline void colamd_set_defaults(double knobs[ColamdKnobs])
 {
   /* === Local variables ================================================== */
-  
+
   int i ;
 
   if (!knobs)
   {
     return ;      /* no knobs to initialize */
   }
-  for (i = 0 ; i < COLAMD_KNOBS ; i++)
+  for (i = 0 ; i < ColamdKnobs ; i++)
   {
     knobs [i] = 0 ;
   }
-  knobs [COLAMD_DENSE_ROW] = 0.5 ;  /* ignore rows over 50% dense */
-  knobs [COLAMD_DENSE_COL] = 0.5 ;  /* ignore columns over 50% dense */
+  knobs [ColamdDenseRow] = 0.5 ;  /* ignore rows over 50% dense */
+  knobs [ColamdDenseCol] = 0.5 ;  /* ignore columns over 50% dense */
 }
 
-/** 
+/**
  * \brief  Computes a column ordering using the column approximate minimum degree ordering
- * 
+ *
  * Computes a column ordering (Q) of A such that P(AQ)=LU or
  * (AQ)'AQ=LL' have less fill-in and require fewer floating point
  * operations than factorizing the unpermuted matrix A or A'A,
  * respectively.
- * 
- * 
+ *
+ *
  * \param n_row number of rows in A
  * \param n_col number of columns in A
  * \param Alen, size of the array A
@@ -319,10 +318,10 @@ static inline void colamd_set_defaults(double knobs[COLAMD_KNOBS])
  * \param stats colamd output statistics and error codes
  */
 template <typename IndexType>
-static bool colamd(IndexType n_row, IndexType n_col, IndexType Alen, IndexType *A, IndexType *p, double knobs[COLAMD_KNOBS], IndexType stats[COLAMD_STATS])
+static bool colamd(IndexType n_row, IndexType n_col, IndexType Alen, IndexType *A, IndexType *p, double knobs[ColamdKnobs], IndexType stats[ColamdStats])
 {
   /* === Local variables ================================================== */
-  
+
   IndexType i ;     /* loop index */
   IndexType nnz ;     /* nonzeros in A */
   IndexType Row_size ;    /* size of Row [], in integers */
@@ -334,128 +333,128 @@ static bool colamd(IndexType n_row, IndexType n_col, IndexType Alen, IndexType *
   IndexType n_row2 ;    /* number of non-dense, non-empty rows */
   IndexType ngarbage ;    /* number of garbage collections performed */
   IndexType max_deg ;   /* maximum row degree */
-  double default_knobs [COLAMD_KNOBS] ; /* default knobs array */
-  
-  
+  double default_knobs [ColamdKnobs] ; /* default knobs array */
+
+
   /* === Check the input arguments ======================================== */
-  
+
   if (!stats)
   {
     COLAMD_DEBUG0 (("colamd: stats not present\n")) ;
     return (false) ;
   }
-  for (i = 0 ; i < COLAMD_STATS ; i++)
+  for (i = 0 ; i < ColamdStats ; i++)
   {
     stats [i] = 0 ;
   }
-  stats [COLAMD_STATUS] = COLAMD_OK ;
-  stats [COLAMD_INFO1] = -1 ;
-  stats [COLAMD_INFO2] = -1 ;
-  
+  stats [ColamdStatus] = ColamdOk ;
+  stats [ColamdInfo1] = -1 ;
+  stats [ColamdInfo2] = -1 ;
+
   if (!A)   /* A is not present */
   {
-    stats [COLAMD_STATUS] = COLAMD_ERROR_A_not_present ;
+    stats [ColamdStatus] = ColamdErrorANotPresent ;
     COLAMD_DEBUG0 (("colamd: A not present\n")) ;
     return (false) ;
   }
-  
+
   if (!p)   /* p is not present */
   {
-    stats [COLAMD_STATUS] = COLAMD_ERROR_p_not_present ;
+    stats [ColamdStatus] = ColamdErrorPNotPresent ;
     COLAMD_DEBUG0 (("colamd: p not present\n")) ;
     return (false) ;
   }
-  
+
   if (n_row < 0)  /* n_row must be >= 0 */
   {
-    stats [COLAMD_STATUS] = COLAMD_ERROR_nrow_negative ;
-    stats [COLAMD_INFO1] = n_row ;
+    stats [ColamdStatus] = ColamdErrorNrowNegative ;
+    stats [ColamdInfo1] = n_row ;
     COLAMD_DEBUG0 (("colamd: nrow negative %d\n", n_row)) ;
     return (false) ;
   }
-  
+
   if (n_col < 0)  /* n_col must be >= 0 */
   {
-    stats [COLAMD_STATUS] = COLAMD_ERROR_ncol_negative ;
-    stats [COLAMD_INFO1] = n_col ;
+    stats [ColamdStatus] = ColamdErrorNcolNegative ;
+    stats [ColamdInfo1] = n_col ;
     COLAMD_DEBUG0 (("colamd: ncol negative %d\n", n_col)) ;
     return (false) ;
   }
-  
+
   nnz = p [n_col] ;
   if (nnz < 0)  /* nnz must be >= 0 */
   {
-    stats [COLAMD_STATUS] = COLAMD_ERROR_nnz_negative ;
-    stats [COLAMD_INFO1] = nnz ;
+    stats [ColamdStatus] = ColamdErrorNnzNegative ;
+    stats [ColamdInfo1] = nnz ;
     COLAMD_DEBUG0 (("colamd: number of entries negative %d\n", nnz)) ;
     return (false) ;
   }
-  
+
   if (p [0] != 0)
   {
-    stats [COLAMD_STATUS] = COLAMD_ERROR_p0_nonzero ;
-    stats [COLAMD_INFO1] = p [0] ;
+    stats [ColamdStatus] = ColamdErrorP0Nonzero ;
+    stats [ColamdInfo1] = p [0] ;
     COLAMD_DEBUG0 (("colamd: p[0] not zero %d\n", p [0])) ;
     return (false) ;
   }
-  
+
   /* === If no knobs, set default knobs =================================== */
-  
+
   if (!knobs)
   {
     colamd_set_defaults (default_knobs) ;
     knobs = default_knobs ;
   }
-  
+
   /* === Allocate the Row and Col arrays from array A ===================== */
-  
+
   Col_size = colamd_c (n_col) ;
   Row_size = colamd_r (n_row) ;
   need = 2*nnz + n_col + Col_size + Row_size ;
-  
+
   if (need > Alen)
   {
     /* not enough space in array A to perform the ordering */
-    stats [COLAMD_STATUS] = COLAMD_ERROR_A_too_small ;
-    stats [COLAMD_INFO1] = need ;
-    stats [COLAMD_INFO2] = Alen ;
+    stats [ColamdStatus] = ColamdErrorATooSmall ;
+    stats [ColamdInfo1] = need ;
+    stats [ColamdInfo2] = Alen ;
     COLAMD_DEBUG0 (("colamd: Need Alen >= %d, given only Alen = %d\n", need,Alen));
     return (false) ;
   }
-  
+
   Alen -= Col_size + Row_size ;
   Col = (colamd_col<IndexType> *) &A [Alen] ;
   Row = (Colamd_Row<IndexType> *) &A [Alen + Col_size] ;
 
   /* === Construct the row and column data structures ===================== */
-  
+
   if (!Eigen::internal::init_rows_cols (n_row, n_col, Row, Col, A, p, stats))
   {
     /* input matrix is invalid */
     COLAMD_DEBUG0 (("colamd: Matrix invalid\n")) ;
     return (false) ;
   }
-  
+
   /* === Initialize scores, kill dense rows/columns ======================= */
 
   Eigen::internal::init_scoring (n_row, n_col, Row, Col, A, p, knobs,
 		&n_row2, &n_col2, &max_deg) ;
-  
+
   /* === Order the supercolumns =========================================== */
-  
+
   ngarbage = Eigen::internal::find_ordering (n_row, n_col, Alen, Row, Col, A, p,
 			    n_col2, max_deg, 2*nnz) ;
-  
+
   /* === Order the non-principal columns ================================== */
-  
+
   Eigen::internal::order_children (n_col, Col, p) ;
-  
+
   /* === Return statistics in stats ======================================= */
-  
-  stats [COLAMD_DENSE_ROW] = n_row - n_row2 ;
-  stats [COLAMD_DENSE_COL] = n_col - n_col2 ;
-  stats [COLAMD_DEFRAG_COUNT] = ngarbage ;
-  COLAMD_DEBUG0 (("colamd: done.\n")) ; 
+
+  stats [ColamdDenseRow] = n_row - n_row2 ;
+  stats [ColamdDenseCol] = n_col - n_col2 ;
+  stats [ColamdDefragCount] = ngarbage ;
+  COLAMD_DEBUG0 (("colamd: done.\n")) ;
   return (true) ;
 }
 
@@ -489,7 +488,7 @@ static IndexType init_rows_cols  /* returns true if OK, or false otherwise */
     colamd_col<IndexType> Col [],    /* of size n_col+1 */
     IndexType A [],     /* row indices of A, of size Alen */
     IndexType p [],     /* pointers to columns in A, of size n_col+1 */
-    IndexType stats [COLAMD_STATS]  /* colamd statistics */ 
+    IndexType stats [ColamdStats]  /* colamd statistics */
     )
 {
   /* === Local variables ================================================== */
@@ -512,24 +511,24 @@ static IndexType init_rows_cols  /* returns true if OK, or false otherwise */
     if ((Col [col].length) < 0) // extra parentheses to work-around gcc bug 10200
     {
       /* column pointers must be non-decreasing */
-      stats [COLAMD_STATUS] = COLAMD_ERROR_col_length_negative ;
-      stats [COLAMD_INFO1] = col ;
-      stats [COLAMD_INFO2] = Col [col].length ;
+      stats [ColamdStatus] = ColamdErrorColLengthNegative ;
+      stats [ColamdInfo1] = col ;
+      stats [ColamdInfo2] = Col [col].length ;
       COLAMD_DEBUG0 (("colamd: col %d length %d < 0\n", col, Col [col].length)) ;
       return (false) ;
     }
 
     Col [col].shared1.thickness = 1 ;
     Col [col].shared2.score = 0 ;
-    Col [col].shared3.prev = COLAMD_EMPTY ;
-    Col [col].shared4.degree_next = COLAMD_EMPTY ;
+    Col [col].shared3.prev = ColamdEmpty ;
+    Col [col].shared4.degree_next = ColamdEmpty ;
   }
 
   /* p [0..n_col] no longer needed, used as "head" in subsequent routines */
 
   /* === Scan columns, compute row degrees, and check row indices ========= */
 
-  stats [COLAMD_INFO3] = 0 ;  /* number of duplicate or unsorted row indices*/
+  stats [ColamdInfo3] = 0 ;  /* number of duplicate or unsorted row indices*/
 
   for (row = 0 ; row < n_row ; row++)
   {
@@ -551,10 +550,10 @@ static IndexType init_rows_cols  /* returns true if OK, or false otherwise */
       /* make sure row indices within range */
       if (row < 0 || row >= n_row)
       {
-	stats [COLAMD_STATUS] = COLAMD_ERROR_row_index_out_of_bounds ;
-	stats [COLAMD_INFO1] = col ;
-	stats [COLAMD_INFO2] = row ;
-	stats [COLAMD_INFO3] = n_row ;
+	stats [ColamdStatus] = ColamdErrorRowIndexOutOfBounds ;
+	stats [ColamdInfo1] = col ;
+	stats [ColamdInfo2] = row ;
+	stats [ColamdInfo3] = n_row ;
 	COLAMD_DEBUG0 (("colamd: row %d col %d out of bounds\n", row, col)) ;
 	return (false) ;
       }
@@ -563,10 +562,10 @@ static IndexType init_rows_cols  /* returns true if OK, or false otherwise */
       {
 	/* row index are unsorted or repeated (or both), thus col */
 	/* is jumbled.  This is a notice, not an error condition. */
-	stats [COLAMD_STATUS] = COLAMD_OK_BUT_JUMBLED ;
-	stats [COLAMD_INFO1] = col ;
-	stats [COLAMD_INFO2] = row ;
-	(stats [COLAMD_INFO3]) ++ ;
+	stats [ColamdStatus] = ColamdOkButJumbled ;
+	stats [ColamdInfo1] = col ;
+	stats [ColamdInfo2] = row ;
+	(stats [ColamdInfo3]) ++ ;
 	COLAMD_DEBUG1 (("colamd: row %d col %d unsorted/duplicate\n",row,col));
       }
 
@@ -604,7 +603,7 @@ static IndexType init_rows_cols  /* returns true if OK, or false otherwise */
 
   /* === Create row form ================================================== */
 
-  if (stats [COLAMD_STATUS] == COLAMD_OK_BUT_JUMBLED)
+  if (stats [ColamdStatus] == ColamdOkButJumbled)
   {
     /* if cols jumbled, watch for repeated row indices */
     for (col = 0 ; col < n_col ; col++)
@@ -646,7 +645,7 @@ static IndexType init_rows_cols  /* returns true if OK, or false otherwise */
 
   /* === See if we need to re-create columns ============================== */
 
-  if (stats [COLAMD_STATUS] == COLAMD_OK_BUT_JUMBLED)
+  if (stats [ColamdStatus] == ColamdOkButJumbled)
   {
     COLAMD_DEBUG0 (("colamd: reconstructing column form, matrix jumbled\n")) ;
 
@@ -705,7 +704,7 @@ static void init_scoring
     colamd_col<IndexType> Col [],    /* of size n_col+1 */
     IndexType A [],     /* column form and row form of A */
     IndexType head [],    /* of size n_col+1 */
-    double knobs [COLAMD_KNOBS],/* parameters */
+    double knobs [ColamdKnobs],/* parameters */
     IndexType *p_n_row2,    /* number of non-dense, non-empty rows */
     IndexType *p_n_col2,    /* number of non-dense, non-empty columns */
     IndexType *p_max_deg    /* maximum row degree */
@@ -732,8 +731,8 @@ static void init_scoring
 
   /* === Extract knobs ==================================================== */
 
-  dense_row_count = numext::maxi(IndexType(0), numext::mini(IndexType(knobs [COLAMD_DENSE_ROW] * n_col), n_col)) ;
-  dense_col_count = numext::maxi(IndexType(0), numext::mini(IndexType(knobs [COLAMD_DENSE_COL] * n_row), n_row)) ;
+  dense_row_count = numext::maxi(IndexType(0), numext::mini(IndexType(knobs [ColamdDenseRow] * n_col), n_col)) ;
+  dense_col_count = numext::maxi(IndexType(0), numext::mini(IndexType(knobs [ColamdDenseCol] * n_row), n_row)) ;
   COLAMD_DEBUG1 (("colamd: densecount: %d %d\n", dense_row_count, dense_col_count)) ;
   max_deg = 0 ;
   n_col2 = n_col ;
@@ -870,7 +869,7 @@ static void init_scoring
   /* clear the hash buckets */
   for (c = 0 ; c <= n_col ; c++)
   {
-    head [c] = COLAMD_EMPTY ;
+    head [c] = ColamdEmpty ;
   }
   min_score = n_col ;
   /* place in reverse order, so low column indices are at the front */
@@ -891,16 +890,16 @@ static void init_scoring
       COLAMD_ASSERT (min_score <= n_col) ;
       COLAMD_ASSERT (score >= 0) ;
       COLAMD_ASSERT (score <= n_col) ;
-      COLAMD_ASSERT (head [score] >= COLAMD_EMPTY) ;
+      COLAMD_ASSERT (head [score] >= ColamdEmpty) ;
 
       /* now add this column to dList at proper score location */
       next_col = head [score] ;
-      Col [c].shared3.prev = COLAMD_EMPTY ;
+      Col [c].shared3.prev = ColamdEmpty ;
       Col [c].shared4.degree_next = next_col ;
 
       /* if there already was a column with the same score, set its */
       /* previous pointer to this new column */
-      if (next_col != COLAMD_EMPTY)
+      if (next_col != ColamdEmpty)
       {
 	Col [next_col].shared3.prev = c ;
       }
@@ -1001,10 +1000,10 @@ static IndexType find_ordering /* return the number of garbage collections */
     /* make sure degree list isn't empty */
     COLAMD_ASSERT (min_score >= 0) ;
     COLAMD_ASSERT (min_score <= n_col) ;
-    COLAMD_ASSERT (head [min_score] >= COLAMD_EMPTY) ;
+    COLAMD_ASSERT (head [min_score] >= ColamdEmpty) ;
 
     /* get pivot column from head of minimum degree list */
-    while (min_score < n_col && head [min_score] == COLAMD_EMPTY)
+    while (min_score < n_col && head [min_score] == ColamdEmpty)
     {
       min_score++ ;
     }
@@ -1012,9 +1011,9 @@ static IndexType find_ordering /* return the number of garbage collections */
     COLAMD_ASSERT (pivot_col >= 0 && pivot_col <= n_col) ;
     next_col = Col [pivot_col].shared4.degree_next ;
     head [min_score] = next_col ;
-    if (next_col != COLAMD_EMPTY)
+    if (next_col != ColamdEmpty)
     {
-      Col [next_col].shared3.prev = COLAMD_EMPTY ;
+      Col [next_col].shared3.prev = ColamdEmpty ;
     }
 
     COLAMD_ASSERT (COL_IS_ALIVE (pivot_col)) ;
@@ -1120,7 +1119,7 @@ static IndexType find_ordering /* return the number of garbage collections */
     else
     {
       /* there is no pivot row, since it is of zero length */
-      pivot_row = COLAMD_EMPTY ;
+      pivot_row = ColamdEmpty ;
       COLAMD_ASSERT (pivot_row_length == 0) ;
     }
     COLAMD_ASSERT (Col [pivot_col].length > 0 || pivot_row_length == 0) ;
@@ -1172,8 +1171,8 @@ static IndexType find_ordering /* return the number of garbage collections */
       next_col = Col [col].shared4.degree_next ;
       COLAMD_ASSERT (cur_score >= 0) ;
       COLAMD_ASSERT (cur_score <= n_col) ;
-      COLAMD_ASSERT (cur_score >= COLAMD_EMPTY) ;
-      if (prev_col == COLAMD_EMPTY)
+      COLAMD_ASSERT (cur_score >= ColamdEmpty) ;
+      if (prev_col == ColamdEmpty)
       {
 	head [cur_score] = next_col ;
       }
@@ -1181,7 +1180,7 @@ static IndexType find_ordering /* return the number of garbage collections */
       {
 	Col [prev_col].shared4.degree_next = next_col ;
       }
-      if (next_col != COLAMD_EMPTY)
+      if (next_col != ColamdEmpty)
       {
 	Col [next_col].shared3.prev = prev_col ;
       }
@@ -1302,7 +1301,7 @@ static IndexType find_ordering /* return the number of garbage collections */
 	COLAMD_ASSERT (hash <= n_col) ;
 
 	head_column = head [hash] ;
-	if (head_column > COLAMD_EMPTY)
+	if (head_column > ColamdEmpty)
 	{
 	  /* degree list "hash" is non-empty, use prev (shared3) of */
 	  /* first column in degree list as head of hash bucket */
@@ -1391,11 +1390,11 @@ static IndexType find_ordering /* return the number of garbage collections */
       COLAMD_ASSERT (min_score <= n_col) ;
       COLAMD_ASSERT (cur_score >= 0) ;
       COLAMD_ASSERT (cur_score <= n_col) ;
-      COLAMD_ASSERT (head [cur_score] >= COLAMD_EMPTY) ;
+      COLAMD_ASSERT (head [cur_score] >= ColamdEmpty) ;
       next_col = head [cur_score] ;
       Col [col].shared4.degree_next = next_col ;
-      Col [col].shared3.prev = COLAMD_EMPTY ;
-      if (next_col != COLAMD_EMPTY)
+      Col [col].shared3.prev = ColamdEmpty ;
+      if (next_col != ColamdEmpty)
       {
 	Col [next_col].shared3.prev = col ;
       }
@@ -1465,7 +1464,7 @@ static inline  void order_children
   {
     /* find an un-ordered non-principal column */
     COLAMD_ASSERT (COL_IS_DEAD (i)) ;
-    if (!COL_IS_DEAD_PRINCIPAL (i) && Col [i].shared2.order == COLAMD_EMPTY)
+    if (!COL_IS_DEAD_PRINCIPAL (i) && Col [i].shared2.order == ColamdEmpty)
     {
       parent = i ;
       /* once found, find its principal parent */
@@ -1482,7 +1481,7 @@ static inline  void order_children
 
       do
       {
-	COLAMD_ASSERT (Col [c].shared2.order == COLAMD_EMPTY) ;
+	COLAMD_ASSERT (Col [c].shared2.order == ColamdEmpty) ;
 
 	/* order this column */
 	Col [c].shared2.order = order++ ;
@@ -1495,7 +1494,7 @@ static inline  void order_children
 	/* continue until we hit an ordered column.  There are */
 	/* guaranteed not to be anymore unordered columns */
 	/* above an ordered column */
-      } while (Col [c].shared2.order == COLAMD_EMPTY) ;
+      } while (Col [c].shared2.order == ColamdEmpty) ;
 
       /* re-order the super_col parent to largest order for this group */
       Col [parent].shared2.order = order ;
@@ -1547,7 +1546,7 @@ template <typename IndexType>
 static void detect_super_cols
 (
   /* === Parameters ======================================================= */
-  
+
   colamd_col<IndexType> Col [],    /* of size n_col+1 */
   IndexType A [],     /* row indices of A */
   IndexType head [],    /* head of degree lists and hash buckets */
@@ -1590,7 +1589,7 @@ static void detect_super_cols
     /* === Get the first column in this hash bucket ===================== */
 
     head_column = head [hash] ;
-    if (head_column > COLAMD_EMPTY)
+    if (head_column > ColamdEmpty)
     {
       first_col = Col [head_column].shared3.headhash ;
     }
@@ -1601,7 +1600,7 @@ static void detect_super_cols
 
     /* === Consider each column in the hash bucket ====================== */
 
-    for (super_c = first_col ; super_c != COLAMD_EMPTY ;
+    for (super_c = first_col ; super_c != ColamdEmpty ;
 	 super_c = Col [super_c].shared4.hash_next)
     {
       COLAMD_ASSERT (COL_IS_ALIVE (super_c)) ;
@@ -1614,7 +1613,7 @@ static void detect_super_cols
       /* === Compare super_c with all columns after it ================ */
 
       for (c = Col [super_c].shared4.hash_next ;
-	   c != COLAMD_EMPTY ; c = Col [c].shared4.hash_next)
+	   c != ColamdEmpty ; c = Col [c].shared4.hash_next)
       {
 	COLAMD_ASSERT (c != super_c) ;
 	COLAMD_ASSERT (COL_IS_ALIVE (c)) ;
@@ -1660,7 +1659,7 @@ static void detect_super_cols
 	Col [c].shared1.parent = super_c ;
 	KILL_NON_PRINCIPAL_COL (c) ;
 	/* order c later, in order_children() */
-	Col [c].shared2.order = COLAMD_EMPTY ;
+	Col [c].shared2.order = ColamdEmpty ;
 	/* remove c from hash bucket */
 	Col [prev_c].shared4.hash_next = Col [c].shared4.hash_next ;
       }
@@ -1668,15 +1667,15 @@ static void detect_super_cols
 
     /* === Empty this hash bucket ======================================= */
 
-    if (head_column > COLAMD_EMPTY)
+    if (head_column > ColamdEmpty)
     {
       /* corresponding degree list "hash" is not empty */
-      Col [head_column].shared3.headhash = COLAMD_EMPTY ;
+      Col [head_column].shared3.headhash = ColamdEmpty ;
     }
     else
     {
       /* corresponding degree list "hash" is empty */
-      head [hash] = COLAMD_EMPTY ;
+      head [hash] = ColamdEmpty ;
     }
   }
 }
@@ -1698,7 +1697,7 @@ template <typename IndexType>
 static IndexType garbage_collection  /* returns the new value of pfree */
   (
     /* === Parameters ======================================================= */
-    
+
     IndexType n_row,      /* number of rows */
     IndexType n_col,      /* number of columns */
     Colamd_Row<IndexType> Row [],    /* row info */
@@ -1839,5 +1838,5 @@ static inline  IndexType clear_mark  /* return the new value for tag_mark */
 }
 
 
-} // namespace internal 
+} // namespace internal
 #endif
