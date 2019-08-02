@@ -164,7 +164,7 @@ struct TensorEvaluator
  protected:
   EvaluatorPointerType m_data;
   Dimensions m_dims;
-  const Device m_device;
+  const Device EIGEN_DEVICE_REF m_device;
 };
 
 namespace {
@@ -302,7 +302,7 @@ struct TensorEvaluator<const Derived, Device>
  protected:
   EvaluatorPointerType m_data;
   Dimensions m_dims;
-  const Device m_device;
+  const Device EIGEN_DEVICE_REF m_device;
 };
 
 
@@ -480,7 +480,7 @@ struct TensorEvaluator<const TensorCwiseUnaryOp<UnaryOp, ArgType>, Device>
 
 
  private:
-  const Device m_device;
+  const Device EIGEN_DEVICE_REF m_device;
   const UnaryOp m_functor;
   TensorEvaluator<ArgType, Device> m_argImpl;
 };
@@ -603,7 +603,7 @@ struct TensorEvaluator<const TensorCwiseBinaryOp<BinaryOp, LeftArgType, RightArg
   }
   #endif
  private:
-  const Device m_device;
+  const Device EIGEN_DEVICE_REF m_device;
   const BinaryOp m_functor;
   TensorEvaluator<LeftArgType, Device> m_leftImpl;
   TensorEvaluator<RightArgType, Device> m_rightImpl;

@@ -182,7 +182,7 @@ struct TensorEvaluator<const TensorForcedEvalOp<ArgType_>, Device>
  private:
   TensorEvaluator<ArgType, Device> m_impl;
   const ArgType m_op;
-  const Device m_device;
+  const Device EIGEN_DEVICE_REF m_device;
   EvaluatorPointerType m_buffer;
 };
 
