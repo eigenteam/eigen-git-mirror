@@ -17,7 +17,7 @@ especially if you got wrong results in statements where the destination appears 
 \section TopicPitfalls_alignment_issue Alignment Issues (runtime assertion)
 
 %Eigen does explicit vectorization, and while that is appreciated by many users, that also leads to some issues in special situations where data alignment is compromised.
-Indeed, since C++17,  C++ does not have quite good enough support for explicit data alignment.
+Indeed, prior to C++17,  C++ does not have quite good enough support for explicit data alignment.
 In that case your program hits an assertion failure (that is, a "controlled crash") with a message that tells you to consult this page:
 \code
 http://eigen.tuxfamily.org/dox/group__TopicUnalignedArrayAssert.html
