@@ -483,6 +483,7 @@ class TensorBlockWriter : public TensorBlockIO<Scalar, StorageIndex, NumDims,
  * result of the cwise unary op to the strided output array.
  *
  */
+template <bool Vectorizable>
 struct TensorBlockCwiseUnaryOp {
   template <typename StorageIndex, typename UnaryFunctor,
             typename OutputScalar, typename InputScalar>
@@ -507,6 +508,31 @@ struct TensorBlockCwiseUnaryOp {
   }
 };
 
+template<>
+struct TensorBlockCwiseUnaryOp<true> {
+  template <typename StorageIndex, typename UnaryFunctor,
+            typename OutputScalar, typename InputScalar>
+  static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void Run(
+      const UnaryFunctor& functor, const StorageIndex num_coeff,
+      const StorageIndex output_index, const StorageIndex output_stride,
+      OutputScalar* output_data, const StorageIndex input_index,
+      const StorageIndex input_stride, const InputScalar* input_data) {
+    if (input_stride == 1 && output_stride == 1) {
+      typedef const Array<InputScalar, Dynamic, 1> Input;
+      typedef Array<OutputScalar, Dynamic, 1> Output;
+
+      const Map<Input> input(&input_data[input_index], num_coeff);
+      Map<Output> output(&output_data[output_index], num_coeff);
+
+      output = CwiseUnaryOp<UnaryFunctor, Map<Input> >(input, functor);
+    } else {
+      TensorBlockCwiseUnaryOp<false>::Run(
+          functor, num_coeff, output_index, output_stride, output_data,
+          input_index, input_stride, input_data);
+    }
+  }
+};
+
 /**
  * \class TensorBlockCwiseUnaryIO
  * \ingroup CXX11_Tensor_Module
@@ -520,6 +546,11 @@ template <typename UnaryFunctor, typename StorageIndex, typename OutputScalar,
 struct TensorBlockCwiseUnaryIO {
   typedef typename TensorBlock<OutputScalar, StorageIndex, NumDims,
                                          Layout>::Dimensions Dimensions;
+
+  typedef TensorBlockCwiseUnaryOp<
+      packet_traits<OutputScalar>::Vectorizable &&
+      functor_traits<UnaryFunctor>::PacketAccess>
+      TensorBlockCwiseUnaryOpImpl;
 
   struct BlockIteratorState {
     StorageIndex output_stride, output_span;
@@ -595,9 +626,9 @@ struct TensorBlockCwiseUnaryIO {
     const StorageIndex block_total_size =
         NumDims == 0 ? 1 : block_sizes.TotalSize();
     for (StorageIndex i = 0; i < block_total_size; i += inner_dim_size) {
-      TensorBlockCwiseUnaryOp::Run(functor, inner_dim_size, output_index,
-                                   output_stride, output_data, input_index,
-                                   input_stride, input_data);
+      TensorBlockCwiseUnaryOpImpl::Run(functor, inner_dim_size, output_index,
+                                       output_stride, output_data, input_index,
+                                       input_stride, input_data);
       // Update index.
       for (int j = 0; j < num_squeezed_dims; ++j) {
         BlockIteratorState& state = block_iter_state[j];
@@ -624,6 +655,7 @@ struct TensorBlockCwiseUnaryIO {
  * result of the cwise binary op to the strided output array.
  *
  */
+template<bool Vectorizable>
 struct TensorBlockCwiseBinaryOp {
   template <typename StorageIndex, typename BinaryFunctor, typename OutputScalar,
             typename LeftScalar, typename RightScalar>
@@ -654,6 +686,40 @@ struct TensorBlockCwiseBinaryOp {
   }
 };
 
+template<>
+struct TensorBlockCwiseBinaryOp<true> {
+  template <typename StorageIndex, typename BinaryFunctor, typename OutputScalar,
+            typename LeftScalar, typename RightScalar>
+  static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void Run(
+      const BinaryFunctor& functor, const StorageIndex num_coeff,
+      const StorageIndex output_index, const StorageIndex output_stride,
+      OutputScalar* output_data, const StorageIndex left_index,
+      const StorageIndex left_stride, const LeftScalar* left_data,
+      const StorageIndex right_index, const StorageIndex right_stride,
+      const RightScalar* right_data) {
+    if (left_stride == 1 && right_stride == 1 && output_stride == 1) {
+      typedef const Array<LeftScalar, Dynamic, 1> Lhs;
+      typedef const Array<RightScalar, Dynamic, 1> Rhs;
+      typedef Array<OutputScalar, Dynamic, 1> Out;
+
+      const LeftScalar* lhs_base = &left_data[left_index];
+      const RightScalar* rhs_base = &right_data[right_index];
+      OutputScalar* out_base = &output_data[output_index];
+
+      const Map<Lhs> lhs(lhs_base, num_coeff);
+      const Map<Rhs> rhs(rhs_base, num_coeff);
+      Map<Out> out(out_base, num_coeff);
+
+      out = CwiseBinaryOp<BinaryFunctor, Map<Lhs>, Map<Rhs> >(lhs, rhs, functor);
+    } else {
+      TensorBlockCwiseBinaryOp<false>::Run(
+          functor, num_coeff, output_index, output_stride, output_data,
+          left_index, left_stride, left_data, right_index, right_stride,
+          right_data);
+    }
+  }
+};
+
 /**
  * \class TensorBlockCwiseBinaryIO
  * \ingroup CXX11_Tensor_Module
@@ -667,6 +733,11 @@ template <typename BinaryFunctor, typename StorageIndex, typename OutputScalar,
           int NumDims, int Layout>
 struct TensorBlockCwiseBinaryIO {
   typedef typename TensorBlock<OutputScalar, StorageIndex, NumDims, Layout>::Dimensions Dimensions;
+
+  typedef TensorBlockCwiseBinaryOp<
+      packet_traits<OutputScalar>::Vectorizable &&
+      functor_traits<BinaryFunctor>::PacketAccess>
+      TensorBlockCwiseBinaryOpImpl;
 
   struct BlockIteratorState {
     StorageIndex output_stride, output_span;
@@ -748,10 +819,10 @@ struct TensorBlockCwiseBinaryIO {
     const StorageIndex block_total_size =
         NumDims == 0 ? 1 : block_sizes.TotalSize();
     for (StorageIndex i = 0; i < block_total_size; i += inner_dim_size) {
-      TensorBlockCwiseBinaryOp::Run(functor, inner_dim_size, output_index,
-                                    output_stride, output_data, left_index,
-                                    left_stride, left_data, right_index,
-                                    right_stride, right_data);
+      TensorBlockCwiseBinaryOpImpl::Run(functor, inner_dim_size, output_index,
+                                        output_stride, output_data, left_index,
+                                        left_stride, left_data, right_index,
+                                        right_stride, right_data);
       // Update index.
       for (int j = 0; j < num_squeezed_dims; ++j) {
         BlockIteratorState& state = block_iter_state[j];
