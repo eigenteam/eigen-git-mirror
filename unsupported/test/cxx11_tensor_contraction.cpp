@@ -511,6 +511,8 @@ static void test_const_inputs()
   VERIFY_IS_APPROX(mat3(1,1), mat1(1,0)*mat2(0,1) + mat1(1,1)*mat2(1,1) + mat1(1,2)*mat2(2,1));
 }
 
+#if !defined(EIGEN_USE_LIBXSMM)
+
 // Apply Sqrt to all output elements.
 struct SqrtOutputKernel {
   template <typename Index, typename Scalar>
@@ -560,6 +562,9 @@ static void test_large_contraction_with_output_kernel() {
   }
 }
 
+#endif  // !defined(EIGEN_USE_LIBXSMM)
+
+
 EIGEN_DECLARE_TEST(cxx11_tensor_contraction)
 {
   CALL_SUBTEST(test_evals<ColMajor>());
@@ -592,6 +597,8 @@ EIGEN_DECLARE_TEST(cxx11_tensor_contraction)
   CALL_SUBTEST(test_tensor_product<RowMajor>());
   CALL_SUBTEST(test_const_inputs<ColMajor>());
   CALL_SUBTEST(test_const_inputs<RowMajor>());
+#if !defined(EIGEN_USE_LIBXSMM)
   CALL_SUBTEST(test_large_contraction_with_output_kernel<ColMajor>());
   CALL_SUBTEST(test_large_contraction_with_output_kernel<RowMajor>());
+#endif
 }
