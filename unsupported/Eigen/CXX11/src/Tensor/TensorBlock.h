@@ -147,8 +147,8 @@ struct TensorBlockCopyOp {
 
   typedef typename packet_traits<Scalar>::type Packet;
   enum {
-    Vectorizable = internal::packet_traits<Scalar>::Vectorizable,
-    PacketSize   = internal::packet_traits<Scalar>::size
+    Vectorizable = packet_traits<Scalar>::Vectorizable,
+    PacketSize   = packet_traits<Scalar>::size
   };
 
   static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void Run(
@@ -171,8 +171,8 @@ struct TensorBlockCopyOp {
       if (dst_stride == 1) {
         // LINEAR
         for (StorageIndex i = 0; i < vectorized_size; i += PacketSize) {
-          Packet p = internal::ploadu<Packet>(src + i);
-          internal::pstoreu<Scalar, Packet>(dst + i, p);
+          Packet p = ploadu<Packet>(src + i);
+          pstoreu<Scalar, Packet>(dst + i, p);
         }
         for (StorageIndex i = vectorized_size; i < num_coeff_to_copy; ++i) {
           dst[i] = src[i];
@@ -180,8 +180,8 @@ struct TensorBlockCopyOp {
       } else {
         // SCATTER
         for (StorageIndex i = 0; i < vectorized_size; i += PacketSize) {
-          Packet p = internal::ploadu<Packet>(src + i);
-          internal::pscatter<Scalar, Packet>(dst + i * dst_stride, p, dst_stride);
+          Packet p = ploadu<Packet>(src + i);
+          pscatter<Scalar, Packet>(dst + i * dst_stride, p, dst_stride);
         }
         for (StorageIndex i = vectorized_size; i < num_coeff_to_copy; ++i) {
           dst[i * dst_stride] = src[i];
@@ -192,8 +192,8 @@ struct TensorBlockCopyOp {
       if (dst_stride == 1) {
         // LINEAR
         for (StorageIndex i = 0; i < vectorized_size; i += PacketSize) {
-          Packet p = internal::pload1<Packet>(src);
-          internal::pstoreu<Scalar, Packet>(dst + i, p);
+          Packet p = pload1<Packet>(src);
+          pstoreu<Scalar, Packet>(dst + i, p);
         }
         for (StorageIndex i = vectorized_size; i < num_coeff_to_copy; ++i) {
           dst[i] = *src;
@@ -201,8 +201,8 @@ struct TensorBlockCopyOp {
       } else {
         // SCATTER
         for (StorageIndex i = 0; i < vectorized_size; i += PacketSize) {
-          Packet p = internal::pload1<Packet>(src);
-          internal::pscatter<Scalar, Packet>(dst + i * dst_stride, p, dst_stride);
+          Packet p = pload1<Packet>(src);
+          pscatter<Scalar, Packet>(dst + i * dst_stride, p, dst_stride);
         }
         for (StorageIndex i = vectorized_size; i < num_coeff_to_copy; ++i) {
           dst[i * dst_stride] = *src;
@@ -213,8 +213,8 @@ struct TensorBlockCopyOp {
         // GATHER
         const StorageIndex vectorized_size = (num_coeff_to_copy / PacketSize) * PacketSize;
         for (StorageIndex i = 0; i < vectorized_size; i += PacketSize) {
-          Packet p = internal::pgather<Scalar, Packet>(src + i * src_stride, src_stride);
-          internal::pstoreu<Scalar, Packet>(dst + i, p);
+          Packet p = pgather<Scalar, Packet>(src + i * src_stride, src_stride);
+          pstoreu<Scalar, Packet>(dst + i, p);
         }
         for (StorageIndex i = vectorized_size; i < num_coeff_to_copy; ++i) {
           dst[i] = src[i * src_stride];
@@ -491,11 +491,11 @@ struct TensorBlockCwiseUnaryOp {
       const StorageIndex output_index, const StorageIndex output_stride,
       OutputScalar* output_data, const StorageIndex input_index,
       const StorageIndex input_stride, const InputScalar* input_data) {
-    typedef const Eigen::Array<InputScalar, Dynamic, 1> Input;
-    typedef Eigen::Array<OutputScalar, Dynamic, 1> Output;
+    typedef const Array<InputScalar, Dynamic, 1> Input;
+    typedef Array<OutputScalar, Dynamic, 1> Output;
 
-    typedef Eigen::Map<Input, 0, InnerStride<> > InputMap;
-    typedef Eigen::Map<Output, 0, InnerStride<> > OutputMap;
+    typedef Map<Input, 0, InnerStride<> > InputMap;
+    typedef Map<Output, 0, InnerStride<> > OutputMap;
 
     const InputScalar* input_base = &input_data[input_index];
     OutputScalar* output_base = &output_data[output_index];
@@ -503,7 +503,7 @@ struct TensorBlockCwiseUnaryOp {
     const InputMap input(input_base, num_coeff, InnerStride<>(input_stride));
     OutputMap output(output_base, num_coeff, InnerStride<>(output_stride));
 
-    output = Eigen::CwiseUnaryOp<UnaryFunctor, InputMap>(input, functor);
+    output = CwiseUnaryOp<UnaryFunctor, InputMap>(input, functor);
   }
 };
 
@@ -518,7 +518,7 @@ struct TensorBlockCwiseUnaryOp {
 template <typename UnaryFunctor, typename StorageIndex, typename OutputScalar,
           int NumDims, int Layout>
 struct TensorBlockCwiseUnaryIO {
-  typedef typename internal::TensorBlock<OutputScalar, StorageIndex, NumDims,
+  typedef typename TensorBlock<OutputScalar, StorageIndex, NumDims,
                                          Layout>::Dimensions Dimensions;
 
   struct BlockIteratorState {
@@ -865,7 +865,7 @@ class TensorBlockMapper {
                     const TensorBlockShapeType block_shape,
                     Index min_target_size)
       : m_dimensions(dims),
-        m_block_dim_sizes(BlockDimensions(dims, block_shape, internal::convert_index<StorageIndex>(min_target_size))) {
+        m_block_dim_sizes(BlockDimensions(dims, block_shape, convert_index<StorageIndex>(min_target_size))) {
     // Calculate block counts by dimension and total block count.
     DSizes<StorageIndex, NumDims> block_count;
     for (Index i = 0; i < block_count.rank(); ++i) {
@@ -974,7 +974,7 @@ class TensorBlockMapper {
       if (block_shape == kUniformAllDims) {
         // Tensor will not fit within 'min_target_size' budget: calculate tensor
         // block dimension sizes based on "square" dimension size target.
-        const StorageIndex dim_size_target = internal::convert_index<StorageIndex>(
+        const StorageIndex dim_size_target = convert_index<StorageIndex>(
           std::pow(static_cast<float>(min_target_size),
                    1.0f / static_cast<float>(block_dim_sizes.rank())));
         for (Index i = 0; i < block_dim_sizes.rank(); ++i) {
