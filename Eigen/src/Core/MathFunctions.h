@@ -512,12 +512,22 @@ struct expm1_impl {
     EIGEN_STATIC_ASSERT_NON_INTEGER(Scalar)
     #if EIGEN_HAS_CXX11_MATH
     using std::expm1;
-    #endif
+    #else
     using std_fallback::expm1;
+    #endif
     return expm1(x);
   }
 };
 
+// Specialization for complex types that are not supported by std::expm1.
+template <typename RealScalar>
+struct expm1_impl<std::complex<RealScalar> > {
+  EIGEN_DEVICE_FUNC static inline std::complex<RealScalar> run(
+      const std::complex<RealScalar>& x) {
+    EIGEN_STATIC_ASSERT_NON_INTEGER(RealScalar)
+    return std_fallback::expm1(x);
+  }
+};
 
 template<typename Scalar>
 struct expm1_retval
@@ -549,12 +559,22 @@ struct log1p_impl {
     EIGEN_STATIC_ASSERT_NON_INTEGER(Scalar)
     #if EIGEN_HAS_CXX11_MATH
     using std::log1p;
-    #endif
+    #else
     using std_fallback::log1p;
+    #endif
     return log1p(x);
   }
 };
 
+// Specialization for complex types that are not supported by std::log1p.
+template <typename RealScalar>
+struct log1p_impl<std::complex<RealScalar> > {
+  EIGEN_DEVICE_FUNC static inline std::complex<RealScalar> run(
+      const std::complex<RealScalar>& x) {
+    EIGEN_STATIC_ASSERT_NON_INTEGER(RealScalar)
+    return std_fallback::log1p(x);
+  }
+};
 
 template<typename Scalar>
 struct log1p_retval
