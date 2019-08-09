@@ -44,6 +44,11 @@
   #if __clang_major__ >= 3 && __clang_minor__ >= 5
     #pragma clang diagnostic ignored "-Wabsolute-value"
   #endif
+  #if ( defined(__ALTIVEC__) || defined(__VSX__) ) && __cplusplus < 201103L
+    // warning: generic selections are a C11-specific feature
+    // ignoring warnings thrown at vec_ctf in Altivec/PacketMath.h
+    #pragma clang diagnostic ignored "-Wc11-extensions"
+  #endif
 
 #elif defined __GNUC__
 
