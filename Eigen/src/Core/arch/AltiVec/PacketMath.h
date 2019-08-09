@@ -83,15 +83,6 @@ static Packet4i p4i_COUNTDOWN = { 0, 1, 2, 3 };
 static Packet16uc p16uc_REVERSE32 = { 12,13,14,15, 8,9,10,11, 4,5,6,7, 0,1,2,3 };
 static Packet16uc p16uc_DUPLICATE32_HI = { 0,1,2,3, 0,1,2,3, 4,5,6,7, 4,5,6,7 };
 
-// Mask alignment
-#ifdef __PPC64__
-#define _EIGEN_MASK_ALIGNMENT	0xfffffffffffffff0
-#else
-#define _EIGEN_MASK_ALIGNMENT	0xfffffff0
-#endif
-
-#define _EIGEN_ALIGNED_PTR(x)	((std::ptrdiff_t)(x) & _EIGEN_MASK_ALIGNMENT)
-
 // Handle endianness properly while loading constants
 // Define global static constants:
 #ifdef _BIG_ENDIAN
@@ -487,12 +478,12 @@ template<> EIGEN_STRONG_INLINE Packet4i ploadu<Packet4i>(const int* from)
 template<> EIGEN_STRONG_INLINE Packet4i ploadu<Packet4i>(const int* from)
 {
   EIGEN_DEBUG_UNALIGNED_LOAD
-  return (Packet4i) vec_vsx_ld((long)from & 15, (const int*) _EIGEN_ALIGNED_PTR(from));
+  return vec_vsx_ld(0, from);
 }
 template<> EIGEN_STRONG_INLINE Packet4f ploadu<Packet4f>(const float* from)
 {
   EIGEN_DEBUG_UNALIGNED_LOAD
-  return (Packet4f) vec_vsx_ld((long)from & 15, (const float*) _EIGEN_ALIGNED_PTR(from));
+  return vec_vsx_ld(0, from);
 }
 #endif
 
@@ -553,12 +544,12 @@ template<> EIGEN_STRONG_INLINE void pstoreu<int>(int*      to, const Packet4i& f
 template<> EIGEN_STRONG_INLINE void pstoreu<int>(int*       to, const Packet4i& from)
 {
   EIGEN_DEBUG_ALIGNED_STORE
-  vec_vsx_st(from, (long)to & 15, (int*) _EIGEN_ALIGNED_PTR(to));
+  vec_vsx_st(from, 0, to);
 }
 template<> EIGEN_STRONG_INLINE void pstoreu<float>(float*   to, const Packet4f& from)
 {
   EIGEN_DEBUG_ALIGNED_STORE
-  vec_vsx_st(from, (long)to & 15, (float*) _EIGEN_ALIGNED_PTR(to));
+  vec_vsx_st(from, 0, to);
 }
 #endif
 
@@ -1045,7 +1036,7 @@ template<> EIGEN_STRONG_INLINE Packet2d pfloor<Packet2d>(const Packet2d& a) { re
 template<> EIGEN_STRONG_INLINE Packet2d ploadu<Packet2d>(const double* from)
 {
   EIGEN_DEBUG_ALIGNED_LOAD
-  return (Packet2d) vec_vsx_ld((long)from & 15, (const double*) _EIGEN_ALIGNED_PTR(from));
+  return vec_vsx_ld(0, from);
 }
 
 template<> EIGEN_STRONG_INLINE Packet2d ploaddup<Packet2d>(const double*   from)
@@ -1059,7 +1050,7 @@ template<> EIGEN_STRONG_INLINE Packet2d ploaddup<Packet2d>(const double*   from)
 template<> EIGEN_STRONG_INLINE void pstoreu<double>(double*  to, const Packet2d& from)
 {
   EIGEN_DEBUG_ALIGNED_STORE
-  vec_vsx_st((Packet4f)from, (long)to & 15, (float*) _EIGEN_ALIGNED_PTR(to));
+  vec_vsx_st(from, 0, to);
 }
 
 template<> EIGEN_STRONG_INLINE void prefetch<double>(const double* addr) { EIGEN_PPC_PREFETCH(addr); }
