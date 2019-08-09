@@ -240,42 +240,38 @@ inline std::ostream & operator <<(std::ostream & s, const Packet4ui & v)
 // Need to define them first or we get specialization after instantiation errors
 template<> EIGEN_STRONG_INLINE Packet4f pload<Packet4f>(const float* from)
 {
+  // some versions of GCC throw "unused-but-set-parameter".
+  // ignoring these warnings for now.
+  EIGEN_UNUSED_VARIABLE(from);
   EIGEN_DEBUG_ALIGNED_LOAD
-#ifdef __VSX__
-  return vec_vsx_ld(0, from);
-#else
   return vec_ld(0, from);
-#endif
 }
 
 template<> EIGEN_STRONG_INLINE Packet4i pload<Packet4i>(const int*     from)
 {
+  // some versions of GCC throw "unused-but-set-parameter".
+  // ignoring these warnings for now.
+  EIGEN_UNUSED_VARIABLE(from);
   EIGEN_DEBUG_ALIGNED_LOAD
-#ifdef __VSX__
-  return vec_vsx_ld(0, from);
-#else
   return vec_ld(0, from);
-#endif
 }
 
 template<> EIGEN_STRONG_INLINE void pstore<float>(float*   to, const Packet4f& from)
 {
+  // some versions of GCC throw "unused-but-set-parameter" (float *to).
+  // ignoring these warnings for now.
+  EIGEN_UNUSED_VARIABLE(to);
   EIGEN_DEBUG_ALIGNED_STORE
-#ifdef __VSX__
-  vec_vsx_st(from, 0, to);
-#else
   vec_st(from, 0, to);
-#endif
 }
 
 template<> EIGEN_STRONG_INLINE void pstore<int>(int*       to, const Packet4i& from)
 {
+  // some versions of GCC throw "unused-but-set-parameter" (float *to).
+  // ignoring these warnings for now.
+  EIGEN_UNUSED_VARIABLE(to);
   EIGEN_DEBUG_ALIGNED_STORE
-#ifdef __VSX__
-  vec_vsx_st(from, 0, to);
-#else
   vec_st(from, 0, to);
-#endif
 }
 
 template<> EIGEN_STRONG_INLINE Packet4f pset1<Packet4f>(const float&  from) {
@@ -940,21 +936,13 @@ inline std::ostream & operator <<(std::ostream & s, const Packet2d & v)
 template<> EIGEN_STRONG_INLINE Packet2d pload<Packet2d>(const double* from)
 {
   EIGEN_DEBUG_ALIGNED_LOAD
-#ifdef __VSX__
-  return vec_vsx_ld(0, from);
-#else
-  return vec_ld(0, from);
-#endif
+  return vec_xl(0, const_cast<double *>(from)); // cast needed by Clang
 }
 
 template<> EIGEN_STRONG_INLINE void pstore<double>(double*   to, const Packet2d& from)
 {
   EIGEN_DEBUG_ALIGNED_STORE
-#ifdef __VSX__
-  vec_vsx_st(from, 0, to);
-#else
-  vec_st(from, 0, to);
-#endif
+  vec_xst(from, 0, to);
 }
 
 template<> EIGEN_STRONG_INLINE Packet2d pset1<Packet2d>(const double&  from) {
