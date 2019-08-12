@@ -501,7 +501,8 @@ namespace std_fallback {
     }
 
     EIGEN_USING_STD_MATH(log);
-    return (u - RealScalar(1)) * x / log(u);
+    Scalar logu = log(u);
+    return numext::equal_strict(u, logu) ? u : (u - RealScalar(1)) * x / logu;
   }
 }
 
@@ -548,7 +549,10 @@ namespace std_fallback {
     typedef typename NumTraits<Scalar>::Real RealScalar;
     EIGEN_USING_STD_MATH(log);
     Scalar x1p = RealScalar(1) + x;
-    return numext::equal_strict(x1p, Scalar(1)) ? x : x * ( log(x1p) / (x1p - RealScalar(1)) );
+    Scalar log_1p = log(x1p);
+    const bool is_inf = numext::equal_strict(x1p, log_1p);
+    const bool is_small = numext::equal_strict(x1p, Scalar(1));
+    return (is_inf || is_small) ? x : x * (log_1p / (x1p - RealScalar(1)));
   }
 }
 

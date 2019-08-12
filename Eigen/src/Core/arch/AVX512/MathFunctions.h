@@ -393,6 +393,18 @@ pcos<Packet16f>(const Packet16f& _x) {
   return pcos_float(_x);
 }
 
+#if defined(EIGEN_VECTORIZE_AVX512DQ)
+template<> EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED
+Packet16f plog1p<Packet16f>(const Packet16f& _x) {
+  return generic_plog1p(_x);
+}
+
+template<> EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED
+Packet16f pexpm1<Packet16f>(const Packet16f& _x) {
+  return generic_expm1(_x);
+}
+#endif
+
 }  // end namespace internal
 
 }  // end namespace Eigen
