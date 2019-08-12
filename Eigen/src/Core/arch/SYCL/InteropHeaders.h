@@ -54,6 +54,7 @@ struct sycl_packet_traits : default_packet_traits {
     HasPolygamma = 0,
     HasErf = 0,
     HasErfc = 0,
+    HasNdtri = 0,
     HasIGamma = 0,
     HasIGammac = 0,
     HasBetaInc = 0,

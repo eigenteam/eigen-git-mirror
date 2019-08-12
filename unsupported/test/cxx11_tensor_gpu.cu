@@ -1069,6 +1069,66 @@ void test_gpu_erfc(const Scalar stddev)
   gpuFree(d_out);
 }
 #endif
+template <typename Scalar>
+void test_gpu_ndtri()
+{
+  Tensor<Scalar, 1> in_x(8);
+  Tensor<Scalar, 1> out(8);
+  Tensor<Scalar, 1> expected_out(8);
+  out.setZero();
+
+  in_x(0) = Scalar(1);
+  in_x(1) = Scalar(0.);
+  in_x(2) = Scalar(0.5);
+  in_x(3) = Scalar(0.2);
+  in_x(4) = Scalar(0.8);
+  in_x(5) = Scalar(0.9);
+  in_x(6) = Scalar(0.1);
+  in_x(7) = Scalar(0.99);
+  in_x(8) = Scalar(0.01);
+
+  expected_out(0) = std::numeric_limits<Scalar>::infinity();
+  expected_out(1) = -std::numeric_limits<Scalar>::infinity();
+  expected_out(2) = Scalar(0.0);
+  expected_out(3) = Scalar(-0.8416212335729142);
+  expected_out(4) = Scalar(0.8416212335729142);j
+  expected_out(5) = Scalar(1.2815515655446004);
+  expected_out(6) = Scalar(-1.2815515655446004);
+  expected_out(7) = Scalar(2.3263478740408408);
+  expected_out(8) = Scalar(-2.3263478740408408);
+
+  std::size_t bytes = in_x.size() * sizeof(Scalar);
+
+  Scalar* d_in_x;
+  Scalar* d_out;
+  gpuMalloc((void**)(&d_in_x), bytes);
+  gpuMalloc((void**)(&d_out), bytes);
+
+  gpuMemcpy(d_in_x, in_x.data(), bytes, gpuMemcpyHostToDevice);
+
+  Eigen::GpuStreamDevice stream;
+  Eigen::GpuDevice gpu_device(&stream);
+
+  Eigen::TensorMap<Eigen::Tensor<Scalar, 1> > gpu_in_x(d_in_x, 6);
+  Eigen::TensorMap<Eigen::Tensor<Scalar, 1> > gpu_out(d_out, 6);
+
+  gpu_out.device(gpu_device) = gpu_in_x.ndtri();
+
+  assert(gpuMemcpyAsync(out.data(), d_out, bytes, gpuMemcpyDeviceToHost, gpu_device.stream()) == gpuSuccess);
+  assert(gpuStreamSynchronize(gpu_device.stream()) == gpuSuccess);
+
+  VERIFY_IS_EQUAL(out(0), expected_out(0));
+  VERIFY((std::isnan)(out(3)));
+
+  for (int i = 1; i < 6; ++i) {
+    if (i != 3) {
+      VERIFY_IS_APPROX(out(i), expected_out(i));
+    }
+  }
+
+  gpuFree(d_in_x);
+  gpuFree(d_out);
+}
 
 template <typename Scalar>
 void test_gpu_betainc()
@@ -1538,6 +1598,10 @@ EIGEN_DECLARE_TEST(cxx11_tensor_gpu)
 
 #if !defined(EIGEN_USE_HIP)
 // disable these tests on HIP for now.
+
+  CALL_SUBTEST_5(test_gpu_ndtri<float>());
+  CALL_SUBTEST_5(test_gpu_ndtri<double>());
+
   CALL_SUBTEST_5(test_gpu_digamma<float>());
   CALL_SUBTEST_5(test_gpu_digamma<double>());
 

@@ -284,6 +284,31 @@ struct functor_traits<scalar_erfc_op<Scalar> >
 };
 
 /** \internal
+ * \brief Template functor to compute the Inverse of the normal distribution
+ * function of a scalar
+ * \sa class CwiseUnaryOp, Cwise::ndtri()
+ */
+template<typename Scalar> struct scalar_ndtri_op {
+  EIGEN_EMPTY_STRUCT_CTOR(scalar_ndtri_op)
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar operator() (const Scalar& a) const {
+    using numext::ndtri; return ndtri(a);
+  }
+  typedef typename packet_traits<Scalar>::type Packet;
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Packet packetOp(const Packet& a) const { return internal::pndtri(a); }
+};
+template<typename Scalar>
+struct functor_traits<scalar_ndtri_op<Scalar> >
+{
+  enum {
+    // On average, We are evaluating rational functions with degree N=9 in the
+    // numerator and denominator. This results in 2*N additions and 2*N
+    // multiplications.
+    Cost = 18 * NumTraits<Scalar>::MulCost + 18 * NumTraits<Scalar>::AddCost,
+    PacketAccess = packet_traits<Scalar>::HasNdtri
+  };
+};
+
+/** \internal
  * \brief Template functor to compute the exponentially scaled modified Bessel
  * function of order zero
  * \sa class CwiseUnaryOp, Cwise::i0e()

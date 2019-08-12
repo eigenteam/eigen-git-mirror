@@ -33,6 +33,7 @@ namespace Eigen {
   * - gamma_sample_der_alpha
   * - igammac
   * - digamma
+  * - ndtri
   * - polygamma
   * - zeta
   * - betainc

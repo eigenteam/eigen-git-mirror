@@ -590,6 +590,12 @@ template<typename Scalar,typename Packet> void packetmath_real()
     h.store(data2, internal::perfc(h.load(data1)));
     VERIFY((numext::isnan)(data2[0]));
   }
+  {
+    for (int i=0; i<size; ++i) {
+      data1[i] = internal::random<Scalar>(0,1);
+    }
+    CHECK_CWISE1_IF(internal::packet_traits<Scalar>::HasNdtri, numext::ndtri, internal::pndtri);
+  }
 #endif  // EIGEN_HAS_C99_MATH
 
   for (int i=0; i<size; ++i)
