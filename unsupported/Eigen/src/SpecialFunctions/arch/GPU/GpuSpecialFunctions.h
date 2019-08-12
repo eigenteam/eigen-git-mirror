@@ -101,6 +101,19 @@ double2 perfc<double2>(const double2& a)
   return make_double2(erfc(a.x), erfc(a.y));
 }
 
+template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+float4 pndtri<float4>(const float4& a)
+{
+  using numext::ndtri;
+  return make_float4(ndtri(a.x), ndtri(a.y), ndtri(a.z), ndtri(a.w));
+}
+
+template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+double2 pndtri<double2>(const double2& a)
+{
+  using numext::ndtri;
+  return make_double2(ndtri(a.x), ndtri(a.y));
+}
 
 template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
 float4 pigamma<float4>(const float4& a, const float4& x)

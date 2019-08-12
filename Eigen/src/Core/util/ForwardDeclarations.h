@@ -214,6 +214,7 @@ template<typename Scalar> struct scalar_lgamma_op;
 template<typename Scalar> struct scalar_digamma_op;
 template<typename Scalar> struct scalar_erf_op;
 template<typename Scalar> struct scalar_erfc_op;
+template<typename Scalar> struct scalar_ndtri_op;
 template<typename Scalar> struct scalar_igamma_op;
 template<typename Scalar> struct scalar_igammac_op;
 template<typename Scalar> struct scalar_zeta_op;

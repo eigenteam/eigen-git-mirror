@@ -133,6 +133,26 @@ template<typename ArrayType> void array_special_functions()
   }
 #endif  // EIGEN_HAS_C99_MATH
 
+  // Check the ndtri function against scipy.special.ndtri
+  {
+    ArrayType x(7), res(7), ref(7);
+    x << 0.5, 0.2, 0.8, 0.9, 0.1, 0.99, 0.01;
+    ref << 0., -0.8416212335729142, 0.8416212335729142, 1.2815515655446004, -1.2815515655446004, 2.3263478740408408, -2.3263478740408408;
+    CALL_SUBTEST( verify_component_wise(ref, ref); );
+    CALL_SUBTEST( res = x.ndtri(); verify_component_wise(res, ref); );
+    CALL_SUBTEST( res = ndtri(x); verify_component_wise(res, ref); );
+
+    // ndtri(normal_cdf(x)) ~= x
+    CALL_SUBTEST(
+        ArrayType m1 = ArrayType::Random(32);
+        using std::sqrt;
+
+        ArrayType cdf_val = (m1 / sqrt(2.)).erf();
+        cdf_val = (cdf_val + 1.) / 2.;
+        verify_component_wise(cdf_val.ndtri(), m1););
+
+  }
+
   // Check the zeta function against scipy.special.zeta
   {
     ArrayType x(7), q(7), res(7), ref(7);

@@ -38,63 +38,6 @@ namespace internal {
 
 namespace cephes {
 
-/* polevl (modified for Eigen)
- *
- *      Evaluate polynomial
- *
- *
- *
- * SYNOPSIS:
- *
- * int N;
- * Scalar x, y, coef[N+1];
- *
- * y = polevl<decltype(x), N>( x, coef);
- *
- *
- *
- * DESCRIPTION:
- *
- * Evaluates polynomial of degree N:
- *
- *                     2          N
- * y  =  C  + C x + C x  +...+ C x
- *        0    1     2          N
- *
- * Coefficients are stored in reverse order:
- *
- * coef[0] = C  , ..., coef[N] = C  .
- *            N                   0
- *
- *  The function p1evl() assumes that coef[N] = 1.0 and is
- * omitted from the array.  Its calling arguments are
- * otherwise the same as polevl().
- *
- *
- * The Eigen implementation is templatized.  For best speed, store
- * coef as a const array (constexpr), e.g.
- *
- * const double coef[] = {1.0, 2.0, 3.0, ...};
- *
- */
-template <typename Scalar, int N>
-struct polevl {
-  EIGEN_DEVICE_FUNC
-  static EIGEN_STRONG_INLINE Scalar run(const Scalar x, const Scalar coef[]) {
-    EIGEN_STATIC_ASSERT((N > 0), YOU_MADE_A_PROGRAMMING_MISTAKE);
-
-    return polevl<Scalar, N - 1>::run(x, coef) * x + coef[N];
-  }
-};
-
-template <typename Scalar>
-struct polevl<Scalar, 0> {
-  EIGEN_DEVICE_FUNC
-  static EIGEN_STRONG_INLINE Scalar run(const Scalar, const Scalar coef[]) {
-    return coef[0];
-  }
-};
-
 /* chbevl (modified for Eigen)
  *
  *     Evaluate Chebyshev series
@@ -190,7 +133,7 @@ template <>
 struct lgamma_impl<float> {
   EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE float run(float x) {
-#if !defined(EIGEN_GPU_COMPILE_PHASE) && (defined(_BSD_SOURCE) || defined(_SVID_SOURCE)) && !defined(__APPLE__) 
+#if !defined(EIGEN_GPU_COMPILE_PHASE) && (defined(_BSD_SOURCE) || defined(_SVID_SOURCE)) && !defined(__APPLE__)
     int dummy;
     return ::lgammaf_r(x, &dummy);
 #elif defined(SYCL_DEVICE_ONLY)
@@ -205,7 +148,7 @@ template <>
 struct lgamma_impl<double> {
   EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE double run(double x) {
-#if !defined(EIGEN_GPU_COMPILE_PHASE) && (defined(_BSD_SOURCE) || defined(_SVID_SOURCE)) && !defined(__APPLE__) 
+#if !defined(EIGEN_GPU_COMPILE_PHASE) && (defined(_BSD_SOURCE) || defined(_SVID_SOURCE)) && !defined(__APPLE__)
     int dummy;
     return ::lgamma_r(x, &dummy);
 #elif defined(SYCL_DEVICE_ONLY)
@@ -264,7 +207,7 @@ struct digamma_impl_maybe_poly<float> {
     float z;
     if (s < 1.0e8f) {
       z = 1.0f / (s * s);
-      return z * cephes::polevl<float, 3>::run(z, A);
+      return z * internal::ppolevl<float, 3>::run(z, A);
     } else return 0.0f;
   }
 };
@@ -286,7 +229,7 @@ struct digamma_impl_maybe_poly<double> {
     double z;
     if (s < 1.0e17) {
       z = 1.0 / (s * s);
-      return z * cephes::polevl<double, 6>::run(z, A);
+      return z * internal::ppolevl<double, 6>::run(z, A);
     }
     else return 0.0;
   }
@@ -493,6 +436,246 @@ struct erfc_impl<double> {
   }
 };
 #endif  // EIGEN_HAS_C99_MATH
+
+
+/***************************************************************************
+* Implementation of ndtri.                                                 *
+****************************************************************************/
+
+/* Inverse of Normal distribution function (modified for Eigen).
+ *
+ *
+ * SYNOPSIS:
+ *
+ * double x, y, ndtri();
+ *
+ * x = ndtri( y );
+ *
+ *
+ *
+ * DESCRIPTION:
+ *
+ * Returns the argument, x, for which the area under the
+ * Gaussian probability density function (integrated from
+ * minus infinity to x) is equal to y.
+ *
+ *
+ * For small arguments 0 < y < exp(-2), the program computes
+ * z = sqrt( -2.0 * log(y) );  then the approximation is
+ * x = z - log(z)/z  - (1/z) P(1/z) / Q(1/z).
+ * There are two rational functions P/Q, one for 0 < y < exp(-32)
+ * and the other for y up to exp(-2).  For larger arguments,
+ * w = y - 0.5, and  x/sqrt(2pi) = w + w**3 R(w**2)/S(w**2)).
+ *
+ *
+ * ACCURACY:
+ *
+ *                      Relative error:
+ * arithmetic   domain        # trials      peak         rms
+ *    DEC      0.125, 1         5500       9.5e-17     2.1e-17
+ *    DEC      6e-39, 0.135     3500       5.7e-17     1.3e-17
+ *    IEEE     0.125, 1        20000       7.2e-16     1.3e-16
+ *    IEEE     3e-308, 0.135   50000       4.6e-16     9.8e-17
+ *
+ *
+ * ERROR MESSAGES:
+ *
+ *   message         condition    value returned
+ * ndtri domain       x <= 0        -MAXNUM
+ * ndtri domain       x >= 1         MAXNUM
+ *
+ */
+ /*
+   Cephes Math Library Release 2.2: June, 1992
+   Copyright 1985, 1987, 1992 by Stephen L. Moshier
+   Direct inquiries to 30 Frost Street, Cambridge, MA 02140
+ */
+
+
+// TODO: Add a cheaper approximation for float.
+
+
+template<typename T>
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T flipsign(
+    const T& should_flipsign, const T& x) {
+  const T sign_mask = pset1<T>(-0.0);
+  T sign_bit = pand<T>(should_flipsign, sign_mask);
+  return pxor<T>(sign_bit, x);
+}
+
+template<>
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE double flipsign<double>(
+    const double& should_flipsign, const double& x) {
+  return should_flipsign == 0 ? x : -x;
+}
+
+template<>
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE float flipsign<float>(
+    const float& should_flipsign, const float& x) {
+  return should_flipsign == 0 ? x : -x;
+}
+
+// We split this computation in to two so that in the scalar path
+// only one branch is evaluated (due to our template specialization of pselect
+// being an if statement.)
+
+template <typename T, typename ScalarType>
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T generic_ndtri_gt_exp_neg_two(const T& b) {
+  const ScalarType p0[] = {
+    ScalarType(-5.99633501014107895267e1),
+    ScalarType(9.80010754185999661536e1),
+    ScalarType(-5.66762857469070293439e1),
+    ScalarType(1.39312609387279679503e1),
+    ScalarType(-1.23916583867381258016e0)
+  };
+  const ScalarType q0[] = {
+    ScalarType(1.0),
+    ScalarType(1.95448858338141759834e0),
+    ScalarType(4.67627912898881538453e0),
+    ScalarType(8.63602421390890590575e1),
+    ScalarType(-2.25462687854119370527e2),
+    ScalarType(2.00260212380060660359e2),
+    ScalarType(-8.20372256168333339912e1),
+    ScalarType(1.59056225126211695515e1),
+    ScalarType(-1.18331621121330003142e0)
+  };
+  const T sqrt2pi = pset1<T>(ScalarType(2.50662827463100050242e0));
+  const T half = pset1<T>(ScalarType(0.5));
+  T c, c2, ndtri_gt_exp_neg_two;
+
+  c = psub(b, half);
+  c2 = pmul(c, c);
+  ndtri_gt_exp_neg_two = pmadd(c, pmul(
+      c2, pdiv(
+          internal::ppolevl<T, 4>::run(c2, p0),
+          internal::ppolevl<T, 8>::run(c2, q0))), c);
+  return pmul(ndtri_gt_exp_neg_two, sqrt2pi);
+}
+
+template <typename T, typename ScalarType>
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T generic_ndtri_lt_exp_neg_two(
+    const T& b, const T& should_flipsign) {
+  /* Approximation for interval z = sqrt(-2 log a ) between 2 and 8
+   * i.e., a between exp(-2) = .135 and exp(-32) = 1.27e-14.
+   */
+  const ScalarType p1[] = {
+    ScalarType(4.05544892305962419923e0),
+    ScalarType(3.15251094599893866154e1),
+    ScalarType(5.71628192246421288162e1),
+    ScalarType(4.40805073893200834700e1),
+    ScalarType(1.46849561928858024014e1),
+    ScalarType(2.18663306850790267539e0),
+    ScalarType(-1.40256079171354495875e-1),
+    ScalarType(-3.50424626827848203418e-2),
+    ScalarType(-8.57456785154685413611e-4)
+  };
+  const ScalarType q1[] = {
+    ScalarType(1.0),
+    ScalarType(1.57799883256466749731e1),
+    ScalarType(4.53907635128879210584e1),
+    ScalarType(4.13172038254672030440e1),
+    ScalarType(1.50425385692907503408e1),
+    ScalarType(2.50464946208309415979e0),
+    ScalarType(-1.42182922854787788574e-1),
+    ScalarType(-3.80806407691578277194e-2),
+    ScalarType(-9.33259480895457427372e-4)
+  };
+  /* Approximation for interval z = sqrt(-2 log a ) between 8 and 64
+   * i.e., a between exp(-32) = 1.27e-14 and exp(-2048) = 3.67e-890.
+   */
+  const ScalarType p2[] = {
+    ScalarType(3.23774891776946035970e0),
+    ScalarType(6.91522889068984211695e0),
+    ScalarType(3.93881025292474443415e0),
+    ScalarType(1.33303460815807542389e0),
+    ScalarType(2.01485389549179081538e-1),
+    ScalarType(1.23716634817820021358e-2),
+    ScalarType(3.01581553508235416007e-4),
+    ScalarType(2.65806974686737550832e-6),
+    ScalarType(6.23974539184983293730e-9)
+  };
+  const ScalarType q2[] = {
+    ScalarType(1.0),
+    ScalarType(6.02427039364742014255e0),
+    ScalarType(3.67983563856160859403e0),
+    ScalarType(1.37702099489081330271e0),
+    ScalarType(2.16236993594496635890e-1),
+    ScalarType(1.34204006088543189037e-2),
+    ScalarType(3.28014464682127739104e-4),
+    ScalarType(2.89247864745380683936e-6),
+    ScalarType(6.79019408009981274425e-9)
+  };
+  const T eight = pset1<T>(ScalarType(8.0));
+  const T one = pset1<T>(ScalarType(1));
+  const T neg_two = pset1<T>(ScalarType(-2));
+  T x, x0, x1, z;
+
+  x = psqrt(pmul(neg_two, plog(b)));
+  x0 = psub(x, pdiv(plog(x), x));
+  z = one / x;
+  x1 = pmul(
+      z, pselect(
+          pcmp_lt(x, eight),
+          pdiv(internal::ppolevl<T, 8>::run(z, p1),
+               internal::ppolevl<T, 8>::run(z, q1)),
+          pdiv(internal::ppolevl<T, 8>::run(z, p2),
+               internal::ppolevl<T, 8>::run(z, q2))));
+  return flipsign(should_flipsign, psub(x0, x1));
+}
+
+template <typename T, typename ScalarType>
+T generic_ndtri(const T& a) {
+  const T maxnum = pset1<T>(NumTraits<ScalarType>::infinity());
+  const T neg_maxnum = pset1<T>(-NumTraits<ScalarType>::infinity());
+
+  const T zero = pset1<T>(ScalarType(0));
+  const T one = pset1<T>(ScalarType(1));
+  // exp(-2)
+  const T exp_neg_two = pset1<T>(ScalarType(0.13533528323661269189));
+  T b, ndtri, should_flipsign;
+
+  should_flipsign = pcmp_le(a, psub(one, exp_neg_two));
+  b = pselect(should_flipsign, a, psub(one, a));
+
+  ndtri = pselect(
+      pcmp_lt(exp_neg_two, b),
+      generic_ndtri_gt_exp_neg_two<T, ScalarType>(b),
+      generic_ndtri_lt_exp_neg_two<T, ScalarType>(b, should_flipsign));
+
+  return pselect(
+      pcmp_le(a, zero), neg_maxnum,
+      pselect(pcmp_le(one, a), maxnum, ndtri));
+}
+
+template <typename Scalar>
+struct ndtri_retval {
+  typedef Scalar type;
+};
+
+#if !EIGEN_HAS_C99_MATH
+
+template <typename Scalar>
+struct ndtri_impl {
+  EIGEN_DEVICE_FUNC
+  static EIGEN_STRONG_INLINE Scalar run(const Scalar) {
+    EIGEN_STATIC_ASSERT((internal::is_same<Scalar, Scalar>::value == false),
+                        THIS_TYPE_IS_NOT_SUPPORTED);
+    return Scalar(0);
+  }
+};
+
+# else
+
+template <typename Scalar>
+struct ndtri_impl {
+  EIGEN_DEVICE_FUNC
+  static EIGEN_STRONG_INLINE Scalar run(const Scalar x) {
+    return generic_ndtri<Scalar, Scalar>(x);
+  }
+};
+
+#endif  // EIGEN_HAS_C99_MATH
+
 
 /**************************************************************************************************************
  * Implementation of igammac (complemented incomplete gamma integral), based on Cephes but requires C++11/C99 *
@@ -2118,6 +2301,12 @@ template <typename Scalar>
 EIGEN_DEVICE_FUNC inline EIGEN_MATHFUNC_RETVAL(erfc, Scalar)
     erfc(const Scalar& x) {
   return EIGEN_MATHFUNC_IMPL(erfc, Scalar)::run(x);
+}
+
+template <typename Scalar>
+EIGEN_DEVICE_FUNC inline EIGEN_MATHFUNC_RETVAL(ndtri, Scalar)
+    ndtri(const Scalar& x) {
+  return EIGEN_MATHFUNC_IMPL(ndtri, Scalar)::run(x);
 }
 
 template <typename Scalar>

@@ -30,6 +30,9 @@ template<> EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half erf(const Eigen::ha
 template<> EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half erfc(const Eigen::half& a) {
   return Eigen::half(Eigen::numext::erfc(static_cast<float>(a)));
 }
+template<> EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half ndtri(const Eigen::half& a) {
+  return Eigen::half(Eigen::numext::ndtri(static_cast<float>(a)));
+}
 template<> EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half igamma(const Eigen::half& a, const Eigen::half& x) {
   return Eigen::half(Eigen::numext::igamma(static_cast<float>(a), static_cast<float>(x)));
 }
