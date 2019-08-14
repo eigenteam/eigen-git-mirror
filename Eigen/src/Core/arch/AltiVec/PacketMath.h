@@ -539,12 +539,12 @@ template<> EIGEN_STRONG_INLINE void pstoreu<int>(int*      to, const Packet4i& f
 // We also need to redefine little endian loading of Packet4i/Packet4f using VSX
 template<> EIGEN_STRONG_INLINE void pstoreu<int>(int*       to, const Packet4i& from)
 {
-  EIGEN_DEBUG_ALIGNED_STORE
+  EIGEN_DEBUG_UNALIGNED_STORE
   vec_vsx_st(from, 0, to);
 }
 template<> EIGEN_STRONG_INLINE void pstoreu<float>(float*   to, const Packet4f& from)
 {
-  EIGEN_DEBUG_ALIGNED_STORE
+  EIGEN_DEBUG_UNALIGNED_STORE
   vec_vsx_st(from, 0, to);
 }
 #endif
@@ -1031,7 +1031,7 @@ template<> EIGEN_STRONG_INLINE Packet2d pfloor<Packet2d>(const Packet2d& a) { re
 
 template<> EIGEN_STRONG_INLINE Packet2d ploadu<Packet2d>(const double* from)
 {
-  EIGEN_DEBUG_ALIGNED_LOAD
+  EIGEN_DEBUG_UNALIGNED_LOAD
   return vec_vsx_ld(0, from);
 }
 
@@ -1045,7 +1045,7 @@ template<> EIGEN_STRONG_INLINE Packet2d ploaddup<Packet2d>(const double*   from)
 
 template<> EIGEN_STRONG_INLINE void pstoreu<double>(double*  to, const Packet2d& from)
 {
-  EIGEN_DEBUG_ALIGNED_STORE
+  EIGEN_DEBUG_UNALIGNED_STORE
   vec_vsx_st(from, 0, to);
 }
 
