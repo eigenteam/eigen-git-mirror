@@ -131,8 +131,8 @@ class COLAMDOrdering
       // Get the recommended value of Alen to be used by colamd
       StorageIndex Alen = internal::colamd_recommended(nnz, m, n); 
       // Set the default parameters
-      double knobs [COLAMD_KNOBS]; 
-      StorageIndex stats [COLAMD_STATS];
+      double knobs [ColamdKnobs]; 
+      StorageIndex stats [ColamdStats];
       internal::colamd_set_defaults(knobs);
       
       IndexVector p(n+1), A(Alen); 
