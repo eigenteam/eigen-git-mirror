@@ -47,6 +47,16 @@
 #ifndef EIGEN_COLAMD_H
 #define EIGEN_COLAMD_H
 
+/* ========================================================================== */
+/* === Knob and statistics definitions used elsewhere ======================= */
+/* ========================================================================== */
+
+/* size of the knobs [ ] array.  Only knobs [0..1] are currently used. */
+constexpr size_t ColamdKnobs = 20;
+
+/* number of output statistics.  Only stats [0..6] are currently used. */
+constexpr size_t ColamdStats = 20;
+
 namespace internal {
 /* Ensure that debugging is turned off: */
 #ifndef COLAMD_NDEBUG
@@ -56,71 +66,59 @@ namespace internal {
 /* === Knob and statistics definitions ====================================== */
 /* ========================================================================== */
 
-/* size of the knobs [ ] array.  Only knobs [0..1] are currently used. */
-const size_t ColamdKnobs = 20;
-
-/* number of output statistics.  Only stats [0..6] are currently used. */
-const size_t ColamdStats = 20;
-
 /* knobs [0] and stats [0]: dense row knob and output statistic. */
-const size_t ColamdDenseRow = 0;
+constexpr size_t ColamdDenseRow = 0;
 
 /* knobs [1] and stats [1]: dense column knob and output statistic. */
-const size_t ColamdDenseCol = 1;
+constexpr size_t ColamdDenseCol = 1;
 
 /* stats [2]: memory defragmentation count output statistic */
-const size_t ColamdDefragCount = 2;
+constexpr size_t ColamdDefragCount = 2;
 
 /* stats [3]: colamd status:  zero OK, > 0 warning or notice, < 0 error */
-const size_t ColamdStatus = 3;
+constexpr size_t ColamdStatus = 3;
 
 /* stats [4..6]: error info, or info on jumbled columns */
-const size_t ColamdInfo1 = 4;
-const size_t ColamdInfo2 = 5;
-const size_t ColamdInfo3 = 6;
+constexpr size_t ColamdInfo1 = 4;
+constexpr size_t ColamdInfo2 = 5;
+constexpr size_t ColamdInfo3 = 6;
 
 /* error codes returned in stats [3]: */
-const int ColamdOk = 0;
-const int ColamdOkButJumbled = 1;
-const int ColamdErrorANotPresent = -1;
-const int ColamdErrorPNotPresent = -2;
-const int ColamdErrorNrowNegative = -3;
-const int ColamdErrorNcolNegative = -4;
-const int ColamdErrorNnzNegative = -5;
-const int ColamdErrorP0Nonzero = -6;
-const int ColamdErrorATooSmall = -7;
-const int ColamdErrorColLengthNegative = -8;
-const int ColamdErrorRowIndexOutOfBounds = -9;
-const int ColamdErrorOutOfMemory = -10;
-const int ColamdErrorInternalError = -999;
+constexpr int ColamdOk = 0;
+constexpr int ColamdOkButJumbled = 1;
+constexpr int ColamdErrorANotPresent = -1;
+constexpr int ColamdErrorPNotPresent = -2;
+constexpr int ColamdErrorNrowNegative = -3;
+constexpr int ColamdErrorNcolNegative = -4;
+constexpr int ColamdErrorNnzNegative = -5;
+constexpr int ColamdErrorP0Nonzero = -6;
+constexpr int ColamdErrorATooSmall = -7;
+constexpr int ColamdErrorColLengthNegative = -8;
+constexpr int ColamdErrorRowIndexOutOfBounds = -9;
+constexpr int ColamdErrorOutOfMemory = -10;
+constexpr int ColamdErrorInternalError = -999;
 
 /* ========================================================================== */
 /* === Definitions ========================================================== */
 /* ========================================================================== */
 
-#define ONES_COMPLEMENT(r) (-(r)-1)
+// #define ONES_COMPLEMENT(r) (-(r)-1)
+
+template <typename IndexType>
+IndexType ones_complement(const IndexType r) {
+  return (-(r)-1);
+}
 
 /* -------------------------------------------------------------------------- */
-const int ColamdEmpty = -1;
+constexpr int ColamdEmpty = -1;
 
 /* Row and column status */
-const int ColamdAlive = 0;
-const int ColamdDead = -1;
+constexpr int ColamdAlive = 0;
+constexpr int ColamdDead = -1;
 
 /* Column status */
-const int ColamdDeadPrincipal = -1;
-const int ColamdDeadNonPrincipal = -2;
-
-/* Macros for row and column status update and checking. */
-#define ROW_IS_DEAD(r)      ROW_IS_MARKED_DEAD (Row[r].shared2.mark)
-#define ROW_IS_MARKED_DEAD(row_mark)  (row_mark < ColamdAlive)
-#define ROW_IS_ALIVE(r)     (Row [r].shared2.mark >= ColamdAlive)
-#define COL_IS_DEAD(c)      (Col [c].start < ColamdAlive)
-#define COL_IS_ALIVE(c)     (Col [c].start >= ColamdAlive)
-#define COL_IS_DEAD_PRINCIPAL(c)  (Col [c].start == ColamdDeadPrincipal)
-#define KILL_ROW(r)     { Row [r].shared2.mark = ColamdDead ; }
-#define KILL_PRINCIPAL_COL(c)   { Col [c].start = ColamdDeadPrincipal ; }
-#define KILL_NON_PRINCIPAL_COL(c) { Col [c].start = ColamdDeadNonPrincipal ; }
+constexpr int ColamdDeadPrincipal = -1;
+constexpr int ColamdDeadNonPrincipal = -2;
 
 /* ========================================================================== */
 /* === Colamd reporting mechanism =========================================== */
@@ -178,6 +176,52 @@ struct Colamd_Row
   } shared2 ;
 
 };
+
+/* Methods for row and column status update and checking. */
+template <typename IndexType>
+bool row_is_marked_dead(const IndexType row_mark) {
+  return row_mark < ColamdAlive;
+}
+
+template <typename IndexType>
+bool row_is_dead(const Colamd_Row<IndexType>* row, const IndexType r) {
+  return row_is_marked_dead(row[r].shared2.mark);
+}
+
+template <typename IndexType>
+bool row_is_alive(const Colamd_Row<IndexType>* row, const IndexType r) {
+  return row[r].shared2.mark >= ColamdAlive;
+}
+
+template <typename IndexType>
+void kill_row(Colamd_Row<IndexType>* row, const IndexType r) {
+  row[r].shared2.mark = ColamdDead;
+}
+
+template <typename IndexType>
+bool col_is_dead(const colamd_col<IndexType>* col, const IndexType c) {
+  return col[c].start < ColamdAlive;
+}
+
+template <typename IndexType>
+bool col_is_alive(const colamd_col<IndexType>* col, const IndexType c) {
+  return col[c].start >= ColamdAlive;
+}
+
+template <typename IndexType>
+bool col_is_dead_principal(const colamd_col<IndexType>* col, const IndexType c) {
+  return col[c].start == ColamdDeadPrincipal;
+}
+
+template <typename IndexType>
+void kill_principal_col(colamd_col<IndexType>* col, const IndexType c) {
+  col[c].start = ColamdDeadPrincipal;
+}
+
+template <typename IndexType>
+void kill_non_principal_col(colamd_col<IndexType>* col, const IndexType c) {
+  col[c].start = ColamdDeadNonPrincipal;
+}
 
 /* ========================================================================== */
 /* === Colamd recommended memory size ======================================= */
@@ -749,7 +793,7 @@ static void init_scoring
     {
       /* this is a empty column, kill and order it last */
       Col [c].shared2.order = --n_col2 ;
-      KILL_PRINCIPAL_COL (c) ;
+      kill_principal_col(Col, c) ;
     }
   }
   COLAMD_DEBUG1 (("colamd: null columns killed: %d\n", n_col - n_col2)) ;
@@ -760,7 +804,7 @@ static void init_scoring
   for (c = n_col-1 ; c >= 0 ; c--)
   {
     /* skip any dead columns */
-    if (COL_IS_DEAD (c))
+    if (col_is_dead(Col, c))
     {
       continue ;
     }
@@ -776,7 +820,7 @@ static void init_scoring
       {
 	Row [*cp++].shared1.degree-- ;
       }
-      KILL_PRINCIPAL_COL (c) ;
+      kill_principal_col(Col, c) ;
     }
   }
   COLAMD_DEBUG1 (("colamd: Dense and null columns killed: %d\n", n_col - n_col2)) ;
@@ -790,7 +834,7 @@ static void init_scoring
     if (deg > dense_row_count || deg == 0)
     {
       /* kill a dense or empty row */
-      KILL_ROW (r) ;
+      kill_row(Row, r) ;
       --n_row2 ;
     }
     else
@@ -812,7 +856,7 @@ static void init_scoring
   for (c = n_col-1 ; c >= 0 ; c--)
   {
     /* skip dead column */
-    if (COL_IS_DEAD (c))
+    if (col_is_dead(Col, c))
     {
       continue ;
     }
@@ -825,7 +869,7 @@ static void init_scoring
       /* get a row */
       row = *cp++ ;
       /* skip if dead */
-      if (ROW_IS_DEAD (row))
+      if (row_is_dead(Row, row))
       {
 	continue ;
       }
@@ -844,7 +888,7 @@ static void init_scoring
       /* and have already been killed) */
       COLAMD_DEBUG2 (("Newly null killed: %d\n", c)) ;
       Col [c].shared2.order = --n_col2 ;
-      KILL_PRINCIPAL_COL (c) ;
+      kill_principal_col(Col, c) ;
     }
     else
     {
@@ -877,7 +921,7 @@ static void init_scoring
   for (c = n_col-1 ; c >= 0 ; c--)
   {
     /* only add principal columns to degree lists */
-    if (COL_IS_ALIVE (c))
+    if (col_is_alive(Col, c))
     {
       COLAMD_DEBUG4 (("place %d score %d minscore %d ncol %d\n",
 		      c, Col [c].shared2.score, min_score, n_col)) ;
@@ -1016,7 +1060,7 @@ static IndexType find_ordering /* return the number of garbage collections */
       Col [next_col].shared3.prev = ColamdEmpty ;
     }
 
-    COLAMD_ASSERT (COL_IS_ALIVE (pivot_col)) ;
+    COLAMD_ASSERT (col_is_alive(Col, pivot_col)) ;
     COLAMD_DEBUG3 (("Pivot col: %d\n", pivot_col)) ;
 
     /* remember score for defrag check */
@@ -1063,9 +1107,9 @@ static IndexType find_ordering /* return the number of garbage collections */
     {
       /* get a row */
       row = *cp++ ;
-      COLAMD_DEBUG4 (("Pivot col pattern %d %d\n", ROW_IS_ALIVE (row), row)) ;
+      COLAMD_DEBUG4 (("Pivot col pattern %d %d\n", row_is_alive(Row, row), row)) ;
       /* skip if row is dead */
-      if (ROW_IS_DEAD (row))
+      if (row_is_dead(Row, row))
       {
 	continue ;
       }
@@ -1077,7 +1121,7 @@ static IndexType find_ordering /* return the number of garbage collections */
 	col = *rp++ ;
 	/* add the column, if alive and untagged */
 	col_thickness = Col [col].shared1.thickness ;
-	if (col_thickness > 0 && COL_IS_ALIVE (col))
+	if (col_thickness > 0 && col_is_alive(Col, col))
 	{
 	  /* tag column in pivot row */
 	  Col [col].shared1.thickness = -col_thickness ;
@@ -1104,7 +1148,7 @@ static IndexType find_ordering /* return the number of garbage collections */
       /* may be killing an already dead row */
       row = *cp++ ;
       COLAMD_DEBUG3 (("Kill row in pivot col: %d\n", row)) ;
-      KILL_ROW (row) ;
+      kill_row(Row, row) ;
     }
 
     /* === Select a row index to use as the new pivot row =============== */
@@ -1156,7 +1200,7 @@ static IndexType find_ordering /* return the number of garbage collections */
     while (rp < rp_end)
     {
       col = *rp++ ;
-      COLAMD_ASSERT (COL_IS_ALIVE (col) && col != pivot_col) ;
+      COLAMD_ASSERT (col_is_alive(Col, col) && col != pivot_col) ;
       COLAMD_DEBUG3 (("Col: %d\n", col)) ;
 
       /* clear tags used to construct pivot row pattern */
@@ -1195,7 +1239,7 @@ static IndexType find_ordering /* return the number of garbage collections */
 	row = *cp++ ;
 	row_mark = Row [row].shared2.mark ;
 	/* skip if dead */
-	if (ROW_IS_MARKED_DEAD (row_mark))
+	if (row_is_marked_dead (row_mark))
 	{
 	  continue ;
 	}
@@ -1214,7 +1258,7 @@ static IndexType find_ordering /* return the number of garbage collections */
 	if (set_difference == 0)
 	{
 	  COLAMD_DEBUG3 (("aggressive absorption. Row: %d\n", row)) ;
-	  KILL_ROW (row) ;
+	  kill_row(Row, row) ;
 	}
 	else
 	{
@@ -1236,7 +1280,7 @@ static IndexType find_ordering /* return the number of garbage collections */
     {
       /* get a column */
       col = *rp++ ;
-      COLAMD_ASSERT (COL_IS_ALIVE (col) && col != pivot_col) ;
+      COLAMD_ASSERT (col_is_alive(Col, col) && col != pivot_col) ;
       hash = 0 ;
       cur_score = 0 ;
       cp = &A [Col [col].start] ;
@@ -1253,7 +1297,7 @@ static IndexType find_ordering /* return the number of garbage collections */
 	COLAMD_ASSERT(row >= 0 && row < n_row) ;
 	row_mark = Row [row].shared2.mark ;
 	/* skip if dead */
-	if (ROW_IS_MARKED_DEAD (row_mark))
+	if (row_is_marked_dead (row_mark))
 	{
 	  continue ;
 	}
@@ -1277,7 +1321,7 @@ static IndexType find_ordering /* return the number of garbage collections */
       {
 	COLAMD_DEBUG4 (("further mass elimination. Col: %d\n", col)) ;
 	/* nothing left but the pivot row in this column */
-	KILL_PRINCIPAL_COL (col) ;
+	kill_principal_col(Col, col) ;
 	pivot_row_degree -= Col [col].shared1.thickness ;
 	COLAMD_ASSERT (pivot_row_degree >= 0) ;
 	/* order it */
@@ -1318,7 +1362,7 @@ static IndexType find_ordering /* return the number of garbage collections */
 
 	/* save hash function in Col [col].shared3.hash */
 	Col [col].shared3.hash = (IndexType) hash ;
-	COLAMD_ASSERT (COL_IS_ALIVE (col)) ;
+	COLAMD_ASSERT (col_is_alive(Col, col)) ;
       }
     }
 
@@ -1332,7 +1376,7 @@ static IndexType find_ordering /* return the number of garbage collections */
 
     /* === Kill the pivotal column ====================================== */
 
-    KILL_PRINCIPAL_COL (pivot_col) ;
+    kill_principal_col(Col, pivot_col) ;
 
     /* === Clear mark =================================================== */
 
@@ -1356,7 +1400,7 @@ static IndexType find_ordering /* return the number of garbage collections */
     {
       col = *rp++ ;
       /* skip dead columns */
-      if (COL_IS_DEAD (col))
+      if (col_is_dead(Col, col))
       {
 	continue ;
       }
@@ -1463,15 +1507,15 @@ static inline  void order_children
   for (i = 0 ; i < n_col ; i++)
   {
     /* find an un-ordered non-principal column */
-    COLAMD_ASSERT (COL_IS_DEAD (i)) ;
-    if (!COL_IS_DEAD_PRINCIPAL (i) && Col [i].shared2.order == ColamdEmpty)
+    COLAMD_ASSERT (col_is_dead(Col, i)) ;
+    if (!col_is_dead_principal(Col, i) && Col [i].shared2.order == ColamdEmpty)
     {
       parent = i ;
       /* once found, find its principal parent */
       do
       {
 	parent = Col [parent].shared1.parent ;
-      } while (!COL_IS_DEAD_PRINCIPAL (parent)) ;
+      } while (!col_is_dead_principal(Col, parent)) ;
 
       /* now, order all un-ordered non-principal columns along path */
       /* to this parent.  collapse tree at the same time */
@@ -1577,7 +1621,7 @@ static void detect_super_cols
   while (rp < rp_end)
   {
     col = *rp++ ;
-    if (COL_IS_DEAD (col))
+    if (col_is_dead(Col, col))
     {
       continue ;
     }
@@ -1603,7 +1647,7 @@ static void detect_super_cols
     for (super_c = first_col ; super_c != ColamdEmpty ;
 	 super_c = Col [super_c].shared4.hash_next)
     {
-      COLAMD_ASSERT (COL_IS_ALIVE (super_c)) ;
+      COLAMD_ASSERT (col_is_alive(Col, super_c)) ;
       COLAMD_ASSERT (Col [super_c].shared3.hash == hash) ;
       length = Col [super_c].length ;
 
@@ -1616,7 +1660,7 @@ static void detect_super_cols
 	   c != ColamdEmpty ; c = Col [c].shared4.hash_next)
       {
 	COLAMD_ASSERT (c != super_c) ;
-	COLAMD_ASSERT (COL_IS_ALIVE (c)) ;
+	COLAMD_ASSERT (col_is_alive(Col, c)) ;
 	COLAMD_ASSERT (Col [c].shared3.hash == hash) ;
 
 	/* not identical if lengths or scores are different */
@@ -1657,7 +1701,7 @@ static void detect_super_cols
 
 	Col [super_c].shared1.thickness += Col [c].shared1.thickness ;
 	Col [c].shared1.parent = super_c ;
-	KILL_NON_PRINCIPAL_COL (c) ;
+	kill_non_principal_col(Col, c) ;
 	/* order c later, in order_children() */
 	Col [c].shared2.order = ColamdEmpty ;
 	/* remove c from hash bucket */
@@ -1720,7 +1764,7 @@ static IndexType garbage_collection  /* returns the new value of pfree */
   pdest = &A[0] ;
   for (c = 0 ; c < n_col ; c++)
   {
-    if (COL_IS_ALIVE (c))
+    if (col_is_alive(Col, c))
     {
       psrc = &A [Col [c].start] ;
 
@@ -1731,7 +1775,7 @@ static IndexType garbage_collection  /* returns the new value of pfree */
       for (j = 0 ; j < length ; j++)
       {
 	r = *psrc++ ;
-	if (ROW_IS_ALIVE (r))
+	if (row_is_alive(Row, r))
 	{
 	  *pdest++ = r ;
 	}
@@ -1744,22 +1788,22 @@ static IndexType garbage_collection  /* returns the new value of pfree */
 
   for (r = 0 ; r < n_row ; r++)
   {
-    if (ROW_IS_ALIVE (r))
+    if (row_is_alive(Row, r))
     {
       if (Row [r].length == 0)
       {
 	/* this row is of zero length.  cannot compact it, so kill it */
 	COLAMD_DEBUG3 (("Defrag row kill\n")) ;
-	KILL_ROW (r) ;
+	kill_row(Row, r) ;
       }
       else
       {
 	/* save first column index in Row [r].shared2.first_column */
 	psrc = &A [Row [r].start] ;
 	Row [r].shared2.first_column = *psrc ;
-	COLAMD_ASSERT (ROW_IS_ALIVE (r)) ;
+	COLAMD_ASSERT (row_is_alive(Row, r)) ;
 	/* flag the start of the row with the one's complement of row */
-	*psrc = ONES_COMPLEMENT (r) ;
+	*psrc = ones_complement(r) ;
 
       }
     }
@@ -1775,11 +1819,11 @@ static IndexType garbage_collection  /* returns the new value of pfree */
     {
       psrc-- ;
       /* get the row index */
-      r = ONES_COMPLEMENT (*psrc) ;
+      r = ones_complement(*psrc) ;
       COLAMD_ASSERT (r >= 0 && r < n_row) ;
       /* restore first column index */
       *psrc = Row [r].shared2.first_column ;
-      COLAMD_ASSERT (ROW_IS_ALIVE (r)) ;
+      COLAMD_ASSERT (row_is_alive(Row, r)) ;
 
       /* move and compact the row */
       COLAMD_ASSERT (pdest <= psrc) ;
@@ -1788,7 +1832,7 @@ static IndexType garbage_collection  /* returns the new value of pfree */
       for (j = 0 ; j < length ; j++)
       {
 	c = *psrc++ ;
-	if (COL_IS_ALIVE (c))
+	if (col_is_alive(Col, c))
 	{
 	  *pdest++ = c ;
 	}
@@ -1829,7 +1873,7 @@ static inline  IndexType clear_mark  /* return the new value for tag_mark */
 
   for (r = 0 ; r < n_row ; r++)
   {
-    if (ROW_IS_ALIVE (r))
+    if (row_is_alive(Row, r))
     {
       Row [r].shared2.mark = 0 ;
     }
