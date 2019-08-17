@@ -52,10 +52,10 @@
 /* ========================================================================== */
 
 /* size of the knobs [ ] array.  Only knobs [0..1] are currently used. */
-constexpr size_t ColamdKnobs = 20;
+const size_t ColamdKnobs = 20;
 
 /* number of output statistics.  Only stats [0..6] are currently used. */
-constexpr size_t ColamdStats = 20;
+const size_t ColamdStats = 20;
 
 namespace internal {
 /* Ensure that debugging is turned off: */
@@ -66,43 +66,45 @@ namespace internal {
 /* === Knob and statistics definitions ====================================== */
 /* ========================================================================== */
 
-/* knobs [0] and stats [0]: dense row knob and output statistic. */
-constexpr size_t ColamdDenseRow = 0;
+/* Indices into knobs and stats array. */
+enum KnobsStatsIndex {
+  /* knobs [0] and stats [0]: dense row knob and output statistic. */
+  DenseRow = 0,
 
-/* knobs [1] and stats [1]: dense column knob and output statistic. */
-constexpr size_t ColamdDenseCol = 1;
+  /* knobs [1] and stats [1]: dense column knob and output statistic. */
+  DenseCol = 1,
 
-/* stats [2]: memory defragmentation count output statistic */
-constexpr size_t ColamdDefragCount = 2;
+  /* stats [2]: memory defragmentation count output statistic */
+  DefragCount = 2,
 
-/* stats [3]: colamd status:  zero OK, > 0 warning or notice, < 0 error */
-constexpr size_t ColamdStatus = 3;
+  /* stats [3]: colamd status:  zero OK, > 0 warning or notice, < 0 error */
+  Status = 3,
 
-/* stats [4..6]: error info, or info on jumbled columns */
-constexpr size_t ColamdInfo1 = 4;
-constexpr size_t ColamdInfo2 = 5;
-constexpr size_t ColamdInfo3 = 6;
+  /* stats [4..6]: error info, or info on jumbled columns */
+  Info1 = 4,
+  Info2 = 5,
+  Info3 = 6
+};
 
 /* error codes returned in stats [3]: */
-constexpr int ColamdOk = 0;
-constexpr int ColamdOkButJumbled = 1;
-constexpr int ColamdErrorANotPresent = -1;
-constexpr int ColamdErrorPNotPresent = -2;
-constexpr int ColamdErrorNrowNegative = -3;
-constexpr int ColamdErrorNcolNegative = -4;
-constexpr int ColamdErrorNnzNegative = -5;
-constexpr int ColamdErrorP0Nonzero = -6;
-constexpr int ColamdErrorATooSmall = -7;
-constexpr int ColamdErrorColLengthNegative = -8;
-constexpr int ColamdErrorRowIndexOutOfBounds = -9;
-constexpr int ColamdErrorOutOfMemory = -10;
-constexpr int ColamdErrorInternalError = -999;
-
+enum Status {
+  Ok = 0,
+  OkButJumbled = 1,
+  ErrorANotPresent = -1,
+  ErrorPNotPresent = -2,
+  ErrorNrowNegative = -3,
+  ErrorNcolNegative = -4,
+  ErrorNnzNegative = -5,
+  ErrorP0Nonzero = -6,
+  ErrorATooSmall = -7,
+  ErrorColLengthNegative = -8,
+  ErrorRowIndexOutOfBounds = -9,
+  ErrorOutOfMemory = -10,
+  ErrorInternalError = -999
+};
 /* ========================================================================== */
 /* === Definitions ========================================================== */
 /* ========================================================================== */
-
-// #define ONES_COMPLEMENT(r) (-(r)-1)
 
 template <typename IndexType>
 IndexType ones_complement(const IndexType r) {
@@ -110,15 +112,19 @@ IndexType ones_complement(const IndexType r) {
 }
 
 /* -------------------------------------------------------------------------- */
-constexpr int ColamdEmpty = -1;
+const int Empty = -1;
 
 /* Row and column status */
-constexpr int ColamdAlive = 0;
-constexpr int ColamdDead = -1;
+enum RowColumnStatus {
+  Alive = 0,
+  Dead = -1
+};
 
 /* Column status */
-constexpr int ColamdDeadPrincipal = -1;
-constexpr int ColamdDeadNonPrincipal = -2;
+enum ColumnStatus {
+  DeadPrincipal = -1,
+  DeadNonPrincipal = -2
+};
 
 /* ========================================================================== */
 /* === Colamd reporting mechanism =========================================== */
@@ -128,7 +134,7 @@ constexpr int ColamdDeadNonPrincipal = -2;
 template <typename IndexType>
 struct colamd_col
 {
-  IndexType start ;   /* index for A of first row in this column, or ColamdDead */
+  IndexType start ;   /* index for A of first row in this column, or Dead */
   /* if column is dead */
   IndexType length ;  /* number of rows in this column */
   union
@@ -180,7 +186,7 @@ struct Colamd_Row
 /* Methods for row and column status update and checking. */
 template <typename IndexType>
 bool row_is_marked_dead(const IndexType row_mark) {
-  return row_mark < ColamdAlive;
+  return row_mark < Alive;
 }
 
 template <typename IndexType>
@@ -190,37 +196,37 @@ bool row_is_dead(const Colamd_Row<IndexType>* row, const IndexType r) {
 
 template <typename IndexType>
 bool row_is_alive(const Colamd_Row<IndexType>* row, const IndexType r) {
-  return row[r].shared2.mark >= ColamdAlive;
+  return row[r].shared2.mark >= Alive;
 }
 
 template <typename IndexType>
 void kill_row(Colamd_Row<IndexType>* row, const IndexType r) {
-  row[r].shared2.mark = ColamdDead;
+  row[r].shared2.mark = Dead;
 }
 
 template <typename IndexType>
 bool col_is_dead(const colamd_col<IndexType>* col, const IndexType c) {
-  return col[c].start < ColamdAlive;
+  return col[c].start < Alive;
 }
 
 template <typename IndexType>
 bool col_is_alive(const colamd_col<IndexType>* col, const IndexType c) {
-  return col[c].start >= ColamdAlive;
+  return col[c].start >= Alive;
 }
 
 template <typename IndexType>
 bool col_is_dead_principal(const colamd_col<IndexType>* col, const IndexType c) {
-  return col[c].start == ColamdDeadPrincipal;
+  return col[c].start == DeadPrincipal;
 }
 
 template <typename IndexType>
 void kill_principal_col(colamd_col<IndexType>* col, const IndexType c) {
-  col[c].start = ColamdDeadPrincipal;
+  col[c].start = DeadPrincipal;
 }
 
 template <typename IndexType>
 void kill_non_principal_col(colamd_col<IndexType>* col, const IndexType c) {
-  col[c].start = ColamdDeadNonPrincipal;
+  col[c].start = DeadNonPrincipal;
 }
 
 /* ========================================================================== */
@@ -308,12 +314,12 @@ inline IndexType colamd_recommended ( IndexType nnz, IndexType n_row, IndexType 
 /**
  * \brief set default parameters  The use of this routine is optional.
  *
- * Colamd: rows with more than (knobs [ColamdDenseRow] * n_col)
+ * Colamd: rows with more than (knobs [DenseRow] * n_col)
  * entries are removed prior to ordering.  Columns with more than
- * (knobs [ColamdDenseCol] * n_row) entries are removed prior to
+ * (knobs [DenseCol] * n_row) entries are removed prior to
  * ordering, and placed last in the output column ordering.
  *
- * ColamdDenseRow and ColamdDenseCol are defined as 0 and 1,
+ * DenseRow and DenseCol are defined as 0 and 1,
  * respectively, in colamd.h.  Default values of these two knobs
  * are both 0.5.  Currently, only knobs [0] and knobs [1] are
  * used, but future versions may use more knobs.  If so, they will
@@ -340,8 +346,8 @@ static inline void colamd_set_defaults(double knobs[ColamdKnobs])
   {
     knobs [i] = 0 ;
   }
-  knobs [ColamdDenseRow] = 0.5 ;  /* ignore rows over 50% dense */
-  knobs [ColamdDenseCol] = 0.5 ;  /* ignore columns over 50% dense */
+  knobs [DenseRow] = 0.5 ;  /* ignore rows over 50% dense */
+  knobs [DenseCol] = 0.5 ;  /* ignore columns over 50% dense */
 }
 
 /**
@@ -391,36 +397,36 @@ static bool colamd(IndexType n_row, IndexType n_col, IndexType Alen, IndexType *
   {
     stats [i] = 0 ;
   }
-  stats [ColamdStatus] = ColamdOk ;
-  stats [ColamdInfo1] = -1 ;
-  stats [ColamdInfo2] = -1 ;
+  stats [Status] = Ok ;
+  stats [Info1] = -1 ;
+  stats [Info2] = -1 ;
 
   if (!A)   /* A is not present */
   {
-    stats [ColamdStatus] = ColamdErrorANotPresent ;
+    stats [Status] = ErrorANotPresent ;
     COLAMD_DEBUG0 (("colamd: A not present\n")) ;
     return (false) ;
   }
 
   if (!p)   /* p is not present */
   {
-    stats [ColamdStatus] = ColamdErrorPNotPresent ;
+    stats [Status] = ErrorPNotPresent ;
     COLAMD_DEBUG0 (("colamd: p not present\n")) ;
     return (false) ;
   }
 
   if (n_row < 0)  /* n_row must be >= 0 */
   {
-    stats [ColamdStatus] = ColamdErrorNrowNegative ;
-    stats [ColamdInfo1] = n_row ;
+    stats [Status] = ErrorNrowNegative ;
+    stats [Info1] = n_row ;
     COLAMD_DEBUG0 (("colamd: nrow negative %d\n", n_row)) ;
     return (false) ;
   }
 
   if (n_col < 0)  /* n_col must be >= 0 */
   {
-    stats [ColamdStatus] = ColamdErrorNcolNegative ;
-    stats [ColamdInfo1] = n_col ;
+    stats [Status] = ErrorNcolNegative ;
+    stats [Info1] = n_col ;
     COLAMD_DEBUG0 (("colamd: ncol negative %d\n", n_col)) ;
     return (false) ;
   }
@@ -428,16 +434,16 @@ static bool colamd(IndexType n_row, IndexType n_col, IndexType Alen, IndexType *
   nnz = p [n_col] ;
   if (nnz < 0)  /* nnz must be >= 0 */
   {
-    stats [ColamdStatus] = ColamdErrorNnzNegative ;
-    stats [ColamdInfo1] = nnz ;
+    stats [Status] = ErrorNnzNegative ;
+    stats [Info1] = nnz ;
     COLAMD_DEBUG0 (("colamd: number of entries negative %d\n", nnz)) ;
     return (false) ;
   }
 
   if (p [0] != 0)
   {
-    stats [ColamdStatus] = ColamdErrorP0Nonzero ;
-    stats [ColamdInfo1] = p [0] ;
+    stats [Status] = ErrorP0Nonzero ;
+    stats [Info1] = p [0] ;
     COLAMD_DEBUG0 (("colamd: p[0] not zero %d\n", p [0])) ;
     return (false) ;
   }
@@ -459,9 +465,9 @@ static bool colamd(IndexType n_row, IndexType n_col, IndexType Alen, IndexType *
   if (need > Alen)
   {
     /* not enough space in array A to perform the ordering */
-    stats [ColamdStatus] = ColamdErrorATooSmall ;
-    stats [ColamdInfo1] = need ;
-    stats [ColamdInfo2] = Alen ;
+    stats [Status] = ErrorATooSmall ;
+    stats [Info1] = need ;
+    stats [Info2] = Alen ;
     COLAMD_DEBUG0 (("colamd: Need Alen >= %d, given only Alen = %d\n", need,Alen));
     return (false) ;
   }
@@ -495,9 +501,9 @@ static bool colamd(IndexType n_row, IndexType n_col, IndexType Alen, IndexType *
 
   /* === Return statistics in stats ======================================= */
 
-  stats [ColamdDenseRow] = n_row - n_row2 ;
-  stats [ColamdDenseCol] = n_col - n_col2 ;
-  stats [ColamdDefragCount] = ngarbage ;
+  stats [DenseRow] = n_row - n_row2 ;
+  stats [DenseCol] = n_col - n_col2 ;
+  stats [DefragCount] = ngarbage ;
   COLAMD_DEBUG0 (("colamd: done.\n")) ;
   return (true) ;
 }
@@ -555,24 +561,24 @@ static IndexType init_rows_cols  /* returns true if OK, or false otherwise */
     if ((Col [col].length) < 0) // extra parentheses to work-around gcc bug 10200
     {
       /* column pointers must be non-decreasing */
-      stats [ColamdStatus] = ColamdErrorColLengthNegative ;
-      stats [ColamdInfo1] = col ;
-      stats [ColamdInfo2] = Col [col].length ;
+      stats [Status] = ErrorColLengthNegative ;
+      stats [Info1] = col ;
+      stats [Info2] = Col [col].length ;
       COLAMD_DEBUG0 (("colamd: col %d length %d < 0\n", col, Col [col].length)) ;
       return (false) ;
     }
 
     Col [col].shared1.thickness = 1 ;
     Col [col].shared2.score = 0 ;
-    Col [col].shared3.prev = ColamdEmpty ;
-    Col [col].shared4.degree_next = ColamdEmpty ;
+    Col [col].shared3.prev = Empty ;
+    Col [col].shared4.degree_next = Empty ;
   }
 
   /* p [0..n_col] no longer needed, used as "head" in subsequent routines */
 
   /* === Scan columns, compute row degrees, and check row indices ========= */
 
-  stats [ColamdInfo3] = 0 ;  /* number of duplicate or unsorted row indices*/
+  stats [Info3] = 0 ;  /* number of duplicate or unsorted row indices*/
 
   for (row = 0 ; row < n_row ; row++)
   {
@@ -594,10 +600,10 @@ static IndexType init_rows_cols  /* returns true if OK, or false otherwise */
       /* make sure row indices within range */
       if (row < 0 || row >= n_row)
       {
-	stats [ColamdStatus] = ColamdErrorRowIndexOutOfBounds ;
-	stats [ColamdInfo1] = col ;
-	stats [ColamdInfo2] = row ;
-	stats [ColamdInfo3] = n_row ;
+	stats [Status] = ErrorRowIndexOutOfBounds ;
+	stats [Info1] = col ;
+	stats [Info2] = row ;
+	stats [Info3] = n_row ;
 	COLAMD_DEBUG0 (("colamd: row %d col %d out of bounds\n", row, col)) ;
 	return (false) ;
       }
@@ -606,10 +612,10 @@ static IndexType init_rows_cols  /* returns true if OK, or false otherwise */
       {
 	/* row index are unsorted or repeated (or both), thus col */
 	/* is jumbled.  This is a notice, not an error condition. */
-	stats [ColamdStatus] = ColamdOkButJumbled ;
-	stats [ColamdInfo1] = col ;
-	stats [ColamdInfo2] = row ;
-	(stats [ColamdInfo3]) ++ ;
+	stats [Status] = OkButJumbled ;
+	stats [Info1] = col ;
+	stats [Info2] = row ;
+	(stats [Info3]) ++ ;
 	COLAMD_DEBUG1 (("colamd: row %d col %d unsorted/duplicate\n",row,col));
       }
 
@@ -647,7 +653,7 @@ static IndexType init_rows_cols  /* returns true if OK, or false otherwise */
 
   /* === Create row form ================================================== */
 
-  if (stats [ColamdStatus] == ColamdOkButJumbled)
+  if (stats [Status] == OkButJumbled)
   {
     /* if cols jumbled, watch for repeated row indices */
     for (col = 0 ; col < n_col ; col++)
@@ -689,7 +695,7 @@ static IndexType init_rows_cols  /* returns true if OK, or false otherwise */
 
   /* === See if we need to re-create columns ============================== */
 
-  if (stats [ColamdStatus] == ColamdOkButJumbled)
+  if (stats [Status] == OkButJumbled)
   {
     COLAMD_DEBUG0 (("colamd: reconstructing column form, matrix jumbled\n")) ;
 
@@ -775,8 +781,8 @@ static void init_scoring
 
   /* === Extract knobs ==================================================== */
 
-  dense_row_count = numext::maxi(IndexType(0), numext::mini(IndexType(knobs [ColamdDenseRow] * n_col), n_col)) ;
-  dense_col_count = numext::maxi(IndexType(0), numext::mini(IndexType(knobs [ColamdDenseCol] * n_row), n_row)) ;
+  dense_row_count = numext::maxi(IndexType(0), numext::mini(IndexType(knobs [DenseRow] * n_col), n_col)) ;
+  dense_col_count = numext::maxi(IndexType(0), numext::mini(IndexType(knobs [DenseCol] * n_row), n_row)) ;
   COLAMD_DEBUG1 (("colamd: densecount: %d %d\n", dense_row_count, dense_col_count)) ;
   max_deg = 0 ;
   n_col2 = n_col ;
@@ -913,7 +919,7 @@ static void init_scoring
   /* clear the hash buckets */
   for (c = 0 ; c <= n_col ; c++)
   {
-    head [c] = ColamdEmpty ;
+    head [c] = Empty ;
   }
   min_score = n_col ;
   /* place in reverse order, so low column indices are at the front */
@@ -934,16 +940,16 @@ static void init_scoring
       COLAMD_ASSERT (min_score <= n_col) ;
       COLAMD_ASSERT (score >= 0) ;
       COLAMD_ASSERT (score <= n_col) ;
-      COLAMD_ASSERT (head [score] >= ColamdEmpty) ;
+      COLAMD_ASSERT (head [score] >= Empty) ;
 
       /* now add this column to dList at proper score location */
       next_col = head [score] ;
-      Col [c].shared3.prev = ColamdEmpty ;
+      Col [c].shared3.prev = Empty ;
       Col [c].shared4.degree_next = next_col ;
 
       /* if there already was a column with the same score, set its */
       /* previous pointer to this new column */
-      if (next_col != ColamdEmpty)
+      if (next_col != Empty)
       {
 	Col [next_col].shared3.prev = c ;
       }
@@ -1044,10 +1050,10 @@ static IndexType find_ordering /* return the number of garbage collections */
     /* make sure degree list isn't empty */
     COLAMD_ASSERT (min_score >= 0) ;
     COLAMD_ASSERT (min_score <= n_col) ;
-    COLAMD_ASSERT (head [min_score] >= ColamdEmpty) ;
+    COLAMD_ASSERT (head [min_score] >= Empty) ;
 
     /* get pivot column from head of minimum degree list */
-    while (min_score < n_col && head [min_score] == ColamdEmpty)
+    while (min_score < n_col && head [min_score] == Empty)
     {
       min_score++ ;
     }
@@ -1055,9 +1061,9 @@ static IndexType find_ordering /* return the number of garbage collections */
     COLAMD_ASSERT (pivot_col >= 0 && pivot_col <= n_col) ;
     next_col = Col [pivot_col].shared4.degree_next ;
     head [min_score] = next_col ;
-    if (next_col != ColamdEmpty)
+    if (next_col != Empty)
     {
-      Col [next_col].shared3.prev = ColamdEmpty ;
+      Col [next_col].shared3.prev = Empty ;
     }
 
     COLAMD_ASSERT (col_is_alive(Col, pivot_col)) ;
@@ -1163,7 +1169,7 @@ static IndexType find_ordering /* return the number of garbage collections */
     else
     {
       /* there is no pivot row, since it is of zero length */
-      pivot_row = ColamdEmpty ;
+      pivot_row = Empty ;
       COLAMD_ASSERT (pivot_row_length == 0) ;
     }
     COLAMD_ASSERT (Col [pivot_col].length > 0 || pivot_row_length == 0) ;
@@ -1215,8 +1221,8 @@ static IndexType find_ordering /* return the number of garbage collections */
       next_col = Col [col].shared4.degree_next ;
       COLAMD_ASSERT (cur_score >= 0) ;
       COLAMD_ASSERT (cur_score <= n_col) ;
-      COLAMD_ASSERT (cur_score >= ColamdEmpty) ;
-      if (prev_col == ColamdEmpty)
+      COLAMD_ASSERT (cur_score >= Empty) ;
+      if (prev_col == Empty)
       {
 	head [cur_score] = next_col ;
       }
@@ -1224,7 +1230,7 @@ static IndexType find_ordering /* return the number of garbage collections */
       {
 	Col [prev_col].shared4.degree_next = next_col ;
       }
-      if (next_col != ColamdEmpty)
+      if (next_col != Empty)
       {
 	Col [next_col].shared3.prev = prev_col ;
       }
@@ -1345,7 +1351,7 @@ static IndexType find_ordering /* return the number of garbage collections */
 	COLAMD_ASSERT (hash <= n_col) ;
 
 	head_column = head [hash] ;
-	if (head_column > ColamdEmpty)
+	if (head_column > Empty)
 	{
 	  /* degree list "hash" is non-empty, use prev (shared3) of */
 	  /* first column in degree list as head of hash bucket */
@@ -1434,11 +1440,11 @@ static IndexType find_ordering /* return the number of garbage collections */
       COLAMD_ASSERT (min_score <= n_col) ;
       COLAMD_ASSERT (cur_score >= 0) ;
       COLAMD_ASSERT (cur_score <= n_col) ;
-      COLAMD_ASSERT (head [cur_score] >= ColamdEmpty) ;
+      COLAMD_ASSERT (head [cur_score] >= Empty) ;
       next_col = head [cur_score] ;
       Col [col].shared4.degree_next = next_col ;
-      Col [col].shared3.prev = ColamdEmpty ;
-      if (next_col != ColamdEmpty)
+      Col [col].shared3.prev = Empty ;
+      if (next_col != Empty)
       {
 	Col [next_col].shared3.prev = col ;
       }
@@ -1508,7 +1514,7 @@ static inline  void order_children
   {
     /* find an un-ordered non-principal column */
     COLAMD_ASSERT (col_is_dead(Col, i)) ;
-    if (!col_is_dead_principal(Col, i) && Col [i].shared2.order == ColamdEmpty)
+    if (!col_is_dead_principal(Col, i) && Col [i].shared2.order == Empty)
     {
       parent = i ;
       /* once found, find its principal parent */
@@ -1525,7 +1531,7 @@ static inline  void order_children
 
       do
       {
-	COLAMD_ASSERT (Col [c].shared2.order == ColamdEmpty) ;
+	COLAMD_ASSERT (Col [c].shared2.order == Empty) ;
 
 	/* order this column */
 	Col [c].shared2.order = order++ ;
@@ -1538,7 +1544,7 @@ static inline  void order_children
 	/* continue until we hit an ordered column.  There are */
 	/* guaranteed not to be anymore unordered columns */
 	/* above an ordered column */
-      } while (Col [c].shared2.order == ColamdEmpty) ;
+      } while (Col [c].shared2.order == Empty) ;
 
       /* re-order the super_col parent to largest order for this group */
       Col [parent].shared2.order = order ;
@@ -1633,7 +1639,7 @@ static void detect_super_cols
     /* === Get the first column in this hash bucket ===================== */
 
     head_column = head [hash] ;
-    if (head_column > ColamdEmpty)
+    if (head_column > Empty)
     {
       first_col = Col [head_column].shared3.headhash ;
     }
@@ -1644,7 +1650,7 @@ static void detect_super_cols
 
     /* === Consider each column in the hash bucket ====================== */
 
-    for (super_c = first_col ; super_c != ColamdEmpty ;
+    for (super_c = first_col ; super_c != Empty ;
 	 super_c = Col [super_c].shared4.hash_next)
     {
       COLAMD_ASSERT (col_is_alive(Col, super_c)) ;
@@ -1657,7 +1663,7 @@ static void detect_super_cols
       /* === Compare super_c with all columns after it ================ */
 
       for (c = Col [super_c].shared4.hash_next ;
-	   c != ColamdEmpty ; c = Col [c].shared4.hash_next)
+	   c != Empty ; c = Col [c].shared4.hash_next)
       {
 	COLAMD_ASSERT (c != super_c) ;
 	COLAMD_ASSERT (col_is_alive(Col, c)) ;
@@ -1703,7 +1709,7 @@ static void detect_super_cols
 	Col [c].shared1.parent = super_c ;
 	kill_non_principal_col(Col, c) ;
 	/* order c later, in order_children() */
-	Col [c].shared2.order = ColamdEmpty ;
+	Col [c].shared2.order = Empty ;
 	/* remove c from hash bucket */
 	Col [prev_c].shared4.hash_next = Col [c].shared4.hash_next ;
       }
@@ -1711,15 +1717,15 @@ static void detect_super_cols
 
     /* === Empty this hash bucket ======================================= */
 
-    if (head_column > ColamdEmpty)
+    if (head_column > Empty)
     {
       /* corresponding degree list "hash" is not empty */
-      Col [head_column].shared3.headhash = ColamdEmpty ;
+      Col [head_column].shared3.headhash = Empty ;
     }
     else
     {
       /* corresponding degree list "hash" is empty */
-      head [hash] = ColamdEmpty ;
+      head [hash] = Empty ;
     }
   }
 }
