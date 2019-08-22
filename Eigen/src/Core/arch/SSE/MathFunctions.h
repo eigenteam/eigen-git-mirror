@@ -22,9 +22,18 @@ namespace Eigen {
 namespace internal {
 
 template<> EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED
-Packet4f plog<Packet4f>(const Packet4f& _x)
-{
+Packet4f plog<Packet4f>(const Packet4f& _x) {
   return plog_float(_x);
+}
+
+template<> EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED
+Packet4f plog1p<Packet4f>(const Packet4f& _x) {
+  return generic_plog1p(_x);
+}
+
+template<> EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED
+Packet4f pexpm1<Packet4f>(const Packet4f& _x) {
+  return generic_expm1(_x);
 }
 
 template<> EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED
