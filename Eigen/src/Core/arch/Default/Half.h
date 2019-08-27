@@ -33,8 +33,8 @@
 // to disk and the likes), but fast on GPUs.
 
 
-#ifndef EIGEN_HALF_GPU_H
-#define EIGEN_HALF_GPU_H
+#ifndef EIGEN_HALF_H
+#define EIGEN_HALF_H
 
 #if __cplusplus > 199711L
 #define EIGEN_EXPLICIT_CAST(tgt_type) explicit operator tgt_type()
@@ -76,7 +76,6 @@ EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC float half_to_float(__half_raw h);
 
 struct half_base : public __half_raw {
   EIGEN_DEVICE_FUNC half_base() {}
-  EIGEN_DEVICE_FUNC half_base(const half_base& h) : __half_raw(h) {}
   EIGEN_DEVICE_FUNC half_base(const __half_raw& h) : __half_raw(h) {}
 
 #if defined(EIGEN_HAS_GPU_FP16)
@@ -114,8 +113,7 @@ struct half : public half_impl::half_base {
   EIGEN_DEVICE_FUNC half() {}
 
   EIGEN_DEVICE_FUNC half(const __half_raw& h) : half_impl::half_base(h) {}
-  EIGEN_DEVICE_FUNC half(const half& h) : half_impl::half_base(h) {}
-  
+
 #if defined(EIGEN_HAS_GPU_FP16)
  #if defined(EIGEN_HAS_HIP_FP16)
   EIGEN_DEVICE_FUNC half(const __half& h) : half_impl::half_base(h) {}
@@ -125,7 +123,7 @@ struct half : public half_impl::half_base {
   #endif
  #endif
 #endif
-  
+
 
   explicit EIGEN_DEVICE_FUNC half(bool b)
       : half_impl::half_base(half_impl::raw_uint16_to_half(b ? 0x3c00 : 0)) {}
@@ -175,12 +173,6 @@ struct half : public half_impl::half_base {
   EIGEN_DEVICE_FUNC EIGEN_EXPLICIT_CAST(double) const {
     return static_cast<double>(half_impl::half_to_float(*this));
   }
-
-  EIGEN_DEVICE_FUNC half& operator=(const half& other) {
-    x = other.x;
-    return *this;
-  }
-
 };
 
 } // end namespace Eigen
@@ -761,4 +753,4 @@ bool (isfinite)(const Eigen::half& h) {
 }  // namespace numext
 #endif
 
-#endif // EIGEN_HALF_GPU_H
+#endif // EIGEN_HALF_H

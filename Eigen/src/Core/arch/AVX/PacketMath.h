@@ -31,10 +31,14 @@ namespace internal {
 typedef __m256  Packet8f;
 typedef __m256i Packet8i;
 typedef __m256d Packet4d;
+typedef struct {
+  __m128i x;
+} Packet8h;
 
 template<> struct is_arithmetic<__m256>  { enum { value = true }; };
 template<> struct is_arithmetic<__m256i> { enum { value = true }; };
 template<> struct is_arithmetic<__m256d> { enum { value = true }; };
+template<> struct is_arithmetic<Packet8h> { enum { value = true }; };
 
 #define _EIGEN_DECLARE_CONST_Packet8f(NAME,X) \
   const Packet8f p8f_##NAME = pset1<Packet8f>(X)
@@ -95,6 +99,35 @@ template<> struct packet_traits<double> : default_packet_traits
     HasRound = 1,
     HasFloor = 1,
     HasCeil = 1
+  };
+};
+
+template <>
+struct packet_traits<Eigen::half> : default_packet_traits {
+  typedef Packet8h type;
+  // There is no half-size packet for Packet8h.
+  typedef Packet8h half;
+  enum {
+    Vectorizable = 1,
+    AlignedOnScalar = 1,
+    size = 8,
+    HasHalfPacket = 0,
+    HasAdd    = 1,
+    HasSub    = 1,
+    HasMul    = 1,
+    HasDiv    = 1,
+    HasNegate = 1,
+    HasAbs    = 0,
+    HasAbs2   = 0,
+    HasMin    = 0,
+    HasMax    = 0,
+    HasConj   = 0,
+    HasSetLinear = 0,
+    HasSqrt = 0,
+    HasRsqrt = 0,
+    HasExp = 0,
+    HasLog = 0,
+    HasBlend = 0
   };
 };
 #endif
@@ -845,6 +878,335 @@ template<> EIGEN_STRONG_INLINE Packet8f pinsertlast(const Packet8f& a, float b)
 template<> EIGEN_STRONG_INLINE Packet4d pinsertlast(const Packet4d& a, double b)
 {
   return _mm256_blend_pd(a,pset1<Packet4d>(b),(1<<3));
+}
+
+
+// Packet math for Eigen::half
+template<> struct unpacket_traits<Packet8h> { typedef Eigen::half type; enum {size=8, alignment=Aligned16, vectorizable=true, masked_load_available=false, masked_store_available=false}; typedef Packet8h half; };
+
+template<> EIGEN_STRONG_INLINE Packet8h pset1<Packet8h>(const Eigen::half& from) {
+  Packet8h result;
+  result.x = _mm_set1_epi16(from.x);
+  return result;
+}
+
+template<> EIGEN_STRONG_INLINE Eigen::half pfirst<Packet8h>(const Packet8h& from) {
+  return half_impl::raw_uint16_to_half(static_cast<unsigned short>(_mm_extract_epi16(from.x, 0)));
+}
+
+template<> EIGEN_STRONG_INLINE Packet8h pload<Packet8h>(const Eigen::half* from) {
+  Packet8h result;
+  result.x = _mm_load_si128(reinterpret_cast<const __m128i*>(from));
+  return result;
+}
+
+template<> EIGEN_STRONG_INLINE Packet8h ploadu<Packet8h>(const Eigen::half* from) {
+  Packet8h result;
+  result.x = _mm_loadu_si128(reinterpret_cast<const __m128i*>(from));
+  return result;
+}
+
+template<> EIGEN_STRONG_INLINE void pstore<Eigen::half>(Eigen::half* to, const Packet8h& from) {
+  _mm_store_si128(reinterpret_cast<__m128i*>(to), from.x);
+}
+
+template<> EIGEN_STRONG_INLINE void pstoreu<Eigen::half>(Eigen::half* to, const Packet8h& from) {
+  _mm_storeu_si128(reinterpret_cast<__m128i*>(to), from.x);
+}
+
+template<> EIGEN_STRONG_INLINE Packet8h
+ploaddup<Packet8h>(const Eigen::half*  from) {
+  Packet8h result;
+  unsigned short a = from[0].x;
+  unsigned short b = from[1].x;
+  unsigned short c = from[2].x;
+  unsigned short d = from[3].x;
+  result.x = _mm_set_epi16(d, d, c, c, b, b, a, a);
+  return result;
+}
+
+template<> EIGEN_STRONG_INLINE Packet8h
+ploadquad<Packet8h>(const Eigen::half* from) {
+  Packet8h result;
+  unsigned short a = from[0].x;
+  unsigned short b = from[1].x;
+  result.x = _mm_set_epi16(b, b, b, b, a, a, a, a);
+  return result;
+}
+
+EIGEN_STRONG_INLINE Packet8f half2float(const Packet8h& a) {
+#ifdef EIGEN_HAS_FP16_C
+  return _mm256_cvtph_ps(a.x);
+#else
+  EIGEN_ALIGN32 Eigen::half aux[8];
+  pstore(aux, a);
+  float f0(aux[0]);
+  float f1(aux[1]);
+  float f2(aux[2]);
+  float f3(aux[3]);
+  float f4(aux[4]);
+  float f5(aux[5]);
+  float f6(aux[6]);
+  float f7(aux[7]);
+
+  return _mm256_set_ps(f7, f6, f5, f4, f3, f2, f1, f0);
+#endif
+}
+
+EIGEN_STRONG_INLINE Packet8h float2half(const Packet8f& a) {
+#ifdef EIGEN_HAS_FP16_C
+  Packet8h result;
+  result.x = _mm256_cvtps_ph(a, _MM_FROUND_TO_NEAREST_INT|_MM_FROUND_NO_EXC);
+  return result;
+#else
+  EIGEN_ALIGN32 float aux[8];
+  pstore(aux, a);
+  Eigen::half h0(aux[0]);
+  Eigen::half h1(aux[1]);
+  Eigen::half h2(aux[2]);
+  Eigen::half h3(aux[3]);
+  Eigen::half h4(aux[4]);
+  Eigen::half h5(aux[5]);
+  Eigen::half h6(aux[6]);
+  Eigen::half h7(aux[7]);
+
+  Packet8h result;
+  result.x = _mm_set_epi16(h7.x, h6.x, h5.x, h4.x, h3.x, h2.x, h1.x, h0.x);
+  return result;
+#endif
+}
+
+template<> EIGEN_STRONG_INLINE Packet8h ptrue(const Packet8h& a) {
+  Packet8h r; r.x = _mm_cmpeq_epi32(a.x, a.x); return r;
+}
+
+template<> EIGEN_STRONG_INLINE Packet8h por(const Packet8h& a,const Packet8h& b) {
+  // in some cases Packet4i is a wrapper around __m128i, so we either need to
+  // cast to Packet4i to directly call the intrinsics as below:
+  Packet8h r; r.x = _mm_or_si128(a.x,b.x); return r;
+}
+template<> EIGEN_STRONG_INLINE Packet8h pxor(const Packet8h& a,const Packet8h& b) {
+  Packet8h r; r.x = _mm_xor_si128(a.x,b.x); return r;
+}
+template<> EIGEN_STRONG_INLINE Packet8h pand(const Packet8h& a,const Packet8h& b) {
+  Packet8h r; r.x = _mm_and_si128(a.x,b.x); return r;
+}
+template<> EIGEN_STRONG_INLINE Packet8h pandnot(const Packet8h& a,const Packet8h& b) {
+  Packet8h r; r.x = _mm_andnot_si128(b.x,a.x); return r;
+}
+
+template<> EIGEN_STRONG_INLINE Packet8h pselect(const Packet8h& mask, const Packet8h& a, const Packet8h& b) {
+  Packet8h r; r.x = _mm_blendv_epi8(b.x, a.x, mask.x); return r;
+}
+
+template<> EIGEN_STRONG_INLINE Packet8h pcmp_eq(const Packet8h& a,const Packet8h& b) {
+  Packet8f af = half2float(a);
+  Packet8f bf = half2float(b);
+  Packet8f rf = pcmp_eq(af, bf);
+  // Pack the 32-bit flags into 16-bits flags.
+  Packet8h result; result.x = _mm_packs_epi32(_mm256_extractf128_si256(_mm256_castps_si256(rf), 0),
+                                              _mm256_extractf128_si256(_mm256_castps_si256(rf), 1));
+  return result;
+}
+
+template<> EIGEN_STRONG_INLINE Packet8h pconj(const Packet8h& a) { return a; }
+
+template<> EIGEN_STRONG_INLINE Packet8h pnegate(const Packet8h& a) {
+  Packet8h sign_mask; sign_mask.x = _mm_set1_epi16(static_cast<unsigned short>(0x8000));
+  Packet8h result; result.x = _mm_xor_si128(a.x, sign_mask.x);
+  return result;
+}
+
+template<> EIGEN_STRONG_INLINE Packet8h padd<Packet8h>(const Packet8h& a, const Packet8h& b) {
+  Packet8f af = half2float(a);
+  Packet8f bf = half2float(b);
+  Packet8f rf = padd(af, bf);
+  return float2half(rf);
+}
+
+template<> EIGEN_STRONG_INLINE Packet8h psub<Packet8h>(const Packet8h& a, const Packet8h& b) {
+  Packet8f af = half2float(a);
+  Packet8f bf = half2float(b);
+  Packet8f rf = psub(af, bf);
+  return float2half(rf);
+}
+
+template<> EIGEN_STRONG_INLINE Packet8h pmul<Packet8h>(const Packet8h& a, const Packet8h& b) {
+  Packet8f af = half2float(a);
+  Packet8f bf = half2float(b);
+  Packet8f rf = pmul(af, bf);
+  return float2half(rf);
+}
+
+template<> EIGEN_STRONG_INLINE Packet8h pdiv<Packet8h>(const Packet8h& a, const Packet8h& b) {
+  Packet8f af = half2float(a);
+  Packet8f bf = half2float(b);
+  Packet8f rf = pdiv(af, bf);
+  return float2half(rf);
+}
+
+template<> EIGEN_STRONG_INLINE Packet8h pgather<Eigen::half, Packet8h>(const Eigen::half* from, Index stride)
+{
+  Packet8h result;
+  result.x = _mm_set_epi16(from[7*stride].x, from[6*stride].x, from[5*stride].x, from[4*stride].x, from[3*stride].x, from[2*stride].x, from[1*stride].x, from[0*stride].x);
+  return result;
+}
+
+template<> EIGEN_STRONG_INLINE void pscatter<Eigen::half, Packet8h>(Eigen::half* to, const Packet8h& from, Index stride)
+{
+  EIGEN_ALIGN32 Eigen::half aux[8];
+  pstore(aux, from);
+  to[stride*0].x = aux[0].x;
+  to[stride*1].x = aux[1].x;
+  to[stride*2].x = aux[2].x;
+  to[stride*3].x = aux[3].x;
+  to[stride*4].x = aux[4].x;
+  to[stride*5].x = aux[5].x;
+  to[stride*6].x = aux[6].x;
+  to[stride*7].x = aux[7].x;
+}
+
+template<> EIGEN_STRONG_INLINE Eigen::half predux<Packet8h>(const Packet8h& a) {
+  Packet8f af = half2float(a);
+  float reduced = predux<Packet8f>(af);
+  return Eigen::half(reduced);
+}
+
+template<> EIGEN_STRONG_INLINE Eigen::half predux_max<Packet8h>(const Packet8h& a) {
+  Packet8f af = half2float(a);
+  float reduced = predux_max<Packet8f>(af);
+  return Eigen::half(reduced);
+}
+
+template<> EIGEN_STRONG_INLINE Eigen::half predux_min<Packet8h>(const Packet8h& a) {
+  Packet8f af = half2float(a);
+  float reduced = predux_min<Packet8f>(af);
+  return Eigen::half(reduced);
+}
+
+template<> EIGEN_STRONG_INLINE Eigen::half predux_mul<Packet8h>(const Packet8h& a) {
+  Packet8f af = half2float(a);
+  float reduced = predux_mul<Packet8f>(af);
+  return Eigen::half(reduced);
+}
+
+template<> EIGEN_STRONG_INLINE Packet8h preduxp<Packet8h>(const Packet8h* p) {
+  Packet8f pf[8];
+  pf[0] = half2float(p[0]);
+  pf[1] = half2float(p[1]);
+  pf[2] = half2float(p[2]);
+  pf[3] = half2float(p[3]);
+  pf[4] = half2float(p[4]);
+  pf[5] = half2float(p[5]);
+  pf[6] = half2float(p[6]);
+  pf[7] = half2float(p[7]);
+  Packet8f reduced = preduxp<Packet8f>(pf);
+  return float2half(reduced);
+}
+
+template<> EIGEN_STRONG_INLINE Packet8h preverse(const Packet8h& a)
+{
+  __m128i m = _mm_setr_epi8(14,15,12,13,10,11,8,9,6,7,4,5,2,3,0,1);
+  Packet8h res;
+  res.x = _mm_shuffle_epi8(a.x,m);
+  return res;
+}
+
+template<> EIGEN_STRONG_INLINE Packet8h pinsertfirst(const Packet8h& a, Eigen::half b)
+{
+  Packet8h res;
+  res.x = _mm_insert_epi16(a.x,int(b.x),0);
+  return res;
+}
+
+template<> EIGEN_STRONG_INLINE Packet8h pinsertlast(const Packet8h& a, Eigen::half b)
+{
+  Packet8h res;
+  res.x = _mm_insert_epi16(a.x,int(b.x),7);
+  return res;
+}
+
+template<int Offset>
+struct palign_impl<Offset,Packet8h>
+{
+  static EIGEN_STRONG_INLINE void run(Packet8h& first, const Packet8h& second)
+  {
+    if (Offset!=0)
+      first.x = _mm_alignr_epi8(second.x,first.x, Offset*2);
+  }
+};
+
+EIGEN_STRONG_INLINE void
+ptranspose(PacketBlock<Packet8h,8>& kernel) {
+  __m128i a = kernel.packet[0].x;
+  __m128i b = kernel.packet[1].x;
+  __m128i c = kernel.packet[2].x;
+  __m128i d = kernel.packet[3].x;
+  __m128i e = kernel.packet[4].x;
+  __m128i f = kernel.packet[5].x;
+  __m128i g = kernel.packet[6].x;
+  __m128i h = kernel.packet[7].x;
+
+  __m128i a03b03 = _mm_unpacklo_epi16(a, b);
+  __m128i c03d03 = _mm_unpacklo_epi16(c, d);
+  __m128i e03f03 = _mm_unpacklo_epi16(e, f);
+  __m128i g03h03 = _mm_unpacklo_epi16(g, h);
+  __m128i a47b47 = _mm_unpackhi_epi16(a, b);
+  __m128i c47d47 = _mm_unpackhi_epi16(c, d);
+  __m128i e47f47 = _mm_unpackhi_epi16(e, f);
+  __m128i g47h47 = _mm_unpackhi_epi16(g, h);
+
+  __m128i a01b01c01d01 = _mm_unpacklo_epi32(a03b03, c03d03);
+  __m128i a23b23c23d23 = _mm_unpackhi_epi32(a03b03, c03d03);
+  __m128i e01f01g01h01 = _mm_unpacklo_epi32(e03f03, g03h03);
+  __m128i e23f23g23h23 = _mm_unpackhi_epi32(e03f03, g03h03);
+  __m128i a45b45c45d45 = _mm_unpacklo_epi32(a47b47, c47d47);
+  __m128i a67b67c67d67 = _mm_unpackhi_epi32(a47b47, c47d47);
+  __m128i e45f45g45h45 = _mm_unpacklo_epi32(e47f47, g47h47);
+  __m128i e67f67g67h67 = _mm_unpackhi_epi32(e47f47, g47h47);
+
+  __m128i a0b0c0d0e0f0g0h0 = _mm_unpacklo_epi64(a01b01c01d01, e01f01g01h01);
+  __m128i a1b1c1d1e1f1g1h1 = _mm_unpackhi_epi64(a01b01c01d01, e01f01g01h01);
+  __m128i a2b2c2d2e2f2g2h2 = _mm_unpacklo_epi64(a23b23c23d23, e23f23g23h23);
+  __m128i a3b3c3d3e3f3g3h3 = _mm_unpackhi_epi64(a23b23c23d23, e23f23g23h23);
+  __m128i a4b4c4d4e4f4g4h4 = _mm_unpacklo_epi64(a45b45c45d45, e45f45g45h45);
+  __m128i a5b5c5d5e5f5g5h5 = _mm_unpackhi_epi64(a45b45c45d45, e45f45g45h45);
+  __m128i a6b6c6d6e6f6g6h6 = _mm_unpacklo_epi64(a67b67c67d67, e67f67g67h67);
+  __m128i a7b7c7d7e7f7g7h7 = _mm_unpackhi_epi64(a67b67c67d67, e67f67g67h67);
+
+  kernel.packet[0].x = a0b0c0d0e0f0g0h0;
+  kernel.packet[1].x = a1b1c1d1e1f1g1h1;
+  kernel.packet[2].x = a2b2c2d2e2f2g2h2;
+  kernel.packet[3].x = a3b3c3d3e3f3g3h3;
+  kernel.packet[4].x = a4b4c4d4e4f4g4h4;
+  kernel.packet[5].x = a5b5c5d5e5f5g5h5;
+  kernel.packet[6].x = a6b6c6d6e6f6g6h6;
+  kernel.packet[7].x = a7b7c7d7e7f7g7h7;
+}
+
+EIGEN_STRONG_INLINE void
+ptranspose(PacketBlock<Packet8h,4>& kernel) {
+  EIGEN_ALIGN32 Eigen::half in[4][8];
+  pstore<Eigen::half>(in[0], kernel.packet[0]);
+  pstore<Eigen::half>(in[1], kernel.packet[1]);
+  pstore<Eigen::half>(in[2], kernel.packet[2]);
+  pstore<Eigen::half>(in[3], kernel.packet[3]);
+
+  EIGEN_ALIGN32 Eigen::half out[4][8];
+
+  for (int i = 0; i < 4; ++i) {
+    for (int j = 0; j < 4; ++j) {
+      out[i][j] = in[j][2*i];
+    }
+    for (int j = 0; j < 4; ++j) {
+      out[i][j+4] = in[j][2*i+1];
+    }
+  }
+
+  kernel.packet[0] = pload<Packet8h>(out[0]);
+  kernel.packet[1] = pload<Packet8h>(out[1]);
+  kernel.packet[2] = pload<Packet8h>(out[2]);
+  kernel.packet[3] = pload<Packet8h>(out[3]);
 }
 
 } // end namespace internal

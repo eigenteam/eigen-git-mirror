@@ -160,6 +160,9 @@ using std::ptrdiff_t;
 #include "src/Core/GenericPacketMath.h"
 #include "src/Core/MathFunctionsImpl.h"
 #include "src/Core/arch/Default/ConjHelper.h"
+// Generic half float support
+#include "src/Core/arch/Default/Half.h"
+#include "src/Core/arch/Default/TypeCasting.h"
 
 #if defined EIGEN_VECTORIZE_AVX512
   #include "src/Core/arch/SSE/PacketMath.h"
@@ -207,14 +210,10 @@ using std::ptrdiff_t;
   #include "src/Core/arch/MSA/Complex.h"
 #endif
 
-// Half float support
-#include "src/Core/arch/GPU/Half.h"
-#include "src/Core/arch/GPU/PacketMathHalf.h"
-#include "src/Core/arch/GPU/TypeCasting.h"
-
 #if defined EIGEN_VECTORIZE_GPU
   #include "src/Core/arch/GPU/PacketMath.h"
   #include "src/Core/arch/GPU/MathFunctions.h"
+  #include "src/Core/arch/GPU/TypeCasting.h"
 #endif
 
 #if defined(EIGEN_USE_SYCL)
