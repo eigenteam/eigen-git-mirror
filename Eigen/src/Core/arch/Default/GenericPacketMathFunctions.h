@@ -137,8 +137,9 @@ Packet generic_plog1p(const Packet& x)
   Packet xp1 = padd(x, one);
   Packet small_mask = pcmp_eq(xp1, one);
   Packet log1 = plog(xp1);
+  Packet inf_mask = pcmp_eq(xp1, log1);
   Packet log_large = pmul(x, pdiv(log1, psub(xp1, one)));
-  return pselect(small_mask, x, log_large);
+  return pselect(por(small_mask, inf_mask), x, log_large);
 }
 
 /** \internal \returns exp(x)-1 computed using W. Kahan's formula.

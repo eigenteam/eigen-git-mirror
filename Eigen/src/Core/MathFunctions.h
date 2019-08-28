@@ -551,7 +551,8 @@ namespace std_fallback {
     Scalar x1p = RealScalar(1) + x;
     Scalar log_1p = log(x1p);
     const bool is_small = numext::equal_strict(x1p, Scalar(1));
-    return is_small ? x : x * (log_1p / (x1p - RealScalar(1)));
+    const bool is_inf = numext::equal_strict(x1p, log_1p);
+    return (is_small || is_inf) ? x : x * (log_1p / (x1p - RealScalar(1)));
   }
 }
 

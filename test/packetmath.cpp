@@ -607,8 +607,12 @@ template<typename Scalar,typename Packet> void packetmath_real()
   CHECK_CWISE1_IF(internal::packet_traits<Scalar>::HasLGamma, std::lgamma, internal::plgamma);
   CHECK_CWISE1_IF(internal::packet_traits<Scalar>::HasErf, std::erf, internal::perf);
   CHECK_CWISE1_IF(internal::packet_traits<Scalar>::HasErfc, std::erfc, internal::perfc);
-  CHECK_CWISE1_IF(PacketTraits::HasExpm1, std::expm1, internal::pexpm1);
+  data1[0] = std::numeric_limits<Scalar>::infinity();
+  data1[1] = Scalar(-1);
   CHECK_CWISE1_IF(PacketTraits::HasLog1p, std::log1p, internal::plog1p);
+  data1[0] = std::numeric_limits<Scalar>::infinity();
+  data1[1] = -std::numeric_limits<Scalar>::infinity();
+  CHECK_CWISE1_IF(PacketTraits::HasExpm1, std::expm1, internal::pexpm1);
 #endif
 
   if(PacketSize>=2)
@@ -647,6 +651,14 @@ template<typename Scalar,typename Packet> void packetmath_real()
       data1[0] = std::numeric_limits<Scalar>::infinity();
       h.store(data2, internal::plog(h.load(data1)));
       VERIFY((numext::isinf)(data2[0]));
+    }
+    if(PacketTraits::HasLog1p) {
+      packet_helper<PacketTraits::HasLog1p,Packet> h;
+      data1[0] = Scalar(-2);
+      data1[1] = -std::numeric_limits<Scalar>::infinity();
+      h.store(data2, internal::plog1p(h.load(data1)));
+      VERIFY((numext::isnan)(data2[0]));
+      VERIFY((numext::isnan)(data2[1]));
     }
     if(PacketTraits::HasSqrt)
     {
