@@ -90,7 +90,6 @@ struct ThreadPoolDevice {
     // CPU cycles due to the threads competing for memory bandwidth, so we
     // statically schedule at most 4 block copies here.
     const size_t kMinBlockSize = 32768;
-    typedef TensorCostModel<ThreadPoolDevice> CostModel;
     const size_t num_threads = CostModel::numThreads(n, TensorOpCost(1.0, 1.0, 0), 4);
     if (n <= kMinBlockSize || num_threads < 2) {
       ::memcpy(dst, src, n);
@@ -302,9 +301,12 @@ struct ThreadPoolDevice {
   // For parallelForAsync we must keep passed in closures on the heap, and
   // delete them only after `done` callback finished.
   struct ParallelForAsyncContext {
-    ParallelForAsyncContext(Index count, std::function<void(Index, Index)> f,
-                             std::function<void()> done)
-        : count(count), f(std::move(f)), done(std::move(done)) {}
+    ParallelForAsyncContext(Index block_count,
+                            std::function<void(Index, Index)> block_f,
+                            std::function<void()> done_callback)
+        : count(block_count),
+          f(std::move(block_f)),
+          done(std::move(done_callback)) {}
 
     std::atomic<Index> count;
     std::function<void(Index, Index)> f;
