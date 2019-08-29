@@ -20,6 +20,7 @@ namespace Eigen {
 // map_allocator.
 template<typename T> struct MakePointer {
   typedef T* Type;
+  typedef const T* ConstType;
 };
 
 template <typename T>
