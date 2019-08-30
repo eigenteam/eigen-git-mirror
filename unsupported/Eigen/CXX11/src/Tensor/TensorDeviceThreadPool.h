@@ -52,7 +52,7 @@ class Allocator {
 // Build a thread pool device on top the an existing pool of threads.
 struct ThreadPoolDevice {
   // The ownership of the thread pool remains with the caller.
-  ThreadPoolDevice(ThreadPoolInterface* pool, int num_cores, Allocator* allocator = NULL)
+  ThreadPoolDevice(ThreadPoolInterface* pool, int num_cores, Allocator* allocator = nullptr)
       : pool_(pool), num_threads_(num_cores), allocator_(allocator) { }
 
   EIGEN_STRONG_INLINE void* allocate(size_t num_bytes) const {
@@ -234,7 +234,7 @@ struct ThreadPoolDevice {
   // Convenience wrapper for parallelFor that does not align blocks.
   void parallelFor(Index n, const TensorOpCost& cost,
                    std::function<void(Index, Index)> f) const {
-    parallelFor(n, cost, NULL, std::move(f));
+    parallelFor(n, cost, nullptr, std::move(f));
   }
 
   // WARNING: This function is asynchronous and will not block the calling thread.
@@ -248,6 +248,14 @@ struct ThreadPoolDevice {
                         std::function<Index(Index)> block_align,
                         std::function<void(Index, Index)> f,
                         std::function<void()> done) const {
+    // Compute small problems directly in the caller thread.
+    if (n <= 1 || numThreads() == 1 ||
+        CostModel::numThreads(n, cost, static_cast<int>(numThreads())) == 1) {
+      f(0, n);
+      done();
+      return;
+    }
+
     // Compute block size and total count of blocks.
     ParallelForBlock block = CalculateParallelForBlock(n, cost, block_align);
 
@@ -269,24 +277,26 @@ struct ThreadPoolDevice {
       // Single block or less, execute directly.
       ctx->f(firstIdx, lastIdx);
 
-      // Call 'done' callback if it was the last block.
-      if (ctx->count.fetch_sub(1) == 1) {
-        (ctx->done)();
-        // We can't delete ctx right now, because it will deallocate the closure
-        // we are currently in.
-        pool_->Schedule([ctx]() { delete ctx; });
-      }
+      // Delete async context if it was the last block.
+      if (ctx->count.fetch_sub(1) == 1) delete ctx;
     };
 
-    // Execute the root in the thread pool.
-    pool_->Schedule([ctx, n]() { ctx->handle_range(0, n); });
+    if (block.count <= numThreads()) {
+      // Avoid a thread hop by running the root of the tree and one block on the
+      // main thread.
+      ctx->handle_range(0, n);
+    } else {
+      // Execute the root in the thread pool to avoid running work on more than
+      // numThreads() threads.
+      pool_->Schedule([ctx, n]() { ctx->handle_range(0, n); });
+    }
   }
 
   // Convenience wrapper for parallelForAsync that does not align blocks.
   void parallelForAsync(Index n, const TensorOpCost& cost,
                         std::function<void(Index, Index)> f,
                         std::function<void()> done) const {
-    parallelForAsync(n, cost, NULL, std::move(f), std::move(done));
+    parallelForAsync(n, cost, nullptr, std::move(f), std::move(done));
   }
 
   // Thread pool accessor.
@@ -307,6 +317,7 @@ struct ThreadPoolDevice {
         : count(block_count),
           f(std::move(block_f)),
           done(std::move(done_callback)) {}
+    ~ParallelForAsyncContext() { done(); }
 
     std::atomic<Index> count;
     std::function<void(Index, Index)> f;

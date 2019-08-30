@@ -25,6 +25,9 @@ class Barrier {
   void Notify() {
     unsigned int v = state_.fetch_sub(2, std::memory_order_acq_rel) - 2;
     if (v != 1) {
+      // Clear the lowest bit (waiter flag) and check that the original state
+      // value was not zero. If it was zero, it means that notify was called
+      // more times than the original count.
       eigen_plain_assert(((v + 2) & ~1) != 0);
       return;  // either count has not dropped to 0, or waiter is not waiting
     }

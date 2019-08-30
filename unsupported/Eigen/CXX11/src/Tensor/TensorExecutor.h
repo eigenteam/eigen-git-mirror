@@ -430,12 +430,14 @@ class TensorAsyncExecutor<Expression, ThreadPoolDevice, Vectorizable, Tileable> 
                                            std::function<void()> done) {
     TensorAsyncExecutorContext* const ctx =
         new TensorAsyncExecutorContext(expr, device, std::move(done));
-    // TODO(ezhulenev): This is a potentially blocking operation. Make it async!
-    const bool needs_assign = ctx->evaluator.evalSubExprsIfNeeded(nullptr);
 
-    typedef EvalRange<Evaluator, StorageIndex, Vectorizable> EvalRange;
+    const auto on_eval_subexprs = [ctx, &device](bool need_assign) -> void {
+      if (!need_assign) {
+        delete ctx;
+        return;
+      }
 
-    if (needs_assign) {
+      typedef EvalRange<Evaluator, StorageIndex, Vectorizable> EvalRange;
       const StorageIndex size = array_prod(ctx->evaluator.dimensions());
       device.parallelForAsync(
           size, ctx->evaluator.costPerCoeff(Vectorizable),
@@ -444,7 +446,9 @@ class TensorAsyncExecutor<Expression, ThreadPoolDevice, Vectorizable, Tileable> 
             EvalRange::run(&ctx->evaluator, firstIdx, lastIdx);
           },
           [ctx]() { delete ctx; });
-    }
+    };
+
+    ctx->evaluator.evalSubExprsIfNeededAsync(nullptr, on_eval_subexprs);
   }
 
  private:
@@ -496,26 +500,32 @@ class TensorAsyncExecutor<Expression, ThreadPoolDevice, Vectorizable, /*Tileable
       return;
     }
 
-    // TODO(ezhulenev): This is a potentially blocking operation. Make it async!
-    const bool needs_assign = ctx->evaluator.evalSubExprsIfNeeded(nullptr);
+    const auto on_eval_subexprs = [ctx, &device](bool need_assign) -> void {
+      if (!need_assign) {
+        delete ctx;
+        return;
+      }
 
-    if (needs_assign) {
       ctx->tiling =
-          internal::GetTensorExecutorTilingContext<Evaluator, BlockMapper,
-                                                   Vectorizable>(device, ctx->evaluator);
+          GetTensorExecutorTilingContext<Evaluator, TensorBlockMapper,
+                                         Vectorizable>(device, ctx->evaluator);
 
       device.parallelForAsync(
           ctx->tiling.block_mapper.total_block_count(), ctx->tiling.cost,
           [ctx](StorageIndex firstIdx, StorageIndex lastIdx) {
             ScalarNoConst* thread_buf =
-                ctx->tiling.template GetCurrentThreadBuffer<ScalarNoConst>(ctx->device);
+                ctx->tiling.template GetCurrentThreadBuffer<ScalarNoConst>(
+                    ctx->device);
             for (StorageIndex i = firstIdx; i < lastIdx; ++i) {
-              auto block = ctx->tiling.block_mapper.GetBlockForIndex(i, thread_buf);
+              auto block =
+                  ctx->tiling.block_mapper.GetBlockForIndex(i, thread_buf);
               ctx->evaluator.evalBlock(&block);
             }
           },
           [ctx]() { delete ctx; });
-    }
+    };
+
+    ctx->evaluator.evalSubExprsIfNeededAsync(nullptr, on_eval_subexprs);
   }
 
  private:
