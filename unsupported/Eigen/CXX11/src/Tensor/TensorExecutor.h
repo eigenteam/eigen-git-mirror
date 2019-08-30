@@ -507,7 +507,7 @@ class TensorAsyncExecutor<Expression, ThreadPoolDevice, Vectorizable, /*Tileable
       }
 
       ctx->tiling =
-          GetTensorExecutorTilingContext<Evaluator, TensorBlockMapper,
+          GetTensorExecutorTilingContext<Evaluator, BlockMapper,
                                          Vectorizable>(device, ctx->evaluator);
 
       device.parallelForAsync(
