@@ -52,6 +52,7 @@ template<> EIGEN_STRONG_INLINE Packet8f preinterpret<Packet8f,Packet8i>(const Pa
   return _mm256_castsi256_ps(a);
 }
 
+#ifndef EIGEN_VECTORIZE_AVX512
 
 template <>
 struct type_casting_traits<Eigen::half, float> {
@@ -74,6 +75,8 @@ struct type_casting_traits<float, Eigen::half> {
     TgtCoeffRatio = 1
   };
 };
+
+#endif  // EIGEN_VECTORIZE_AVX512
 
 template<> EIGEN_STRONG_INLINE Packet8h pcast<Packet8f, Packet8h>(const Packet8f& a) {
   return float2half(a);
