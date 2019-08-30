@@ -920,19 +920,19 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
 
   template <typename DoneCallback>
   struct EvalShardedByInnerDimContext {
-    EvalShardedByInnerDimContext(const Self* evaluator, int num_threads,
-                                 Scalar* result, Index m, Index n, Index k,
-                                 DoneCallback done)
-        : evaluator(evaluator),
+    EvalShardedByInnerDimContext(const Self* self, int num_threads,
+                                 Scalar* result_buffer,
+                                 Index m_size, Index n_size, Index k_size,
+                                 DoneCallback done_callback)
+        : evaluator(self),
           m_lhs_inner_dim_contiguous(evaluator->m_lhs_inner_dim_contiguous),
           m_rhs_inner_dim_contiguous(evaluator->m_rhs_inner_dim_contiguous),
           m_rhs_inner_dim_reordered(evaluator->m_rhs_inner_dim_reordered),
-          num_threads(num_threads),
-          result(result),
-          m(m),
-          n(n),
-          k(k),
-          done(std::move(done)),
+          result(result_buffer),
+          m(m_size),
+          n(n_size),
+          k(k_size),
+          done(std::move(done_callback)),
           buffer_size_bytes(m * n * sizeof(Scalar)),
           block_size(blockSize(k, num_threads)),
           num_blocks(divup<Index>(k, block_size)),
@@ -1032,7 +1032,6 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
     bool m_rhs_inner_dim_contiguous;
     bool m_rhs_inner_dim_reordered;
 
-    int num_threads;
     Scalar* result;
 
     Index m;
