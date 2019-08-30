@@ -38,9 +38,9 @@ class TestAllocator : public Allocator {
 
 void test_multithread_elementwise()
 {
-  Tensor<float, 3> in1(2,3,7);
-  Tensor<float, 3> in2(2,3,7);
-  Tensor<float, 3> out(2,3,7);
+  Tensor<float, 3> in1(200, 30, 70);
+  Tensor<float, 3> in2(200, 30, 70);
+  Tensor<float, 3> out(200, 30, 70);
 
   in1.setRandom();
   in2.setRandom();
@@ -49,15 +49,39 @@ void test_multithread_elementwise()
   Eigen::ThreadPoolDevice thread_pool_device(&tp, internal::random<int>(3, 11));
   out.device(thread_pool_device) = in1 + in2 * 3.14f;
 
-  for (int i = 0; i < 2; ++i) {
-    for (int j = 0; j < 3; ++j) {
-      for (int k = 0; k < 7; ++k) {
-        VERIFY_IS_APPROX(out(i,j,k), in1(i,j,k) + in2(i,j,k) * 3.14f);
+  for (int i = 0; i < 200; ++i) {
+    for (int j = 0; j < 30; ++j) {
+      for (int k = 0; k < 70; ++k) {
+        VERIFY_IS_APPROX(out(i, j, k), in1(i, j, k) + in2(i, j, k) * 3.14f);
       }
     }
   }
 }
 
+void test_async_multithread_elementwise()
+{
+  Tensor<float, 3> in1(200, 30, 70);
+  Tensor<float, 3> in2(200, 30, 70);
+  Tensor<float, 3> out(200, 30, 70);
+
+  in1.setRandom();
+  in2.setRandom();
+
+  Eigen::ThreadPool tp(internal::random<int>(3, 11));
+  Eigen::ThreadPoolDevice thread_pool_device(&tp, internal::random<int>(3, 11));
+
+  Eigen::Barrier b(1);
+  out.device(thread_pool_device, [&b]() { b.Notify(); }) = in1 + in2 * 3.14f;
+  b.Wait();
+
+  for (int i = 0; i < 200; ++i) {
+    for (int j = 0; j < 30; ++j) {
+      for (int k = 0; k < 70; ++k) {
+        VERIFY_IS_APPROX(out(i, j, k), in1(i, j, k) + in2(i, j, k) * 3.14f);
+      }
+    }
+  }
+}
 
 void test_multithread_compound_assignment()
 {
@@ -516,6 +540,7 @@ void test_threadpool_allocate(TestAllocator* allocator)
 EIGEN_DECLARE_TEST(cxx11_tensor_thread_pool)
 {
   CALL_SUBTEST_1(test_multithread_elementwise());
+  CALL_SUBTEST_1(test_async_multithread_elementwise());
   CALL_SUBTEST_1(test_multithread_compound_assignment());
 
   CALL_SUBTEST_2(test_multithread_contraction<ColMajor>());

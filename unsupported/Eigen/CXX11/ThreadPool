@@ -43,7 +43,7 @@
 #include <mutex>
 #include <thread>
 #include <functional>
-#include <memory>
+#include <utility>
 #include "src/util/CXX11Meta.h"
 #include "src/util/MaxSizeVector.h"
 
