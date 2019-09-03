@@ -562,37 +562,112 @@ static void test_execute_reverse_rvalue(Device d)
   }
 }
 
+template <typename T, int NumDims, typename Device, bool Vectorizable,
+          bool Tileable, int Layout>
+static void test_async_execute_unary_expr(Device d)
+{
+  static constexpr int Options = 0 | Layout;
+
+  // Pick a large enough tensor size to bypass small tensor block evaluation
+  // optimization.
+  auto dims = RandomDims<NumDims>(50 / NumDims, 100 / NumDims);
+
+  Tensor<T, NumDims, Options, Index> src(dims);
+  Tensor<T, NumDims, Options, Index> dst(dims);
+
+  src.setRandom();
+  const auto expr = src.square();
+
+  using Assign = TensorAssignOp<decltype(dst), const decltype(expr)>;
+  using Executor = internal::TensorAsyncExecutor<const Assign, Device,
+                                                 Vectorizable, Tileable>;
+  Eigen::Barrier done(1);
+  Executor::runAsync(Assign(dst, expr), d, [&done]() { done.Notify(); });
+  done.Wait();
+
+  for (Index i = 0; i < dst.dimensions().TotalSize(); ++i) {
+    T square = src.coeff(i) * src.coeff(i);
+    VERIFY_IS_EQUAL(square, dst.coeff(i));
+  }
+}
+
+template <typename T, int NumDims, typename Device, bool Vectorizable,
+          bool Tileable, int Layout>
+static void test_async_execute_binary_expr(Device d)
+{
+  static constexpr int Options = 0 | Layout;
+
+  // Pick a large enough tensor size to bypass small tensor block evaluation
+  // optimization.
+  auto dims = RandomDims<NumDims>(50 / NumDims, 100 / NumDims);
+
+  Tensor<T, NumDims, Options, Index> lhs(dims);
+  Tensor<T, NumDims, Options, Index> rhs(dims);
+  Tensor<T, NumDims, Options, Index> dst(dims);
+
+  lhs.setRandom();
+  rhs.setRandom();
+
+  const auto expr = lhs + rhs;
+
+  using Assign = TensorAssignOp<decltype(dst), const decltype(expr)>;
+  using Executor = internal::TensorAsyncExecutor<const Assign, Device,
+                                                 Vectorizable, Tileable>;
+
+  Eigen::Barrier done(1);
+  Executor::runAsync(Assign(dst, expr), d, [&done]() { done.Notify(); });
+  done.Wait();
+
+  for (Index i = 0; i < dst.dimensions().TotalSize(); ++i) {
+    T sum = lhs.coeff(i) + rhs.coeff(i);
+    VERIFY_IS_EQUAL(sum, dst.coeff(i));
+  }
+}
+
 #ifdef EIGEN_DONT_VECTORIZE
 #define VECTORIZABLE(VAL) !EIGEN_DONT_VECTORIZE && VAL
-#else 
+#else
 #define VECTORIZABLE(VAL) VAL
 #endif
 
 #define CALL_SUBTEST_PART(PART) \
   CALL_SUBTEST_##PART
 
-#define CALL_SUBTEST_COMBINATIONS(PART, NAME, T, NUM_DIMS)                                                \
-  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, DefaultDevice,    false, false, ColMajor>(default_device))); \
-  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, DefaultDevice,    false, true,  ColMajor>(default_device))); \
+#define CALL_SUBTEST_COMBINATIONS(PART, NAME, T, NUM_DIMS)                                                              \
+  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, DefaultDevice,    false,               false, ColMajor>(default_device))); \
+  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, DefaultDevice,    false,               true,  ColMajor>(default_device))); \
   CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, DefaultDevice,    VECTORIZABLE(true),  false, ColMajor>(default_device))); \
   CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, DefaultDevice,    VECTORIZABLE(true),  true,  ColMajor>(default_device))); \
-  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, DefaultDevice,    false, false, RowMajor>(default_device))); \
-  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, DefaultDevice,    false, true,  RowMajor>(default_device))); \
+  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, DefaultDevice,    false,               false, RowMajor>(default_device))); \
+  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, DefaultDevice,    false,               true,  RowMajor>(default_device))); \
   CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, DefaultDevice,    VECTORIZABLE(true),  false, RowMajor>(default_device))); \
   CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, DefaultDevice,    VECTORIZABLE(true),  true,  RowMajor>(default_device))); \
-  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, ThreadPoolDevice, false, false, ColMajor>(tp_device)));      \
-  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, ThreadPoolDevice, false, true,  ColMajor>(tp_device)));      \
+  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, ThreadPoolDevice, false,               false, ColMajor>(tp_device)));      \
+  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, ThreadPoolDevice, false,               true,  ColMajor>(tp_device)));      \
   CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, ThreadPoolDevice, VECTORIZABLE(true),  false, ColMajor>(tp_device)));      \
   CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, ThreadPoolDevice, VECTORIZABLE(true),  true,  ColMajor>(tp_device)));      \
-  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, ThreadPoolDevice, false, false, RowMajor>(tp_device)));      \
-  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, ThreadPoolDevice, false, true,  RowMajor>(tp_device)));      \
+  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, ThreadPoolDevice, false,               false, RowMajor>(tp_device)));      \
+  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, ThreadPoolDevice, false,               true,  RowMajor>(tp_device)));      \
   CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, ThreadPoolDevice, VECTORIZABLE(true),  false, RowMajor>(tp_device)));      \
+  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, ThreadPoolDevice, VECTORIZABLE(true),  true,  RowMajor>(tp_device)))
+
+// NOTE: Currently only ThreadPoolDevice supports async expression evaluation.
+#define CALL_ASYNC_SUBTEST_COMBINATIONS(PART, NAME, T, NUM_DIMS)                                                   \
+  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, ThreadPoolDevice, false,               false, ColMajor>(tp_device))); \
+  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, ThreadPoolDevice, false,               true,  ColMajor>(tp_device))); \
+  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, ThreadPoolDevice, VECTORIZABLE(true),  false, ColMajor>(tp_device))); \
+  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, ThreadPoolDevice, VECTORIZABLE(true),  true,  ColMajor>(tp_device))); \
+  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, ThreadPoolDevice, false,               false, RowMajor>(tp_device))); \
+  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, ThreadPoolDevice, false,               true,  RowMajor>(tp_device))); \
+  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, ThreadPoolDevice, VECTORIZABLE(true),  false, RowMajor>(tp_device))); \
   CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, ThreadPoolDevice, VECTORIZABLE(true),  true,  RowMajor>(tp_device)))
 
 EIGEN_DECLARE_TEST(cxx11_tensor_executor) {
   Eigen::DefaultDevice default_device;
+  // Default device is unused in ASYNC tests.
+  EIGEN_UNUSED_VARIABLE(default_device);
 
-  const auto num_threads = internal::random<int>(1, 24);
+  const auto num_threads = internal::random<int>(20, 24);
   Eigen::ThreadPool tp(num_threads);
   Eigen::ThreadPoolDevice tp_device(&tp, num_threads);
 
@@ -660,8 +735,16 @@ EIGEN_DECLARE_TEST(cxx11_tensor_executor) {
   CALL_SUBTEST_COMBINATIONS(14, test_execute_reverse_rvalue, float, 4);
   CALL_SUBTEST_COMBINATIONS(14, test_execute_reverse_rvalue, float, 5);
 
+  CALL_ASYNC_SUBTEST_COMBINATIONS(15, test_async_execute_unary_expr, float, 3);
+  CALL_ASYNC_SUBTEST_COMBINATIONS(15, test_async_execute_unary_expr, float, 4);
+  CALL_ASYNC_SUBTEST_COMBINATIONS(15, test_async_execute_unary_expr, float, 5);
+
+  CALL_ASYNC_SUBTEST_COMBINATIONS(16, test_async_execute_binary_expr, float, 3);
+  CALL_ASYNC_SUBTEST_COMBINATIONS(16, test_async_execute_binary_expr, float, 4);
+  CALL_ASYNC_SUBTEST_COMBINATIONS(16, test_async_execute_binary_expr, float, 5);
+
   // Force CMake to split this test.
-  // EIGEN_SUFFIXES;1;2;3;4;5;6;7;8;9;10;11;12;13;14
+  // EIGEN_SUFFIXES;1;2;3;4;5;6;7;8;9;10;11;12;13;14;15;16
 }
 
 #undef CALL_SUBTEST_COMBINATIONS

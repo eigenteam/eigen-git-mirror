@@ -63,6 +63,47 @@ template <typename ExpressionType, typename DeviceType> class TensorDevice {
     ExpressionType& m_expression;
 };
 
+#ifdef EIGEN_USE_THREADS
+
+/** \class TensorAsyncDevice
+  * \ingroup CXX11_Tensor_Module
+  *
+  * \brief Pseudo expression providing an operator = that will evaluate its
+  * argument asynchronously on the specified device (currently supports only
+  * ThreadPoolDevice).
+  *
+  * Example:
+  *    std::function<void()> done = []() {};
+  *    C.device(EIGEN_THREAD_POOL, std::move(done)) = A + B;
+ */
+
+template <typename ExpressionType, typename DeviceType>
+class TensorAsyncDevice {
+ public:
+  TensorAsyncDevice(const DeviceType& device, ExpressionType& expression,
+                    std::function<void()> done)
+      : m_device(device), m_expression(expression), m_done(std::move(done)) {}
+
+  template <typename OtherDerived>
+  EIGEN_STRONG_INLINE TensorAsyncDevice& operator=(const OtherDerived& other) {
+    typedef TensorAssignOp<ExpressionType, const OtherDerived> Assign;
+    typedef internal::TensorAsyncExecutor<const Assign, DeviceType> Executor;
+
+    // WARNING: After assignment 'm_done' callback will be in undefined state.
+    Assign assign(m_expression, other);
+    Executor::runAsync(assign, m_device, std::move(m_done));
+
+    return *this;
+  }
+
+ protected:
+  const DeviceType& m_device;
+  ExpressionType& m_expression;
+  std::function<void()> m_done;
+};
+
+#endif  // EIGEN_USE_THREADS
+
 } // end namespace Eigen
 
 #endif // EIGEN_CXX11_TENSOR_TENSOR_DEVICE_H

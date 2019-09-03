@@ -126,6 +126,51 @@ Packet plog_float(const Packet _x)
                               por(pselect(pos_inf_mask,cst_pos_inf,x), invalid_mask));
 }
 
+/** \internal \returns log(1 + x) computed using W. Kahan's formula.
+    See: http://www.plunk.org/~hatch/rightway.php
+ */
+template<typename Packet>
+Packet generic_plog1p(const Packet& x)
+{
+  typedef typename unpacket_traits<Packet>::type ScalarType;
+  const Packet one = pset1<Packet>(ScalarType(1));
+  Packet xp1 = padd(x, one);
+  Packet small_mask = pcmp_eq(xp1, one);
+  Packet log1 = plog(xp1);
+  Packet inf_mask = pcmp_eq(xp1, log1);
+  Packet log_large = pmul(x, pdiv(log1, psub(xp1, one)));
+  return pselect(por(small_mask, inf_mask), x, log_large);
+}
+
+/** \internal \returns exp(x)-1 computed using W. Kahan's formula.
+    See: http://www.plunk.org/~hatch/rightway.php
+ */
+template<typename Packet>
+Packet generic_expm1(const Packet& x)
+{
+  typedef typename unpacket_traits<Packet>::type ScalarType;
+  const Packet one = pset1<Packet>(ScalarType(1));
+  const Packet neg_one = pset1<Packet>(ScalarType(-1));
+  Packet u = pexp(x);
+  Packet one_mask = pcmp_eq(u, one);
+  Packet u_minus_one = psub(u, one);
+  Packet neg_one_mask = pcmp_eq(u_minus_one, neg_one);
+  Packet logu = plog(u);
+  // The following comparison is to catch the case where
+  // exp(x) = +inf. It is written in this way to avoid having
+  // to form the constant +inf, which depends on the packet
+  // type.
+  Packet pos_inf_mask = pcmp_eq(logu, u);
+  Packet expm1 = pmul(u_minus_one, pdiv(x, logu));
+  expm1 = pselect(pos_inf_mask, u, expm1);
+  return pselect(one_mask,
+                 x,
+                 pselect(neg_one_mask,
+                         neg_one,
+                         expm1));
+}
+
+
 // Exponential function. Works by writing "x = m*log(2) + r" where
 // "m = floor(x/log(2)+1/2)" and "r" is the remainder. The result is then
 // "exp(x) = 2^m*exp(r)" where exp(r) is in the range [-1,1).

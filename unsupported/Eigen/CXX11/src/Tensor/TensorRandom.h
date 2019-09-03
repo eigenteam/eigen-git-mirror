@@ -45,6 +45,14 @@ EIGEN_DEVICE_FUNC uint64_t get_random_seed() {
   uint64_t rnd = ::random() ^ mach_absolute_time();
   return rnd;
 
+#elif defined __native_client__
+  // Same approach as for win32, except using clock_gettime
+  timespec ts;
+  clock_gettime(CLOCK_REALTIME, &ts);
+  int rnd1 = ::rand();
+  int rnd2 = ::rand();
+  uint64_t rnd = (rnd1 | rnd2 << 16) ^ ts.tv_nsec;
+  return rnd;
 
 #else
   // Augment the current time with pseudo random number generation

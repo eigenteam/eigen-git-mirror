@@ -932,6 +932,7 @@ class TensorBlockMapper {
   typedef TensorBlock<Scalar, StorageIndex, NumDims, Layout> Block;
   typedef DSizes<StorageIndex, NumDims> Dimensions;
 
+  TensorBlockMapper() {}
   TensorBlockMapper(const Dimensions& dims,
                     const TensorBlockShapeType block_shape,
                     Index min_target_size)

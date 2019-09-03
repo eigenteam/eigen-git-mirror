@@ -1630,81 +1630,81 @@ dimension in RowMajor layout.
 
 For example, given the following input tensor:
 
-  Eigen::Tensor<float, 2, DataLayout> tensor(3,4);
-  tensor.setValues({{0.0f, 1.0f, 2.0f, 3.0f},
-                    {4.0f, 5.0f, 6.0f, 7.0f},
-                    {8.0f, 9.0f, 10.0f, 11.0f}});
+    Eigen::Tensor<float, 2, DataLayout> tensor(3,4);
+    tensor.setValues({{0.0f, 1.0f, 2.0f, 3.0f},
+                      {4.0f, 5.0f, 6.0f, 7.0f},
+                      {8.0f, 9.0f, 10.0f, 11.0f}});
 
-  cout << "tensor: " << endl << tensor << endl;
-=>
-tensor:
- 0   1   2   3
- 4   5   6   7
- 8   9  10  11
+    cout << "tensor: " << endl << tensor << endl;
+    =>
+    tensor:
+     0   1   2   3
+     4   5   6   7
+     8   9  10  11
 
 Six 2x2 patches can be extracted and indexed using the following code:
 
-  Eigen::Tensor<float, 3, DataLayout> patch;
-  Eigen::array<ptrdiff_t, 2> patch_dims;
-  patch_dims[0] = 2;
-  patch_dims[1] = 2;
-  patch = tensor.extract_patches(patch_dims);
-  for (int k = 0; k < 6; ++k) {
-    cout << "patch index: " << k << endl;
-    for (int i = 0; i < 2; ++i) {
-      for (int j = 0; j < 2; ++j) {
-        if (DataLayout == ColMajor) {
-          cout << patch(i, j, k) << " ";
-        } else {
-          cout << patch(k, i, j) << " ";
-        }
+    Eigen::Tensor<float, 3, DataLayout> patch;
+    Eigen::array<ptrdiff_t, 2> patch_dims;
+    patch_dims[0] = 2;
+    patch_dims[1] = 2;
+    patch = tensor.extract_patches(patch_dims);
+    for (int k = 0; k < 6; ++k) {
+      cout << "patch index: " << k << endl;
+      for (int i = 0; i < 2; ++i) {
+    	for (int j = 0; j < 2; ++j) {
+    	  if (DataLayout == ColMajor) {
+    		cout << patch(i, j, k) << " ";
+    	  } else {
+    		cout << patch(k, i, j) << " ";
+    	  }
+    	}
+    	cout << endl;
       }
-      cout << endl;
     }
-  }
 
 This code results in the following output when the data layout is ColMajor:
 
-patch index: 0
-0 1
-4 5
-patch index: 1
-4 5
-8 9
-patch index: 2
-1 2
-5 6
-patch index: 3
-5 6
-9 10
-patch index: 4
-2 3
-6 7
-patch index: 5
-6 7
-10 11
+    patch index: 0
+    0 1
+    4 5
+    patch index: 1
+    4 5
+    8 9
+    patch index: 2
+    1 2
+    5 6
+    patch index: 3
+    5 6
+    9 10
+    patch index: 4
+    2 3
+    6 7
+    patch index: 5
+    6 7
+    10 11
 
 This code results in the following output when the data layout is RowMajor:
 (NOTE: the set of patches is the same as in ColMajor, but are indexed differently).
 
-patch index: 0
-0 1
-4 5
-patch index: 1
-1 2
-5 6
-patch index: 2
-2 3
-6 7
-patch index: 3
-4 5
-8 9
-patch index: 4
-5 6
-9 10
-patch index: 5
-6 7
-10 11
+    patch index: 0
+    0 1
+    4 5
+    patch index: 1
+    1 2
+    5 6
+    patch index: 2
+    2 3
+    6 7
+    patch index: 3
+    4 5
+    8 9
+    patch index: 4
+    5 6
+    9 10
+    patch index: 5
+    6 7
+    10 11
 
 ### `<Operation>  extract_image_patches(const Index patch_rows, const Index patch_cols, const Index row_stride, const Index col_stride, const PaddingType padding_type)`
 
@@ -1736,28 +1736,30 @@ sizes:
  *) columns: 5
  *) batch:   7
 
-  Tensor<float, 4> tensor(2,3,5,7);
-  Tensor<float, 4, RowMajor> tensor_row_major = tensor.swap_layout();
+    Tensor<float, 4> tensor(2,3,5,7);
+    Tensor<float, 4, RowMajor> tensor_row_major = tensor.swap_layout();
 
 2x2 image patches can be extracted and indexed using the following code:
 
 *) 2D patch: ColMajor (patch indexed by second-to-last dimension)
-  Tensor<float, 5> twod_patch;
-  twod_patch = tensor.extract_image_patches<2, 2>();
-  // twod_patch.dimension(0) == 2
-  // twod_patch.dimension(1) == 2
-  // twod_patch.dimension(2) == 2
-  // twod_patch.dimension(3) == 3*5
-  // twod_patch.dimension(4) == 7
+
+    Tensor<float, 5> twod_patch;
+    twod_patch = tensor.extract_image_patches<2, 2>();
+    // twod_patch.dimension(0) == 2
+    // twod_patch.dimension(1) == 2
+    // twod_patch.dimension(2) == 2
+    // twod_patch.dimension(3) == 3*5
+    // twod_patch.dimension(4) == 7
 
 *) 2D patch: RowMajor (patch indexed by the second dimension)
-  Tensor<float, 5, RowMajor> twod_patch_row_major;
-  twod_patch_row_major = tensor_row_major.extract_image_patches<2, 2>();
-  // twod_patch_row_major.dimension(0) == 7
-  // twod_patch_row_major.dimension(1) == 3*5
-  // twod_patch_row_major.dimension(2) == 2
-  // twod_patch_row_major.dimension(3) == 2
-  // twod_patch_row_major.dimension(4) == 2
+
+    Tensor<float, 5, RowMajor> twod_patch_row_major;
+    twod_patch_row_major = tensor_row_major.extract_image_patches<2, 2>();
+    // twod_patch_row_major.dimension(0) == 7
+    // twod_patch_row_major.dimension(1) == 3*5
+    // twod_patch_row_major.dimension(2) == 2
+    // twod_patch_row_major.dimension(3) == 2
+    // twod_patch_row_major.dimension(4) == 2
 
 ## Special Operations
 

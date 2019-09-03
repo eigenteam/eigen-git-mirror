@@ -20,6 +20,7 @@ namespace Eigen {
 // map_allocator.
 template<typename T> struct MakePointer {
   typedef T* Type;
+  typedef const T* ConstType;
 };
 
 template <typename T>
@@ -93,6 +94,7 @@ template<typename XprType, template <class> class MakePointer_ = MakePointer> cl
 template<typename XprType> class TensorForcedEvalOp;
 
 template<typename ExpressionType, typename DeviceType> class TensorDevice;
+template<typename ExpressionType, typename DeviceType> class TensorAsyncDevice;
 template<typename Derived, typename Device> struct TensorEvaluator;
 
 struct NoOpOutputKernel;
@@ -165,6 +167,11 @@ template <typename Expression, typename Device,
           bool Vectorizable = IsVectorizable<Device, Expression>::value,
           bool Tileable = IsTileable<Device, Expression>::value>
 class TensorExecutor;
+
+template <typename Expression, typename Device,
+          bool Vectorizable = IsVectorizable<Device, Expression>::value,
+          bool Tileable = IsTileable<Device, Expression>::value>
+class TensorAsyncExecutor;
 
 }  // end namespace internal
 

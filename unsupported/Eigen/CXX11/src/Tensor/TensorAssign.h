@@ -147,6 +147,18 @@ struct TensorEvaluator<const TensorAssignOp<LeftArgType, RightArgType>, Device>
     // by the rhs to the lhs.
     return m_rightImpl.evalSubExprsIfNeeded(m_leftImpl.data());
   }
+
+#ifdef EIGEN_USE_THREADS
+  template <typename EvalSubExprsCallback>
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void evalSubExprsIfNeededAsync(
+      EvaluatorPointerType, EvalSubExprsCallback done) {
+    m_leftImpl.evalSubExprsIfNeededAsync(nullptr, [this, done](bool) {
+      m_rightImpl.evalSubExprsIfNeededAsync(
+          m_leftImpl.data(), [done](bool need_assign) { done(need_assign); });
+    });
+  }
+#endif  // EIGEN_USE_THREADS
+
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void cleanup() {
     m_leftImpl.cleanup();
     m_rightImpl.cleanup();

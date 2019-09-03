@@ -1069,6 +1069,17 @@ class TensorBase : public TensorBase<Derived, ReadOnlyAccessors> {
       return TensorDevice<Derived, DeviceType>(dev, derived());
     }
 
+#ifdef EIGEN_USE_THREADS
+    // Select the async device on which to evaluate the expression.
+    template <typename DeviceType>
+    typename internal::enable_if<
+        internal::is_same<DeviceType, ThreadPoolDevice>::value,
+        TensorAsyncDevice<Derived, DeviceType>>::type
+    device(const DeviceType& dev, std::function<void()> done) {
+      return TensorAsyncDevice<Derived, DeviceType>(dev, derived(), std::move(done));
+    }
+#endif  // EIGEN_USE_THREADS
+
  protected:
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE Derived& derived() { return *static_cast<Derived*>(this); }
