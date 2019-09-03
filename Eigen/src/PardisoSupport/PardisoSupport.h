@@ -386,13 +386,14 @@ class PardisoLU : public PardisoImpl< PardisoLU<MatrixType> >
 {
   protected:
     typedef PardisoImpl<PardisoLU> Base;
-    typedef typename Base::Scalar Scalar;
-    typedef typename Base::RealScalar RealScalar;
     using Base::pardisoInit;
     using Base::m_matrix;
     friend class PardisoImpl< PardisoLU<MatrixType> >;
 
   public:
+
+    typedef typename Base::Scalar Scalar;
+    typedef typename Base::RealScalar RealScalar;
 
     using Base::compute;
     using Base::solve;
@@ -441,14 +442,14 @@ class PardisoLLT : public PardisoImpl< PardisoLLT<MatrixType,_UpLo> >
 {
   protected:
     typedef PardisoImpl< PardisoLLT<MatrixType,_UpLo> > Base;
-    typedef typename Base::Scalar Scalar;
-    typedef typename Base::RealScalar RealScalar;
     using Base::pardisoInit;
     using Base::m_matrix;
     friend class PardisoImpl< PardisoLLT<MatrixType,_UpLo> >;
 
   public:
 
+    typedef typename Base::Scalar Scalar;
+    typedef typename Base::RealScalar RealScalar;
     typedef typename Base::StorageIndex StorageIndex;
     enum { UpLo = _UpLo };
     using Base::compute;
@@ -504,14 +505,14 @@ class PardisoLDLT : public PardisoImpl< PardisoLDLT<MatrixType,Options> >
 {
   protected:
     typedef PardisoImpl< PardisoLDLT<MatrixType,Options> > Base;
-    typedef typename Base::Scalar Scalar;
-    typedef typename Base::RealScalar RealScalar;
     using Base::pardisoInit;
     using Base::m_matrix;
     friend class PardisoImpl< PardisoLDLT<MatrixType,Options> >;
 
   public:
 
+    typedef typename Base::Scalar Scalar;
+    typedef typename Base::RealScalar RealScalar;
     typedef typename Base::StorageIndex StorageIndex;
     using Base::compute;
     enum { UpLo = Options&(Upper|Lower) };
