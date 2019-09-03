@@ -136,10 +136,10 @@ template<typename PlainObjectType, int Options_, template <class> class MakePoin
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE StoragePointerType data() { return m_data; }
     EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE PointerConstType data() const { return m_data; }
+    EIGEN_STRONG_INLINE StoragePointerType data() const { return m_data; }
 
     EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE const Scalar& operator()(const array<Index, NumIndices>& indices) const
+    EIGEN_STRONG_INLINE StorageRefType operator()(const array<Index, NumIndices>& indices) const
     {
       //      eigen_assert(checkIndexRange(indices));
       if (PlainObjectType::Options&RowMajor) {
@@ -152,14 +152,14 @@ template<typename PlainObjectType, int Options_, template <class> class MakePoin
     }
 
     EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE const Scalar& operator()() const
+    EIGEN_STRONG_INLINE StorageRefType operator()() const
     {
       EIGEN_STATIC_ASSERT(NumIndices == 0, YOU_MADE_A_PROGRAMMING_MISTAKE)
       return m_data[0];
     }
 
     EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE const Scalar& operator()(Index index) const
+    EIGEN_STRONG_INLINE StorageRefType operator()(Index index) const
     {
       eigen_internal_assert(index >= 0 && index < size());
       return m_data[index];
@@ -167,7 +167,7 @@ template<typename PlainObjectType, int Options_, template <class> class MakePoin
 
 #if EIGEN_HAS_VARIADIC_TEMPLATES
     template<typename... IndexTypes> EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE const Scalar& operator()(Index firstIndex, Index secondIndex, IndexTypes... otherIndices) const
+    EIGEN_STRONG_INLINE StorageRefType operator()(Index firstIndex, Index secondIndex, IndexTypes... otherIndices) const
     {
       EIGEN_STATIC_ASSERT(sizeof...(otherIndices) + 2 == NumIndices, YOU_MADE_A_PROGRAMMING_MISTAKE)
       eigen_assert(internal::all((Eigen::NumTraits<Index>::highest() >= otherIndices)...));
@@ -181,7 +181,7 @@ template<typename PlainObjectType, int Options_, template <class> class MakePoin
     }
 #else
     EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE const Scalar& operator()(Index i0, Index i1) const
+    EIGEN_STRONG_INLINE StorageRefType operator()(Index i0, Index i1) const
     {
       if (PlainObjectType::Options&RowMajor) {
         const Index index = i1 + i0 * m_dimensions[1];
@@ -192,7 +192,7 @@ template<typename PlainObjectType, int Options_, template <class> class MakePoin
       }
     }
     EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE const Scalar& operator()(Index i0, Index i1, Index i2) const
+    EIGEN_STRONG_INLINE StorageRefType operator()(Index i0, Index i1, Index i2) const
     {
       if (PlainObjectType::Options&RowMajor) {
          const Index index = i2 + m_dimensions[2] * (i1 + m_dimensions[1] * i0);
@@ -203,7 +203,7 @@ template<typename PlainObjectType, int Options_, template <class> class MakePoin
       }
     }
     EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE const Scalar& operator()(Index i0, Index i1, Index i2, Index i3) const
+    EIGEN_STRONG_INLINE StorageRefType operator()(Index i0, Index i1, Index i2, Index i3) const
     {
       if (PlainObjectType::Options&RowMajor) {
         const Index index = i3 + m_dimensions[3] * (i2 + m_dimensions[2] * (i1 + m_dimensions[1] * i0));
@@ -214,7 +214,7 @@ template<typename PlainObjectType, int Options_, template <class> class MakePoin
       }
     }
     EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE const Scalar& operator()(Index i0, Index i1, Index i2, Index i3, Index i4) const
+    EIGEN_STRONG_INLINE StorageRefType operator()(Index i0, Index i1, Index i2, Index i3, Index i4) const
     {
       if (PlainObjectType::Options&RowMajor) {
         const Index index = i4 + m_dimensions[4] * (i3 + m_dimensions[3] * (i2 + m_dimensions[2] * (i1 + m_dimensions[1] * i0)));
