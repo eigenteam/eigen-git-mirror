@@ -288,6 +288,30 @@ static void test_0d_const_tensor()
   VERIFY_IS_EQUAL(scalar4(), 13);
 }
 
+static void test_0d_const_tensor_map()
+{
+  Tensor<int, 0> scalar1;
+  Tensor<int, 0, RowMajor> scalar2;
+
+  const TensorMap<Tensor<int, 0> > scalar3(scalar1.data());
+  const TensorMap<Tensor<int, 0, RowMajor> > scalar4(scalar2.data());
+
+  // Although TensorMap is constant, we still can write to the underlying
+  // storage, because we map over non-constant Tensor.
+  scalar3() = 7;
+  scalar4() = 13;
+
+  VERIFY_IS_EQUAL(scalar1(), 7);
+  VERIFY_IS_EQUAL(scalar2(), 13);
+
+  // Pointer to the underlying storage is also non-const.
+  scalar3.data()[0] = 8;
+  scalar4.data()[0] = 14;
+
+  VERIFY_IS_EQUAL(scalar1(), 8);
+  VERIFY_IS_EQUAL(scalar2(), 14);
+}
+
 EIGEN_DECLARE_TEST(cxx11_tensor_map)
 {
   CALL_SUBTEST(test_0d());
@@ -299,4 +323,5 @@ EIGEN_DECLARE_TEST(cxx11_tensor_map)
   CALL_SUBTEST(test_casting());
 
   CALL_SUBTEST(test_0d_const_tensor());
+  CALL_SUBTEST(test_0d_const_tensor_map());
 }
