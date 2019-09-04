@@ -578,11 +578,15 @@ static void test_async_execute_unary_expr(Device d)
   src.setRandom();
   const auto expr = src.square();
 
-  using Assign = TensorAssignOp<decltype(dst), const decltype(expr)>;
-  using Executor = internal::TensorAsyncExecutor<const Assign, Device,
-                                                 Vectorizable, Tileable>;
   Eigen::Barrier done(1);
-  Executor::runAsync(Assign(dst, expr), d, [&done]() { done.Notify(); });
+  auto on_done = [&done]() { done.Notify(); };
+
+  using Assign = TensorAssignOp<decltype(dst), const decltype(expr)>;
+  using DoneCallback = decltype(on_done);
+  using Executor = internal::TensorAsyncExecutor<const Assign, Device, DoneCallback,
+                                                 Vectorizable, Tileable>;
+
+  Executor::runAsync(Assign(dst, expr), d, on_done);
   done.Wait();
 
   for (Index i = 0; i < dst.dimensions().TotalSize(); ++i) {
@@ -610,12 +614,15 @@ static void test_async_execute_binary_expr(Device d)
 
   const auto expr = lhs + rhs;
 
+  Eigen::Barrier done(1);
+  auto on_done = [&done]() { done.Notify(); };
+
   using Assign = TensorAssignOp<decltype(dst), const decltype(expr)>;
-  using Executor = internal::TensorAsyncExecutor<const Assign, Device,
+  using DoneCallback = decltype(on_done);
+  using Executor = internal::TensorAsyncExecutor<const Assign, Device, DoneCallback,
                                                  Vectorizable, Tileable>;
 
-  Eigen::Barrier done(1);
-  Executor::runAsync(Assign(dst, expr), d, [&done]() { done.Notify(); });
+  Executor::runAsync(Assign(dst, expr), d, on_done);
   done.Wait();
 
   for (Index i = 0; i < dst.dimensions().TotalSize(); ++i) {
