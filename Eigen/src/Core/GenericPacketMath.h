@@ -276,12 +276,12 @@ pselect(const Packet& mask, const Packet& a, const Packet& b) {
 
 template<> EIGEN_DEVICE_FUNC inline float pselect<float>(
     const float& mask, const float& a, const float&b) {
-  return mask == 0 ? b : a;
+  return numext::equal_strict(mask,0.f) ? b : a;
 }
 
 template<> EIGEN_DEVICE_FUNC inline double pselect<double>(
     const double& mask, const double& a, const double& b) {
-  return mask == 0 ? b : a;
+  return numext::equal_strict(mask,0.) ? b : a;
 }
 
 /** \internal \returns a <= b as a bit mask */
