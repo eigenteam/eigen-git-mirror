@@ -15,8 +15,6 @@
 #ifndef EIGEN_MATH_FUNCTIONS_SSE_H
 #define EIGEN_MATH_FUNCTIONS_SSE_H
 
-#include "../Default/GenericPacketMathFunctions.h"
-
 namespace Eigen {
 
 namespace internal {
