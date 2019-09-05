@@ -683,34 +683,39 @@ EIGEN_DECLARE_TEST(cxx11_tensor_thread_pool)
   CALL_SUBTEST_3(test_multithread_contraction_agrees_with_singlethread<RowMajor>());
   CALL_SUBTEST_3(test_multithread_contraction_with_output_kernel<ColMajor>());
   CALL_SUBTEST_3(test_multithread_contraction_with_output_kernel<RowMajor>());
-  CALL_SUBTEST_3(test_async_multithread_contraction_agrees_with_singlethread<ColMajor>());
-  CALL_SUBTEST_3(test_async_multithread_contraction_agrees_with_singlethread<RowMajor>());
+
+  CALL_SUBTEST_4(test_async_multithread_contraction_agrees_with_singlethread<ColMajor>());
+  CALL_SUBTEST_4(test_async_multithread_contraction_agrees_with_singlethread<RowMajor>());
 
   // Test EvalShardedByInnerDimContext parallelization strategy.
-  CALL_SUBTEST_4(test_sharded_by_inner_dim_contraction<ColMajor>());
-  CALL_SUBTEST_4(test_sharded_by_inner_dim_contraction<RowMajor>());
-  CALL_SUBTEST_4(test_sharded_by_inner_dim_contraction_with_output_kernel<ColMajor>());
-  CALL_SUBTEST_4(test_sharded_by_inner_dim_contraction_with_output_kernel<RowMajor>());
-  CALL_SUBTEST_4(test_async_sharded_by_inner_dim_contraction<ColMajor>());
-  CALL_SUBTEST_4(test_async_sharded_by_inner_dim_contraction<RowMajor>());
-  CALL_SUBTEST_4(test_async_sharded_by_inner_dim_contraction_with_output_kernel<ColMajor>());
-  CALL_SUBTEST_4(test_async_sharded_by_inner_dim_contraction_with_output_kernel<RowMajor>());
+  CALL_SUBTEST_5(test_sharded_by_inner_dim_contraction<ColMajor>());
+  CALL_SUBTEST_5(test_sharded_by_inner_dim_contraction<RowMajor>());
+  CALL_SUBTEST_5(test_sharded_by_inner_dim_contraction_with_output_kernel<ColMajor>());
+  CALL_SUBTEST_5(test_sharded_by_inner_dim_contraction_with_output_kernel<RowMajor>());
+
+  CALL_SUBTEST_6(test_async_sharded_by_inner_dim_contraction<ColMajor>());
+  CALL_SUBTEST_6(test_async_sharded_by_inner_dim_contraction<RowMajor>());
+  CALL_SUBTEST_6(test_async_sharded_by_inner_dim_contraction_with_output_kernel<ColMajor>());
+  CALL_SUBTEST_6(test_async_sharded_by_inner_dim_contraction_with_output_kernel<RowMajor>());
 
   // Exercise various cases that have been problematic in the past.
-  CALL_SUBTEST_5(test_contraction_corner_cases<ColMajor>());
-  CALL_SUBTEST_5(test_contraction_corner_cases<RowMajor>());
+  CALL_SUBTEST_7(test_contraction_corner_cases<ColMajor>());
+  CALL_SUBTEST_7(test_contraction_corner_cases<RowMajor>());
 
-  CALL_SUBTEST_6(test_full_contraction<ColMajor>());
-  CALL_SUBTEST_6(test_full_contraction<RowMajor>());
+  CALL_SUBTEST_8(test_full_contraction<ColMajor>());
+  CALL_SUBTEST_8(test_full_contraction<RowMajor>());
 
-  CALL_SUBTEST_7(test_multithreaded_reductions<ColMajor>());
-  CALL_SUBTEST_7(test_multithreaded_reductions<RowMajor>());
+  CALL_SUBTEST_9(test_multithreaded_reductions<ColMajor>());
+  CALL_SUBTEST_9(test_multithreaded_reductions<RowMajor>());
 
-  CALL_SUBTEST_7(test_memcpy());
-  CALL_SUBTEST_7(test_multithread_random());
+  CALL_SUBTEST_10(test_memcpy());
+  CALL_SUBTEST_10(test_multithread_random());
 
   TestAllocator test_allocator;
-  CALL_SUBTEST_7(test_multithread_shuffle<ColMajor>(NULL));
-  CALL_SUBTEST_7(test_multithread_shuffle<RowMajor>(&test_allocator));
-  CALL_SUBTEST_7(test_threadpool_allocate(&test_allocator));
+  CALL_SUBTEST_11(test_multithread_shuffle<ColMajor>(NULL));
+  CALL_SUBTEST_11(test_multithread_shuffle<RowMajor>(&test_allocator));
+  CALL_SUBTEST_11(test_threadpool_allocate(&test_allocator));
+
+  // Force CMake to split this test.
+  // EIGEN_SUFFIXES;1;2;3;4;5;6;7;8;9;10;11
 }

@@ -73,21 +73,21 @@ template <typename ExpressionType, typename DeviceType> class TensorDevice {
   * ThreadPoolDevice).
   *
   * Example:
-  *    std::function<void()> done = []() {};
+  *    auto done = []() { ... expression evaluation done ... };
   *    C.device(EIGEN_THREAD_POOL, std::move(done)) = A + B;
  */
 
-template <typename ExpressionType, typename DeviceType>
+template <typename ExpressionType, typename DeviceType, typename DoneCallback>
 class TensorAsyncDevice {
  public:
   TensorAsyncDevice(const DeviceType& device, ExpressionType& expression,
-                    std::function<void()> done)
+                    DoneCallback done)
       : m_device(device), m_expression(expression), m_done(std::move(done)) {}
 
   template <typename OtherDerived>
   EIGEN_STRONG_INLINE TensorAsyncDevice& operator=(const OtherDerived& other) {
     typedef TensorAssignOp<ExpressionType, const OtherDerived> Assign;
-    typedef internal::TensorAsyncExecutor<const Assign, DeviceType> Executor;
+    typedef internal::TensorAsyncExecutor<const Assign, DeviceType, DoneCallback> Executor;
 
     // WARNING: After assignment 'm_done' callback will be in undefined state.
     Assign assign(m_expression, other);
@@ -99,7 +99,7 @@ class TensorAsyncDevice {
  protected:
   const DeviceType& m_device;
   ExpressionType& m_expression;
-  std::function<void()> m_done;
+  DoneCallback m_done;
 };
 
 #endif  // EIGEN_USE_THREADS

@@ -553,6 +553,18 @@ This also means that, unless specified, if the function \c std::foo is available
   </td>
   <td></td>
 </tr>
+<tr>
+  <td class="code">
+  \anchor cwisetable_ndtri
+  a.\link ArrayBase::ndtri ndtri\endlink(); \n
+  \link Eigen::ndtri ndtri\endlink(a);
+  </td>
+  <td>Inverse of the CDF of the Normal distribution function</td>
+  <td>
+  built-in for float and double
+  </td>
+  <td></td>
+</tr>
 <tr><td colspan="4"></td></tr>
 </table>
 
