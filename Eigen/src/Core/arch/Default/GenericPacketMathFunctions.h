@@ -13,6 +13,9 @@
  * Julien Pommier's sse math library: http://gruntthepeon.free.fr/ssemath/
  */
 
+#ifndef EIGEN_ARCH_GENERIC_PACKET_MATH_FUNCTIONS_H
+#define EIGEN_ARCH_GENERIC_PACKET_MATH_FUNCTIONS_H
+
 namespace Eigen {
 namespace internal {
 
@@ -569,3 +572,5 @@ struct ppolevl<Packet, 0> {
 
 } // end namespace internal
 } // end namespace Eigen
+
+#endif // EIGEN_ARCH_GENERIC_PACKET_MATH_FUNCTIONS_H

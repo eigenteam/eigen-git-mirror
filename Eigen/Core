@@ -163,8 +163,7 @@ using std::ptrdiff_t;
 // Generic half float support
 #include "src/Core/arch/Default/Half.h"
 #include "src/Core/arch/Default/TypeCasting.h"
-// This file provides generic implementations valid for scalar as well
-#include "src/Core/arch/Default/GenericPacketMathFunctions.h"
+#include "src/Core/arch/Default/GenericPacketMathFunctionsFwd.h"
 
 #if defined EIGEN_VECTORIZE_AVX512
   #include "src/Core/arch/SSE/PacketMath.h"
@@ -228,7 +227,10 @@ using std::ptrdiff_t;
   #include "src/Core/arch/SYCL/TypeCasting.h"
 #endif
 #endif
+
 #include "src/Core/arch/Default/Settings.h"
+// This file provides generic implementations valid for scalar as well
+#include "src/Core/arch/Default/GenericPacketMathFunctions.h"
 
 #include "src/Core/functors/TernaryFunctors.h"
 #include "src/Core/functors/BinaryFunctors.h"
