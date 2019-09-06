@@ -624,6 +624,7 @@ EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T generic_ndtri_lt_exp_neg_two(
 }
 
 template <typename T, typename ScalarType>
+EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
 T generic_ndtri(const T& a) {
   const T maxnum = pset1<T>(NumTraits<ScalarType>::infinity());
   const T neg_maxnum = pset1<T>(-NumTraits<ScalarType>::infinity());

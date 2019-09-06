@@ -1091,7 +1091,7 @@ void test_gpu_ndtri()
   expected_out(1) = -std::numeric_limits<Scalar>::infinity();
   expected_out(2) = Scalar(0.0);
   expected_out(3) = Scalar(-0.8416212335729142);
-  expected_out(4) = Scalar(0.8416212335729142);j
+  expected_out(4) = Scalar(0.8416212335729142);
   expected_out(5) = Scalar(1.2815515655446004);
   expected_out(6) = Scalar(-1.2815515655446004);
   expected_out(7) = Scalar(2.3263478740408408);
