@@ -1341,7 +1341,7 @@ typename SparseMatrix<_Scalar,_Options,_StorageIndex>::Scalar& SparseMatrix<_Sca
     }
     
     m_data.index(p) = convert_index(inner);
-    return (m_data.value(p) = 0);
+    return (m_data.value(p) = Scalar(0));
   }
   
   if(m_data.size() != m_data.allocatedSize())

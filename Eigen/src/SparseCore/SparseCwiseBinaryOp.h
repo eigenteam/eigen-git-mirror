@@ -101,7 +101,7 @@ public:
       }
       else
       {
-        m_value = 0; // this is to avoid a compilation warning
+        m_value = Scalar(0); // this is to avoid a compilation warning
         m_id = -1;
       }
       return *this;
