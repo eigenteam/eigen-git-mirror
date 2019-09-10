@@ -13,36 +13,30 @@
 #include "main.h"
 #include <Eigen/CXX11/ThreadPool>
 
-class Counter {
- public:
-  Counter() : Counter(0) {}
-  explicit Counter(int value)
-      : created_by_(std::this_thread::get_id()), value_(value) {}
+struct Counter {
+  Counter() = default;
 
   void inc() {
     // Check that mutation happens only in a thread that created this counter.
-    VERIFY_IS_EQUAL(std::this_thread::get_id(), created_by_);
-    value_++;
+    VERIFY_IS_EQUAL(std::this_thread::get_id(), created_by);
+    counter_value++;
   }
-  int value() { return value_; }
+  int value() { return counter_value; }
 
- private:
-  std::thread::id created_by_;
-  int value_;
+  std::thread::id created_by;
+  int counter_value = 0;
 };
 
-struct CounterFactory {
-  using T = Counter;
-
-  T Allocate() { return Counter(0); }
-  void Release(T&) {}
+struct InitCounter {
+  void operator()(Counter& counter) {
+    counter.created_by = std::this_thread::get_id();
+  }
 };
 
 void test_simple_thread_local() {
-  CounterFactory factory;
   int num_threads = internal::random<int>(4, 32);
   Eigen::ThreadPool thread_pool(num_threads);
-  Eigen::ThreadLocal<CounterFactory> counter(factory, num_threads);
+  Eigen::ThreadLocal<Counter, InitCounter> counter(num_threads, InitCounter());
 
   int num_tasks = 3 * num_threads;
   Eigen::Barrier barrier(num_tasks);
@@ -64,8 +58,7 @@ void test_simple_thread_local() {
 }
 
 void test_zero_sized_thread_local() {
-  CounterFactory factory;
-  Eigen::ThreadLocal<CounterFactory> counter(factory, 0);
+  Eigen::ThreadLocal<Counter, InitCounter> counter(0, InitCounter());
 
   Counter& local = counter.local();
   local.inc();
@@ -81,10 +74,9 @@ void test_zero_sized_thread_local() {
 
 // All thread local values fits into the lock-free storage.
 void test_large_number_of_tasks_no_spill() {
-  CounterFactory factory;
   int num_threads = internal::random<int>(4, 32);
   Eigen::ThreadPool thread_pool(num_threads);
-  Eigen::ThreadLocal<CounterFactory> counter(factory, num_threads);
+  Eigen::ThreadLocal<Counter, InitCounter> counter(num_threads, InitCounter());
 
   int num_tasks = 10000;
   Eigen::Barrier barrier(num_tasks);
@@ -117,10 +109,9 @@ void test_large_number_of_tasks_no_spill() {
 // Lock free thread local storage is too small to fit all the unique threads,
 // and it spills to a map guarded by a mutex.
 void test_large_number_of_tasks_with_spill() {
-  CounterFactory factory;
   int num_threads = internal::random<int>(4, 32);
   Eigen::ThreadPool thread_pool(num_threads);
-  Eigen::ThreadLocal<CounterFactory> counter(factory, 1);  // This is too small
+  Eigen::ThreadLocal<Counter, InitCounter> counter(1, InitCounter());
 
   int num_tasks = 10000;
   Eigen::Barrier barrier(num_tasks);
