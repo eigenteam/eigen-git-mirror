@@ -359,21 +359,21 @@ int EIGEN_BLAS_FUNC(syrk)(const char *uplo, const char *op, const int *n, const 
 {
 //   std::cerr << "in syrk " << *uplo << " " << *op << " " << *n << " " << *k << " " << *palpha << " " << *lda << " " << *pbeta << " " << *ldc << "\n";
   #if !ISCOMPLEX
-  typedef void (*functype)(DenseIndex, DenseIndex, const Scalar *, DenseIndex, const Scalar *, DenseIndex, Scalar *, DenseIndex, const Scalar&, internal::level3_blocking<Scalar,Scalar>&);
+  typedef void (*functype)(DenseIndex, DenseIndex, const Scalar *, DenseIndex, const Scalar *, DenseIndex, Scalar *, DenseIndex, DenseIndex, const Scalar&, internal::level3_blocking<Scalar,Scalar>&);
   static const functype func[8] = {
     // array index: NOTR  | (UP << 2)
-    (internal::general_matrix_matrix_triangular_product<DenseIndex,Scalar,ColMajor,false,Scalar,RowMajor,ColMajor,Conj, Upper>::run),
+    (internal::general_matrix_matrix_triangular_product<DenseIndex,Scalar,ColMajor,false,Scalar,RowMajor,ColMajor,Conj, 1, Upper>::run),
     // array index: TR    | (UP << 2)
-    (internal::general_matrix_matrix_triangular_product<DenseIndex,Scalar,RowMajor,false,Scalar,ColMajor,ColMajor,Conj, Upper>::run),
+    (internal::general_matrix_matrix_triangular_product<DenseIndex,Scalar,RowMajor,false,Scalar,ColMajor,ColMajor,Conj, 1, Upper>::run),
     // array index: ADJ   | (UP << 2)
-    (internal::general_matrix_matrix_triangular_product<DenseIndex,Scalar,RowMajor,Conj, Scalar,ColMajor,ColMajor,false,Upper>::run),
+    (internal::general_matrix_matrix_triangular_product<DenseIndex,Scalar,RowMajor,Conj, Scalar,ColMajor,ColMajor,false,1, Upper>::run),
     0,
     // array index: NOTR  | (LO << 2)
-    (internal::general_matrix_matrix_triangular_product<DenseIndex,Scalar,ColMajor,false,Scalar,RowMajor,ColMajor,Conj, Lower>::run),
+    (internal::general_matrix_matrix_triangular_product<DenseIndex,Scalar,ColMajor,false,Scalar,RowMajor,ColMajor,Conj, 1, Lower>::run),
     // array index: TR    | (LO << 2)
-    (internal::general_matrix_matrix_triangular_product<DenseIndex,Scalar,RowMajor,false,Scalar,ColMajor,ColMajor,Conj, Lower>::run),
+    (internal::general_matrix_matrix_triangular_product<DenseIndex,Scalar,RowMajor,false,Scalar,ColMajor,ColMajor,Conj, 1, Lower>::run),
     // array index: ADJ   | (LO << 2)
-    (internal::general_matrix_matrix_triangular_product<DenseIndex,Scalar,RowMajor,Conj, Scalar,ColMajor,ColMajor,false,Lower>::run),
+    (internal::general_matrix_matrix_triangular_product<DenseIndex,Scalar,RowMajor,Conj, Scalar,ColMajor,ColMajor,false,1, Lower>::run),
     0
   };
   #endif
@@ -426,7 +426,7 @@ int EIGEN_BLAS_FUNC(syrk)(const char *uplo, const char *op, const int *n, const 
   internal::gemm_blocking_space<ColMajor,Scalar,Scalar,Dynamic,Dynamic,Dynamic> blocking(*n,*n,*k,1,false);
 
   int code = OP(*op) | (UPLO(*uplo) << 2);
-  func[code](*n, *k, a, *lda, a, *lda, c, *ldc, alpha, blocking);
+  func[code](*n, *k, a, *lda, a, *lda, c, 1, *ldc, alpha, blocking);
   #endif
 
   return 0;
@@ -566,19 +566,19 @@ int EIGEN_BLAS_FUNC(herk)(const char *uplo, const char *op, const int *n, const 
 {
 //   std::cerr << "in herk " << *uplo << " " << *op << " " << *n << " " << *k << " " << *palpha << " " << *lda << " " << *pbeta << " " << *ldc << "\n";
 
-  typedef void (*functype)(DenseIndex, DenseIndex, const Scalar *, DenseIndex, const Scalar *, DenseIndex, Scalar *, DenseIndex, const Scalar&, internal::level3_blocking<Scalar,Scalar>&);
+  typedef void (*functype)(DenseIndex, DenseIndex, const Scalar *, DenseIndex, const Scalar *, DenseIndex, Scalar *, DenseIndex, DenseIndex, const Scalar&, internal::level3_blocking<Scalar,Scalar>&);
   static const functype func[8] = {
     // array index: NOTR  | (UP << 2)
-    (internal::general_matrix_matrix_triangular_product<DenseIndex,Scalar,ColMajor,false,Scalar,RowMajor,Conj, ColMajor,Upper>::run),
+    (internal::general_matrix_matrix_triangular_product<DenseIndex,Scalar,ColMajor,false,Scalar,RowMajor,Conj, ColMajor,1,Upper>::run),
     0,
     // array index: ADJ   | (UP << 2)
-    (internal::general_matrix_matrix_triangular_product<DenseIndex,Scalar,RowMajor,Conj, Scalar,ColMajor,false,ColMajor,Upper>::run),
+    (internal::general_matrix_matrix_triangular_product<DenseIndex,Scalar,RowMajor,Conj, Scalar,ColMajor,false,ColMajor,1,Upper>::run),
     0,
     // array index: NOTR  | (LO << 2)
-    (internal::general_matrix_matrix_triangular_product<DenseIndex,Scalar,ColMajor,false,Scalar,RowMajor,Conj, ColMajor,Lower>::run),
+    (internal::general_matrix_matrix_triangular_product<DenseIndex,Scalar,ColMajor,false,Scalar,RowMajor,Conj, ColMajor,1,Lower>::run),
     0,
     // array index: ADJ   | (LO << 2)
-    (internal::general_matrix_matrix_triangular_product<DenseIndex,Scalar,RowMajor,Conj, Scalar,ColMajor,false,ColMajor,Lower>::run),
+    (internal::general_matrix_matrix_triangular_product<DenseIndex,Scalar,RowMajor,Conj, Scalar,ColMajor,false,ColMajor,1,Lower>::run),
     0
   };
 
@@ -620,7 +620,7 @@ int EIGEN_BLAS_FUNC(herk)(const char *uplo, const char *op, const int *n, const 
   if(*k>0 && alpha!=RealScalar(0))
   {
     internal::gemm_blocking_space<ColMajor,Scalar,Scalar,Dynamic,Dynamic,Dynamic> blocking(*n,*n,*k,1,false);
-    func[code](*n, *k, a, *lda, a, *lda, c, *ldc, alpha, blocking);
+    func[code](*n, *k, a, *lda, a, *lda, c, 1, *ldc, alpha, blocking);
     matrix(c, *n, *n, *ldc).diagonal().imag().setZero();
   }
   return 0;
