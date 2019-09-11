@@ -1118,11 +1118,8 @@ struct unary_evaluator<Block<ArgType, BlockRows, BlockCols, InnerPanel>, IndexBa
   
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
   CoeffReturnType coeff(Index index) const
-  { 
-    if (ForwardLinearAccess)
-      return m_argImpl.coeff(m_linear_offset.value() + index); 
-    else
-      return coeff(RowsAtCompileTime == 1 ? 0 : index, RowsAtCompileTime == 1 ? index : 0);
+  {
+    return linear_coeff_impl(index, bool_constant<ForwardLinearAccess>());
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
@@ -1133,11 +1130,8 @@ struct unary_evaluator<Block<ArgType, BlockRows, BlockCols, InnerPanel>, IndexBa
   
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
   Scalar& coeffRef(Index index)
-  { 
-    if (ForwardLinearAccess)
-      return m_argImpl.coeffRef(m_linear_offset.value() + index); 
-    else
-      return coeffRef(RowsAtCompileTime == 1 ? 0 : index, RowsAtCompileTime == 1 ? index : 0);
+  {
+    return linear_coeffRef_impl(index, bool_constant<ForwardLinearAccess>());
   }
  
   template<int LoadMode, typename PacketType>
@@ -1178,6 +1172,28 @@ struct unary_evaluator<Block<ArgType, BlockRows, BlockCols, InnerPanel>, IndexBa
   }
  
 protected:
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+  CoeffReturnType linear_coeff_impl(Index index, internal::true_type /* ForwardLinearAccess */) const
+  {
+    return m_argImpl.coeff(m_linear_offset.value() + index); 
+  }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+  CoeffReturnType linear_coeff_impl(Index index, internal::false_type /* not ForwardLinearAccess */) const
+  {
+    return coeff(RowsAtCompileTime == 1 ? 0 : index, RowsAtCompileTime == 1 ? index : 0);
+  }
+
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+  Scalar& linear_coeffRef_impl(Index index, internal::true_type /* ForwardLinearAccess */)
+  {
+    return m_argImpl.coeffRef(m_linear_offset.value() + index); 
+  }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+  Scalar& linear_coeffRef_impl(Index index, internal::false_type /* not ForwardLinearAccess */)
+  {
+    return coeffRef(RowsAtCompileTime == 1 ? 0 : index, RowsAtCompileTime == 1 ? index : 0);
+  }
+
   evaluator<ArgType> m_argImpl;
   const variable_if_dynamic<Index, (ArgType::RowsAtCompileTime == 1 && BlockRows==1) ? 0 : Dynamic> m_startRow;
   const variable_if_dynamic<Index, (ArgType::ColsAtCompileTime == 1 && BlockCols==1) ? 0 : Dynamic> m_startCol;
