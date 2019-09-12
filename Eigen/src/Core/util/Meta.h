@@ -63,6 +63,15 @@ typedef std::size_t UIntPtr;
 struct true_type {  enum { value = 1 }; };
 struct false_type { enum { value = 0 }; };
 
+template<bool Condition>
+struct bool_constant;
+
+template<>
+struct bool_constant<true> : true_type {};
+
+template<>
+struct bool_constant<false> : false_type {};
+
 template<bool Condition, typename Then, typename Else>
 struct conditional { typedef Then type; };
 

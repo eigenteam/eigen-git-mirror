@@ -13,6 +13,9 @@
  * Julien Pommier's sse math library: http://gruntthepeon.free.fr/ssemath/
  */
 
+#ifndef EIGEN_ARCH_GENERIC_PACKET_MATH_FUNCTIONS_H
+#define EIGEN_ARCH_GENERIC_PACKET_MATH_FUNCTIONS_H
+
 namespace Eigen {
 namespace internal {
 
@@ -553,7 +556,7 @@ Packet pcos_float(const Packet& x)
  */
 template <typename Packet, int N>
 struct ppolevl {
-  static EIGEN_STRONG_INLINE Packet run(const Packet& x, const typename unpacket_traits<Packet>::type coeff[]) {
+  static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Packet run(const Packet& x, const typename unpacket_traits<Packet>::type coeff[]) {
     EIGEN_STATIC_ASSERT((N > 0), YOU_MADE_A_PROGRAMMING_MISTAKE);
     return pmadd(ppolevl<Packet, N-1>::run(x, coeff), x, pset1<Packet>(coeff[N]));
   }
@@ -561,7 +564,7 @@ struct ppolevl {
 
 template <typename Packet>
 struct ppolevl<Packet, 0> {
-  static EIGEN_STRONG_INLINE Packet run(const Packet& x, const typename unpacket_traits<Packet>::type coeff[]) {
+  static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Packet run(const Packet& x, const typename unpacket_traits<Packet>::type coeff[]) {
     EIGEN_UNUSED_VARIABLE(x);
     return pset1<Packet>(coeff[0]);
   }
@@ -569,3 +572,5 @@ struct ppolevl<Packet, 0> {
 
 } // end namespace internal
 } // end namespace Eigen
+
+#endif // EIGEN_ARCH_GENERIC_PACKET_MATH_FUNCTIONS_H

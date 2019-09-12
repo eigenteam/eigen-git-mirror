@@ -419,6 +419,12 @@ void check_indexed_view()
     VERIFY_IS_EQUAL( A3(ind,ind).eval(), MatrixXi::Constant(5,5,A3(1,1)) );
   }
 
+  // Regression for bug 1736
+  {
+    VERIFY_IS_APPROX(A(all, eii).col(0).eval(), A.col(eii(0)));
+    A(all, eii).col(0) = A.col(eii(0));
+  }
+
 }
 
 EIGEN_DECLARE_TEST(indexed_view)
