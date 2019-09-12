@@ -76,13 +76,19 @@ Packet pbetainc(const Packet& a, const Packet& b,const Packet& x) { using numext
  * order zero i0e(\a a) (coeff-wise) */
 template <typename Packet>
 EIGEN_DEVICE_FUNC EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
-Packet pi0e(const Packet& x) { using numext::i0e; return i0e(x); }
+Packet pi0e(const Packet& x) {
+  typedef typename unpacket_traits<Packet>::type ScalarType;
+  using internal::generic_i0e; return generic_i0e<Packet, ScalarType>::run(x);
+}
 
 /** \internal \returns the exponentially scaled modified Bessel function of
  * order one i1e(\a a) (coeff-wise) */
 template <typename Packet>
 EIGEN_DEVICE_FUNC EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
-Packet pi1e(const Packet& x) { using numext::i1e; return i1e(x); }
+Packet pi1e(const Packet& x) {
+  typedef typename unpacket_traits<Packet>::type ScalarType;
+  using internal::generic_i1e; return generic_i1e<Packet, ScalarType>::run(x);
+}
 
 } // end namespace internal
 

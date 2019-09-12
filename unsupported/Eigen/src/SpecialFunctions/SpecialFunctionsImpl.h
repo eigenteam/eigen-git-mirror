@@ -36,78 +36,6 @@ namespace internal {
 //    Good luck with your project,
 //    Steve
 
-namespace cephes {
-
-/* chbevl (modified for Eigen)
- *
- *     Evaluate Chebyshev series
- *
- *
- *
- * SYNOPSIS:
- *
- * int N;
- * Scalar x, y, coef[N], chebevl();
- *
- * y = chbevl( x, coef, N );
- *
- *
- *
- * DESCRIPTION:
- *
- * Evaluates the series
- *
- *        N-1
- *         - '
- *  y  =   >   coef[i] T (x/2)
- *         -            i
- *        i=0
- *
- * of Chebyshev polynomials Ti at argument x/2.
- *
- * Coefficients are stored in reverse order, i.e. the zero
- * order term is last in the array.  Note N is the number of
- * coefficients, not the order.
- *
- * If coefficients are for the interval a to b, x must
- * have been transformed to x -> 2(2x - b - a)/(b-a) before
- * entering the routine.  This maps x from (a, b) to (-1, 1),
- * over which the Chebyshev polynomials are defined.
- *
- * If the coefficients are for the inverted interval, in
- * which (a, b) is mapped to (1/b, 1/a), the transformation
- * required is x -> 2(2ab/x - b - a)/(b-a).  If b is infinity,
- * this becomes x -> 4a/x - 1.
- *
- *
- *
- * SPEED:
- *
- * Taking advantage of the recurrence properties of the
- * Chebyshev polynomials, the routine requires one more
- * addition per loop than evaluating a nested polynomial of
- * the same degree.
- *
- */
-template <typename Scalar, int N>
-struct chebevl {
-  EIGEN_DEVICE_FUNC
-  static EIGEN_STRONG_INLINE Scalar run(Scalar x, const Scalar coef[]) {
-    Scalar b0 = coef[0];
-    Scalar b1 = 0;
-    Scalar b2;
-
-    for (int i = 1; i < N; i++) {
-      b2 = b1;
-      b1 = b0;
-      b0 = x * b1 - b2 + coef[i];
-    }
-
-    return Scalar(0.5) * (b0 - b2);
-  }
-};
-
-}  // end namespace cephes
 
 /****************************************************************************
  * Implementation of lgamma, requires C++11/C99                             *
@@ -1945,20 +1873,20 @@ struct i0e_retval {
   typedef Scalar type;
 };
 
-template <typename Scalar>
-struct i0e_impl {
+template <typename T, typename ScalarType>
+struct generic_i0e {
   EIGEN_DEVICE_FUNC
-  static EIGEN_STRONG_INLINE Scalar run(const Scalar) {
-    EIGEN_STATIC_ASSERT((internal::is_same<Scalar, Scalar>::value == false),
+  static EIGEN_STRONG_INLINE T run(const T&) {
+    EIGEN_STATIC_ASSERT((internal::is_same<T, T>::value == false),
                         THIS_TYPE_IS_NOT_SUPPORTED);
-    return Scalar(0);
+    return ScalarType(0);
   }
 };
 
-template <>
-struct i0e_impl<float> {
+template <typename T>
+struct generic_i0e<T, float> {
   EIGEN_DEVICE_FUNC
-  static EIGEN_STRONG_INLINE float run(float x) {
+  static EIGEN_STRONG_INLINE T run(const T& x) {
     /*  i0ef.c
      *
      *  Modified Bessel function of order zero,
@@ -1991,6 +1919,7 @@ struct i0e_impl<float> {
      * See i0f().
      *
      */
+
     const float A[] = {-1.30002500998624804212E-8f, 6.04699502254191894932E-8f,
                        -2.67079385394061173391E-7f, 1.11738753912010371815E-6f,
                        -4.41673835845875056359E-6f, 1.64484480707288970893E-5f,
@@ -2005,23 +1934,24 @@ struct i0e_impl<float> {
                        2.04891858946906374183E-7f, 2.89137052083475648297E-6f,
                        6.88975834691682398426E-5f, 3.36911647825569408990E-3f,
                        8.04490411014108831608E-1f};
-    if (x < 0.0f) {
-      x = -x;
-    }
-
-    if (x <= 8.0f) {
-      float y = 0.5f * x - 2.0f;
-      return cephes::chebevl<float, 18>::run(y, A);
-    }
-
-    return cephes::chebevl<float, 7>::run(32.0f / x - 2.0f, B) / numext::sqrt(x);
+    T y = pabs(x);
+    T y_le_eight = internal::pchebevl<T, 18>::run(
+        pmadd(pset1<T>(0.5f), y, pset1<T>(-2.0f)), A);
+    T y_gt_eight = pdiv(
+        internal::pchebevl<T, 7>::run(
+            psub(pdiv(pset1<T>(32.0f), y), pset1<T>(2.0f)), B),
+        psqrt(y));
+    // TODO: Perhaps instead check whether all packet elements are in
+    // [-8, 8] and evaluate a branch based off of that. It's possible
+    // in practice most elements are in this region.
+    return pselect(pcmp_le(y, pset1<T>(8.0f)), y_le_eight, y_gt_eight);
   }
 };
 
-template <>
-struct i0e_impl<double> {
+template <typename T>
+struct generic_i0e<T, double> {
   EIGEN_DEVICE_FUNC
-  static EIGEN_STRONG_INLINE double run(double x) {
+  static EIGEN_STRONG_INLINE T run(const T& x) {
     /*  i0e.c
      *
      *  Modified Bessel function of order zero,
@@ -2054,6 +1984,7 @@ struct i0e_impl<double> {
      * See i0().
      *
      */
+
     const double A[] = {-4.41534164647933937950E-18, 3.33079451882223809783E-17,
                         -2.43127984654795469359E-16, 1.71539128555513303061E-15,
                         -1.16853328779934516808E-14, 7.67618549860493561688E-14,
@@ -2083,40 +2014,48 @@ struct i0e_impl<double> {
         2.04891858946906374183E-7,   2.89137052083475648297E-6,
         6.88975834691682398426E-5,   3.36911647825569408990E-3,
         8.04490411014108831608E-1};
-
-    if (x < 0.0) {
-      x = -x;
-    }
-
-    if (x <= 8.0) {
-      double y = (x / 2.0) - 2.0;
-      return cephes::chebevl<double, 30>::run(y, A);
-    }
-
-    return cephes::chebevl<double, 25>::run(32.0 / x - 2.0, B) /
-           numext::sqrt(x);
+    T y = pabs(x);
+    T y_le_eight = internal::pchebevl<T, 30>::run(
+        pmadd(pset1<T>(0.5), y, pset1<T>(-2.0)), A);
+    T y_gt_eight = pdiv(
+        internal::pchebevl<T, 25>::run(
+            psub(pdiv(pset1<T>(32.0), y), pset1<T>(2.0)), B),
+        psqrt(y));
+    // TODO: Perhaps instead check whether all packet elements are in
+    // [-8, 8] and evaluate a branch based off of that. It's possible
+    // in practice most elements are in this region.
+    return pselect(pcmp_le(y, pset1<T>(8.0)), y_le_eight, y_gt_eight);
   }
 };
+
+template <typename Scalar>
+struct i0e_impl {
+  EIGEN_DEVICE_FUNC
+  static EIGEN_STRONG_INLINE Scalar run(const Scalar x) {
+    return generic_i0e<Scalar, Scalar>::run(x);
+  }
+};
+
 
 template <typename Scalar>
 struct i1e_retval {
   typedef Scalar type;
 };
 
-template <typename Scalar>
-struct i1e_impl {
+template <typename T, typename ScalarType>
+struct generic_i1e {
   EIGEN_DEVICE_FUNC
-  static EIGEN_STRONG_INLINE Scalar run(const Scalar) {
-    EIGEN_STATIC_ASSERT((internal::is_same<Scalar, Scalar>::value == false),
+  static EIGEN_STRONG_INLINE T run(const T&) {
+    EIGEN_STATIC_ASSERT((internal::is_same<T, T>::value == false),
                         THIS_TYPE_IS_NOT_SUPPORTED);
-    return Scalar(0);
+    return ScalarType(0);
   }
 };
 
-template <>
-struct i1e_impl<float> {
+template <typename T>
+struct generic_i1e<T, float> {
   EIGEN_DEVICE_FUNC
-  static EIGEN_STRONG_INLINE float run(float x) {
+  static EIGEN_STRONG_INLINE T run(const T& x) {
     /* i1ef.c
      *
      *  Modified Bessel function of order one,
@@ -2164,27 +2103,27 @@ struct i1e_impl<float> {
                        -1.10588938762623716291E-4f, -9.76109749136146840777E-3f,
                        7.78576235018280120474E-1f};
 
-    float z = numext::abs(x);
 
-    if (z <= 8.0f) {
-      float y = 0.5f * z - 2.0f;
-      z = cephes::chebevl<float, 17>::run(y, A) * z;
-    } else {
-      z = cephes::chebevl<float, 7>::run(32.0f / z - 2.0f, B) / numext::sqrt(z);
-    }
-
-    if (x < 0.0f) {
-      z = -z;
-    }
-
-    return z;
+    T y = pabs(x);
+    T y_le_eight = pmul(y, internal::pchebevl<T, 17>::run(
+        pmadd(pset1<T>(0.5f), y, pset1<T>(-2.0f)), A));
+    T y_gt_eight = pdiv(
+        internal::pchebevl<T, 7>::run(
+            psub(pdiv(pset1<T>(32.0f), y),
+                 pset1<T>(2.0f)), B),
+        psqrt(y));
+    // TODO: Perhaps instead check whether all packet elements are in
+    // [-8, 8] and evaluate a branch based off of that. It's possible
+    // in practice most elements are in this region.
+    y = pselect(pcmp_le(y, pset1<T>(8.0f)), y_le_eight, y_gt_eight);
+    return pselect(pcmp_lt(x, pset1<T>(0.0f)), -y, y);
   }
 };
 
-template <>
-struct i1e_impl<double> {
+template <typename T>
+struct generic_i1e<T, double> {
   EIGEN_DEVICE_FUNC
-  static EIGEN_STRONG_INLINE double run(double x) {
+  static EIGEN_STRONG_INLINE T run(const T& x) {
     /*  i1e.c
      *
      *  Modified Bessel function of order one,
@@ -2246,21 +2185,27 @@ struct i1e_impl<double> {
         -2.51223623787020892529E-7,  -3.88256480887769039346E-6,
         -1.10588938762623716291E-4,  -9.76109749136146840777E-3,
         7.78576235018280120474E-1};
+    T y = pabs(x);
+    T y_le_eight = pmul(y, internal::pchebevl<T, 29>::run(
+        pmadd(pset1<T>(0.5), y, pset1<T>(-2.0)), A));
+    T y_gt_eight = pdiv(
+        internal::pchebevl<T, 25>::run(
+            psub(pdiv(pset1<T>(32.0), y),
+                 pset1<T>(2.0)), B),
+        psqrt(y));
+    // TODO: Perhaps instead check whether all packet elements are in
+    // [-8, 8] and evaluate a branch based off of that. It's possible
+    // in practice most elements are in this region.
+    y = pselect(pcmp_le(y, pset1<T>(8.0)), y_le_eight, y_gt_eight);
+    return pselect(pcmp_lt(x, pset1<T>(0.0f)), -y, y);
+  }
+};
 
-    double z = numext::abs(x);
-
-    if (z <= 8.0) {
-      double y = (z / 2.0) - 2.0;
-      z = cephes::chebevl<double, 29>::run(y, A) * z;
-    } else {
-      z = cephes::chebevl<double, 25>::run(32.0 / z - 2.0, B) / numext::sqrt(z);
-    }
-
-    if (x < 0.0) {
-      z = -z;
-    }
-
-    return z;
+template <typename Scalar>
+struct i1e_impl {
+  EIGEN_DEVICE_FUNC
+  static EIGEN_STRONG_INLINE Scalar run(const Scalar x) {
+    return generic_i1e<Scalar, Scalar>::run(x);
   }
 };
 

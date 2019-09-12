@@ -609,6 +609,8 @@ template<typename Scalar,typename Packet> void packetmath_real()
   CHECK_CWISE1_IF(PacketTraits::HasSqrt, std::sqrt, internal::psqrt);
   CHECK_CWISE1_IF(PacketTraits::HasSqrt, Scalar(1)/std::sqrt, internal::prsqrt);
   CHECK_CWISE1_IF(PacketTraits::HasLog, std::log, internal::plog);
+  CHECK_CWISE1_IF(PacketTraits::HasI0e, numext::i0e, internal::pi0e);
+  CHECK_CWISE1_IF(PacketTraits::HasI1e, numext::i1e, internal::pi1e);
 #if EIGEN_HAS_C99_MATH && (__cplusplus > 199711L)
   CHECK_CWISE1_IF(internal::packet_traits<Scalar>::HasLGamma, std::lgamma, internal::plgamma);
   CHECK_CWISE1_IF(internal::packet_traits<Scalar>::HasErf, std::erf, internal::perf);
