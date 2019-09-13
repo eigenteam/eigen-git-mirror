@@ -679,10 +679,10 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
 
       // Reuse pre-allocated thread local buffers.
       BlockType* thread_local_pre_allocated_base_ = nullptr;
-      size_t grain_size_;
+      size_t grain_size_ = 0;
 
       // These will be initialized only if `is_pre_allocated == false`.
-      BlockMemHandle mem_handle_;
+      BlockMemHandle mem_handle_{};
       std::vector<BlockType> blocks_;
     };
 
