@@ -37,8 +37,20 @@ namespace Eigen {
   * - polygamma
   * - zeta
   * - betainc
+  *
+  * Bessel Functions
+  * - i0
   * - i0e
+  * - i1
   * - i1e
+  * - j0
+  * - j1
+  * - y0
+  * - y1
+  * - k0
+  * - k0e
+  * - k1
+  * - k1e
   *
   * \code
   * #include <unsupported/Eigen/SpecialFunctions>
@@ -48,6 +60,11 @@ namespace Eigen {
 
 }
 
+#include "src/SpecialFunctions/BesselFunctionsImpl.h"
+#include "src/SpecialFunctions/BesselFunctionsPacketMath.h"
+#include "src/SpecialFunctions/BesselFunctionsHalf.h"
+#include "src/SpecialFunctions/BesselFunctionsFunctors.h"
+#include "src/SpecialFunctions/BesselFunctionsArrayAPI.h"
 #include "src/SpecialFunctions/SpecialFunctionsImpl.h"
 #include "src/SpecialFunctions/SpecialFunctionsPacketMath.h"
 #include "src/SpecialFunctions/SpecialFunctionsHalf.h"

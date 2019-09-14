@@ -72,24 +72,6 @@ Packet pigammac(const Packet& a, const Packet& x) { using numext::igammac; retur
 template<typename Packet> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
 Packet pbetainc(const Packet& a, const Packet& b,const Packet& x) { using numext::betainc; return betainc(a, b, x); }
 
-/** \internal \returns the exponentially scaled modified Bessel function of
- * order zero i0e(\a a) (coeff-wise) */
-template <typename Packet>
-EIGEN_DEVICE_FUNC EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
-Packet pi0e(const Packet& x) {
-  typedef typename unpacket_traits<Packet>::type ScalarType;
-  using internal::generic_i0e; return generic_i0e<Packet, ScalarType>::run(x);
-}
-
-/** \internal \returns the exponentially scaled modified Bessel function of
- * order one i1e(\a a) (coeff-wise) */
-template <typename Packet>
-EIGEN_DEVICE_FUNC EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
-Packet pi1e(const Packet& x) {
-  typedef typename unpacket_traits<Packet>::type ScalarType;
-  using internal::generic_i1e; return generic_i1e<Packet, ScalarType>::run(x);
-}
-
 } // end namespace internal
 
 } // end namespace Eigen

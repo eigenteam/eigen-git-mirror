@@ -218,6 +218,19 @@ pi0e<double2>(const double2& x) {
 }
 
 template <>
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE float4 pi0<float4>(const float4& x) {
+  using numext::i0;
+  return make_float4(i0(x.x), i0(x.y), i0(x.z), i0(x.w));
+}
+
+template <>
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE double2
+pi0<double2>(const double2& x) {
+  using numext::i0;
+  return make_double2(i0(x.x), i0(x.y));
+}
+
+template <>
 EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE float4 pi1e<float4>(const float4& x) {
   using numext::i1e;
   return make_float4(i1e(x.x), i1e(x.y), i1e(x.z), i1e(x.w));
@@ -228,6 +241,123 @@ EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE double2
 pi1e<double2>(const double2& x) {
   using numext::i1e;
   return make_double2(i1e(x.x), i1e(x.y));
+}
+
+template <>
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE float4 pi1<float4>(const float4& x) {
+  using numext::i1;
+  return make_float4(i1(x.x), i1(x.y), i1(x.z), i1(x.w));
+}
+
+template <>
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE double2
+pi1<double2>(const double2& x) {
+  using numext::i1;
+  return make_double2(i1(x.x), i1(x.y));
+}
+
+template <>
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE float4 pk0e<float4>(const float4& x) {
+  using numext::k0e;
+  return make_float4(k0e(x.x), k0e(x.y), k0e(x.z), k0e(x.w));
+}
+
+template <>
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE double2
+pk0e<double2>(const double2& x) {
+  using numext::k0e;
+  return make_double2(k0e(x.x), k0e(x.y));
+}
+
+template <>
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE float4 pk0<float4>(const float4& x) {
+  using numext::k0;
+  return make_float4(k0(x.x), k0(x.y), k0(x.z), k0(x.w));
+}
+
+template <>
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE double2
+pk0<double2>(const double2& x) {
+  using numext::k0;
+  return make_double2(k0(x.x), k0(x.y));
+}
+
+template <>
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE float4 pk1e<float4>(const float4& x) {
+  using numext::k1e;
+  return make_float4(k1e(x.x), k1e(x.y), k1e(x.z), k1e(x.w));
+}
+
+template <>
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE double2
+pk1e<double2>(const double2& x) {
+  using numext::k1e;
+  return make_double2(k1e(x.x), k1e(x.y));
+}
+
+template <>
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE float4 pk1<float4>(const float4& x) {
+  using numext::k1;
+  return make_float4(k1(x.x), k1(x.y), k1(x.z), k1(x.w));
+}
+
+template <>
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE double2
+pk1<double2>(const double2& x) {
+  using numext::k1;
+  return make_double2(k1(x.x), k1(x.y));
+}
+
+template <>
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE float4 pj0<float4>(const float4& x) {
+  using numext::j0;
+  return make_float4(j0(x.x), j0(x.y), j0(x.z), j0(x.w));
+}
+
+template <>
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE double2
+pj0<double2>(const double2& x) {
+  using numext::j0;
+  return make_double2(j0(x.x), j0(x.y));
+}
+
+template <>
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE float4 pj1<float4>(const float4& x) {
+  using numext::j1;
+  return make_float4(j1(x.x), j1(x.y), j1(x.z), j1(x.w));
+}
+
+template <>
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE double2
+pj1<double2>(const double2& x) {
+  using numext::j1;
+  return make_double2(j1(x.x), j1(x.y));
+}
+
+template <>
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE float4 py0<float4>(const float4& x) {
+  using numext::y0;
+  return make_float4(y0(x.x), y0(x.y), y0(x.z), y0(x.w));
+}
+
+template <>
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE double2
+py0<double2>(const double2& x) {
+  using numext::y0;
+  return make_double2(y0(x.x), y0(x.y));
+}
+
+template <>
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE float4 py1<float4>(const float4& x) {
+  using numext::y1;
+  return make_float4(y1(x.x), y1(x.y), y1(x.z), y1(x.w));
+}
+
+template <>
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE double2
+py1<double2>(const double2& x) {
+  using numext::y1;
+  return make_double2(y1(x.x), y1(x.y));
 }
 
 #endif

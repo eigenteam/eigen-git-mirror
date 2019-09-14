@@ -609,8 +609,28 @@ template<typename Scalar,typename Packet> void packetmath_real()
   CHECK_CWISE1_IF(PacketTraits::HasSqrt, std::sqrt, internal::psqrt);
   CHECK_CWISE1_IF(PacketTraits::HasSqrt, Scalar(1)/std::sqrt, internal::prsqrt);
   CHECK_CWISE1_IF(PacketTraits::HasLog, std::log, internal::plog);
-  CHECK_CWISE1_IF(PacketTraits::HasI0e, numext::i0e, internal::pi0e);
-  CHECK_CWISE1_IF(PacketTraits::HasI1e, numext::i1e, internal::pi1e);
+  CHECK_CWISE1_IF(PacketTraits::HasBessel, numext::i0, internal::pi0);
+  CHECK_CWISE1_IF(PacketTraits::HasBessel, numext::i0e, internal::pi0e);
+  CHECK_CWISE1_IF(PacketTraits::HasBessel, numext::i1, internal::pi1);
+  CHECK_CWISE1_IF(PacketTraits::HasBessel, numext::i1e, internal::pi1e);
+  CHECK_CWISE1_IF(PacketTraits::HasBessel, numext::j0, internal::pj0);
+  CHECK_CWISE1_IF(PacketTraits::HasBessel, numext::j1, internal::pj1);
+
+  // Use a smaller data range for the positive bessel operations as these
+  // can have much more error at very small and very large values.
+  for (int i=0; i<size; ++i) {
+      data1[i] = internal::random<Scalar>(0.01,1) * std::pow(
+          Scalar(10), internal::random<Scalar>(-1,2));
+      data2[i] = internal::random<Scalar>(0.01,1) * std::pow(
+          Scalar(10), internal::random<Scalar>(-1,2));
+  }
+  CHECK_CWISE1_IF(PacketTraits::HasBessel, numext::y0, internal::py0);
+  CHECK_CWISE1_IF(PacketTraits::HasBessel, numext::y1, internal::py1);
+  CHECK_CWISE1_IF(PacketTraits::HasBessel, numext::k0, internal::pk0);
+  CHECK_CWISE1_IF(PacketTraits::HasBessel, numext::k0e, internal::pk0e);
+  CHECK_CWISE1_IF(PacketTraits::HasBessel, numext::k1, internal::pk1);
+  CHECK_CWISE1_IF(PacketTraits::HasBessel, numext::k1e, internal::pk1e);
+
 #if EIGEN_HAS_C99_MATH && (__cplusplus > 199711L)
   CHECK_CWISE1_IF(internal::packet_traits<Scalar>::HasLGamma, std::lgamma, internal::plgamma);
   CHECK_CWISE1_IF(internal::packet_traits<Scalar>::HasErf, std::erf, internal::perf);
@@ -945,7 +965,7 @@ EIGEN_DECLARE_TEST(packetmath)
 {
   g_first_pass = true;
   for(int i = 0; i < g_repeat; i++) {
-    
+
     CALL_SUBTEST_1( runner<float>::run() );
     CALL_SUBTEST_2( runner<double>::run() );
     CALL_SUBTEST_3( runner<int>::run() );

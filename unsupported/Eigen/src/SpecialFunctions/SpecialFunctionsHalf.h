@@ -50,14 +50,6 @@ template<> EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half igammac(const Eigen
 template<> EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half betainc(const Eigen::half& a, const Eigen::half& b, const Eigen::half& x) {
   return Eigen::half(Eigen::numext::betainc(static_cast<float>(a), static_cast<float>(b), static_cast<float>(x)));
 }
-template <>
-EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half i0e(const Eigen::half& x) {
-  return Eigen::half(Eigen::numext::i0e(static_cast<float>(x)));
-}
-template <>
-EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half i1e(const Eigen::half& x) {
-  return Eigen::half(Eigen::numext::i1e(static_cast<float>(x)));
-}
 #endif
 
 }  // end namespace numext

@@ -161,51 +161,6 @@ zeta(const Eigen::ArrayBase<DerivedX>& x, const Eigen::ArrayBase<DerivedQ>& q)
   );
 }
 
-/** \returns an expression of the coefficient-wise i0e(\a x) to the given
- * arrays.
-  *
-  * It returns the exponentially scaled modified Bessel
-  * function of order zero.
-  *
-  * \param x is the argument
-  *
-  * \note This function supports only float and double scalar types. To support
-  * other scalar types, the user has to provide implementations of i0e(T) for
-  * any scalar type T to be supported.
-  *
-  * \sa ArrayBase::i0e()
-  */
-template <typename Derived>
-EIGEN_STRONG_INLINE const Eigen::CwiseUnaryOp<
-    Eigen::internal::scalar_i0e_op<typename Derived::Scalar>, const Derived>
-i0e(const Eigen::ArrayBase<Derived>& x) {
-  return Eigen::CwiseUnaryOp<
-      Eigen::internal::scalar_i0e_op<typename Derived::Scalar>,
-      const Derived>(x.derived());
-}
-
-/** \returns an expression of the coefficient-wise i1e(\a x) to the given
- * arrays.
-  *
-  * It returns the exponentially scaled modified Bessel
-  * function of order one.
-  *
-  * \param x is the argument
-  *
-  * \note This function supports only float and double scalar types. To support
-  * other scalar types, the user has to provide implementations of i1e(T) for
-  * any scalar type T to be supported.
-  *
-  * \sa ArrayBase::i1e()
-  */
-template <typename Derived>
-EIGEN_STRONG_INLINE const Eigen::CwiseUnaryOp<
-    Eigen::internal::scalar_i1e_op<typename Derived::Scalar>, const Derived>
-i1e(const Eigen::ArrayBase<Derived>& x) {
-  return Eigen::CwiseUnaryOp<
-      Eigen::internal::scalar_i1e_op<typename Derived::Scalar>,
-      const Derived>(x.derived());
-}
 
 } // end namespace Eigen
 
