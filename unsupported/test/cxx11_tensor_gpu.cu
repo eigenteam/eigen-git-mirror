@@ -1317,7 +1317,7 @@ void test_gpu_i0e()
   Eigen::TensorMap<Eigen::Tensor<Scalar, 1> > gpu_in(d_in, 21);
   Eigen::TensorMap<Eigen::Tensor<Scalar, 1> > gpu_out(d_out, 21);
 
-  gpu_out.device(gpu_device) = gpu_in.i0e();
+  gpu_out.device(gpu_device) = gpu_in.bessel_i0e();
 
   assert(gpuMemcpyAsync(out.data(), d_out, bytes, gpuMemcpyDeviceToHost,
                          gpu_device.stream()) == gpuSuccess);
@@ -1372,7 +1372,7 @@ void test_gpu_i1e()
   Eigen::TensorMap<Eigen::Tensor<Scalar, 1> > gpu_in(d_in, 21);
   Eigen::TensorMap<Eigen::Tensor<Scalar, 1> > gpu_out(d_out, 21);
 
-  gpu_out.device(gpu_device) = gpu_in.i1e();
+  gpu_out.device(gpu_device) = gpu_in.bessel_i1e();
 
   assert(gpuMemcpyAsync(out.data(), d_out, bytes, gpuMemcpyDeviceToHost,
                          gpu_device.stream()) == gpuSuccess);

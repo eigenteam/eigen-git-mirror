@@ -42,7 +42,7 @@ namespace internal {
  ****************************************************************************/
 
 template <typename Scalar>
-struct i0e_retval {
+struct bessel_i0e_retval {
   typedef Scalar type;
 };
 
@@ -202,7 +202,7 @@ struct generic_i0e<T, double> {
 };
 
 template <typename Scalar>
-struct i0e_impl {
+struct bessel_i0e_impl {
   EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE Scalar run(const Scalar x) {
     return generic_i0e<Scalar, Scalar>::run(x);
@@ -210,7 +210,7 @@ struct i0e_impl {
 };
 
 template <typename Scalar>
-struct i0_retval {
+struct bessel_i0_retval {
   typedef Scalar type;
 };
 
@@ -225,7 +225,7 @@ struct generic_i0 {
 };
 
 template <typename Scalar>
-struct i0_impl {
+struct bessel_i0_impl {
   EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE Scalar run(const Scalar x) {
     return generic_i0<Scalar, Scalar>::run(x);
@@ -233,7 +233,7 @@ struct i0_impl {
 };
 
 template <typename Scalar>
-struct i1e_retval {
+struct bessel_i1e_retval {
   typedef Scalar type;
 };
 
@@ -397,7 +397,7 @@ struct generic_i1e<T, double> {
 };
 
 template <typename Scalar>
-struct i1e_impl {
+struct bessel_i1e_impl {
   EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE Scalar run(const Scalar x) {
     return generic_i1e<Scalar, Scalar>::run(x);
@@ -405,7 +405,7 @@ struct i1e_impl {
 };
 
 template <typename Scalar>
-struct i1_retval {
+struct bessel_i1_retval {
   typedef Scalar type;
 };
 
@@ -420,7 +420,7 @@ struct generic_i1 {
 };
 
 template <typename Scalar>
-struct i1_impl {
+struct bessel_i1_impl {
   EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE Scalar run(const Scalar x) {
     return generic_i1<Scalar, Scalar>::run(x);
@@ -428,7 +428,7 @@ struct i1_impl {
 };
 
 template <typename Scalar>
-struct k0e_retval {
+struct bessel_k0e_retval {
   typedef Scalar type;
 };
 
@@ -583,7 +583,7 @@ struct generic_k0e<T, double> {
 };
 
 template <typename Scalar>
-struct k0e_impl {
+struct bessel_k0e_impl {
   EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE Scalar run(const Scalar x) {
     return generic_k0e<Scalar, Scalar>::run(x);
@@ -591,7 +591,7 @@ struct k0e_impl {
 };
 
 template <typename Scalar>
-struct k0_retval {
+struct bessel_k0_retval {
   typedef Scalar type;
 };
 
@@ -755,7 +755,7 @@ struct generic_k0<T, double> {
 };
 
 template <typename Scalar>
-struct k0_impl {
+struct bessel_k0_impl {
   EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE Scalar run(const Scalar x) {
     return generic_k0<Scalar, Scalar>::run(x);
@@ -763,7 +763,7 @@ struct k0_impl {
 };
 
 template <typename Scalar>
-struct k1e_retval {
+struct bessel_k1e_retval {
   typedef Scalar type;
 };
 
@@ -911,7 +911,7 @@ struct generic_k1e<T, double> {
 };
 
 template <typename Scalar>
-struct k1e_impl {
+struct bessel_k1e_impl {
   EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE Scalar run(const Scalar x) {
     return generic_k1e<Scalar, Scalar>::run(x);
@@ -919,7 +919,7 @@ struct k1e_impl {
 };
 
 template <typename Scalar>
-struct k1_retval {
+struct bessel_k1_retval {
   typedef Scalar type;
 };
 
@@ -1077,7 +1077,7 @@ struct generic_k1<T, double> {
 };
 
 template <typename Scalar>
-struct k1_impl {
+struct bessel_k1_impl {
   EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE Scalar run(const Scalar x) {
     return generic_k1<Scalar, Scalar>::run(x);
@@ -1085,7 +1085,7 @@ struct k1_impl {
 };
 
 template <typename Scalar>
-struct j0_retval {
+struct bessel_j0_retval {
   typedef Scalar type;
 };
 
@@ -1277,7 +1277,7 @@ struct generic_j0<T, double> {
 };
 
 template <typename Scalar>
-struct j0_impl {
+struct bessel_j0_impl {
   EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE Scalar run(const Scalar x) {
     return generic_j0<Scalar, Scalar>::run(x);
@@ -1285,7 +1285,7 @@ struct j0_impl {
 };
 
 template <typename Scalar>
-struct y0_retval {
+struct bessel_y0_retval {
   typedef Scalar type;
 };
 
@@ -1475,7 +1475,7 @@ struct generic_y0<T, double> {
 };
 
 template <typename Scalar>
-struct y0_impl {
+struct bessel_y0_impl {
   EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE Scalar run(const Scalar x) {
     return generic_y0<Scalar, Scalar>::run(x);
@@ -1483,7 +1483,7 @@ struct y0_impl {
 };
 
 template <typename Scalar>
-struct j1_retval {
+struct bessel_j1_retval {
   typedef Scalar type;
 };
 
@@ -1666,7 +1666,7 @@ struct generic_j1<T, double> {
 };
 
 template <typename Scalar>
-struct j1_impl {
+struct bessel_j1_impl {
   EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE Scalar run(const Scalar x) {
     return generic_j1<Scalar, Scalar>::run(x);
@@ -1674,7 +1674,7 @@ struct j1_impl {
 };
 
 template <typename Scalar>
-struct y1_retval {
+struct bessel_y1_retval {
   typedef Scalar type;
 };
 
@@ -1869,7 +1869,7 @@ struct generic_y1<T, double> {
 };
 
 template <typename Scalar>
-struct y1_impl {
+struct bessel_y1_impl {
   EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE Scalar run(const Scalar x) {
     return generic_y1<Scalar, Scalar>::run(x);
@@ -1881,75 +1881,75 @@ struct y1_impl {
 namespace numext {
 
 template <typename Scalar>
-EIGEN_DEVICE_FUNC inline EIGEN_MATHFUNC_RETVAL(i0, Scalar)
-    i0(const Scalar& x) {
-  return EIGEN_MATHFUNC_IMPL(i0, Scalar)::run(x);
+EIGEN_DEVICE_FUNC inline EIGEN_MATHFUNC_RETVAL(bessel_i0, Scalar)
+    bessel_i0(const Scalar& x) {
+  return EIGEN_MATHFUNC_IMPL(bessel_i0, Scalar)::run(x);
 }
 
 template <typename Scalar>
-EIGEN_DEVICE_FUNC inline EIGEN_MATHFUNC_RETVAL(i0e, Scalar)
-    i0e(const Scalar& x) {
-  return EIGEN_MATHFUNC_IMPL(i0e, Scalar)::run(x);
+EIGEN_DEVICE_FUNC inline EIGEN_MATHFUNC_RETVAL(bessel_i0e, Scalar)
+    bessel_i0e(const Scalar& x) {
+  return EIGEN_MATHFUNC_IMPL(bessel_i0e, Scalar)::run(x);
 }
 
 template <typename Scalar>
-EIGEN_DEVICE_FUNC inline EIGEN_MATHFUNC_RETVAL(i1, Scalar)
-    i1(const Scalar& x) {
-  return EIGEN_MATHFUNC_IMPL(i1, Scalar)::run(x);
+EIGEN_DEVICE_FUNC inline EIGEN_MATHFUNC_RETVAL(bessel_i1, Scalar)
+    bessel_i1(const Scalar& x) {
+  return EIGEN_MATHFUNC_IMPL(bessel_i1, Scalar)::run(x);
 }
 
 template <typename Scalar>
-EIGEN_DEVICE_FUNC inline EIGEN_MATHFUNC_RETVAL(i1e, Scalar)
-    i1e(const Scalar& x) {
-  return EIGEN_MATHFUNC_IMPL(i1e, Scalar)::run(x);
+EIGEN_DEVICE_FUNC inline EIGEN_MATHFUNC_RETVAL(bessel_i1e, Scalar)
+    bessel_i1e(const Scalar& x) {
+  return EIGEN_MATHFUNC_IMPL(bessel_i1e, Scalar)::run(x);
 }
 
 template <typename Scalar>
-EIGEN_DEVICE_FUNC inline EIGEN_MATHFUNC_RETVAL(k0, Scalar)
-    k0(const Scalar& x) {
-  return EIGEN_MATHFUNC_IMPL(k0, Scalar)::run(x);
+EIGEN_DEVICE_FUNC inline EIGEN_MATHFUNC_RETVAL(bessel_k0, Scalar)
+    bessel_k0(const Scalar& x) {
+  return EIGEN_MATHFUNC_IMPL(bessel_k0, Scalar)::run(x);
 }
 
 template <typename Scalar>
-EIGEN_DEVICE_FUNC inline EIGEN_MATHFUNC_RETVAL(k0e, Scalar)
-    k0e(const Scalar& x) {
-  return EIGEN_MATHFUNC_IMPL(k0e, Scalar)::run(x);
+EIGEN_DEVICE_FUNC inline EIGEN_MATHFUNC_RETVAL(bessel_k0e, Scalar)
+    bessel_k0e(const Scalar& x) {
+  return EIGEN_MATHFUNC_IMPL(bessel_k0e, Scalar)::run(x);
 }
 
 template <typename Scalar>
-EIGEN_DEVICE_FUNC inline EIGEN_MATHFUNC_RETVAL(k1, Scalar)
-    k1(const Scalar& x) {
-  return EIGEN_MATHFUNC_IMPL(k1, Scalar)::run(x);
+EIGEN_DEVICE_FUNC inline EIGEN_MATHFUNC_RETVAL(bessel_k1, Scalar)
+    bessel_k1(const Scalar& x) {
+  return EIGEN_MATHFUNC_IMPL(bessel_k1, Scalar)::run(x);
 }
 
 template <typename Scalar>
-EIGEN_DEVICE_FUNC inline EIGEN_MATHFUNC_RETVAL(k1e, Scalar)
-    k1e(const Scalar& x) {
-  return EIGEN_MATHFUNC_IMPL(k1e, Scalar)::run(x);
+EIGEN_DEVICE_FUNC inline EIGEN_MATHFUNC_RETVAL(bessel_k1e, Scalar)
+    bessel_k1e(const Scalar& x) {
+  return EIGEN_MATHFUNC_IMPL(bessel_k1e, Scalar)::run(x);
 }
 
 template <typename Scalar>
-EIGEN_DEVICE_FUNC inline EIGEN_MATHFUNC_RETVAL(j0, Scalar)
-    j0(const Scalar& x) {
-  return EIGEN_MATHFUNC_IMPL(j0, Scalar)::run(x);
+EIGEN_DEVICE_FUNC inline EIGEN_MATHFUNC_RETVAL(bessel_j0, Scalar)
+    bessel_j0(const Scalar& x) {
+  return EIGEN_MATHFUNC_IMPL(bessel_j0, Scalar)::run(x);
 }
 
 template <typename Scalar>
-EIGEN_DEVICE_FUNC inline EIGEN_MATHFUNC_RETVAL(y0, Scalar)
-    y0(const Scalar& x) {
-  return EIGEN_MATHFUNC_IMPL(y0, Scalar)::run(x);
+EIGEN_DEVICE_FUNC inline EIGEN_MATHFUNC_RETVAL(bessel_y0, Scalar)
+    bessel_y0(const Scalar& x) {
+  return EIGEN_MATHFUNC_IMPL(bessel_y0, Scalar)::run(x);
 }
 
 template <typename Scalar>
-EIGEN_DEVICE_FUNC inline EIGEN_MATHFUNC_RETVAL(j1, Scalar)
-    j1(const Scalar& x) {
-  return EIGEN_MATHFUNC_IMPL(j1, Scalar)::run(x);
+EIGEN_DEVICE_FUNC inline EIGEN_MATHFUNC_RETVAL(bessel_j1, Scalar)
+    bessel_j1(const Scalar& x) {
+  return EIGEN_MATHFUNC_IMPL(bessel_j1, Scalar)::run(x);
 }
 
 template <typename Scalar>
-EIGEN_DEVICE_FUNC inline EIGEN_MATHFUNC_RETVAL(y1, Scalar)
-    y1(const Scalar& x) {
-  return EIGEN_MATHFUNC_IMPL(y1, Scalar)::run(x);
+EIGEN_DEVICE_FUNC inline EIGEN_MATHFUNC_RETVAL(bessel_y1, Scalar)
+    bessel_y1(const Scalar& x) {
+  return EIGEN_MATHFUNC_IMPL(bessel_y1, Scalar)::run(x);
 }
 
 }  // end namespace numext

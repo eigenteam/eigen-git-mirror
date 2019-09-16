@@ -18,18 +18,18 @@ namespace internal {
 /** \internal
  * \brief Template functor to compute the modified Bessel function of the first
  * kind of order zero.
- * \sa class CwiseUnaryOp, Cwise::i0()
+ * \sa class CwiseUnaryOp, Cwise::bessel_i0()
  */
 template <typename Scalar>
 struct scalar_bessel_i0_op {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_bessel_i0_op)
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar operator()(const Scalar& x) const {
-    using numext::i0;
-    return i0(x);
+    using numext::bessel_i0;
+    return bessel_i0(x);
   }
   typedef typename packet_traits<Scalar>::type Packet;
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Packet packetOp(const Packet& x) const {
-    return internal::pi0(x);
+    return internal::pbessel_i0(x);
   }
 };
 template <typename Scalar>
@@ -46,18 +46,18 @@ struct functor_traits<scalar_bessel_i0_op<Scalar> > {
 /** \internal
  * \brief Template functor to compute the exponentially scaled modified Bessel
  * function of the first kind of order zero
- * \sa class CwiseUnaryOp, Cwise::i0e()
+ * \sa class CwiseUnaryOp, Cwise::bessel_i0e()
  */
 template <typename Scalar>
 struct scalar_bessel_i0e_op {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_bessel_i0e_op)
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar operator()(const Scalar& x) const {
-    using numext::i0e;
-    return i0e(x);
+    using numext::bessel_i0e;
+    return bessel_i0e(x);
   }
   typedef typename packet_traits<Scalar>::type Packet;
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Packet packetOp(const Packet& x) const {
-    return internal::pi0e(x);
+    return internal::pbessel_i0e(x);
   }
 };
 template <typename Scalar>
@@ -73,18 +73,18 @@ struct functor_traits<scalar_bessel_i0e_op<Scalar> > {
 /** \internal
  * \brief Template functor to compute the modified Bessel function of the first
  * kind of order one
- * \sa class CwiseUnaryOp, Cwise::i1()
+ * \sa class CwiseUnaryOp, Cwise::bessel_i1()
  */
 template <typename Scalar>
 struct scalar_bessel_i1_op {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_bessel_i1_op)
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar operator()(const Scalar& x) const {
-    using numext::i1;
-    return i1(x);
+    using numext::bessel_i1;
+    return bessel_i1(x);
   }
   typedef typename packet_traits<Scalar>::type Packet;
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Packet packetOp(const Packet& x) const {
-    return internal::pi1(x);
+    return internal::pbessel_i1(x);
   }
 };
 template <typename Scalar>
@@ -101,18 +101,18 @@ struct functor_traits<scalar_bessel_i1_op<Scalar> > {
 /** \internal
  * \brief Template functor to compute the exponentially scaled modified Bessel
  * function of the first kind of order zero
- * \sa class CwiseUnaryOp, Cwise::i1e()
+ * \sa class CwiseUnaryOp, Cwise::bessel_i1e()
  */
 template <typename Scalar>
 struct scalar_bessel_i1e_op {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_bessel_i1e_op)
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar operator()(const Scalar& x) const {
-    using numext::i1e;
-    return i1e(x);
+    using numext::bessel_i1e;
+    return bessel_i1e(x);
   }
   typedef typename packet_traits<Scalar>::type Packet;
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Packet packetOp(const Packet& x) const {
-    return internal::pi1e(x);
+    return internal::pbessel_i1e(x);
   }
 };
 template <typename Scalar>
@@ -128,18 +128,18 @@ struct functor_traits<scalar_bessel_i1e_op<Scalar> > {
 /** \internal
  * \brief Template functor to compute the Bessel function of the second kind of
  * order zero
- * \sa class CwiseUnaryOp, Cwise::j0()
+ * \sa class CwiseUnaryOp, Cwise::bessel_j0()
  */
 template <typename Scalar>
 struct scalar_bessel_j0_op {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_bessel_j0_op)
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar operator()(const Scalar& x) const {
-    using numext::j0;
-    return j0(x);
+    using numext::bessel_j0;
+    return bessel_j0(x);
   }
   typedef typename packet_traits<Scalar>::type Packet;
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Packet packetOp(const Packet& x) const {
-    return internal::pj0(x);
+    return internal::pbessel_j0(x);
   }
 };
 template <typename Scalar>
@@ -156,18 +156,18 @@ struct functor_traits<scalar_bessel_j0_op<Scalar> > {
 /** \internal
  * \brief Template functor to compute the Bessel function of the second kind of
  * order zero
- * \sa class CwiseUnaryOp, Cwise::y0()
+ * \sa class CwiseUnaryOp, Cwise::bessel_y0()
  */
 template <typename Scalar>
 struct scalar_bessel_y0_op {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_bessel_y0_op)
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar operator()(const Scalar& x) const {
-    using numext::y0;
-    return y0(x);
+    using numext::bessel_y0;
+    return bessel_y0(x);
   }
   typedef typename packet_traits<Scalar>::type Packet;
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Packet packetOp(const Packet& x) const {
-    return internal::py0(x);
+    return internal::pbessel_y0(x);
   }
 };
 template <typename Scalar>
@@ -184,18 +184,18 @@ struct functor_traits<scalar_bessel_y0_op<Scalar> > {
 /** \internal
  * \brief Template functor to compute the Bessel function of the first kind of
  * order one
- * \sa class CwiseUnaryOp, Cwise::j1()
+ * \sa class CwiseUnaryOp, Cwise::bessel_j1()
  */
 template <typename Scalar>
 struct scalar_bessel_j1_op {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_bessel_j1_op)
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar operator()(const Scalar& x) const {
-    using numext::j1;
-    return j1(x);
+    using numext::bessel_j1;
+    return bessel_j1(x);
   }
   typedef typename packet_traits<Scalar>::type Packet;
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Packet packetOp(const Packet& x) const {
-    return internal::pj1(x);
+    return internal::pbessel_j1(x);
   }
 };
 template <typename Scalar>
@@ -212,18 +212,18 @@ struct functor_traits<scalar_bessel_j1_op<Scalar> > {
 /** \internal
  * \brief Template functor to compute the Bessel function of the second kind of
  * order one
- * \sa class CwiseUnaryOp, Cwise::j1e()
+ * \sa class CwiseUnaryOp, Cwise::bessel_j1e()
  */
 template <typename Scalar>
 struct scalar_bessel_y1_op {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_bessel_y1_op)
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar operator()(const Scalar& x) const {
-    using numext::y1;
-    return y1(x);
+    using numext::bessel_y1;
+    return bessel_y1(x);
   }
   typedef typename packet_traits<Scalar>::type Packet;
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Packet packetOp(const Packet& x) const {
-    return internal::py1(x);
+    return internal::pbessel_y1(x);
   }
 };
 template <typename Scalar>
@@ -240,18 +240,18 @@ struct functor_traits<scalar_bessel_y1_op<Scalar> > {
 /** \internal
  * \brief Template functor to compute the modified Bessel function of the second
  * kind of order zero
- * \sa class CwiseUnaryOp, Cwise::k0()
+ * \sa class CwiseUnaryOp, Cwise::bessel_k0()
  */
 template <typename Scalar>
 struct scalar_bessel_k0_op {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_bessel_k0_op)
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar operator()(const Scalar& x) const {
-    using numext::k0;
-    return k0(x);
+    using numext::bessel_k0;
+    return bessel_k0(x);
   }
   typedef typename packet_traits<Scalar>::type Packet;
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Packet packetOp(const Packet& x) const {
-    return internal::pk0(x);
+    return internal::pbessel_k0(x);
   }
 };
 template <typename Scalar>
@@ -268,18 +268,18 @@ struct functor_traits<scalar_bessel_k0_op<Scalar> > {
 /** \internal
  * \brief Template functor to compute the exponentially scaled modified Bessel
  * function of the second kind of order zero
- * \sa class CwiseUnaryOp, Cwise::k0e()
+ * \sa class CwiseUnaryOp, Cwise::bessel_k0e()
  */
 template <typename Scalar>
 struct scalar_bessel_k0e_op {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_bessel_k0e_op)
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar operator()(const Scalar& x) const {
-    using numext::k0e;
-    return k0e(x);
+    using numext::bessel_k0e;
+    return bessel_k0e(x);
   }
   typedef typename packet_traits<Scalar>::type Packet;
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Packet packetOp(const Packet& x) const {
-    return internal::pk0e(x);
+    return internal::pbessel_k0e(x);
   }
 };
 template <typename Scalar>
@@ -296,18 +296,18 @@ struct functor_traits<scalar_bessel_k0e_op<Scalar> > {
 /** \internal
  * \brief Template functor to compute the modified Bessel function of the
  * second kind of order one
- * \sa class CwiseUnaryOp, Cwise::k1()
+ * \sa class CwiseUnaryOp, Cwise::bessel_k1()
  */
 template <typename Scalar>
 struct scalar_bessel_k1_op {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_bessel_k1_op)
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar operator()(const Scalar& x) const {
-    using numext::k1;
-    return k1(x);
+    using numext::bessel_k1;
+    return bessel_k1(x);
   }
   typedef typename packet_traits<Scalar>::type Packet;
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Packet packetOp(const Packet& x) const {
-    return internal::pk1(x);
+    return internal::pbessel_k1(x);
   }
 };
 template <typename Scalar>
@@ -324,18 +324,18 @@ struct functor_traits<scalar_bessel_k1_op<Scalar> > {
 /** \internal
  * \brief Template functor to compute the exponentially scaled modified Bessel
  * function of the second kind of order one
- * \sa class CwiseUnaryOp, Cwise::k1e()
+ * \sa class CwiseUnaryOp, Cwise::bessel_k1e()
  */
 template <typename Scalar>
 struct scalar_bessel_k1e_op {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_bessel_k1e_op)
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar operator()(const Scalar& x) const {
-    using numext::k1e;
-    return k1e(x);
+    using numext::bessel_k1e;
+    return bessel_k1e(x);
   }
   typedef typename packet_traits<Scalar>::type Packet;
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Packet packetOp(const Packet& x) const {
-    return internal::pk1e(x);
+    return internal::pbessel_k1e(x);
   }
 };
 template <typename Scalar>

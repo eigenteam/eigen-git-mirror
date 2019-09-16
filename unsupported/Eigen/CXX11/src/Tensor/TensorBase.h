@@ -137,73 +137,73 @@ class TensorBase<Derived, ReadOnlyAccessors>
 
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE const TensorCwiseUnaryOp<internal::scalar_bessel_i0_op<Scalar>, const Derived>
-    i0() const {
+    bessel_i0() const {
       return unaryExpr(internal::scalar_bessel_i0_op<Scalar>());
     }
 
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE const TensorCwiseUnaryOp<internal::scalar_bessel_i0e_op<Scalar>, const Derived>
-    i0e() const {
+    bessel_i0e() const {
       return unaryExpr(internal::scalar_bessel_i0e_op<Scalar>());
     }
 
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE const TensorCwiseUnaryOp<internal::scalar_bessel_i1_op<Scalar>, const Derived>
-    i1() const {
+    bessel_i1() const {
       return unaryExpr(internal::scalar_bessel_i1_op<Scalar>());
     }
 
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE const TensorCwiseUnaryOp<internal::scalar_bessel_i1e_op<Scalar>, const Derived>
-    i1e() const {
+    bessel_i1e() const {
       return unaryExpr(internal::scalar_bessel_i1e_op<Scalar>());
     }
 
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE const TensorCwiseUnaryOp<internal::scalar_bessel_j0_op<Scalar>, const Derived>
-    j0() const {
+    bessel_j0() const {
       return unaryExpr(internal::scalar_bessel_j0_op<Scalar>());
     }
 
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE const TensorCwiseUnaryOp<internal::scalar_bessel_y0_op<Scalar>, const Derived>
-    y0() const {
+    bessel_y0() const {
       return unaryExpr(internal::scalar_bessel_y0_op<Scalar>());
     }
 
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE const TensorCwiseUnaryOp<internal::scalar_bessel_j1_op<Scalar>, const Derived>
-    j1() const {
+    bessel_j1() const {
       return unaryExpr(internal::scalar_bessel_j1_op<Scalar>());
     }
 
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE const TensorCwiseUnaryOp<internal::scalar_bessel_y1_op<Scalar>, const Derived>
-    y1() const {
+    bessel_y1() const {
       return unaryExpr(internal::scalar_bessel_y1_op<Scalar>());
     }
 
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE const TensorCwiseUnaryOp<internal::scalar_bessel_k0_op<Scalar>, const Derived>
-    k0() const {
+    bessel_k0() const {
       return unaryExpr(internal::scalar_bessel_k0_op<Scalar>());
     }
 
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE const TensorCwiseUnaryOp<internal::scalar_bessel_k0e_op<Scalar>, const Derived>
-    k0e() const {
+    bessel_k0e() const {
       return unaryExpr(internal::scalar_bessel_k0e_op<Scalar>());
     }
 
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE const TensorCwiseUnaryOp<internal::scalar_bessel_k1_op<Scalar>, const Derived>
-    k1() const {
+    bessel_k1() const {
       return unaryExpr(internal::scalar_bessel_k1_op<Scalar>());
     }
 
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE const TensorCwiseUnaryOp<internal::scalar_bessel_k1e_op<Scalar>, const Derived>
-    k1e() const {
+    bessel_k1e() const {
       return unaryExpr(internal::scalar_bessel_k1e_op<Scalar>());
     }
 

@@ -18,7 +18,7 @@ namespace internal {
  * order zero i0(\a a) (coeff-wise) */
 template <typename Packet>
 EIGEN_DEVICE_FUNC EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
-Packet pi0(const Packet& x) {
+Packet pbessel_i0(const Packet& x) {
   typedef typename unpacket_traits<Packet>::type ScalarType;
   using internal::generic_i0; return generic_i0<Packet, ScalarType>::run(x);
 }
@@ -27,7 +27,7 @@ Packet pi0(const Packet& x) {
  * order zero i0e(\a a) (coeff-wise) */
 template <typename Packet>
 EIGEN_DEVICE_FUNC EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
-Packet pi0e(const Packet& x) {
+Packet pbessel_i0e(const Packet& x) {
   typedef typename unpacket_traits<Packet>::type ScalarType;
   using internal::generic_i0e; return generic_i0e<Packet, ScalarType>::run(x);
 }
@@ -36,7 +36,7 @@ Packet pi0e(const Packet& x) {
  * order one i1(\a a) (coeff-wise) */
 template <typename Packet>
 EIGEN_DEVICE_FUNC EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
-Packet pi1(const Packet& x) {
+Packet pbessel_i1(const Packet& x) {
   typedef typename unpacket_traits<Packet>::type ScalarType;
   using internal::generic_i1; return generic_i1<Packet, ScalarType>::run(x);
 }
@@ -45,7 +45,7 @@ Packet pi1(const Packet& x) {
  * order one i1e(\a a) (coeff-wise) */
 template <typename Packet>
 EIGEN_DEVICE_FUNC EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
-Packet pi1e(const Packet& x) {
+Packet pbessel_i1e(const Packet& x) {
   typedef typename unpacket_traits<Packet>::type ScalarType;
   using internal::generic_i1e; return generic_i1e<Packet, ScalarType>::run(x);
 }
@@ -54,7 +54,7 @@ Packet pi1e(const Packet& x) {
  * order zero j0(\a a) (coeff-wise) */
 template <typename Packet>
 EIGEN_DEVICE_FUNC EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
-Packet pj0(const Packet& x) {
+Packet pbessel_j0(const Packet& x) {
   typedef typename unpacket_traits<Packet>::type ScalarType;
   using internal::generic_j0; return generic_j0<Packet, ScalarType>::run(x);
 }
@@ -63,7 +63,7 @@ Packet pj0(const Packet& x) {
  * order zero j1(\a a) (coeff-wise) */
 template <typename Packet>
 EIGEN_DEVICE_FUNC EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
-Packet pj1(const Packet& x) {
+Packet pbessel_j1(const Packet& x) {
   typedef typename unpacket_traits<Packet>::type ScalarType;
   using internal::generic_j1; return generic_j1<Packet, ScalarType>::run(x);
 }
@@ -72,7 +72,7 @@ Packet pj1(const Packet& x) {
  * order one y0(\a a) (coeff-wise) */
 template <typename Packet>
 EIGEN_DEVICE_FUNC EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
-Packet py0(const Packet& x) {
+Packet pbessel_y0(const Packet& x) {
   typedef typename unpacket_traits<Packet>::type ScalarType;
   using internal::generic_y0; return generic_y0<Packet, ScalarType>::run(x);
 }
@@ -81,7 +81,7 @@ Packet py0(const Packet& x) {
  * order one y1(\a a) (coeff-wise) */
 template <typename Packet>
 EIGEN_DEVICE_FUNC EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
-Packet py1(const Packet& x) {
+Packet pbessel_y1(const Packet& x) {
   typedef typename unpacket_traits<Packet>::type ScalarType;
   using internal::generic_y1; return generic_y1<Packet, ScalarType>::run(x);
 }
@@ -90,7 +90,7 @@ Packet py1(const Packet& x) {
  * order zero k0(\a a) (coeff-wise) */
 template <typename Packet>
 EIGEN_DEVICE_FUNC EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
-Packet pk0(const Packet& x) {
+Packet pbessel_k0(const Packet& x) {
   typedef typename unpacket_traits<Packet>::type ScalarType;
   using internal::generic_k0; return generic_k0<Packet, ScalarType>::run(x);
 }
@@ -99,7 +99,7 @@ Packet pk0(const Packet& x) {
  * order zero k0e(\a a) (coeff-wise) */
 template <typename Packet>
 EIGEN_DEVICE_FUNC EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
-Packet pk0e(const Packet& x) {
+Packet pbessel_k0e(const Packet& x) {
   typedef typename unpacket_traits<Packet>::type ScalarType;
   using internal::generic_k0e; return generic_k0e<Packet, ScalarType>::run(x);
 }
@@ -108,7 +108,7 @@ Packet pk0e(const Packet& x) {
  * order one k1e(\a a) (coeff-wise) */
 template <typename Packet>
 EIGEN_DEVICE_FUNC EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
-Packet pk1(const Packet& x) {
+Packet pbessel_k1(const Packet& x) {
   typedef typename unpacket_traits<Packet>::type ScalarType;
   using internal::generic_k1; return generic_k1<Packet, ScalarType>::run(x);
 }
@@ -117,7 +117,7 @@ Packet pk1(const Packet& x) {
  * order one k1e(\a a) (coeff-wise) */
 template <typename Packet>
 EIGEN_DEVICE_FUNC EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
-Packet pk1e(const Packet& x) {
+Packet pbessel_k1e(const Packet& x) {
   typedef typename unpacket_traits<Packet>::type ScalarType;
   using internal::generic_k1e; return generic_k1e<Packet, ScalarType>::run(x);
 }

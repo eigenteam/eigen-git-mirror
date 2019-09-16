@@ -24,12 +24,12 @@ namespace Eigen {
   * other scalar types, the user has to provide implementations of i0(T) for
   * any scalar type T to be supported.
   *
-  * \sa ArrayBase::i0()
+  * \sa ArrayBase::bessel_i0()
   */
 template <typename Derived>
 EIGEN_STRONG_INLINE const Eigen::CwiseUnaryOp<
     Eigen::internal::scalar_bessel_i0_op<typename Derived::Scalar>, const Derived>
-i0(const Eigen::ArrayBase<Derived>& x) {
+bessel_i0(const Eigen::ArrayBase<Derived>& x) {
   return Eigen::CwiseUnaryOp<
       Eigen::internal::scalar_bessel_i0_op<typename Derived::Scalar>,
       const Derived>(x.derived());
@@ -47,12 +47,12 @@ i0(const Eigen::ArrayBase<Derived>& x) {
   * other scalar types, the user has to provide implementations of i0e(T) for
   * any scalar type T to be supported.
   *
-  * \sa ArrayBase::i0e()
+  * \sa ArrayBase::bessel_i0e()
   */
 template <typename Derived>
 EIGEN_STRONG_INLINE const Eigen::CwiseUnaryOp<
     Eigen::internal::scalar_bessel_i0e_op<typename Derived::Scalar>, const Derived>
-i0e(const Eigen::ArrayBase<Derived>& x) {
+bessel_i0e(const Eigen::ArrayBase<Derived>& x) {
   return Eigen::CwiseUnaryOp<
       Eigen::internal::scalar_bessel_i0e_op<typename Derived::Scalar>,
       const Derived>(x.derived());
@@ -69,12 +69,12 @@ i0e(const Eigen::ArrayBase<Derived>& x) {
   * other scalar types, the user has to provide implementations of i1(T) for
   * any scalar type T to be supported.
   *
-  * \sa ArrayBase::i1()
+  * \sa ArrayBase::bessel_i1()
   */
 template <typename Derived>
 EIGEN_STRONG_INLINE const Eigen::CwiseUnaryOp<
     Eigen::internal::scalar_bessel_i1_op<typename Derived::Scalar>, const Derived>
-i1(const Eigen::ArrayBase<Derived>& x) {
+bessel_i1(const Eigen::ArrayBase<Derived>& x) {
   return Eigen::CwiseUnaryOp<
       Eigen::internal::scalar_bessel_i1_op<typename Derived::Scalar>,
       const Derived>(x.derived());
@@ -92,12 +92,12 @@ i1(const Eigen::ArrayBase<Derived>& x) {
   * other scalar types, the user has to provide implementations of i1e(T) for
   * any scalar type T to be supported.
   *
-  * \sa ArrayBase::i1e()
+  * \sa ArrayBase::bessel_i1e()
   */
 template <typename Derived>
 EIGEN_STRONG_INLINE const Eigen::CwiseUnaryOp<
     Eigen::internal::scalar_bessel_i1e_op<typename Derived::Scalar>, const Derived>
-i1e(const Eigen::ArrayBase<Derived>& x) {
+bessel_i1e(const Eigen::ArrayBase<Derived>& x) {
   return Eigen::CwiseUnaryOp<
       Eigen::internal::scalar_bessel_i1e_op<typename Derived::Scalar>,
       const Derived>(x.derived());
@@ -114,12 +114,12 @@ i1e(const Eigen::ArrayBase<Derived>& x) {
   * other scalar types, the user has to provide implementations of k0(T) for
   * any scalar type T to be supported.
   *
-  * \sa ArrayBase::k0()
+  * \sa ArrayBase::bessel_k0()
   */
 template <typename Derived>
 EIGEN_STRONG_INLINE const Eigen::CwiseUnaryOp<
     Eigen::internal::scalar_bessel_k0_op<typename Derived::Scalar>, const Derived>
-k0(const Eigen::ArrayBase<Derived>& x) {
+bessel_k0(const Eigen::ArrayBase<Derived>& x) {
   return Eigen::CwiseUnaryOp<
       Eigen::internal::scalar_bessel_k0_op<typename Derived::Scalar>,
       const Derived>(x.derived());
@@ -137,12 +137,12 @@ k0(const Eigen::ArrayBase<Derived>& x) {
   * other scalar types, the user has to provide implementations of k0e(T) for
   * any scalar type T to be supported.
   *
-  * \sa ArrayBase::k0e()
+  * \sa ArrayBase::bessel_k0e()
   */
 template <typename Derived>
 EIGEN_STRONG_INLINE const Eigen::CwiseUnaryOp<
     Eigen::internal::scalar_bessel_k0e_op<typename Derived::Scalar>, const Derived>
-k0e(const Eigen::ArrayBase<Derived>& x) {
+bessel_k0e(const Eigen::ArrayBase<Derived>& x) {
   return Eigen::CwiseUnaryOp<
       Eigen::internal::scalar_bessel_k0e_op<typename Derived::Scalar>,
       const Derived>(x.derived());
@@ -159,12 +159,12 @@ k0e(const Eigen::ArrayBase<Derived>& x) {
   * other scalar types, the user has to provide implementations of k1(T) for
   * any scalar type T to be supported.
   *
-  * \sa ArrayBase::k1()
+  * \sa ArrayBase::bessel_k1()
   */
 template <typename Derived>
 EIGEN_STRONG_INLINE const Eigen::CwiseUnaryOp<
     Eigen::internal::scalar_bessel_k1_op<typename Derived::Scalar>, const Derived>
-k1(const Eigen::ArrayBase<Derived>& x) {
+bessel_k1(const Eigen::ArrayBase<Derived>& x) {
   return Eigen::CwiseUnaryOp<
       Eigen::internal::scalar_bessel_k1_op<typename Derived::Scalar>,
       const Derived>(x.derived());
@@ -182,12 +182,12 @@ k1(const Eigen::ArrayBase<Derived>& x) {
   * other scalar types, the user has to provide implementations of k1e(T) for
   * any scalar type T to be supported.
   *
-  * \sa ArrayBase::k1e()
+  * \sa ArrayBase::bessel_k1e()
   */
 template <typename Derived>
 EIGEN_STRONG_INLINE const Eigen::CwiseUnaryOp<
     Eigen::internal::scalar_bessel_k1e_op<typename Derived::Scalar>, const Derived>
-k1e(const Eigen::ArrayBase<Derived>& x) {
+bessel_k1e(const Eigen::ArrayBase<Derived>& x) {
   return Eigen::CwiseUnaryOp<
       Eigen::internal::scalar_bessel_k1e_op<typename Derived::Scalar>,
       const Derived>(x.derived());
@@ -204,12 +204,12 @@ k1e(const Eigen::ArrayBase<Derived>& x) {
   * other scalar types, the user has to provide implementations of j0(T) for
   * any scalar type T to be supported.
   *
-  * \sa ArrayBase::j0()
+  * \sa ArrayBase::bessel_j0()
   */
 template <typename Derived>
 EIGEN_STRONG_INLINE const Eigen::CwiseUnaryOp<
     Eigen::internal::scalar_bessel_j0_op<typename Derived::Scalar>, const Derived>
-j0(const Eigen::ArrayBase<Derived>& x) {
+bessel_j0(const Eigen::ArrayBase<Derived>& x) {
   return Eigen::CwiseUnaryOp<
       Eigen::internal::scalar_bessel_j0_op<typename Derived::Scalar>,
       const Derived>(x.derived());
@@ -226,12 +226,12 @@ j0(const Eigen::ArrayBase<Derived>& x) {
   * other scalar types, the user has to provide implementations of y0(T) for
   * any scalar type T to be supported.
   *
-  * \sa ArrayBase::y0()
+  * \sa ArrayBase::bessel_y0()
   */
 template <typename Derived>
 EIGEN_STRONG_INLINE const Eigen::CwiseUnaryOp<
     Eigen::internal::scalar_bessel_y0_op<typename Derived::Scalar>, const Derived>
-y0(const Eigen::ArrayBase<Derived>& x) {
+bessel_y0(const Eigen::ArrayBase<Derived>& x) {
   return Eigen::CwiseUnaryOp<
       Eigen::internal::scalar_bessel_y0_op<typename Derived::Scalar>,
       const Derived>(x.derived());
@@ -248,12 +248,12 @@ y0(const Eigen::ArrayBase<Derived>& x) {
   * other scalar types, the user has to provide implementations of j1(T) for
   * any scalar type T to be supported.
   *
-  * \sa ArrayBase::j1()
+  * \sa ArrayBase::bessel_j1()
   */
 template <typename Derived>
 EIGEN_STRONG_INLINE const Eigen::CwiseUnaryOp<
     Eigen::internal::scalar_bessel_j1_op<typename Derived::Scalar>, const Derived>
-j1(const Eigen::ArrayBase<Derived>& x) {
+bessel_j1(const Eigen::ArrayBase<Derived>& x) {
   return Eigen::CwiseUnaryOp<
       Eigen::internal::scalar_bessel_j1_op<typename Derived::Scalar>,
       const Derived>(x.derived());
@@ -270,12 +270,12 @@ j1(const Eigen::ArrayBase<Derived>& x) {
   * other scalar types, the user has to provide implementations of y1(T) for
   * any scalar type T to be supported.
   *
-  * \sa ArrayBase::y1()
+  * \sa ArrayBase::bessel_y1()
   */
 template <typename Derived>
 EIGEN_STRONG_INLINE const Eigen::CwiseUnaryOp<
     Eigen::internal::scalar_bessel_y1_op<typename Derived::Scalar>, const Derived>
-y1(const Eigen::ArrayBase<Derived>& x) {
+bessel_y1(const Eigen::ArrayBase<Derived>& x) {
   return Eigen::CwiseUnaryOp<
       Eigen::internal::scalar_bessel_y1_op<typename Derived::Scalar>,
       const Derived>(x.derived());

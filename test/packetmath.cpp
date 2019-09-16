@@ -609,12 +609,12 @@ template<typename Scalar,typename Packet> void packetmath_real()
   CHECK_CWISE1_IF(PacketTraits::HasSqrt, std::sqrt, internal::psqrt);
   CHECK_CWISE1_IF(PacketTraits::HasSqrt, Scalar(1)/std::sqrt, internal::prsqrt);
   CHECK_CWISE1_IF(PacketTraits::HasLog, std::log, internal::plog);
-  CHECK_CWISE1_IF(PacketTraits::HasBessel, numext::i0, internal::pi0);
-  CHECK_CWISE1_IF(PacketTraits::HasBessel, numext::i0e, internal::pi0e);
-  CHECK_CWISE1_IF(PacketTraits::HasBessel, numext::i1, internal::pi1);
-  CHECK_CWISE1_IF(PacketTraits::HasBessel, numext::i1e, internal::pi1e);
-  CHECK_CWISE1_IF(PacketTraits::HasBessel, numext::j0, internal::pj0);
-  CHECK_CWISE1_IF(PacketTraits::HasBessel, numext::j1, internal::pj1);
+  CHECK_CWISE1_IF(PacketTraits::HasBessel, numext::bessel_i0, internal::pbessel_i0);
+  CHECK_CWISE1_IF(PacketTraits::HasBessel, numext::bessel_i0e, internal::pbessel_i0e);
+  CHECK_CWISE1_IF(PacketTraits::HasBessel, numext::bessel_i1, internal::pbessel_i1);
+  CHECK_CWISE1_IF(PacketTraits::HasBessel, numext::bessel_i1e, internal::pbessel_i1e);
+  CHECK_CWISE1_IF(PacketTraits::HasBessel, numext::bessel_j0, internal::pbessel_j0);
+  CHECK_CWISE1_IF(PacketTraits::HasBessel, numext::bessel_j1, internal::pbessel_j1);
 
   // Use a smaller data range for the positive bessel operations as these
   // can have much more error at very small and very large values.
@@ -624,12 +624,12 @@ template<typename Scalar,typename Packet> void packetmath_real()
       data2[i] = internal::random<Scalar>(0.01,1) * std::pow(
           Scalar(10), internal::random<Scalar>(-1,2));
   }
-  CHECK_CWISE1_IF(PacketTraits::HasBessel, numext::y0, internal::py0);
-  CHECK_CWISE1_IF(PacketTraits::HasBessel, numext::y1, internal::py1);
-  CHECK_CWISE1_IF(PacketTraits::HasBessel, numext::k0, internal::pk0);
-  CHECK_CWISE1_IF(PacketTraits::HasBessel, numext::k0e, internal::pk0e);
-  CHECK_CWISE1_IF(PacketTraits::HasBessel, numext::k1, internal::pk1);
-  CHECK_CWISE1_IF(PacketTraits::HasBessel, numext::k1e, internal::pk1e);
+  CHECK_CWISE1_IF(PacketTraits::HasBessel, numext::bessel_y0, internal::pbessel_y0);
+  CHECK_CWISE1_IF(PacketTraits::HasBessel, numext::bessel_y1, internal::pbessel_y1);
+  CHECK_CWISE1_IF(PacketTraits::HasBessel, numext::bessel_k0, internal::pbessel_k0);
+  CHECK_CWISE1_IF(PacketTraits::HasBessel, numext::bessel_k0e, internal::pbessel_k0e);
+  CHECK_CWISE1_IF(PacketTraits::HasBessel, numext::bessel_k1, internal::pbessel_k1);
+  CHECK_CWISE1_IF(PacketTraits::HasBessel, numext::bessel_k1e, internal::pbessel_k1e);
 
 #if EIGEN_HAS_C99_MATH && (__cplusplus > 199711L)
   CHECK_CWISE1_IF(internal::packet_traits<Scalar>::HasLGamma, std::lgamma, internal::plgamma);

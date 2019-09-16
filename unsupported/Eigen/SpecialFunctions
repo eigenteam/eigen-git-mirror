@@ -39,18 +39,18 @@ namespace Eigen {
   * - betainc
   *
   * Bessel Functions
-  * - i0
-  * - i0e
-  * - i1
-  * - i1e
-  * - j0
-  * - j1
-  * - y0
-  * - y1
-  * - k0
-  * - k0e
-  * - k1
-  * - k1e
+  * - bessel_i0
+  * - bessel_i0e
+  * - bessel_i1
+  * - bessel_i1e
+  * - bessel_j0
+  * - bessel_j1
+  * - bessel_k0
+  * - bessel_k0e
+  * - bessel_k1
+  * - bessel_k1e
+  * - bessel_y0
+  * - bessel_y1
   *
   * \code
   * #include <unsupported/Eigen/SpecialFunctions>

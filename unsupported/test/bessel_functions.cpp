@@ -43,7 +43,7 @@ template<typename ArrayType> void array_bessel_functions()
        1.89489253e+04, 1.29418563e+05, 8.93446228e+05, 6.21841242e+06,
        4.35582826e+07;
 
-    CALL_SUBTEST(res = i0(x);
+    CALL_SUBTEST(res = bessel_i0(x);
                  verify_component_wise(res, expected););
   }
 
@@ -63,7 +63,7 @@ template<typename ArrayType> void array_bessel_functions()
         0.116426221213, 0.107615251671, 0.100544127361, 0.0947062952128,
         0.0897803118848;
 
-    CALL_SUBTEST(res = i0e(x);
+    CALL_SUBTEST(res = bessel_i0e(x);
                  verify_component_wise(res, expected););
   }
 
@@ -83,7 +83,7 @@ template<typename ArrayType> void array_bessel_functions()
         1.81413488e+04,  1.24707259e+05,  8.65059436e+05,  6.04313324e+06,
         4.24549734e+07;
 
-    CALL_SUBTEST(res = i1(x);
+    CALL_SUBTEST(res = bessel_i1(x);
                  verify_component_wise(res, expected););
   }
 
@@ -103,7 +103,7 @@ template<typename ArrayType> void array_bessel_functions()
         0.11146429929, 0.103697667463, 0.0973496147565, 0.092036796872,
         0.0875062221833;
 
-    CALL_SUBTEST(res = i1e(x);
+    CALL_SUBTEST(res = bessel_i1e(x);
                  verify_component_wise(res, expected););
   }
 
@@ -139,7 +139,7 @@ template<typename ArrayType> void array_bessel_functions()
              -0.08636798,  0.05120815,  0.13807901,  0.09727067, -0.03042119,
              -0.12684568, -0.10556738,  0.01086237,  0.11433274;
 
-    CALL_SUBTEST(res = j0(x);
+    CALL_SUBTEST(res = bessel_j0(x);
                  verify_component_wise(res, expected););
   }
 
@@ -176,7 +176,7 @@ template<typename ArrayType> void array_bessel_functions()
               0.04399094, -0.08232981, -0.13058004, -0.05916189,  0.0640561 ,
               0.12603832;
 
-    CALL_SUBTEST(res = j1(x);
+    CALL_SUBTEST(res = bessel_j1(x);
                  verify_component_wise(res, expected););
   }
   // Test Bessel function k0e. Reference results obtained with SciPy.
@@ -200,7 +200,7 @@ template<typename ArrayType> void array_bessel_functions()
              0.21736123, 0.21416406, 0.21110397, 0.20817141, 0.20535778,
              0.20265524, 0.20005668, 0.19755558;
 
-    CALL_SUBTEST(res = k0e(x);
+    CALL_SUBTEST(res = bessel_k0e(x);
                  verify_component_wise(res, expected););
   }
 
@@ -227,7 +227,7 @@ template<typename ArrayType> void array_bessel_functions()
              1.33103515e-16, 4.82858338e-17, 1.75232770e-17, 6.36161716e-18,
              2.31029936e-18, 8.39286110e-19;
 
-    CALL_SUBTEST(res = k0(x);
+    CALL_SUBTEST(res = bessel_k0(x);
                  verify_component_wise(res, expected););
   }
 
@@ -254,7 +254,7 @@ template<typename ArrayType> void array_bessel_functions()
              0.21110397, 0.20817141, 0.20535778, 0.20265524,
              0.20005668, 0.19755558;
 
-    CALL_SUBTEST(res = k0e(x);
+    CALL_SUBTEST(res = bessel_k0e(x);
                  verify_component_wise(res, expected););
   }
 
@@ -281,7 +281,7 @@ template<typename ArrayType> void array_bessel_functions()
              1.34991783e-16, 4.89519373e-17, 1.77585196e-17, 6.44478588e-18,
              2.33973340e-18, 8.49713195e-19;
 
-    CALL_SUBTEST(res = k1(x);
+    CALL_SUBTEST(res = bessel_k1(x);
                  verify_component_wise(res, expected););
   }
 
@@ -308,7 +308,7 @@ template<typename ArrayType> void array_bessel_functions()
              0.21409878, 0.21104314, 0.20811462, 0.20530466,
              0.20260547, 0.20000997;
 
-    CALL_SUBTEST(res = k1e(x);
+    CALL_SUBTEST(res = bessel_k1e(x);
                  verify_component_wise(res, expected););
   }
 
@@ -333,7 +333,7 @@ template<typename ArrayType> void array_bessel_functions()
              0.13340405,  0.04579799, -0.08085609, -0.13071488, -0.06066076,
              0.06262353,  0.12593642;
 
-    CALL_SUBTEST(res = y0(x);
+    CALL_SUBTEST(res = bessel_y0(x);
                  verify_component_wise(res, expected););
   }
 
@@ -358,7 +358,7 @@ template<typename ArrayType> void array_bessel_functions()
              -0.09578012,  0.03238588,  0.12751273, 0.10445477, -0.01262946,
              -0.11514066, -0.11056411, -0.00579351;
 
-    CALL_SUBTEST(res = y1(x);
+    CALL_SUBTEST(res = bessel_y1(x);
                  verify_component_wise(res, expected););
   }
 }
