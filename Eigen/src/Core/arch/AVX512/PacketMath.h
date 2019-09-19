@@ -98,8 +98,8 @@ template<> struct packet_traits<float>  : default_packet_traits
     HasLog1p  = 1,
     HasExpm1  = 1,
     HasNdtri = 1,
-#endif
     HasBessel  = 1,
+#endif
     HasExp = 1,
     HasSqrt = EIGEN_FAST_MATH,
     HasRsqrt = EIGEN_FAST_MATH,
