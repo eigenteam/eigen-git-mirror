@@ -40,19 +40,19 @@ void test_multithread_elementwise()
 {
   Tensor<float, 3> in1(200, 30, 70);
   Tensor<float, 3> in2(200, 30, 70);
-  Tensor<float, 3> out(200, 30, 70);
+  Tensor<double, 3> out(200, 30, 70);
 
   in1.setRandom();
   in2.setRandom();
 
   Eigen::ThreadPool tp(internal::random<int>(3, 11));
   Eigen::ThreadPoolDevice thread_pool_device(&tp, internal::random<int>(3, 11));
-  out.device(thread_pool_device) = in1 + in2 * 3.14f;
+  out.device(thread_pool_device) = (in1 + in2 * 3.14f).cast<double>();
 
   for (int i = 0; i < 200; ++i) {
     for (int j = 0; j < 30; ++j) {
       for (int k = 0; k < 70; ++k) {
-        VERIFY_IS_APPROX(out(i, j, k), in1(i, j, k) + in2(i, j, k) * 3.14f);
+        VERIFY_IS_APPROX(out(i, j, k), static_cast<double>(in1(i, j, k) + in2(i, j, k) * 3.14f));
       }
     }
   }
@@ -62,7 +62,7 @@ void test_async_multithread_elementwise()
 {
   Tensor<float, 3> in1(200, 30, 70);
   Tensor<float, 3> in2(200, 30, 70);
-  Tensor<float, 3> out(200, 30, 70);
+  Tensor<double, 3> out(200, 30, 70);
 
   in1.setRandom();
   in2.setRandom();
@@ -71,13 +71,13 @@ void test_async_multithread_elementwise()
   Eigen::ThreadPoolDevice thread_pool_device(&tp, internal::random<int>(3, 11));
 
   Eigen::Barrier b(1);
-  out.device(thread_pool_device, [&b]() { b.Notify(); }) = in1 + in2 * 3.14f;
+  out.device(thread_pool_device, [&b]() { b.Notify(); }) = (in1 + in2 * 3.14f).cast<double>();
   b.Wait();
 
   for (int i = 0; i < 200; ++i) {
     for (int j = 0; j < 30; ++j) {
       for (int k = 0; k < 70; ++k) {
-        VERIFY_IS_APPROX(out(i, j, k), in1(i, j, k) + in2(i, j, k) * 3.14f);
+        VERIFY_IS_APPROX(out(i, j, k), static_cast<double>(in1(i, j, k) + in2(i, j, k) * 3.14f));
       }
     }
   }

@@ -178,6 +178,27 @@ template <typename Eval, typename EvalPointerType> struct ConversionSubExprEval<
   }
 };
 
+#ifdef EIGEN_USE_THREADS
+template <bool SameType, typename Eval, typename EvalPointerType,
+          typename EvalSubExprsCallback>
+struct ConversionSubExprEvalAsync {
+  static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void run(
+      Eval& impl, EvalPointerType, EvalSubExprsCallback done) {
+    impl.evalSubExprsIfNeededAsync(nullptr, std::move(done));
+  }
+};
+
+template <typename Eval, typename EvalPointerType,
+          typename EvalSubExprsCallback>
+struct ConversionSubExprEvalAsync<true, Eval, EvalPointerType,
+                                  EvalSubExprsCallback> {
+  static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void run(
+      Eval& impl, EvalPointerType data, EvalSubExprsCallback done) {
+    impl.evalSubExprsIfNeededAsync(data, std::move(done));
+  }
+};
+#endif
+
 namespace internal {
 
 template <typename SrcType, typename TargetType, bool IsSameT>
@@ -298,6 +319,16 @@ struct TensorEvaluator<const TensorConversionOp<TargetType, ArgType>, Device>
   {
     return ConversionSubExprEval<IsSameType, TensorEvaluator<ArgType, Device>, EvaluatorPointerType>::run(m_impl, data);
   }
+
+#ifdef EIGEN_USE_THREADS
+  template <typename EvalSubExprsCallback>
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void evalSubExprsIfNeededAsync(
+      EvaluatorPointerType data, EvalSubExprsCallback done) {
+    ConversionSubExprEvalAsync<IsSameType, TensorEvaluator<ArgType, Device>,
+                               EvaluatorPointerType,
+        EvalSubExprsCallback>::run(m_impl, data, std::move(done));
+  }
+#endif
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void cleanup()
   {
