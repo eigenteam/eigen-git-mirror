@@ -173,33 +173,35 @@ template<> struct packet_traits<int>    : default_packet_traits
   };
 };
 
-template<> struct packet_traits<float> : default_packet_traits
-{
+template <>
+struct packet_traits<float> : default_packet_traits {
   typedef Packet4f type;
   typedef Packet4f half;
   enum {
     Vectorizable = 1,
     AlignedOnScalar = 1,
-    size=4,
+    size = 4,
     HasHalfPacket = 0,
 
-    HasAdd  = 1,
-    HasSub  = 1,
-    HasMul  = 1,
-    HasDiv  = 1,
-    HasMin  = 1,
-    HasMax  = 1,
-    HasAbs  = 1,
-    HasSin  = 0,
-    HasCos  = 0,
-    HasLog  = 0,
+    HasAdd = 1,
+    HasSub = 1,
+    HasMul = 1,
+    HasDiv = 1,
+    HasMin = 1,
+    HasMax = 1,
+    HasAbs = 1,
+    HasSin = 0,
+    HasCos = 0,
+    HasLog = 0,
 #if !defined(__ARCH__) || (defined(__ARCH__) && __ARCH__ >= 12)
-    HasExp  = 0,
+    HasExp = 0,
 #else
-    HasExp  = 1,
+    HasExp = 1,
 #endif
     HasSqrt = 1,
     HasRsqrt = 1,
+    HasTanh = 1,
+    HasErf = 1,
     HasRound = 1,
     HasFloor = 1,
     HasCeil = 1,

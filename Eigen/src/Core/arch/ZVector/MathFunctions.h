@@ -225,6 +225,20 @@ Packet4f prsqrt<Packet4f>(const Packet4f& x) {
   return res;
 }
 
+// Hyperbolic Tangent function.
+template <>
+EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED Packet4f
+ptanh<Packet4f>(const Packet4f& x) {
+  return internal::generic_fast_tanh_float(x);
+}
+
+// Error function.
+template <>
+EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED Packet4f
+perf<Packet4f>(const Packet4f& x) {
+  return internal::generic_fast_erf_float(x);
+}
+
 }  // end namespace internal
 
 }  // end namespace Eigen

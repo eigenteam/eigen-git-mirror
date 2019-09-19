@@ -891,7 +891,7 @@ template<typename T> EIGEN_DEVICE_FUNC bool isnan_impl(const std::complex<T>& x)
 template<typename T> EIGEN_DEVICE_FUNC bool isinf_impl(const std::complex<T>& x);
 
 template<typename T> T generic_fast_tanh_float(const T& a_x);
-
+template<typename T> T generic_fast_erf_float(const T& a_x);
 } // end namespace internal
 
 /****************************************************************************
@@ -1577,6 +1577,30 @@ float tanh(const float &x) { return ::tanhf(x); }
 
 template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
 double tanh(const double &x) { return ::tanh(x); }
+#endif
+
+template<typename T>
+EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+T erf(const T &x) {
+  EIGEN_USING_STD_MATH(tanh);
+  return erf(x);
+}
+
+#if (!defined(EIGEN_GPUCC)) && EIGEN_FAST_MATH && !defined(SYCL_DEVICE_ONLY)
+EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+float erf(float x) { return internal::generic_fast_erf_float(x); }
+#endif
+
+#if defined(SYCL_DEVICE_ONLY)
+SYCL_SPECIALIZE_FLOATING_TYPES_UNARY(erf, erf)
+#endif
+
+#if !EIGEN_HAS_CXX11 || defined(EIGEN_GPUCC) 
+template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+float erf(const float &x) { return ::erff(x); }
+
+template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+double erf(const double &x) { return ::erf(x); }
 #endif
 
 template <typename T>

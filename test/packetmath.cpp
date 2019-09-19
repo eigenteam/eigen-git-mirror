@@ -578,7 +578,7 @@ template<typename Scalar,typename Packet> void packetmath_real()
     h.store(data2, internal::plgamma(h.load(data1)));
     VERIFY((numext::isnan)(data2[0]));
   }
-  {
+  if (internal::packet_traits<Scalar>::HasErf) {
     data1[0] = std::numeric_limits<Scalar>::quiet_NaN();
     packet_helper<internal::packet_traits<Scalar>::HasErf,Packet> h;
     h.store(data2, internal::perf(h.load(data1)));
