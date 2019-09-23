@@ -823,7 +823,7 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
         ThreadLocalBlocks<LhsBlock>& blocks = lhs_thread_local_blocks_.local();
 
         Index grain_index = m1 - m * gm_;
-        return blocks.block(grain_index);
+        return blocks.block(internal::convert_index<int>(grain_index)); // FIXME better make ThreadLocalBlocks use Eigen::Index?
       } else {
         return packed_lhs_[k % (P - 1)][m1];
       }
@@ -835,7 +835,7 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
         ThreadLocalBlocks<RhsBlock>& blocks = rhs_thread_local_blocks_.local();
 
         Index grain_index = n1 - n * gn_;
-        return blocks.block(grain_index);
+        return blocks.block(internal::convert_index<int>(grain_index)); // FIXME better make ThreadLocalBlocks use Eigen::Index?
       } else {
         return packed_rhs_[k % (P - 1)][n1];
       }
