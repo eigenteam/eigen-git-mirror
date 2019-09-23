@@ -311,7 +311,7 @@ struct generic_i1e<T, float> {
     // [-8, 8] and evaluate a branch based off of that. It's possible
     // in practice most elements are in this region.
     y = pselect(pcmp_le(y, pset1<T>(8.0f)), y_le_eight, y_gt_eight);
-    return pselect(pcmp_lt(x, pset1<T>(0.0f)), -y, y);
+    return pselect(pcmp_lt(x, pset1<T>(0.0f)), pnegate(y), y);
   }
 };
 
@@ -392,7 +392,7 @@ struct generic_i1e<T, double> {
     // [-8, 8] and evaluate a branch based off of that. It's possible
     // in practice most elements are in this region.
     y = pselect(pcmp_le(y, pset1<T>(8.0)), y_le_eight, y_gt_eight);
-    return pselect(pcmp_lt(x, pset1<T>(0.0f)), -y, y);
+    return pselect(pcmp_lt(x, pset1<T>(0.0)), pnegate(y), y);
   }
 };
 
@@ -491,8 +491,8 @@ struct generic_k0e<T, float> {
     T x_le_two = internal::pchebevl<T, 7>::run(
         pmadd(x, x, pset1<T>(-2.0)), A);
     x_le_two = pmadd(
-        generic_i0<T, float>::run(x), pmul(
-            pset1<T>(-1.0), plog(pmul(pset1<T>(0.5), x))), x_le_two);
+        generic_i0<T, float>::run(x), pnegate(
+            plog(pmul(pset1<T>(0.5), x))), x_le_two);
     x_le_two = pmul(pexp(x), x_le_two);
     T x_gt_two = pmul(
             internal::pchebevl<T, 10>::run(
@@ -663,8 +663,8 @@ struct generic_k0<T, float> {
     T x_le_two = internal::pchebevl<T, 7>::run(
         pmadd(x, x, pset1<T>(-2.0)), A);
     x_le_two = pmadd(
-        generic_i0<T, float>::run(x), pmul(
-            pset1<T>(-1.0), plog(pmul(pset1<T>(0.5), x))), x_le_two);
+        generic_i0<T, float>::run(x), pnegate(
+            plog(pmul(pset1<T>(0.5), x))), x_le_two);
     x_le_two = pselect(pcmp_le(x, pset1<T>(0.0)), MAXNUM, x_le_two);
     T x_gt_two = pmul(
         pmul(
@@ -741,8 +741,8 @@ struct generic_k0<T, double> {
     T x_le_two = internal::pchebevl<T, 10>::run(
         pmadd(x, x, pset1<T>(-2.0)), A);
     x_le_two = pmadd(
-        generic_i0<T, double>::run(x), pmul(
-            pset1<T>(-1.0), plog(pmul(pset1<T>(0.5), x))), x_le_two);
+        generic_i0<T, double>::run(x), pnegate(
+            plog(pmul(pset1<T>(0.5), x))), x_le_two);
     x_le_two = pselect(pcmp_le(x, pset1<T>(0.0)), MAXNUM, x_le_two);
     T x_gt_two = pmul(
         pmul(
@@ -1572,7 +1572,7 @@ struct generic_j1<T, float> {
     // j1 is an odd function. This implementation differs from cephes to
     // take this fact in to account. Cephes returns -j1(x) for y > 2 range.
     y_gt_two = pselect(
-        pcmp_lt(x, pset1<T>(0.0f)), pmul(pset1<T>(-1.0f), y_gt_two), y_gt_two);
+        pcmp_lt(x, pset1<T>(0.0f)), pnegate(y_gt_two), y_gt_two);
     return pselect(pcmp_le(y, pset1<T>(2.0f)), y_le_two, y_gt_two);
   }
 };
@@ -1660,7 +1660,7 @@ struct generic_j1<T, double> {
     // j1 is an odd function. This implementation differs from cephes to
     // take this fact in to account. Cephes returns -j1(x) for y > 5 range.
     y_gt_five = pselect(
-        pcmp_lt(x, pset1<T>(0.0f)), pmul(pset1<T>(-1.0), y_gt_five), y_gt_five);
+        pcmp_lt(x, pset1<T>(0.0)), pnegate(y_gt_five), y_gt_five);
     return pselect(pcmp_le(y, pset1<T>(5.0)), y_le_five, y_gt_five);
   }
 };
