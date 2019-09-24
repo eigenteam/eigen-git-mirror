@@ -259,6 +259,7 @@ struct functor_traits<scalar_erf_op<Scalar> > {
     Cost =
         (PacketAccess
 #ifdef EIGEN_VECTORIZE_FMA
+             // TODO(rmlarsen): Move the FMA cost model to a central location.
              // Haswell can issue 2 add/mul/madd per cycle.
              // 10 pmadd, 2 pmul, 1 div, 2 other
              ? (2 * NumTraits<Scalar>::AddCost +
