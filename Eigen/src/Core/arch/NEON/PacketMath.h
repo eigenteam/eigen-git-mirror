@@ -98,28 +98,30 @@ typedef uint32x4_t  Packet4ui;
   #define EIGEN_ARM_PREFETCH(ADDR)
 #endif
 
-template<> struct packet_traits<float>  : default_packet_traits
-{
+template <>
+struct packet_traits<float> : default_packet_traits {
   typedef Packet4f type;
-  typedef Packet4f half; // Packet2f intrinsics not implemented yet
+  typedef Packet4f half;  // Packet2f intrinsics not implemented yet
   enum {
     Vectorizable = 1,
     AlignedOnScalar = 1,
     size = 4,
-    HasHalfPacket=0, // Packet2f intrinsics not implemented yet
-   
-    HasDiv   = 1,
+    HasHalfPacket = 0,  // Packet2f intrinsics not implemented yet
+
+    HasDiv = 1,
     HasFloor = 1,
     // FIXME check the Has*
-    HasSin  = EIGEN_FAST_MATH,
-    HasCos  = EIGEN_FAST_MATH,
-    HasLog  = 1,
-    HasExp  = 1,
-    HasSqrt = 0
+    HasSin = EIGEN_FAST_MATH,
+    HasCos = EIGEN_FAST_MATH,
+    HasLog = 1,
+    HasExp = 1,
+    HasSqrt = 0,
+    HasTanh = EIGEN_FAST_MATH,
+    HasErf = EIGEN_FAST_MATH
   };
 };
-template<> struct packet_traits<int32_t>    : default_packet_traits
-{
+template <>
+struct packet_traits<int32_t> : default_packet_traits {
   typedef Packet4i type;
   typedef Packet4i half; // Packet2i intrinsics not implemented yet
   enum {

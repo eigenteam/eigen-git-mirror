@@ -96,28 +96,29 @@ template<> struct is_arithmetic<__m128d> { enum { value = true }; };
 // Use the packet_traits defined in AVX/PacketMath.h instead if we're going
 // to leverage AVX instructions.
 #ifndef EIGEN_VECTORIZE_AVX
-template<> struct packet_traits<float>  : default_packet_traits
-{
+template <>
+struct packet_traits<float> : default_packet_traits {
   typedef Packet4f type;
   typedef Packet4f half;
   enum {
     Vectorizable = 1,
     AlignedOnScalar = 1,
-    size=4,
+    size = 4,
     HasHalfPacket = 0,
 
-    HasDiv  = 1,
-    HasSin  = EIGEN_FAST_MATH,
-    HasCos  = EIGEN_FAST_MATH,
-    HasLog  = 1,
-    HasLog1p  = 1,
-    HasExpm1  = 1,
+    HasDiv = 1,
+    HasSin = EIGEN_FAST_MATH,
+    HasCos = EIGEN_FAST_MATH,
+    HasLog = 1,
+    HasLog1p = 1,
+    HasExpm1 = 1,
     HasNdtri = 1,
-    HasExp  = 1,
-    HasBessel  = 1,
+    HasExp = 1,
+    HasBessel = 1,
     HasSqrt = 1,
     HasRsqrt = 1,
-    HasTanh  = EIGEN_FAST_MATH,
+    HasTanh = EIGEN_FAST_MATH,
+    HasErf = EIGEN_FAST_MATH,
     HasBlend = 1,
     HasFloor = 1
 
@@ -128,8 +129,8 @@ template<> struct packet_traits<float>  : default_packet_traits
 #endif
   };
 };
-template<> struct packet_traits<double> : default_packet_traits
-{
+template <>
+struct packet_traits<double> : default_packet_traits {
   typedef Packet2d type;
   typedef Packet2d half;
   enum {

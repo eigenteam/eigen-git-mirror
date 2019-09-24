@@ -238,25 +238,40 @@ struct functor_traits<scalar_polygamma_op<Scalar> >
 };
 
 /** \internal
- * \brief Template functor to compute the Gauss error function of a
- * scalar
- * \sa class CwiseUnaryOp, Cwise::erf()
+ * \brief Template functor to compute the error function of a scalar
+ * \sa class CwiseUnaryOp, ArrayBase::erf()
  */
 template<typename Scalar> struct scalar_erf_op {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_erf_op)
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar operator() (const Scalar& a) const {
-    using numext::erf; return erf(a);
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar
+  operator()(const Scalar& a) const {
+    return numext::erf(a);
   }
-  typedef typename packet_traits<Scalar>::type Packet;
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Packet packetOp(const Packet& a) const { return internal::perf(a); }
+  template <typename Packet>
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Packet packetOp(const Packet& x) const {
+    return perf(x);
+  }
 };
-template<typename Scalar>
-struct functor_traits<scalar_erf_op<Scalar> >
-{
+template <typename Scalar>
+struct functor_traits<scalar_erf_op<Scalar> > {
   enum {
-    // Guesstimate
-    Cost = 10 * NumTraits<Scalar>::MulCost + 5 * NumTraits<Scalar>::AddCost,
-    PacketAccess = packet_traits<Scalar>::HasErf
+    PacketAccess = packet_traits<Scalar>::HasErf,
+    Cost =
+        (PacketAccess
+#ifdef EIGEN_VECTORIZE_FMA
+             // TODO(rmlarsen): Move the FMA cost model to a central location.
+             // Haswell can issue 2 add/mul/madd per cycle.
+             // 10 pmadd, 2 pmul, 1 div, 2 other
+             ? (2 * NumTraits<Scalar>::AddCost +
+                7 * NumTraits<Scalar>::MulCost +
+                scalar_div_cost<Scalar, packet_traits<Scalar>::HasDiv>::value)
+#else
+             ? (12 * NumTraits<Scalar>::AddCost +
+                12 * NumTraits<Scalar>::MulCost +
+                scalar_div_cost<Scalar, packet_traits<Scalar>::HasDiv>::value)
+#endif
+             // Assume for simplicity that this is as expensive as an exp().
+             : (functor_traits<scalar_exp_op<Scalar> >::Cost))
   };
 };
 

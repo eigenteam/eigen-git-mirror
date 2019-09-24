@@ -405,6 +405,18 @@ Packet16f pexpm1<Packet16f>(const Packet16f& _x) {
 }
 #endif
 
+template <>
+EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED Packet16f
+ptanh<Packet16f>(const Packet16f& _x) {
+  return internal::generic_fast_tanh_float(_x);
+}
+
+template <>
+EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED Packet16f
+perf<Packet16f>(const Packet16f& _x) {
+  return internal::generic_fast_erf_float(_x);
+}
+
 }  // end namespace internal
 
 }  // end namespace Eigen

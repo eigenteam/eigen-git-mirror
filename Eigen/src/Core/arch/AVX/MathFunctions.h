@@ -62,6 +62,14 @@ ptanh<Packet8f>(const Packet8f& x) {
   return internal::generic_fast_tanh_float(x);
 }
 
+// Error function.
+template <>
+EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED Packet8f
+perf<Packet8f>(const Packet8f& x) {
+  return internal::generic_fast_erf_float(x);
+}
+
+// Exponential function for doubles.
 template <>
 EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED Packet4d
 pexp<Packet4d>(const Packet4d& x) {

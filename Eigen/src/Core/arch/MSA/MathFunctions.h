@@ -321,6 +321,13 @@ pcos<Packet4f>(const Packet4f& x) {
   return psincos_inner_msa_float</* sine */ false>(x);
 }
 
+// Error function.
+template <>
+EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED Packet4f
+perf<Packet4f>(const Packet4f& x) {
+  return internal::generic_fast_erf_float(x);
+}
+
 template <>
 EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED Packet2d
 pexp<Packet2d>(const Packet2d& _x) {
