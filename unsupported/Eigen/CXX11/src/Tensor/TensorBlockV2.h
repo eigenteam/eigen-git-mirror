@@ -459,6 +459,16 @@ class StridedLinearBufferCopy {
   };
 
  public:
+  // Specifying linear copy kind statically gives ~30% speedup for small sizes.
+  enum Kind {
+    Linear = 0,       // src_stride == 1 && dst_stride == 1
+    Scatter = 1,      // src_stride == 1 && dst_stride != 1
+    FillLinear = 2,   // src_stride == 0 && dst_stride == 1
+    FillScatter = 3,  // src_stride == 0 && dst_stride != 1
+    Gather = 4,       // dst_stride == 1
+    Random = 5        // everything else
+  };
+
   struct Dst {
     Dst(IndexType o, IndexType s, Scalar* d) : offset(o), stride(s), data(d) {}
 
@@ -476,14 +486,16 @@ class StridedLinearBufferCopy {
     const Scalar* data;
   };
 
+  template <StridedLinearBufferCopy::Kind kind>
   static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void Run(const Dst& dst,
                                                         const Src& src,
                                                         const size_t count) {
-    Run(count, dst.offset, dst.stride, dst.data, src.offset, src.stride,
-        src.data);
+    Run<kind>(count, dst.offset, dst.stride, dst.data, src.offset, src.stride,
+              src.data);
   }
 
  private:
+  template <StridedLinearBufferCopy::Kind kind>
   static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void Run(
       const IndexType count, const IndexType dst_offset,
       const IndexType dst_stride, Scalar* EIGEN_RESTRICT dst_data,
@@ -499,13 +511,14 @@ class StridedLinearBufferCopy {
       return;
     }
 
-    const IndexType unrolled_size = count - 4 * PacketSize;
     const IndexType vectorized_size = count - PacketSize;
     IndexType i = 0;
 
-    if (src_stride == 1 && dst_stride == 1) {
+    if (kind == Linear) {
       // ******************************************************************** //
       // Linear copy from `src` to `dst`.
+      const IndexType unrolled_size = count - 4 * PacketSize;
+      eigen_assert(src_stride == 1 && dst_stride == 1);
       for (; i <= unrolled_size; i += 4 * PacketSize) {
         for (int j = 0; j < 4; ++j) {
           Packet p = ploadu<Packet>(src + i + j * PacketSize);
@@ -520,8 +533,9 @@ class StridedLinearBufferCopy {
         dst[i] = src[i];
       }
       // ******************************************************************** //
-    } else if (src_stride == 1 && dst_stride != 1) {
+    } else if (kind == Scatter) {
       // Scatter from `src` to `dst`.
+      eigen_assert(src_stride == 1 && dst_stride != 1);
       for (; i <= vectorized_size; i += PacketSize) {
         Packet p = ploadu<Packet>(src + i);
         pscatter<Scalar, Packet>(dst + i * dst_stride, p, dst_stride);
@@ -530,14 +544,10 @@ class StridedLinearBufferCopy {
         dst[i * dst_stride] = src[i];
       }
       // ******************************************************************** //
-    } else if (src_stride == 0 && dst_stride == 1) {
+    } else if (kind == FillLinear) {
       // Fill `dst` with value at `*src`.
+      eigen_assert(src_stride == 0 && dst_stride == 1);
       Packet p = pload1<Packet>(src);
-      for (; i <= unrolled_size; i += 4 * PacketSize) {
-        for (int j = 0; j < 4; ++j) {
-          pstoreu<Scalar, Packet>(dst + i + j * PacketSize, p);
-        }
-      }
       for (; i <= vectorized_size; i += PacketSize) {
         pstoreu<Scalar, Packet>(dst + i, p);
       }
@@ -545,8 +555,9 @@ class StridedLinearBufferCopy {
         dst[i] = *src;
       }
       // ******************************************************************** //
-    } else if (src_stride == 0 && dst_stride != 1) {
+    } else if (kind == FillScatter) {
       // Scatter `*src` into `dst`.
+      eigen_assert(src_stride == 0 && dst_stride != 1);
       Packet p = pload1<Packet>(src);
       for (; i <= vectorized_size; i += PacketSize) {
         pscatter<Scalar, Packet>(dst + i * dst_stride, p, dst_stride);
@@ -555,8 +566,9 @@ class StridedLinearBufferCopy {
         dst[i * dst_stride] = *src;
       }
       // ******************************************************************** //
-    } else if (dst_stride == 1) {
+    } else if (kind == Gather) {
       // Gather from `src` into `dst`.
+      eigen_assert(dst_stride == 1);
       for (; i <= vectorized_size; i += PacketSize) {
         Packet p = pgather<Scalar, Packet>(src + i * src_stride, src_stride);
         pstoreu<Scalar, Packet>(dst + i, p);
@@ -565,11 +577,13 @@ class StridedLinearBufferCopy {
         dst[i] = src[i * src_stride];
       }
       // ******************************************************************** //
-    } else {
+    } else if (kind == Random) {
       // Random.
       for (; i < count; ++i) {
         dst[i * dst_stride] = src[i * src_stride];
       }
+    } else {
+      eigen_assert(false);
     }
   }
 };
@@ -716,25 +730,40 @@ class TensorBlockIOV2 {
     // Iterate copying data from src to dst.
     const IndexType block_total_size = NumDims == 0 ? 1 : dst.dims.TotalSize();
 
-    for (IndexType i = 0; i < block_total_size; i += dst_inner_dim_size) {
-      // Copy data for the innermost dimension.
-      LinCopy::Run(
-          typename LinCopy::Dst(output_offset, output_stride, dst.data),
-          typename LinCopy::Src(input_offset, input_stride, src.data),
-          dst_inner_dim_size);
+#define COPY_INNER_DIM(KIND)                                             \
+  for (IndexType i = 0; i < block_total_size; i += dst_inner_dim_size) { \
+    LinCopy::template Run<KIND>(                                         \
+        typename LinCopy::Dst(output_offset, output_stride, dst.data),   \
+        typename LinCopy::Src(input_offset, input_stride, src.data),     \
+        dst_inner_dim_size);                                             \
+                                                                         \
+    for (int j = 0; j < idx; ++j) {                                      \
+      if (++it[j].count < it[j].size) {                                  \
+        input_offset += it[j].input_stride;                              \
+        output_offset += it[j].output_stride;                            \
+        break;                                                           \
+      }                                                                  \
+      it[j].count = 0;                                                   \
+      input_offset -= it[j].input_span;                                  \
+      output_offset -= it[j].output_span;                                \
+    }                                                                    \
+  }
 
-      // Update offsets (idx is the number of initialize block iterators).
-      for (int j = 0; j < idx; ++j) {
-        if (++it[j].count < it[j].size) {
-          input_offset += it[j].input_stride;
-          output_offset += it[j].output_stride;
-          break;
-        }
-        it[j].count = 0;
-        input_offset -= it[j].input_span;
-        output_offset -= it[j].output_span;
-      }
+    if (input_stride == 1 && output_stride == 1) {
+      COPY_INNER_DIM(LinCopy::Linear);
+    } else if (input_stride == 1 && output_stride != 1) {
+      COPY_INNER_DIM(LinCopy::Scatter);
+    } else if (input_stride == 0 && output_stride == 1) {
+      COPY_INNER_DIM(LinCopy::FillLinear);
+    } else if (input_stride == 0 && output_stride != 1) {
+      COPY_INNER_DIM(LinCopy::FillScatter);
+    } else if (output_stride == 1) {
+      COPY_INNER_DIM(LinCopy::Gather);
+    } else {
+      COPY_INNER_DIM(LinCopy::Random);
     }
+
+#undef COPY_INNER_DIM
   }
 
   // Copy from `src` to `dst` with an identity src->dst dimension map.
