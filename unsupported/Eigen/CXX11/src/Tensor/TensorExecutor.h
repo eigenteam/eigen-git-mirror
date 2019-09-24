@@ -23,7 +23,7 @@ namespace Eigen {
  *
  * @tparam Vectorizable can use packet math (SSE/AVX/etc... registers and
  *                      instructions)
- * @tparam Tileable     can use block based tensor evaluation
+ * @tparam Tiling       can use block based tensor evaluation
  *                      (see TensorBlock.h)
  */
 namespace internal {
@@ -76,8 +76,13 @@ struct ExpressionHasTensorBroadcastingOp<
  * Default strategy: the expression is evaluated sequentially with a single cpu
  * thread, without vectorization and block evaluation.
  */
+#if EIGEN_HAS_CXX11
 template <typename Expression, typename Device, bool Vectorizable,
-          bool Tileable>
+          TiledEvaluation Tiling>
+#else
+ template <typename Expression, typename Device, bool Vectorizable,
+          TiledEvaluation::TiledEvaluation Tiling>
+#endif
 class TensorExecutor {
  public:
   typedef typename Expression::Index StorageIndex;
@@ -109,8 +114,8 @@ class TensorAsyncExecutor {};
  * Process all the data with a single cpu thread, using vectorized instructions.
  */
 template <typename Expression>
-class TensorExecutor<Expression, DefaultDevice, /*Vectorizable*/ true,
-                     /*Tileable*/ false> {
+class TensorExecutor<Expression, DefaultDevice, /*Vectorizable=*/true,
+                     /*Tiling=*/TiledEvaluation::Off> {
  public:
   typedef typename Expression::Index StorageIndex;
 
@@ -152,7 +157,7 @@ class TensorExecutor<Expression, DefaultDevice, /*Vectorizable*/ true,
  */
 template <typename Expression, bool Vectorizable>
 class TensorExecutor<Expression, DefaultDevice, Vectorizable,
-                     /*Tileable*/ true> {
+                     /*Tiling=*/TiledEvaluation::Legacy> {
  public:
   typedef typename traits<Expression>::Scalar Scalar;
   typedef typename remove_const<Scalar>::type ScalarNoConst;
@@ -176,8 +181,7 @@ class TensorExecutor<Expression, DefaultDevice, Vectorizable,
     if (total_size < cache_size
         && !ExpressionHasTensorBroadcastingOp<Expression>::value) {
       // TODO(andydavis) Reduce block management overhead for small tensors.
-      internal::TensorExecutor<Expression, DefaultDevice, Vectorizable,
-          /*Tileable*/ false>::run(expr, device);
+      internal::TensorExecutor<Expression, DefaultDevice, Vectorizable, /*Tiling=*/TiledEvaluation::Off>::run(expr,device);
       evaluator.cleanup();
       return;
     }
@@ -206,6 +210,70 @@ class TensorExecutor<Expression, DefaultDevice, Vectorizable,
         evaluator.evalBlock(&block);
       }
       device.deallocate(data);
+    }
+    evaluator.cleanup();
+  }
+};
+
+/**
+ * Process all the data with a single cpu thread, using blocks of data. By
+ * sizing a block to fit L1 cache we get better cache performance.
+ */
+template <typename Expression, bool Vectorizable>
+class TensorExecutor<Expression, DefaultDevice, Vectorizable,
+                     /*Tiling=*/TiledEvaluation::On> {
+ public:
+  typedef typename traits<Expression>::Scalar Scalar;
+  typedef typename remove_const<Scalar>::type ScalarNoConst;
+
+  typedef TensorEvaluator<Expression, DefaultDevice> Evaluator;
+  typedef typename traits<Expression>::Index StorageIndex;
+
+  static const int NumDims = traits<Expression>::NumDimensions;
+
+  EIGEN_DEVICE_FUNC
+  static EIGEN_STRONG_INLINE void run(const Expression& expr,
+                         const DefaultDevice& device = DefaultDevice()) {
+    typedef TensorBlock<ScalarNoConst, StorageIndex, NumDims, Evaluator::Layout> TensorBlock;
+    typedef TensorBlockMapper<ScalarNoConst, StorageIndex, NumDims, Evaluator::Layout> TensorBlockMapper;
+    typedef typename TensorBlock::Dimensions TensorBlockDimensions;
+
+    typedef internal::TensorBlockDescriptor<NumDims> TensorBlockDesc;
+    typedef internal::TensorBlockScratchAllocator<DefaultDevice>
+        TensorBlockScratch;
+
+    Evaluator evaluator(expr, device);
+    Index total_size = array_prod(evaluator.dimensions());
+    Index cache_size = device.firstLevelCacheSize() / sizeof(Scalar);
+
+    // TODO(ezhulenev): Do not use tiling for small tensors?
+    const bool needs_assign = evaluator.evalSubExprsIfNeeded(NULL);
+
+    if (needs_assign) {
+      // Size tensor blocks to fit in cache (or requested target block size).
+      Index block_total_size = numext::mini(cache_size, total_size);
+      TensorBlockShapeType block_shape = kSkewedInnerDims;
+      // Query expression tree for desired block size/shape.
+      std::vector<TensorOpResourceRequirements> resources;
+      evaluator.getResourceRequirements(&resources);
+      MergeResourceRequirements(resources, &block_shape, &block_total_size);
+
+      TensorBlockMapper block_mapper(
+          TensorBlockDimensions(evaluator.dimensions()), block_shape,
+          block_total_size);
+      block_total_size = block_mapper.block_dims_total_size();
+
+      // Share scratch memory allocator between all blocks.
+      TensorBlockScratch scratch(device);
+
+      const StorageIndex total_block_count = block_mapper.total_block_count();
+      for (StorageIndex i = 0; i < total_block_count; ++i) {
+        TensorBlock block = block_mapper.GetBlockForIndex(i, NULL);
+
+        TensorBlockDesc desc(block.first_coeff_index(), block.block_sizes());
+        evaluator.evalBlockV2(desc, scratch);
+        scratch.reset();
+      }
     }
     evaluator.cleanup();
   }
@@ -256,10 +324,11 @@ struct TensorExecutorTilingContext {
 };
 
 // Computes a block evaluation parameters, and allocates temporary memory buffer
-// for blocks. See TensorExecutor/TensorAsyncExecutor (Tileable=true) below.
+// for blocks. See TensorExecutor/TensorAsyncExecutor (Tiling=On) below.
 template <typename Evaluator, typename TensorBlockMapper, bool Vectorizable>
 TensorExecutorTilingContext<TensorBlockMapper> GetTensorExecutorTilingContext(
-    const ThreadPoolDevice& device, const Evaluator& evaluator) {
+    const ThreadPoolDevice& device, const Evaluator& evaluator,
+    bool allocate_buffer = true) {
   // Prefer blocks skewed toward inner dimension.
   TensorBlockShapeType block_shape = kSkewedInnerDims;
   Index block_total_size = 0;
@@ -284,7 +353,13 @@ TensorExecutorTilingContext<TensorBlockMapper> GetTensorExecutorTilingContext(
   const size_t aligned_blocksize =
       align *
       divup<size_t>(block_size * sizeof(typename Evaluator::Scalar), align);
-  void* buf = device.allocate((num_threads + 1) * aligned_blocksize);
+
+  // TODO(ezhulenev): In new block evaluation framework there is no need for
+  // allocating temporary buffers, remove this after migration.
+  void* buf = NULL;
+  if (allocate_buffer) {
+    buf = device.allocate((num_threads + 1) * aligned_blocksize);
+  }
 
   return {block_mapper, cost * block_size, buf, aligned_blocksize};
 }
@@ -344,8 +419,8 @@ struct EvalRange<Evaluator, StorageIndex, /*Vectorizable*/ true> {
   }
 };
 
-template <typename Expression, bool Vectorizable, bool Tileable>
-class TensorExecutor<Expression, ThreadPoolDevice, Vectorizable, Tileable> {
+template <typename Expression, bool Vectorizable, TiledEvaluation Tiling>
+class TensorExecutor<Expression, ThreadPoolDevice, Vectorizable, Tiling> {
  public:
   typedef typename Expression::Index StorageIndex;
 
@@ -369,7 +444,8 @@ class TensorExecutor<Expression, ThreadPoolDevice, Vectorizable, Tileable> {
 };
 
 template <typename Expression, bool Vectorizable>
-class TensorExecutor<Expression, ThreadPoolDevice, Vectorizable, /*Tileable*/ true> {
+class TensorExecutor<Expression, ThreadPoolDevice, Vectorizable,
+                     /*Tiling=*/TiledEvaluation::Legacy> {
  public:
   typedef typename traits<Expression>::Index StorageIndex;
   typedef typename traits<Expression>::Scalar Scalar;
@@ -387,11 +463,12 @@ class TensorExecutor<Expression, ThreadPoolDevice, Vectorizable, /*Tileable*/ tr
     Index total_size = array_prod(evaluator.dimensions());
     Index cache_size = device.firstLevelCacheSize() / sizeof(Scalar);
 
-    if (total_size < cache_size
-        && !ExpressionHasTensorBroadcastingOp<Expression>::value) {
+    if (total_size < cache_size &&
+        !ExpressionHasTensorBroadcastingOp<Expression>::value) {
       // TODO(andydavis) Reduce block management overhead for small tensors.
       internal::TensorExecutor<Expression, ThreadPoolDevice, Vectorizable,
-          /*Tileable*/ false>::run(expr, device);
+                               /*Tiling=*/TiledEvaluation::Off>::run(expr,
+                                                                     device);
       evaluator.cleanup();
       return;
     }
@@ -414,6 +491,57 @@ class TensorExecutor<Expression, ThreadPoolDevice, Vectorizable, /*Tileable*/ tr
             }
           });
       device.deallocate(tiling.buffer);
+    }
+    evaluator.cleanup();
+  }
+};
+
+template <typename Expression, bool Vectorizable>
+class TensorExecutor<Expression, ThreadPoolDevice, Vectorizable,
+                     /*Tiling=*/TiledEvaluation::On> {
+ public:
+  typedef typename traits<Expression>::Index IndexType;
+  typedef typename traits<Expression>::Scalar Scalar;
+  typedef typename remove_const<Scalar>::type ScalarNoConst;
+
+  static const int NumDims = traits<Expression>::NumDimensions;
+
+  typedef TensorEvaluator<Expression, ThreadPoolDevice> Evaluator;
+  typedef TensorBlockMapper<ScalarNoConst, IndexType, NumDims,
+                            Evaluator::Layout>
+      BlockMapper;
+  typedef TensorExecutorTilingContext<BlockMapper> TilingContext;
+
+  typedef internal::TensorBlockDescriptor<NumDims, IndexType>
+      TensorBlockDesc;
+  typedef internal::TensorBlockScratchAllocator<ThreadPoolDevice>
+      TensorBlockScratch;
+
+  static EIGEN_STRONG_INLINE void run(const Expression& expr,
+                                      const ThreadPoolDevice& device) {
+    Evaluator evaluator(expr, device);
+
+    const bool needs_assign = evaluator.evalSubExprsIfNeeded(nullptr);
+    if (needs_assign) {
+      const TilingContext tiling =
+          internal::GetTensorExecutorTilingContext<Evaluator, BlockMapper,
+                                                   Vectorizable>(
+              device, evaluator, /*allocate_buffer=*/false);
+
+      auto eval_block = [&device, &evaluator, &tiling](IndexType firstBlockIdx,
+                                                       IndexType lastBlockIdx) {
+        TensorBlockScratch scratch(device);
+
+        for (IndexType block_idx = firstBlockIdx; block_idx < lastBlockIdx; ++block_idx) {
+          auto block = tiling.block_mapper.GetBlockForIndex(block_idx, nullptr);
+          TensorBlockDesc desc(block.first_coeff_index(), block.block_sizes());
+          evaluator.evalBlockV2(desc, scratch);
+          scratch.reset();
+        }
+      };
+
+      device.parallelFor(tiling.block_mapper.total_block_count(), tiling.cost,
+                         eval_block);
     }
     evaluator.cleanup();
   }
@@ -562,8 +690,8 @@ class TensorAsyncExecutor<Expression, ThreadPoolDevice, DoneCallback,
 // GPU: the evaluation of the expression is offloaded to a GPU.
 #if defined(EIGEN_USE_GPU)
 
-template <typename Expression, bool Vectorizable, bool Tileable>
-class TensorExecutor<Expression, GpuDevice, Vectorizable, Tileable> {
+template <typename Expression, bool Vectorizable, TiledEvaluation Tiling>
+class TensorExecutor<Expression, GpuDevice, Vectorizable, Tiling> {
  public:
   typedef typename Expression::Index StorageIndex;
   static void run(const Expression& expr, const GpuDevice& device);
@@ -612,8 +740,8 @@ EigenMetaKernel(Evaluator eval, StorageIndex size) {
 }
 
 /*static*/
-template <typename Expression, bool Vectorizable, bool Tileable>
-EIGEN_STRONG_INLINE void TensorExecutor<Expression, GpuDevice, Vectorizable, Tileable>::run(
+template <typename Expression, bool Vectorizable, TiledEvaluation Tiling>
+EIGEN_STRONG_INLINE void TensorExecutor<Expression, GpuDevice, Vectorizable, Tiling>::run(
     const Expression& expr, const GpuDevice& device) {
   TensorEvaluator<Expression, GpuDevice> evaluator(expr, device);
   const bool needs_assign = evaluator.evalSubExprsIfNeeded(nullptr);
@@ -711,8 +839,8 @@ struct ExecExprFunctorKernel<Expr, false, Evaluator>
             range_, vectorizable_threads_, evaluator) {}
 };
 
-template <typename Expression, bool Vectorizable, bool Tileable>
-class TensorExecutor<Expression, Eigen::SyclDevice, Vectorizable, Tileable> {
+template <typename Expression, bool Vectorizable, TiledEvaluation Tiling>
+class TensorExecutor<Expression, Eigen::SyclDevice, Vectorizable, Tiling> {
   public:
   typedef typename Expression::Index Index;
    static EIGEN_STRONG_INLINE void run(const Expression &expr, const Eigen::SyclDevice &dev) {

@@ -116,6 +116,7 @@ struct TensorEvaluator<const TensorReverseOp<ReverseDimensions, ArgType>, Device
     IsAligned         = false,
     PacketAccess      = TensorEvaluator<ArgType, Device>::PacketAccess,
     BlockAccess       = true,
+    BlockAccessV2     = false,
     PreferBlockAccess = true,
     Layout            = TensorEvaluator<ArgType, Device>::Layout,
     CoordAccess       = false,  // to be implemented
@@ -127,6 +128,10 @@ struct TensorEvaluator<const TensorReverseOp<ReverseDimensions, ArgType>, Device
   typedef typename internal::remove_const<Scalar>::type ScalarNoConst;
   typedef internal::TensorBlock<ScalarNoConst, Index, NumDims, Layout>
       OutputTensorBlock;
+
+  //===- Tensor block evaluation strategy (see TensorBlock.h) -------------===//
+  typedef internal::TensorBlockNotImplemented TensorBlockV2;
+  //===--------------------------------------------------------------------===//
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op,
                                                         const Device& device)
@@ -400,6 +405,7 @@ struct TensorEvaluator<TensorReverseOp<ReverseDimensions, ArgType>, Device>
     IsAligned = false,
     PacketAccess = TensorEvaluator<ArgType, Device>::PacketAccess,
     BlockAccess = false,
+    BlockAccessV2 = false,
     PreferBlockAccess = false,
     Layout = TensorEvaluator<ArgType, Device>::Layout,
     CoordAccess = false,  // to be implemented
@@ -413,6 +419,10 @@ struct TensorEvaluator<TensorReverseOp<ReverseDimensions, ArgType>, Device>
   typedef typename XprType::CoeffReturnType CoeffReturnType;
   typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
   static const int PacketSize = PacketType<CoeffReturnType, Device>::size;
+
+  //===- Tensor block evaluation strategy (see TensorBlock.h) -------------===//
+  typedef internal::TensorBlockNotImplemented TensorBlockV2;
+  //===--------------------------------------------------------------------===//
   
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
   const Dimensions& dimensions() const { return this->m_dimensions; }

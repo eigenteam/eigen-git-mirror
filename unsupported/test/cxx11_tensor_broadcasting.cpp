@@ -91,7 +91,16 @@ static void test_vectorized_broadcasting()
     }
   }
 
+#if EIGEN_HAS_VARIADIC_TEMPLATES
   tensor.resize(11,3,5);
+#else
+  array<Index, 3> new_dims;
+  new_dims[0] = 11;
+  new_dims[1] = 3;
+  new_dims[2] = 5;
+  tensor.resize(new_dims);
+#endif
+
   tensor.setRandom();
   broadcast = tensor.broadcast(broadcasts);
 
@@ -139,7 +148,16 @@ static void test_static_broadcasting()
     }
   }
 
+#if EIGEN_HAS_VARIADIC_TEMPLATES
   tensor.resize(11,3,5);
+#else
+  array<Index, 3> new_dims;
+  new_dims[0] = 11;
+  new_dims[1] = 3;
+  new_dims[2] = 5;
+  tensor.resize(new_dims);
+#endif
+
   tensor.setRandom();
   broadcast = tensor.broadcast(broadcasts);
 

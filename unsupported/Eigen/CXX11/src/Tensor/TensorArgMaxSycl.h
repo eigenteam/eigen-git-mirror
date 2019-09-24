@@ -109,11 +109,16 @@ struct TensorEvaluator<const TensorTupleReducerDeviceOp<StrideDims, ArgType>, Sy
     IsAligned =  false,
     PacketAccess = false,
     BlockAccess = false,
+    BlockAccessV2 = false,
     PreferBlockAccess = false,
     Layout = TensorEvaluator<ArgType, SyclKernelDevice>::Layout,
     CoordAccess = false,
     RawAccess = false
   };
+
+  //===- Tensor block evaluation strategy (see TensorBlock.h) -------------===//
+  typedef internal::TensorBlockNotImplemented TensorBlockV2;
+  //===--------------------------------------------------------------------===//
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op,  const SyclKernelDevice& device)
       : m_impl(op.expression(), device), m_return_dim(op.return_dim()), m_strides(op.strides()), m_stride_mod(op.stride_mod()),

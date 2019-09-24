@@ -94,6 +94,7 @@ struct TensorEvaluator<const TensorGeneratorOp<Generator, ArgType>, Device>
     IsAligned         = false,
     PacketAccess      = (PacketType<CoeffReturnType, Device>::size > 1),
     BlockAccess       = true,
+    BlockAccessV2     = false,
     PreferBlockAccess = true,
     Layout            = TensorEvaluator<ArgType, Device>::Layout,
     CoordAccess       = false,  // to be implemented
@@ -104,6 +105,10 @@ struct TensorEvaluator<const TensorGeneratorOp<Generator, ArgType>, Device>
 
   typedef internal::TensorBlock<CoeffReturnType, Index, NumDims, Layout>
       TensorBlock;
+
+  //===- Tensor block evaluation strategy (see TensorBlock.h) -------------===//
+  typedef internal::TensorBlockNotImplemented TensorBlockV2;
+  //===--------------------------------------------------------------------===//
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
       :  m_device(device), m_generator(op.generator())

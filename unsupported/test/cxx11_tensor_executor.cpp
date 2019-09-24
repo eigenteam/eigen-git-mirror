@@ -16,6 +16,7 @@
 using Eigen::Tensor;
 using Eigen::RowMajor;
 using Eigen::ColMajor;
+using Eigen::internal::TiledEvaluation;
 
 // A set of tests to verify that different TensorExecutor strategies yields the
 // same results for all the ops, supporting tiled evaluation.
@@ -30,7 +31,7 @@ static array<Index, NumDims> RandomDims(int min_dim = 1, int max_dim = 20) {
 }
 
 template <typename T, int NumDims, typename Device, bool Vectorizable,
-          bool Tileable, int Layout>
+          TiledEvaluation Tiling, int Layout>
 static void test_execute_unary_expr(Device d)
 {
   static constexpr int Options = 0 | Layout;
@@ -47,7 +48,7 @@ static void test_execute_unary_expr(Device d)
 
   using Assign = TensorAssignOp<decltype(dst), const decltype(expr)>;
   using Executor =
-      internal::TensorExecutor<const Assign, Device, Vectorizable, Tileable>;
+      internal::TensorExecutor<const Assign, Device, Vectorizable, Tiling>;
 
   Executor::run(Assign(dst, expr), d);
 
@@ -58,7 +59,7 @@ static void test_execute_unary_expr(Device d)
 }
 
 template <typename T, int NumDims, typename Device, bool Vectorizable,
-          bool Tileable, int Layout>
+          TiledEvaluation Tiling, int Layout>
 static void test_execute_binary_expr(Device d)
 {
   static constexpr int Options = 0 | Layout;
@@ -78,7 +79,7 @@ static void test_execute_binary_expr(Device d)
 
   using Assign = TensorAssignOp<decltype(dst), const decltype(expr)>;
   using Executor =
-      internal::TensorExecutor<const Assign, Device, Vectorizable, Tileable>;
+      internal::TensorExecutor<const Assign, Device, Vectorizable, Tiling>;
 
   Executor::run(Assign(dst, expr), d);
 
@@ -89,7 +90,7 @@ static void test_execute_binary_expr(Device d)
 }
 
 template <typename T, int NumDims, typename Device, bool Vectorizable,
-          bool Tileable, int Layout>
+          TiledEvaluation Tiling, int Layout>
 static void test_execute_broadcasting(Device d)
 {
   static constexpr int Options = 0 | Layout;
@@ -111,7 +112,7 @@ static void test_execute_broadcasting(Device d)
 
   using Assign = TensorAssignOp<decltype(dst), const decltype(expr)>;
   using Executor =
-      internal::TensorExecutor<const Assign, Device, Vectorizable, Tileable>;
+      internal::TensorExecutor<const Assign, Device, Vectorizable, Tiling>;
 
   Executor::run(Assign(dst, expr), d);
 
@@ -121,7 +122,7 @@ static void test_execute_broadcasting(Device d)
 }
 
 template <typename T, int NumDims, typename Device, bool Vectorizable,
-          bool Tileable, int Layout>
+          TiledEvaluation Tiling, int Layout>
 static void test_execute_chipping_rvalue(Device d)
 {
   auto dims = RandomDims<NumDims>(1, 10);
@@ -140,7 +141,7 @@ static void test_execute_chipping_rvalue(Device d)
                                                                           \
     using Assign = TensorAssignOp<decltype(dst), const decltype(expr)>;   \
     using Executor = internal::TensorExecutor<const Assign, Device,       \
-                                              Vectorizable, Tileable>;    \
+                                              Vectorizable, Tiling>;      \
                                                                           \
     Executor::run(Assign(dst, expr), d);                                  \
                                                                           \
@@ -160,7 +161,7 @@ static void test_execute_chipping_rvalue(Device d)
 }
 
 template <typename T, int NumDims, typename Device, bool Vectorizable,
-    bool Tileable, int Layout>
+    TiledEvaluation Tiling, int Layout>
 static void test_execute_chipping_lvalue(Device d)
 {
   auto dims = RandomDims<NumDims>(1, 10);
@@ -193,7 +194,7 @@ static void test_execute_chipping_lvalue(Device d)
                                                                             \
     using Assign = TensorAssignOp<decltype(expr), const decltype(src)>;     \
     using Executor = internal::TensorExecutor<const Assign, Device,         \
-                                              Vectorizable, Tileable>;      \
+                                              Vectorizable, Tiling>;        \
                                                                             \
     Executor::run(Assign(expr, src), d);                                    \
                                                                             \
@@ -213,7 +214,7 @@ static void test_execute_chipping_lvalue(Device d)
 }
 
 template <typename T, int NumDims, typename Device, bool Vectorizable,
-          bool Tileable, int Layout>
+          TiledEvaluation Tiling, int Layout>
 static void test_execute_shuffle_rvalue(Device d)
 {
   static constexpr int Options = 0 | Layout;
@@ -239,7 +240,7 @@ static void test_execute_shuffle_rvalue(Device d)
 
   using Assign = TensorAssignOp<decltype(dst), const decltype(expr)>;
   using Executor =
-      internal::TensorExecutor<const Assign, Device, Vectorizable, Tileable>;
+      internal::TensorExecutor<const Assign, Device, Vectorizable, Tiling>;
 
   Executor::run(Assign(dst, expr), d);
 
@@ -249,7 +250,7 @@ static void test_execute_shuffle_rvalue(Device d)
 }
 
 template <typename T, int NumDims, typename Device, bool Vectorizable,
-          bool Tileable, int Layout>
+          TiledEvaluation Tiling, int Layout>
 static void test_execute_shuffle_lvalue(Device d)
 {
   static constexpr int Options = 0 | Layout;
@@ -278,7 +279,7 @@ static void test_execute_shuffle_lvalue(Device d)
 
   using Assign = TensorAssignOp<decltype(expr), const decltype(src)>;
   using Executor =
-      internal::TensorExecutor<const Assign, Device, Vectorizable, Tileable>;
+      internal::TensorExecutor<const Assign, Device, Vectorizable, Tiling>;
 
   Executor::run(Assign(expr, src), d);
 
@@ -288,7 +289,7 @@ static void test_execute_shuffle_lvalue(Device d)
 }
 
 template <typename T, int NumDims, typename Device, bool Vectorizable,
-          bool Tileable, int Layout>
+          TiledEvaluation Tiling, int Layout>
 static void test_execute_reduction(Device d)
 {
   static_assert(NumDims >= 2, "NumDims must be greater or equal than 2");
@@ -320,7 +321,7 @@ static void test_execute_reduction(Device d)
 
   using Assign = TensorAssignOp<decltype(dst), const decltype(expr)>;
   using Executor =
-      internal::TensorExecutor<const Assign, Device, Vectorizable, Tileable>;
+      internal::TensorExecutor<const Assign, Device, Vectorizable, Tiling>;
 
   Executor::run(Assign(dst, expr), d);
 
@@ -330,7 +331,7 @@ static void test_execute_reduction(Device d)
 }
 
 template <typename T, int NumDims, typename Device, bool Vectorizable,
-    bool Tileable, int Layout>
+    TiledEvaluation Tiling, int Layout>
 static void test_execute_reshape(Device d)
 {
   static_assert(NumDims >= 2, "NumDims must be greater or equal than 2");
@@ -360,7 +361,7 @@ static void test_execute_reshape(Device d)
 
   using Assign = TensorAssignOp<decltype(dst), const decltype(expr)>;
   using Executor =
-      internal::TensorExecutor<const Assign, Device, Vectorizable, Tileable>;
+      internal::TensorExecutor<const Assign, Device, Vectorizable, Tiling>;
 
   Executor::run(Assign(dst, expr), d);
 
@@ -370,7 +371,7 @@ static void test_execute_reshape(Device d)
 }
 
 template <typename T, int NumDims, typename Device, bool Vectorizable,
-          bool Tileable, int Layout>
+          TiledEvaluation Tiling, int Layout>
 static void test_execute_slice_rvalue(Device d)
 {
   static_assert(NumDims >= 2, "NumDims must be greater or equal than 2");
@@ -400,7 +401,7 @@ static void test_execute_slice_rvalue(Device d)
 
   using Assign = TensorAssignOp<decltype(dst), const decltype(expr)>;
   using Executor =
-      internal::TensorExecutor<const Assign, Device, Vectorizable, Tileable>;
+      internal::TensorExecutor<const Assign, Device, Vectorizable, Tiling>;
 
   Executor::run(Assign(dst, expr), d);
 
@@ -410,7 +411,7 @@ static void test_execute_slice_rvalue(Device d)
 }
 
 template <typename T, int NumDims, typename Device, bool Vectorizable,
-    bool Tileable, int Layout>
+    TiledEvaluation Tiling, int Layout>
 static void test_execute_slice_lvalue(Device d)
 {
   static_assert(NumDims >= 2, "NumDims must be greater or equal than 2");
@@ -443,7 +444,7 @@ static void test_execute_slice_lvalue(Device d)
 
   using Assign = TensorAssignOp<decltype(expr), const decltype(slice)>;
   using Executor =
-      internal::TensorExecutor<const Assign, Device, Vectorizable, Tileable>;
+      internal::TensorExecutor<const Assign, Device, Vectorizable, Tiling>;
 
   Executor::run(Assign(expr, slice), d);
 
@@ -453,7 +454,7 @@ static void test_execute_slice_lvalue(Device d)
 }
 
 template <typename T, int NumDims, typename Device, bool Vectorizable,
-    bool Tileable, int Layout>
+    TiledEvaluation Tiling, int Layout>
 static void test_execute_broadcasting_of_forced_eval(Device d)
 {
   static constexpr int Options = 0 | Layout;
@@ -475,7 +476,7 @@ static void test_execute_broadcasting_of_forced_eval(Device d)
 
   using Assign = TensorAssignOp<decltype(dst), const decltype(expr)>;
   using Executor =
-      internal::TensorExecutor<const Assign, Device, Vectorizable, Tileable>;
+      internal::TensorExecutor<const Assign, Device, Vectorizable, Tiling>;
 
   Executor::run(Assign(dst, expr), d);
 
@@ -497,7 +498,7 @@ struct DummyGenerator {
 };
 
 template <typename T, int NumDims, typename Device, bool Vectorizable,
-    bool Tileable, int Layout>
+    TiledEvaluation Tiling, int Layout>
 static void test_execute_generator_op(Device d)
 {
   static constexpr int Options = 0 | Layout;
@@ -518,7 +519,7 @@ static void test_execute_generator_op(Device d)
 
   using Assign = TensorAssignOp<decltype(dst), const decltype(expr)>;
   using Executor =
-    internal::TensorExecutor<const Assign, Device, Vectorizable, Tileable>;
+    internal::TensorExecutor<const Assign, Device, Vectorizable, Tiling>;
 
   Executor::run(Assign(dst, expr), d);
 
@@ -528,7 +529,7 @@ static void test_execute_generator_op(Device d)
 }
 
 template <typename T, int NumDims, typename Device, bool Vectorizable,
-    bool Tileable, int Layout>
+    TiledEvaluation Tiling, int Layout>
 static void test_execute_reverse_rvalue(Device d)
 {
   static constexpr int Options = 0 | Layout;
@@ -553,7 +554,7 @@ static void test_execute_reverse_rvalue(Device d)
 
   using Assign = TensorAssignOp<decltype(dst), const decltype(expr)>;
   using Executor =
-    internal::TensorExecutor<const Assign, Device, Vectorizable, Tileable>;
+    internal::TensorExecutor<const Assign, Device, Vectorizable, Tiling>;
 
   Executor::run(Assign(dst, expr), d);
 
@@ -563,7 +564,7 @@ static void test_execute_reverse_rvalue(Device d)
 }
 
 template <typename T, int NumDims, typename Device, bool Vectorizable,
-          bool Tileable, int Layout>
+          TiledEvaluation Tiling, int Layout>
 static void test_async_execute_unary_expr(Device d)
 {
   static constexpr int Options = 0 | Layout;
@@ -584,7 +585,7 @@ static void test_async_execute_unary_expr(Device d)
   using Assign = TensorAssignOp<decltype(dst), const decltype(expr)>;
   using DoneCallback = decltype(on_done);
   using Executor = internal::TensorAsyncExecutor<const Assign, Device, DoneCallback,
-                                                 Vectorizable, Tileable>;
+                                                 Vectorizable, Tiling>;
 
   Executor::runAsync(Assign(dst, expr), d, on_done);
   done.Wait();
@@ -596,7 +597,7 @@ static void test_async_execute_unary_expr(Device d)
 }
 
 template <typename T, int NumDims, typename Device, bool Vectorizable,
-          bool Tileable, int Layout>
+          TiledEvaluation Tiling, int Layout>
 static void test_async_execute_binary_expr(Device d)
 {
   static constexpr int Options = 0 | Layout;
@@ -620,7 +621,7 @@ static void test_async_execute_binary_expr(Device d)
   using Assign = TensorAssignOp<decltype(dst), const decltype(expr)>;
   using DoneCallback = decltype(on_done);
   using Executor = internal::TensorAsyncExecutor<const Assign, Device, DoneCallback,
-                                                 Vectorizable, Tileable>;
+                                                 Vectorizable, Tiling>;
 
   Executor::runAsync(Assign(dst, expr), d, on_done);
   done.Wait();
@@ -640,34 +641,57 @@ static void test_async_execute_binary_expr(Device d)
 #define CALL_SUBTEST_PART(PART) \
   CALL_SUBTEST_##PART
 
-#define CALL_SUBTEST_COMBINATIONS(PART, NAME, T, NUM_DIMS)                                                              \
-  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, DefaultDevice,    false,               false, ColMajor>(default_device))); \
-  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, DefaultDevice,    false,               true,  ColMajor>(default_device))); \
-  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, DefaultDevice,    VECTORIZABLE(true),  false, ColMajor>(default_device))); \
-  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, DefaultDevice,    VECTORIZABLE(true),  true,  ColMajor>(default_device))); \
-  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, DefaultDevice,    false,               false, RowMajor>(default_device))); \
-  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, DefaultDevice,    false,               true,  RowMajor>(default_device))); \
-  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, DefaultDevice,    VECTORIZABLE(true),  false, RowMajor>(default_device))); \
-  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, DefaultDevice,    VECTORIZABLE(true),  true,  RowMajor>(default_device))); \
-  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, ThreadPoolDevice, false,               false, ColMajor>(tp_device)));      \
-  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, ThreadPoolDevice, false,               true,  ColMajor>(tp_device)));      \
-  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, ThreadPoolDevice, VECTORIZABLE(true),  false, ColMajor>(tp_device)));      \
-  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, ThreadPoolDevice, VECTORIZABLE(true),  true,  ColMajor>(tp_device)));      \
-  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, ThreadPoolDevice, false,               false, RowMajor>(tp_device)));      \
-  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, ThreadPoolDevice, false,               true,  RowMajor>(tp_device)));      \
-  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, ThreadPoolDevice, VECTORIZABLE(true),  false, RowMajor>(tp_device)));      \
-  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, ThreadPoolDevice, VECTORIZABLE(true),  true,  RowMajor>(tp_device)))
+#define CALL_SUBTEST_COMBINATIONS_V1(PART, NAME, T, NUM_DIMS)                                                                              \
+  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, DefaultDevice,    false,               TiledEvaluation::Off,     ColMajor>(default_device))); \
+  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, DefaultDevice,    false,               TiledEvaluation::Legacy,  ColMajor>(default_device))); \
+  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, DefaultDevice,    VECTORIZABLE(true),  TiledEvaluation::Off,     ColMajor>(default_device))); \
+  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, DefaultDevice,    VECTORIZABLE(true),  TiledEvaluation::Legacy,  ColMajor>(default_device))); \
+  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, DefaultDevice,    false,               TiledEvaluation::Off,     RowMajor>(default_device))); \
+  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, DefaultDevice,    false,               TiledEvaluation::Legacy,  RowMajor>(default_device))); \
+  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, DefaultDevice,    VECTORIZABLE(true),  TiledEvaluation::Off,     RowMajor>(default_device))); \
+  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, DefaultDevice,    VECTORIZABLE(true),  TiledEvaluation::Legacy,  RowMajor>(default_device))); \
+  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, ThreadPoolDevice, false,               TiledEvaluation::Off,     ColMajor>(tp_device)));      \
+  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, ThreadPoolDevice, false,               TiledEvaluation::Legacy,  ColMajor>(tp_device)));      \
+  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, ThreadPoolDevice, VECTORIZABLE(true),  TiledEvaluation::Off,     ColMajor>(tp_device)));      \
+  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, ThreadPoolDevice, VECTORIZABLE(true),  TiledEvaluation::Legacy,  ColMajor>(tp_device)));      \
+  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, ThreadPoolDevice, false,               TiledEvaluation::Off,     RowMajor>(tp_device)));      \
+  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, ThreadPoolDevice, false,               TiledEvaluation::Legacy,  RowMajor>(tp_device)));      \
+  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, ThreadPoolDevice, VECTORIZABLE(true),  TiledEvaluation::Off,     RowMajor>(tp_device)));      \
+  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, ThreadPoolDevice, VECTORIZABLE(true),  TiledEvaluation::Legacy,  RowMajor>(tp_device)))
+
+  // NOTE: Tiling V2 currently implemented for a limited types of expression, and only with default device.
+#define CALL_SUBTEST_COMBINATIONS_V2(PART, NAME, T, NUM_DIMS)                                                                              \
+  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, DefaultDevice,    false,               TiledEvaluation::Off,     ColMajor>(default_device))); \
+  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, DefaultDevice,    false,               TiledEvaluation::Legacy,  ColMajor>(default_device))); \
+  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, DefaultDevice,    false,               TiledEvaluation::On,      ColMajor>(default_device))); \
+  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, DefaultDevice,    VECTORIZABLE(true),  TiledEvaluation::Off,     ColMajor>(default_device))); \
+  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, DefaultDevice,    VECTORIZABLE(true),  TiledEvaluation::Legacy,  ColMajor>(default_device))); \
+  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, DefaultDevice,    VECTORIZABLE(true),  TiledEvaluation::On,      ColMajor>(default_device))); \
+  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, DefaultDevice,    false,               TiledEvaluation::Off,     RowMajor>(default_device))); \
+  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, DefaultDevice,    false,               TiledEvaluation::Legacy,  RowMajor>(default_device))); \
+  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, DefaultDevice,    false,               TiledEvaluation::On,      RowMajor>(default_device))); \
+  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, DefaultDevice,    VECTORIZABLE(true),  TiledEvaluation::Off,     RowMajor>(default_device))); \
+  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, DefaultDevice,    VECTORIZABLE(true),  TiledEvaluation::Legacy,  RowMajor>(default_device))); \
+  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, DefaultDevice,    VECTORIZABLE(true),  TiledEvaluation::On,      RowMajor>(default_device))); \
+  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, ThreadPoolDevice, false,               TiledEvaluation::Off,     ColMajor>(tp_device)));      \
+  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, ThreadPoolDevice, false,               TiledEvaluation::Legacy,  ColMajor>(tp_device)));      \
+  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, ThreadPoolDevice, VECTORIZABLE(true),  TiledEvaluation::Off,     ColMajor>(tp_device)));      \
+  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, ThreadPoolDevice, VECTORIZABLE(true),  TiledEvaluation::Legacy,  ColMajor>(tp_device)));      \
+  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, ThreadPoolDevice, false,               TiledEvaluation::Off,     RowMajor>(tp_device)));      \
+  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, ThreadPoolDevice, false,               TiledEvaluation::Legacy,  RowMajor>(tp_device)));      \
+  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, ThreadPoolDevice, VECTORIZABLE(true),  TiledEvaluation::Off,     RowMajor>(tp_device)));      \
+  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, ThreadPoolDevice, VECTORIZABLE(true),  TiledEvaluation::Legacy,  RowMajor>(tp_device)))
 
 // NOTE: Currently only ThreadPoolDevice supports async expression evaluation.
-#define CALL_ASYNC_SUBTEST_COMBINATIONS(PART, NAME, T, NUM_DIMS)                                                   \
-  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, ThreadPoolDevice, false,               false, ColMajor>(tp_device))); \
-  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, ThreadPoolDevice, false,               true,  ColMajor>(tp_device))); \
-  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, ThreadPoolDevice, VECTORIZABLE(true),  false, ColMajor>(tp_device))); \
-  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, ThreadPoolDevice, VECTORIZABLE(true),  true,  ColMajor>(tp_device))); \
-  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, ThreadPoolDevice, false,               false, RowMajor>(tp_device))); \
-  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, ThreadPoolDevice, false,               true,  RowMajor>(tp_device))); \
-  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, ThreadPoolDevice, VECTORIZABLE(true),  false, RowMajor>(tp_device))); \
-  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, ThreadPoolDevice, VECTORIZABLE(true),  true,  RowMajor>(tp_device)))
+#define CALL_ASYNC_SUBTEST_COMBINATIONS(PART, NAME, T, NUM_DIMS)                                                                      \
+  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, ThreadPoolDevice, false,               TiledEvaluation::Off,     ColMajor>(tp_device))); \
+  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, ThreadPoolDevice, false,               TiledEvaluation::Legacy,  ColMajor>(tp_device))); \
+  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, ThreadPoolDevice, VECTORIZABLE(true),  TiledEvaluation::Off,     ColMajor>(tp_device))); \
+  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, ThreadPoolDevice, VECTORIZABLE(true),  TiledEvaluation::Legacy,  ColMajor>(tp_device))); \
+  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, ThreadPoolDevice, false,               TiledEvaluation::Off,     RowMajor>(tp_device))); \
+  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, ThreadPoolDevice, false,               TiledEvaluation::Legacy,  RowMajor>(tp_device))); \
+  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, ThreadPoolDevice, VECTORIZABLE(true),  TiledEvaluation::Off,     RowMajor>(tp_device))); \
+  CALL_SUBTEST_PART(PART)((NAME<T, NUM_DIMS, ThreadPoolDevice, VECTORIZABLE(true),  TiledEvaluation::Legacy,  RowMajor>(tp_device)))
 
 EIGEN_DECLARE_TEST(cxx11_tensor_executor) {
   Eigen::DefaultDevice default_device;
@@ -678,69 +702,69 @@ EIGEN_DECLARE_TEST(cxx11_tensor_executor) {
   Eigen::ThreadPool tp(num_threads);
   Eigen::ThreadPoolDevice tp_device(&tp, num_threads);
 
-  CALL_SUBTEST_COMBINATIONS(1, test_execute_unary_expr, float, 3);
-  CALL_SUBTEST_COMBINATIONS(1, test_execute_unary_expr, float, 4);
-  CALL_SUBTEST_COMBINATIONS(1, test_execute_unary_expr, float, 5);
+  CALL_SUBTEST_COMBINATIONS_V2(1, test_execute_unary_expr, float, 3);
+  CALL_SUBTEST_COMBINATIONS_V2(1, test_execute_unary_expr, float, 4);
+  CALL_SUBTEST_COMBINATIONS_V2(1, test_execute_unary_expr, float, 5);
 
-  CALL_SUBTEST_COMBINATIONS(2, test_execute_binary_expr, float, 3);
-  CALL_SUBTEST_COMBINATIONS(2, test_execute_binary_expr, float, 4);
-  CALL_SUBTEST_COMBINATIONS(2, test_execute_binary_expr, float, 5);
+  CALL_SUBTEST_COMBINATIONS_V2(2, test_execute_binary_expr, float, 3);
+  CALL_SUBTEST_COMBINATIONS_V2(2, test_execute_binary_expr, float, 4);
+  CALL_SUBTEST_COMBINATIONS_V2(2, test_execute_binary_expr, float, 5);
 
-  CALL_SUBTEST_COMBINATIONS(3, test_execute_broadcasting, float, 3);
-  CALL_SUBTEST_COMBINATIONS(3, test_execute_broadcasting, float, 4);
-  CALL_SUBTEST_COMBINATIONS(3, test_execute_broadcasting, float, 5);
+  CALL_SUBTEST_COMBINATIONS_V2(3, test_execute_broadcasting, float, 3);
+  CALL_SUBTEST_COMBINATIONS_V2(3, test_execute_broadcasting, float, 4);
+  CALL_SUBTEST_COMBINATIONS_V2(3, test_execute_broadcasting, float, 5);
 
-  CALL_SUBTEST_COMBINATIONS(4, test_execute_chipping_rvalue, float, 3);
-  CALL_SUBTEST_COMBINATIONS(4, test_execute_chipping_rvalue, float, 4);
-  CALL_SUBTEST_COMBINATIONS(4, test_execute_chipping_rvalue, float, 5);
+  CALL_SUBTEST_COMBINATIONS_V1(4, test_execute_chipping_rvalue, float, 3);
+  CALL_SUBTEST_COMBINATIONS_V1(4, test_execute_chipping_rvalue, float, 4);
+  CALL_SUBTEST_COMBINATIONS_V1(4, test_execute_chipping_rvalue, float, 5);
 
-  CALL_SUBTEST_COMBINATIONS(5, test_execute_chipping_lvalue, float, 3);
-  CALL_SUBTEST_COMBINATIONS(5, test_execute_chipping_lvalue, float, 4);
-  CALL_SUBTEST_COMBINATIONS(5, test_execute_chipping_lvalue, float, 5);
+  CALL_SUBTEST_COMBINATIONS_V1(5, test_execute_chipping_lvalue, float, 3);
+  CALL_SUBTEST_COMBINATIONS_V1(5, test_execute_chipping_lvalue, float, 4);
+  CALL_SUBTEST_COMBINATIONS_V1(5, test_execute_chipping_lvalue, float, 5);
 
-  CALL_SUBTEST_COMBINATIONS(6, test_execute_shuffle_rvalue, float, 3);
-  CALL_SUBTEST_COMBINATIONS(6, test_execute_shuffle_rvalue, float, 4);
-  CALL_SUBTEST_COMBINATIONS(6, test_execute_shuffle_rvalue, float, 5);
+  CALL_SUBTEST_COMBINATIONS_V1(6, test_execute_shuffle_rvalue, float, 3);
+  CALL_SUBTEST_COMBINATIONS_V1(6, test_execute_shuffle_rvalue, float, 4);
+  CALL_SUBTEST_COMBINATIONS_V1(6, test_execute_shuffle_rvalue, float, 5);
 
-  CALL_SUBTEST_COMBINATIONS(7, test_execute_shuffle_lvalue, float, 3);
-  CALL_SUBTEST_COMBINATIONS(7, test_execute_shuffle_lvalue, float, 4);
-  CALL_SUBTEST_COMBINATIONS(7, test_execute_shuffle_lvalue, float, 5);
+  CALL_SUBTEST_COMBINATIONS_V1(7, test_execute_shuffle_lvalue, float, 3);
+  CALL_SUBTEST_COMBINATIONS_V1(7, test_execute_shuffle_lvalue, float, 4);
+  CALL_SUBTEST_COMBINATIONS_V1(7, test_execute_shuffle_lvalue, float, 5);
 
-  CALL_SUBTEST_COMBINATIONS(8, test_execute_reduction, float, 2);
-  CALL_SUBTEST_COMBINATIONS(8, test_execute_reduction, float, 3);
-  CALL_SUBTEST_COMBINATIONS(8, test_execute_reduction, float, 4);
-  CALL_SUBTEST_COMBINATIONS(8, test_execute_reduction, float, 5);
+  CALL_SUBTEST_COMBINATIONS_V1(8, test_execute_reduction, float, 2);
+  CALL_SUBTEST_COMBINATIONS_V1(8, test_execute_reduction, float, 3);
+  CALL_SUBTEST_COMBINATIONS_V1(8, test_execute_reduction, float, 4);
+  CALL_SUBTEST_COMBINATIONS_V1(8, test_execute_reduction, float, 5);
 
-  CALL_SUBTEST_COMBINATIONS(9, test_execute_reshape, float, 2);
-  CALL_SUBTEST_COMBINATIONS(9, test_execute_reshape, float, 3);
-  CALL_SUBTEST_COMBINATIONS(9, test_execute_reshape, float, 4);
-  CALL_SUBTEST_COMBINATIONS(9, test_execute_reshape, float, 5);
+  CALL_SUBTEST_COMBINATIONS_V1(9, test_execute_reshape, float, 2);
+  CALL_SUBTEST_COMBINATIONS_V1(9, test_execute_reshape, float, 3);
+  CALL_SUBTEST_COMBINATIONS_V1(9, test_execute_reshape, float, 4);
+  CALL_SUBTEST_COMBINATIONS_V1(9, test_execute_reshape, float, 5);
 
-  CALL_SUBTEST_COMBINATIONS(10, test_execute_slice_rvalue, float, 2);
-  CALL_SUBTEST_COMBINATIONS(10, test_execute_slice_rvalue, float, 3);
-  CALL_SUBTEST_COMBINATIONS(10, test_execute_slice_rvalue, float, 4);
-  CALL_SUBTEST_COMBINATIONS(10, test_execute_slice_rvalue, float, 5);
+  CALL_SUBTEST_COMBINATIONS_V1(10, test_execute_slice_rvalue, float, 2);
+  CALL_SUBTEST_COMBINATIONS_V1(10, test_execute_slice_rvalue, float, 3);
+  CALL_SUBTEST_COMBINATIONS_V1(10, test_execute_slice_rvalue, float, 4);
+  CALL_SUBTEST_COMBINATIONS_V1(10, test_execute_slice_rvalue, float, 5);
 
-  CALL_SUBTEST_COMBINATIONS(11, test_execute_slice_lvalue, float, 2);
-  CALL_SUBTEST_COMBINATIONS(11, test_execute_slice_lvalue, float, 3);
-  CALL_SUBTEST_COMBINATIONS(11, test_execute_slice_lvalue, float, 4);
-  CALL_SUBTEST_COMBINATIONS(11, test_execute_slice_lvalue, float, 5);
+  CALL_SUBTEST_COMBINATIONS_V1(11, test_execute_slice_lvalue, float, 2);
+  CALL_SUBTEST_COMBINATIONS_V1(11, test_execute_slice_lvalue, float, 3);
+  CALL_SUBTEST_COMBINATIONS_V1(11, test_execute_slice_lvalue, float, 4);
+  CALL_SUBTEST_COMBINATIONS_V1(11, test_execute_slice_lvalue, float, 5);
 
-  CALL_SUBTEST_COMBINATIONS(12, test_execute_broadcasting_of_forced_eval, float, 2);
-  CALL_SUBTEST_COMBINATIONS(12, test_execute_broadcasting_of_forced_eval, float, 3);
-  CALL_SUBTEST_COMBINATIONS(12, test_execute_broadcasting_of_forced_eval, float, 4);
-  CALL_SUBTEST_COMBINATIONS(12, test_execute_broadcasting_of_forced_eval, float, 5);
+  CALL_SUBTEST_COMBINATIONS_V1(12, test_execute_broadcasting_of_forced_eval, float, 2);
+  CALL_SUBTEST_COMBINATIONS_V1(12, test_execute_broadcasting_of_forced_eval, float, 3);
+  CALL_SUBTEST_COMBINATIONS_V1(12, test_execute_broadcasting_of_forced_eval, float, 4);
+  CALL_SUBTEST_COMBINATIONS_V1(12, test_execute_broadcasting_of_forced_eval, float, 5);
 
-  CALL_SUBTEST_COMBINATIONS(13, test_execute_generator_op, float, 2);
-  CALL_SUBTEST_COMBINATIONS(13, test_execute_generator_op, float, 3);
-  CALL_SUBTEST_COMBINATIONS(13, test_execute_generator_op, float, 4);
-  CALL_SUBTEST_COMBINATIONS(13, test_execute_generator_op, float, 5);
+  CALL_SUBTEST_COMBINATIONS_V1(13, test_execute_generator_op, float, 2);
+  CALL_SUBTEST_COMBINATIONS_V1(13, test_execute_generator_op, float, 3);
+  CALL_SUBTEST_COMBINATIONS_V1(13, test_execute_generator_op, float, 4);
+  CALL_SUBTEST_COMBINATIONS_V1(13, test_execute_generator_op, float, 5);
 
-  CALL_SUBTEST_COMBINATIONS(14, test_execute_reverse_rvalue, float, 1);
-  CALL_SUBTEST_COMBINATIONS(14, test_execute_reverse_rvalue, float, 2);
-  CALL_SUBTEST_COMBINATIONS(14, test_execute_reverse_rvalue, float, 3);
-  CALL_SUBTEST_COMBINATIONS(14, test_execute_reverse_rvalue, float, 4);
-  CALL_SUBTEST_COMBINATIONS(14, test_execute_reverse_rvalue, float, 5);
+  CALL_SUBTEST_COMBINATIONS_V1(14, test_execute_reverse_rvalue, float, 1);
+  CALL_SUBTEST_COMBINATIONS_V1(14, test_execute_reverse_rvalue, float, 2);
+  CALL_SUBTEST_COMBINATIONS_V1(14, test_execute_reverse_rvalue, float, 3);
+  CALL_SUBTEST_COMBINATIONS_V1(14, test_execute_reverse_rvalue, float, 4);
+  CALL_SUBTEST_COMBINATIONS_V1(14, test_execute_reverse_rvalue, float, 5);
 
   CALL_ASYNC_SUBTEST_COMBINATIONS(15, test_async_execute_unary_expr, float, 3);
   CALL_ASYNC_SUBTEST_COMBINATIONS(15, test_async_execute_unary_expr, float, 4);
@@ -754,4 +778,3 @@ EIGEN_DECLARE_TEST(cxx11_tensor_executor) {
   // EIGEN_SUFFIXES;1;2;3;4;5;6;7;8;9;10;11;12;13;14;15;16
 }
 
-#undef CALL_SUBTEST_COMBINATIONS

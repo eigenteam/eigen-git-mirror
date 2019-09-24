@@ -149,6 +149,7 @@ struct TensorEvaluator<const TensorChippingOp<DimId, ArgType>, Device>
     Layout            = TensorEvaluator<ArgType, Device>::Layout,
     PacketAccess      = TensorEvaluator<ArgType, Device>::PacketAccess,
     BlockAccess       = TensorEvaluator<ArgType, Device>::BlockAccess,
+    BlockAccessV2     = false,
     // Chipping of outer-most dimension is a trivial operation, because we can
     // read and write directly from the underlying tensor using single offset.
     IsOuterChipping   = (static_cast<int>(Layout) == ColMajor && DimId == NumInputDims - 1) ||
@@ -168,6 +169,10 @@ struct TensorEvaluator<const TensorChippingOp<DimId, ArgType>, Device>
       InputTensorBlock;
   typedef internal::TensorBlock<ScalarNoConst, Index, NumDims, Layout>
       OutputTensorBlock;
+
+  //===- Tensor block evaluation strategy (see TensorBlock.h) -------------===//
+  typedef internal::TensorBlockNotImplemented TensorBlockV2;
+  //===--------------------------------------------------------------------===//
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
       : m_impl(op.expression(), device), m_dim(op.dim()), m_device(device)

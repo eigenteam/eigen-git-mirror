@@ -303,10 +303,15 @@ struct TensorEvaluator<const TensorConversionOp<TargetType, ArgType>, Device>
         internal::type_casting_traits<SrcType, TargetType>::VectorizedCast,
     #endif
     BlockAccess = false,
+    BlockAccessV2 = false,
     PreferBlockAccess = false,
     Layout = TensorEvaluator<ArgType, Device>::Layout,
     RawAccess = false
   };
+
+  //===- Tensor block evaluation strategy (see TensorBlock.h) -------------===//
+  typedef internal::TensorBlockNotImplemented TensorBlockV2;
+  //===--------------------------------------------------------------------===//
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
     : m_impl(op.expression(), device)

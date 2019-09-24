@@ -97,6 +97,7 @@ struct TensorEvaluator<const TensorForcedEvalOp<ArgType_>, Device>
     IsAligned         = true,
     PacketAccess      = (PacketType<CoeffReturnType, Device>::size > 1),
     BlockAccess       = internal::is_arithmetic<CoeffReturnType>::value,
+    BlockAccessV2     = false,
     PreferBlockAccess = false,
     Layout            = TensorEvaluator<ArgType, Device>::Layout,
     RawAccess         = true
@@ -109,8 +110,12 @@ struct TensorEvaluator<const TensorForcedEvalOp<ArgType_>, Device>
       CoeffReturnType, Index, internal::traits<ArgType>::NumDimensions, Layout>
       TensorBlockReader;
 
+  //===- Tensor block evaluation strategy (see TensorBlock.h) -------------===//
+  typedef internal::TensorBlockNotImplemented TensorBlockV2;
+  //===--------------------------------------------------------------------===//
+
   EIGEN_DEVICE_FUNC TensorEvaluator(const XprType& op, const Device& device)
-      : m_impl(op.expression(), device), m_op(op.expression()), 
+      : m_impl(op.expression(), device), m_op(op.expression()),
       m_device(device), m_buffer(NULL)
   { }
 
@@ -132,13 +137,13 @@ struct TensorEvaluator<const TensorForcedEvalOp<ArgType_>, Device>
     #endif
     typedef TensorEvalToOp< const typename internal::remove_const<ArgType>::type > EvalTo;
     EvalTo evalToTmp(m_device.get(m_buffer), m_op);
-    const bool Vectorize = internal::IsVectorizable<Device, const ArgType>::value;
-    const bool Tile = TensorEvaluator<const ArgType, Device>::BlockAccess &&
-                      TensorEvaluator<const ArgType, Device>::PreferBlockAccess;
 
-    internal::TensorExecutor<const EvalTo,
-                             typename internal::remove_const<Device>::type,
-                             Vectorize, Tile>::run(evalToTmp, m_device);
+    internal::TensorExecutor<
+        const EvalTo, typename internal::remove_const<Device>::type,
+        /*Vectorizable=*/internal::IsVectorizable<Device, const ArgType>::value,
+        /*Tiling=*/internal::IsTileable<Device, const ArgType>::value>::
+        run(evalToTmp, m_device);
+
     return true;
   }
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void cleanup() {

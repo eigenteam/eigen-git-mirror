@@ -1025,6 +1025,11 @@ class TensorBlockMapper {
     return m_block_dim_sizes.TotalSize();
   }
 
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Dimensions&
+  block_dim_sizes() const {
+    return m_block_dim_sizes;
+  }
+
  private:
   static Dimensions BlockDimensions(const Dimensions& tensor_dims,
                                     const TensorBlockShapeType block_shape,

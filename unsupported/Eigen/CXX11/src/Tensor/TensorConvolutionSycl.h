@@ -243,11 +243,16 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
     IsAligned = TensorEvaluator<InputArgType, const Eigen::SyclDevice>::IsAligned & TensorEvaluator<KernelArgType, const Eigen::SyclDevice>::IsAligned,
     PacketAccess = false,
     BlockAccess = false,
+    BlockAccessV2 = false,
     PreferBlockAccess = false,
     Layout = TensorEvaluator<InputArgType, const Eigen::SyclDevice>::Layout,
     CoordAccess = false,  // to be implemented
     RawAccess = false
   };
+
+  //===- Tensor block evaluation strategy (see TensorBlock.h) -------------===//
+  typedef internal::TensorBlockNotImplemented TensorBlockV2;
+  //===--------------------------------------------------------------------===//
 
   EIGEN_DEVICE_FUNC TensorEvaluator(const XprType& op, const Eigen::SyclDevice& device)
       : m_inputImpl(op.inputExpression(), device), m_kernelArg(op.kernelExpression()), m_kernelImpl(op.kernelExpression(), device), m_indices(op.indices()), m_buf(NULL), m_kernel(NULL), m_local_kernel(false), m_device(device)

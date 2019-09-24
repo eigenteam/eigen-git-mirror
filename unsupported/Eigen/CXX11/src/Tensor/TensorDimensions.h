@@ -383,8 +383,17 @@ struct DSizes : array<DenseIndex, NumDims> {
   }
 };
 
-
-
+template <typename IndexType, int NumDims>
+std::ostream& operator<<(std::ostream& os,
+                         const DSizes<IndexType, NumDims>& dims) {
+  os << "[";
+  for (int i = 0; i < NumDims; ++i) {
+    if (i > 0) os << ", ";
+    os << dims[i];
+  }
+  os << "]";
+  return os;
+}
 
 // Boilerplate
 namespace internal {

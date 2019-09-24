@@ -111,6 +111,7 @@ struct TensorEvaluator<const TensorEvalToOp<ArgType, MakePointer_>, Device>
     IsAligned         = TensorEvaluator<ArgType, Device>::IsAligned,
     PacketAccess      = TensorEvaluator<ArgType, Device>::PacketAccess,
     BlockAccess       = true,
+    BlockAccessV2     = false,
     PreferBlockAccess = false,
     Layout            = TensorEvaluator<ArgType, Device>::Layout,
     CoordAccess       = false,  // to be implemented
@@ -123,6 +124,10 @@ struct TensorEvaluator<const TensorEvalToOp<ArgType, MakePointer_>, Device>
   typedef typename internal::TensorBlockReader<
       CoeffReturnType, Index, internal::traits<ArgType>::NumDimensions, Layout>
       TensorBlockReader;
+
+  //===- Tensor block evaluation strategy (see TensorBlock.h) -------------===//
+  typedef internal::TensorBlockNotImplemented TensorBlockV2;
+  //===--------------------------------------------------------------------===//
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
       : m_impl(op.expression(), device), m_buffer(device.get(op.buffer())), m_expression(op.expression()){}

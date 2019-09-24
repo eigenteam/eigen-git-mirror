@@ -116,6 +116,7 @@ struct TensorEvaluator<const TensorShufflingOp<Shuffle, ArgType>, Device>
     IsAligned         = false,
     PacketAccess      = (PacketType<CoeffReturnType, Device>::size > 1),
     BlockAccess       = TensorEvaluator<ArgType, Device>::BlockAccess,
+    BlockAccessV2     = false,
     PreferBlockAccess = true,
     Layout            = TensorEvaluator<ArgType, Device>::Layout,
     CoordAccess       = false,  // to be implemented
@@ -128,6 +129,10 @@ struct TensorEvaluator<const TensorShufflingOp<Shuffle, ArgType>, Device>
       TensorBlock;
   typedef internal::TensorBlockReader<ScalarNoConst, Index, NumDims, Layout>
       TensorBlockReader;
+
+  //===- Tensor block evaluation strategy (see TensorBlock.h) -------------===//
+  typedef internal::TensorBlockNotImplemented TensorBlockV2;
+  //===--------------------------------------------------------------------===//
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op,
                                                         const Device& device)
@@ -426,6 +431,7 @@ struct TensorEvaluator<TensorShufflingOp<Shuffle, ArgType>, Device>
     IsAligned         = false,
     PacketAccess      = (PacketType<CoeffReturnType, Device>::size > 1),
     BlockAccess       = TensorEvaluator<ArgType, Device>::BlockAccess,
+    BlockAccessV2     = false,
     PreferBlockAccess = true,
     Layout            = TensorEvaluator<ArgType, Device>::Layout,
     RawAccess         = false
@@ -437,6 +443,10 @@ struct TensorEvaluator<TensorShufflingOp<Shuffle, ArgType>, Device>
       TensorBlock;
   typedef internal::TensorBlockWriter<ScalarNoConst, Index, NumDims, Layout>
       TensorBlockWriter;
+
+  //===- Tensor block evaluation strategy (see TensorBlock.h) -------------===//
+  typedef internal::TensorBlockNotImplemented TensorBlockV2;
+  //===--------------------------------------------------------------------===//
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
       : Base(op, device)

@@ -42,11 +42,16 @@ class TensorFixedSize : public TensorBase<TensorFixedSize<Scalar_, Dimensions_, 
       IsAligned = bool(EIGEN_MAX_ALIGN_BYTES>0),
       PacketAccess = (internal::packet_traits<Scalar>::size > 1),
       BlockAccess = false,
+      BlockAccessV2 = false,
       PreferBlockAccess = false,
       Layout = Options_ & RowMajor ? RowMajor : ColMajor,
       CoordAccess = true,
       RawAccess = true
     };
+
+  //===- Tensor block evaluation strategy (see TensorBlock.h) -------------===//
+  typedef internal::TensorBlockNotImplemented TensorBlockV2;
+  //===--------------------------------------------------------------------===//
 
   typedef Dimensions_ Dimensions;
   static const std::size_t NumIndices = Dimensions::count;
