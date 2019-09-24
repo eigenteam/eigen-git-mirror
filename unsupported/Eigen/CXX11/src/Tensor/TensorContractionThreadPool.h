@@ -750,7 +750,7 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
       template <typename EvalCtx>
       struct ThreadLocalBlocksAllocator</*pack_rhs=*/false, EvalCtx> {
         static void allocate(EvalCtx& ctx, Blocks& blocks) {
-          std::vector<RhsBlock> lhs_blocks;
+          std::vector<LhsBlock> lhs_blocks;
           BlockMemHandle mem_handle = ctx.kernel_.allocateSlices(
               ctx.device_,
               /*num_lhs=*/ctx.gm_,
@@ -758,7 +758,7 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
               /*num_slices=*/1,
               /*lhs_blocks=*/&lhs_blocks, /*rhs_blocks=*/nullptr);
 
-          blocks = ThreadLocalBlocks<RhsBlock>(std::move(mem_handle),
+          blocks = ThreadLocalBlocks<LhsBlock>(std::move(mem_handle),
                                                std::move(lhs_blocks));
         }
 
