@@ -341,9 +341,9 @@ class TensorMaterializedBlock {
         m_data(data),
         m_dimensions(dimensions),
         m_expr(m_data, m_dimensions) {
-    eigen_assert(m_kind == TensorBlockKind::kView ||
-                 m_kind == TensorBlockKind::kMaterializedInScratch ||
-                 m_kind == TensorBlockKind::kMaterializedInOutput);
+    eigen_assert(m_kind == internal::TensorBlockKind::kView ||
+                 m_kind == internal::TensorBlockKind::kMaterializedInScratch ||
+                 m_kind == internal::TensorBlockKind::kMaterializedInOutput);
   }
 
   TensorBlockKind kind() const { return m_kind; }
@@ -386,7 +386,7 @@ class TensorCwiseUnaryBlock {
   TensorCwiseUnaryBlock(const ArgTensorBlock& arg_block, const UnaryOp& functor)
       : m_arg_block(arg_block), m_functor(functor) {}
 
-  TensorBlockKind kind() const { return TensorBlockKind::kExpr; }
+  TensorBlockKind kind() const { return internal::TensorBlockKind::kExpr; }
 
   XprType expr() const { return XprType(m_arg_block.expr(), m_functor); }
   const Scalar* data() const { return NULL; }
@@ -427,7 +427,7 @@ class TensorCwiseBinaryBlock {
         m_right_block(right_block),
         m_functor(functor) {}
 
-  TensorBlockKind kind() const { return TensorBlockKind::kExpr; }
+  TensorBlockKind kind() const { return internal::TensorBlockKind::kExpr; }
 
   XprType expr() const {
     return XprType(m_left_block.expr(), m_right_block.expr(), m_functor);
@@ -602,6 +602,7 @@ class TensorBlockIOV2 {
 
  public:
   typedef DSizes<IndexType, NumDims> Dimensions;
+  typedef DSizes<int, NumDims> DimensionsMap;
 
   struct Dst {
     Dst(const Dimensions& dst_dims, const Dimensions& dst_strides, Scalar* dst,
@@ -629,7 +630,7 @@ class TensorBlockIOV2 {
   //   src_dimension_index = dst_to_src_dim_map[dst_dimension_index]
   //
   static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void Copy(
-      const Dst& dst, const Src& src, const Dimensions& dst_to_src_dim_map) {
+      const Dst& dst, const Src& src, const DimensionsMap& dst_to_src_dim_map) {
     // Copy single scalar value from `src` to `dst`.
     if (NumDims == 0) {
       *(dst.data + dst.offset) = *(src.data + src.offset);
@@ -647,7 +648,7 @@ class TensorBlockIOV2 {
     }
 
     // Give a shorter name to `dst_to_src_dim_map`.
-    const Dimensions& dim_map = dst_to_src_dim_map;
+    const DimensionsMap& dim_map = dst_to_src_dim_map;
 
     // Do not squeeze reordered inner dimensions.
     int num_squeezable_dims = NumSqueezableInnerDims(dim_map);
@@ -662,7 +663,7 @@ class TensorBlockIOV2 {
 
     // Find the innermost dimension in the dst whose size is not 1. This is the
     // effective inner dim.
-    IndexType num_size_one_inner_dims = 0;
+    int num_size_one_inner_dims = 0;
     for (int i = 0; i < num_squeezable_dims; ++i) {
       const int dst_dim = IsColMajor ? i : NumDims - i - 1;
       if (dst.dims[dst_dim] != 1) break;
@@ -676,12 +677,12 @@ class TensorBlockIOV2 {
     }
 
     // Outermost dimension in the dst with `stride == 1` (contiguous in memory).
-    const IndexType dst_stride1_dim =
+    const int dst_stride1_dim =
         IsColMajor ? num_size_one_inner_dims
                    : NumDims - num_size_one_inner_dims - 1;
 
     // Dimension in the src that corresponds to the dst innermost dimension.
-    const IndexType src_dim_for_dst_stride1_dim =
+    const int src_dim_for_dst_stride1_dim =
         NumDims == 0 ? 1 : dim_map[dst_stride1_dim];
 
     // Size of the innermost dimension (length of contiguous blocks of memory).
@@ -689,7 +690,7 @@ class TensorBlockIOV2 {
 
     // Squeeze multiple inner dims into one if they are contiguous in `dst` and
     // `src` memory, so we can do less linear copy calls.
-    for (Index i = num_size_one_inner_dims + 1; i < num_squeezable_dims; ++i) {
+    for (int i = num_size_one_inner_dims + 1; i < num_squeezable_dims; ++i) {
       const int dst_dim = IsColMajor ? i : NumDims - i - 1;
       const IndexType dst_stride = dst.strides[dst_dim];
       const IndexType src_stride = src.strides[dim_map[dst_dim]];
@@ -713,7 +714,7 @@ class TensorBlockIOV2 {
 
     // Initialize block iterator state. Squeeze away any dimension of size 1.
     int idx = 0;  // currently initialized iterator state index
-    for (Index i = num_size_one_inner_dims; i < NumDims - 1; ++i) {
+    for (int i = num_size_one_inner_dims; i < NumDims - 1; ++i) {
       const int dst_dim = IsColMajor ? i + 1 : NumDims - i - 2;
       if (dst.dims[dst_dim] == 1) continue;
 
@@ -769,7 +770,7 @@ class TensorBlockIOV2 {
   // Copy from `src` to `dst` with an identity src->dst dimension map.
   static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void Copy(const Dst& dst,
                                                          const Src& src) {
-    Dimensions dst_to_src_map;
+    DimensionsMap dst_to_src_map;
     for (int i = 0; i < NumDims; ++i) dst_to_src_map[i] = i;
     Copy(dst, src, dst_to_src_map);
   }
@@ -795,7 +796,7 @@ class TensorBlockIOV2 {
   // Compute how many inner dimensions it's allowed to squeeze when doing IO
   // between two tensor blocks. It's safe to squeeze inner dimensions, only
   // if they are not reordered.
-  static int NumSqueezableInnerDims(const Dimensions& dim_map) {
+  static int NumSqueezableInnerDims(const DimensionsMap& dim_map) {
     int num_squeezable_dims = 0;
     for (int i = 0; i < NumDims; ++i) {
       const int dim = IsColMajor ? i : NumDims - i - 1;

@@ -171,10 +171,6 @@ enum TiledEvaluation {
 
 template <typename Device, typename Expression>
 struct IsTileable {
-#if !EIGEN_HAS_CXX11
-  typedef TiledEvaluation::TiledEvaluation TiledEvaluation;
-#endif
-
   // Check that block evaluation is supported and it's a preferred option (at
   // least one sub-expression has much faster block evaluation, e.g.
   // broadcasting).
@@ -186,11 +182,17 @@ struct IsTileable {
       TensorEvaluator<Expression, Device>::BlockAccessV2 &&
       TensorEvaluator<Expression, Device>::PreferBlockAccess;
 
-
+#if EIGEN_HAS_CXX11
   static const TiledEvaluation value =
       BlockAccessV2
           ? TiledEvaluation::On
           : (BlockAccess ? TiledEvaluation::Legacy : TiledEvaluation::Off);
+#else
+  static const TiledEvaluation::TiledEvaluation value =
+      BlockAccessV2
+          ? TiledEvaluation::On
+          : (BlockAccess ? TiledEvaluation::Legacy : TiledEvaluation::Off);
+#endif
 };
 
 #if EIGEN_HAS_CXX11

@@ -582,10 +582,11 @@ static void test_async_execute_unary_expr(Device d)
   Eigen::Barrier done(1);
   auto on_done = [&done]() { done.Notify(); };
 
+  static const bool TilingOn = Tiling == TiledEvaluation::Off ? false : true;
   using Assign = TensorAssignOp<decltype(dst), const decltype(expr)>;
   using DoneCallback = decltype(on_done);
   using Executor = internal::TensorAsyncExecutor<const Assign, Device, DoneCallback,
-                                                 Vectorizable, Tiling>;
+                                                 Vectorizable, TilingOn>;
 
   Executor::runAsync(Assign(dst, expr), d, on_done);
   done.Wait();
@@ -618,10 +619,11 @@ static void test_async_execute_binary_expr(Device d)
   Eigen::Barrier done(1);
   auto on_done = [&done]() { done.Notify(); };
 
+  static const bool TilingOn = Tiling == TiledEvaluation::Off ? false : true;
   using Assign = TensorAssignOp<decltype(dst), const decltype(expr)>;
   using DoneCallback = decltype(on_done);
   using Executor = internal::TensorAsyncExecutor<const Assign, Device, DoneCallback,
-                                                 Vectorizable, Tiling>;
+                                                 Vectorizable, TilingOn>;
 
   Executor::runAsync(Assign(dst, expr), d, on_done);
   done.Wait();
