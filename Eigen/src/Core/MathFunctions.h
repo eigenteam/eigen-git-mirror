@@ -1579,12 +1579,18 @@ template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
 double tanh(const double &x) { return ::tanh(x); }
 #endif
 
+#if EIGEN_HAS_CXX11
 template<typename T>
 EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
 T erf(const T &x) {
   EIGEN_USING_STD_MATH(erf);
   return erf(x);
 }
+#else
+template<typename T>
+EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+T erf(const T& x);
+#endif
 
 #if (!defined(EIGEN_GPUCC)) && EIGEN_FAST_MATH && !defined(SYCL_DEVICE_ONLY)
 EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
