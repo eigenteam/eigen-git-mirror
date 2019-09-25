@@ -1893,12 +1893,6 @@ polygamma(const Scalar& n, const Scalar& x) {
 }
 
 template <typename Scalar>
-EIGEN_DEVICE_FUNC inline EIGEN_MATHFUNC_RETVAL(erf, Scalar)
-    erf(const Scalar& x) {
-  return EIGEN_MATHFUNC_IMPL(erf, Scalar)::run(x);
-}
-
-template <typename Scalar>
 EIGEN_DEVICE_FUNC inline EIGEN_MATHFUNC_RETVAL(erfc, Scalar)
     erfc(const Scalar& x) {
   return EIGEN_MATHFUNC_IMPL(erfc, Scalar)::run(x);

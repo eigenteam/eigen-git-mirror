@@ -1582,7 +1582,7 @@ double tanh(const double &x) { return ::tanh(x); }
 template<typename T>
 EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
 T erf(const T &x) {
-  EIGEN_USING_STD_MATH(tanh);
+  EIGEN_USING_STD_MATH(erf);
   return erf(x);
 }
 
