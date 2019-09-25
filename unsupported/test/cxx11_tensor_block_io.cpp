@@ -182,8 +182,11 @@ static void test_block_io_copy_using_reordered_dimensions() {
       IODst dst(blk_dims, blk_strides, block_data, 0);
       IOSrc src(input_strides, input_data, first_coeff_index);
 
-      TensorBlockIO::Copy(dst, src,
-                          /*dst_to_src_dim_map=*/output_to_input_dim_map);
+      // TODO(ezhulenev): Remove when fully switched to TensorBlockV2.
+      DSizes<int, NumDims> dim_map;
+      for (int j = 0; j < NumDims; ++j)
+        dim_map[j] = static_cast<int>(output_to_input_dim_map[j]);
+      TensorBlockIO::Copy(dst, src, /*dst_to_src_dim_map=*/dim_map);
     }
 
     {
@@ -197,8 +200,11 @@ static void test_block_io_copy_using_reordered_dimensions() {
       IODst dst(dst_dims, input_strides, output_data, first_coeff_index);
       IOSrc src(blk_strides, block_data, 0);
 
-      TensorBlockIO::Copy(dst, src,
-                          /*dst_to_src_dim_map=*/input_to_output_dim_map);
+      // TODO(ezhulenev): Remove when fully switched to TensorBlockV2.
+      DSizes<int, NumDims> dim_map;
+      for (int j = 0; j < NumDims; ++j)
+        dim_map[j] = static_cast<int>(input_to_output_dim_map[j]);
+      TensorBlockIO::Copy(dst, src, /*dst_to_src_dim_map=*/dim_map);
     }
   }
 
@@ -215,7 +221,7 @@ static void test_block_io_copy_using_reordered_dimensions_do_not_squeeze() {
   DSizes<Index, 3> tensor_dims(7, 9, 7);
   DSizes<Index, 3> block_dims = tensor_dims;
 
-  DSizes<Index, 3> block_to_tensor_dim;
+  DSizes<int, 3> block_to_tensor_dim;
   block_to_tensor_dim[0] = 2;
   block_to_tensor_dim[1] = 1;
   block_to_tensor_dim[2] = 0;
@@ -241,8 +247,7 @@ static void test_block_io_copy_using_reordered_dimensions_do_not_squeeze() {
   IODst dst(blk.block_sizes(), block_strides, block_data, 0);
   IOSrc src(tensor_strides, tensor_data, blk.first_coeff_index());
 
-  TensorBlockIO::Copy(dst, src,
-                      /*dst_to_src_dim_map=*/block_to_tensor_dim);
+  TensorBlockIO::Copy(dst, src, /*dst_to_src_dim_map=*/block_to_tensor_dim);
 
   TensorMap<Tensor<float, 3, Layout> > block_tensor(block_data, block_dims);
   TensorMap<Tensor<float, 3, Layout> > tensor_tensor(tensor_data, tensor_dims);
@@ -266,7 +271,7 @@ static void test_block_io_copy_using_reordered_dimensions_squeeze() {
   DSizes<Index, 4> tensor_dims(7, 5, 9, 9);
   DSizes<Index, 4> block_dims = tensor_dims;
 
-  DSizes<Index, 4> block_to_tensor_dim;
+  DSizes<int, 4> block_to_tensor_dim;
   block_to_tensor_dim[0] = 0;
   block_to_tensor_dim[1] = 1;
   block_to_tensor_dim[2] = 3;
@@ -293,8 +298,7 @@ static void test_block_io_copy_using_reordered_dimensions_squeeze() {
   IODst dst(blk.block_sizes(), block_strides, block_data, 0);
   IOSrc src(tensor_strides, tensor_data, blk.first_coeff_index());
 
-  TensorBlockIO::Copy(dst, src,
-                      /*dst_to_src_dim_map=*/block_to_tensor_dim);
+  TensorBlockIO::Copy(dst, src, /*dst_to_src_dim_map=*/block_to_tensor_dim);
 
   TensorMap<Tensor<float, 4, Layout> > block_tensor(block_data, block_dims);
   TensorMap<Tensor<float, 4, Layout> > tensor_tensor(tensor_data, tensor_dims);
