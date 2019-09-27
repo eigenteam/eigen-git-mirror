@@ -30,6 +30,10 @@ Packet pzeta(const Packet& x, const Packet& q) { using numext::zeta; return zeta
 template<typename Packet> EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
 Packet ppolygamma(const Packet& n, const Packet& x) { using numext::polygamma; return polygamma(n, x); }
 
+/** \internal \returns the erf(\a a) (coeff-wise) */
+template<typename Packet> EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
+Packet perf(const Packet& a) { using numext::erf; return erf(a); }
+
 /** \internal \returns the erfc(\a a) (coeff-wise) */
 template<typename Packet> EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
 Packet perfc(const Packet& a) { using numext::erfc; return erfc(a); }

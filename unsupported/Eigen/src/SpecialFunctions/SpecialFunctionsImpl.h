@@ -279,13 +279,63 @@ struct digamma_impl {
  * Implementation of erf, requires C++11/C99                                *
  ****************************************************************************/
 
-template <typename Scalar>
+/** \internal \returns the error function of \a a (coeff-wise)
+    Doesn't do anything fancy, just a 13/8-degree rational interpolant which
+    is accurate up to a couple of ulp in the range [-4, 4], outside of which
+    fl(erf(x)) = +/-1.
+
+    This implementation works on both scalars and Ts.
+*/
+template <typename T>
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T generic_fast_erf_float(const T& a_x) {
+  // Clamp the inputs to the range [-4, 4] since anything outside
+  // this range is +/-1.0f in single-precision.
+  const T plus_4 = pset1<T>(4.f);
+  const T minus_4 = pset1<T>(-4.f);
+  const T x = pmax(pmin(a_x, plus_4), minus_4);
+  // The monomial coefficients of the numerator polynomial (odd).
+  const T alpha_1 = pset1<T>(-1.60960333262415e-02f);
+  const T alpha_3 = pset1<T>(-2.95459980854025e-03f);
+  const T alpha_5 = pset1<T>(-7.34990630326855e-04f);
+  const T alpha_7 = pset1<T>(-5.69250639462346e-05f);
+  const T alpha_9 = pset1<T>(-2.10102402082508e-06f);
+  const T alpha_11 = pset1<T>(2.77068142495902e-08f);
+  const T alpha_13 = pset1<T>(-2.72614225801306e-10f);
+
+  // The monomial coefficients of the denominator polynomial (even).
+  const T beta_0 = pset1<T>(-1.42647390514189e-02f);
+  const T beta_2 = pset1<T>(-7.37332916720468e-03f);
+  const T beta_4 = pset1<T>(-1.68282697438203e-03f);
+  const T beta_6 = pset1<T>(-2.13374055278905e-04f);
+  const T beta_8 = pset1<T>(-1.45660718464996e-05f);
+
+  // Since the polynomials are odd/even, we need x^2.
+  const T x2 = pmul(x, x);
+
+  // Evaluate the numerator polynomial p.
+  T p = pmadd(x2, alpha_13, alpha_11);
+  p = pmadd(x2, p, alpha_9);
+  p = pmadd(x2, p, alpha_7);
+  p = pmadd(x2, p, alpha_5);
+  p = pmadd(x2, p, alpha_3);
+  p = pmadd(x2, p, alpha_1);
+  p = pmul(x, p);
+
+  // Evaluate the denominator polynomial p.
+  T q = pmadd(x2, beta_8, beta_6);
+  q = pmadd(x2, q, beta_4);
+  q = pmadd(x2, q, beta_2);
+  q = pmadd(x2, q, beta_0);
+
+  // Divide the numerator by the denominator.
+  return pdiv(p, q);
+}
+
+template <typename T>
 struct erf_impl {
   EIGEN_DEVICE_FUNC
-  static EIGEN_STRONG_INLINE Scalar run(const Scalar) {
-    EIGEN_STATIC_ASSERT((internal::is_same<Scalar, Scalar>::value == false),
-                        THIS_TYPE_IS_NOT_SUPPORTED);
-    return Scalar(0);
+  static EIGEN_STRONG_INLINE T run(const T x) {
+    return generic_fast_erf_float(x);
   }
 };
 
@@ -302,7 +352,7 @@ struct erf_impl<float> {
 #if defined(SYCL_DEVICE_ONLY)
     return cl::sycl::erf(x);
 #else
-    return ::erff(x);
+    return generic_fast_erf_float(x);
 #endif
   }
 };
@@ -1890,6 +1940,12 @@ template <typename Scalar>
 EIGEN_DEVICE_FUNC inline EIGEN_MATHFUNC_RETVAL(polygamma, Scalar)
 polygamma(const Scalar& n, const Scalar& x) {
     return EIGEN_MATHFUNC_IMPL(polygamma, Scalar)::run(n, x);
+}
+
+template <typename Scalar>
+EIGEN_DEVICE_FUNC inline EIGEN_MATHFUNC_RETVAL(erf, Scalar)
+    erf(const Scalar& x) {
+  return EIGEN_MATHFUNC_IMPL(erf, Scalar)::run(x);
 }
 
 template <typename Scalar>
