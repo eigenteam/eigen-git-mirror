@@ -621,43 +621,22 @@ struct ppolevl<Packet, 0> {
  * the same degree.
  *
  */
-template <typename Packet, int N>
-struct generic_cheb_recurrence {
-  EIGEN_DEVICE_FUNC
-  static EIGEN_STRONG_INLINE Packet run(Packet x, const typename unpacket_traits<Packet>::type coef[]) {
-    EIGEN_STATIC_ASSERT((N > 2), YOU_MADE_A_PROGRAMMING_MISTAKE);
-    return pmadd(
-        generic_cheb_recurrence<Packet, N - 1>::run(x, coef), x,
-        psub(pset1<Packet>(coef[N - 1]), generic_cheb_recurrence<Packet, N -
-             2>::run(x, coef)));
-  }
-};
-
-template <typename Packet>
-struct generic_cheb_recurrence<Packet, 2> {
-  EIGEN_DEVICE_FUNC
-  static EIGEN_STRONG_INLINE Packet run(Packet x, const typename unpacket_traits<Packet>::type coef[]) {
-    return pmadd(pset1<Packet>(coef[0]), x, pset1<Packet>(coef[1]));
-  }
-};
-
-template <typename Packet>
-struct generic_cheb_recurrence<Packet, 1> {
-  EIGEN_DEVICE_FUNC
-  static EIGEN_STRONG_INLINE Packet run(Packet x, const typename unpacket_traits<Packet>::type coef[]) {
-    EIGEN_UNUSED_VARIABLE(x);
-    return pset1<Packet>(coef[0]);
-  }
-};
 
 template <typename Packet, int N>
 struct pchebevl {
   EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE Packet run(Packet x, const typename unpacket_traits<Packet>::type coef[]) {
-    const Packet half = pset1<Packet>(0.5);
-    return pmul(half, psub(
-        generic_cheb_recurrence<Packet, N>::run(x, coef),
-        generic_cheb_recurrence<Packet, N - 2>::run(x, coef)));
+    Packet b0 = pset1<Packet>(coef[0]);
+    Packet b1 = pset1<Packet>(0.f);
+    Packet b2;
+
+    for (int i = 1; i < N; i++) {
+      b2 = b1;
+      b1 = b0;
+      b0 = padd(psub(pmul(x, b1), b2), pset1<Packet>(coef[i]));
+    }
+
+    return pmul(pset1<Packet>(0.5f), psub(b0, b2));
   }
 };
 
