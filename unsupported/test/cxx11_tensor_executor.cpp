@@ -582,11 +582,10 @@ static void test_async_execute_unary_expr(Device d)
   Eigen::Barrier done(1);
   auto on_done = [&done]() { done.Notify(); };
 
-  static const bool TilingOn = Tiling == TiledEvaluation::Off ? false : true;
   using Assign = TensorAssignOp<decltype(dst), const decltype(expr)>;
   using DoneCallback = decltype(on_done);
   using Executor = internal::TensorAsyncExecutor<const Assign, Device, DoneCallback,
-                                                 Vectorizable, TilingOn>;
+                                                 Vectorizable, Tiling>;
 
   Executor::runAsync(Assign(dst, expr), d, on_done);
   done.Wait();
@@ -619,11 +618,10 @@ static void test_async_execute_binary_expr(Device d)
   Eigen::Barrier done(1);
   auto on_done = [&done]() { done.Notify(); };
 
-  static const bool TilingOn = Tiling == TiledEvaluation::Off ? false : true;
   using Assign = TensorAssignOp<decltype(dst), const decltype(expr)>;
   using DoneCallback = decltype(on_done);
   using Executor = internal::TensorAsyncExecutor<const Assign, Device, DoneCallback,
-                                                 Vectorizable, TilingOn>;
+                                                 Vectorizable, Tiling>;
 
   Executor::runAsync(Assign(dst, expr), d, on_done);
   done.Wait();
@@ -737,10 +735,10 @@ EIGEN_DECLARE_TEST(cxx11_tensor_executor) {
   CALL_SUBTEST_COMBINATIONS_V1(8, test_execute_reduction, float, 4);
   CALL_SUBTEST_COMBINATIONS_V1(8, test_execute_reduction, float, 5);
 
-  CALL_SUBTEST_COMBINATIONS_V1(9, test_execute_reshape, float, 2);
-  CALL_SUBTEST_COMBINATIONS_V1(9, test_execute_reshape, float, 3);
-  CALL_SUBTEST_COMBINATIONS_V1(9, test_execute_reshape, float, 4);
-  CALL_SUBTEST_COMBINATIONS_V1(9, test_execute_reshape, float, 5);
+  CALL_SUBTEST_COMBINATIONS_V2(9, test_execute_reshape, float, 2);
+  CALL_SUBTEST_COMBINATIONS_V2(9, test_execute_reshape, float, 3);
+  CALL_SUBTEST_COMBINATIONS_V2(9, test_execute_reshape, float, 4);
+  CALL_SUBTEST_COMBINATIONS_V2(9, test_execute_reshape, float, 5);
 
   CALL_SUBTEST_COMBINATIONS_V1(10, test_execute_slice_rvalue, float, 2);
   CALL_SUBTEST_COMBINATIONS_V1(10, test_execute_slice_rvalue, float, 3);
@@ -779,4 +777,3 @@ EIGEN_DECLARE_TEST(cxx11_tensor_executor) {
   // Force CMake to split this test.
   // EIGEN_SUFFIXES;1;2;3;4;5;6;7;8;9;10;11;12;13;14;15;16
 }
-

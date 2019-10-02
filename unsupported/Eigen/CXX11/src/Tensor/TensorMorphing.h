@@ -113,6 +113,25 @@ struct TensorEvaluator<const TensorReshapingOp<NewDimensions, ArgType>, Device>
   static const int NumOutputDims = internal::array_size<Dimensions>::value;
   static const int NumInputDims  = internal::array_size<typename TensorEvaluator<ArgType, Device>::Dimensions>::value;
 
+  enum ReshapingKind {
+    // We do not use layout information to determine reshaping kind.
+    // Depending on the layout `N` can be inner or outer dimension.
+    OneByN = 0,  // expr.reshape(1, N)
+    NByOne = 1,  // expr.reshape(N, 1)
+    Runtime = 2  // Reshape dimensions are dynamic (specified at runtime).
+  };
+
+  // clang-format off
+  static const ReshapingKind kind =
+#if defined(EIGEN_HAS_INDEX_LIST)
+        (NumOutputDims == 2 && internal::index_statically_eq<NewDimensions>(/*index=*/0, /*value=*/1)) ? OneByN
+      : (NumOutputDims == 2 && internal::index_statically_eq<NewDimensions>(/*index=*/1, /*value=*/1)) ? NByOne
+      : Runtime;
+#else
+        Runtime;
+#endif
+  // clang-format on
+
   enum {
     IsAligned         = TensorEvaluator<ArgType, Device>::IsAligned,
     PacketAccess      = TensorEvaluator<ArgType, Device>::PacketAccess,
@@ -121,8 +140,12 @@ struct TensorEvaluator<const TensorReshapingOp<NewDimensions, ArgType>, Device>
     BlockAccess       = TensorEvaluator<ArgType, Device>::BlockAccess &&
                         TensorEvaluator<ArgType, Device>::RawAccess &&
                         NumInputDims > 0 && NumOutputDims > 0,
-    BlockAccessV2     = false,
-    PreferBlockAccess = true,
+    // For trivial reshapes with raw access to underlying data we will provide
+    // zero overhead block access.
+    // TODO(ezhulenev): Consider adding block access without raw access?
+    BlockAccessV2     = TensorEvaluator<ArgType, Device>::RawAccess &&
+                        NumInputDims > 0 && NumOutputDims > 0,
+    PreferBlockAccess = false,
     Layout            = TensorEvaluator<ArgType, Device>::Layout,
     CoordAccess       = false,  // to be implemented
     RawAccess         = TensorEvaluator<ArgType, Device>::RawAccess
@@ -139,7 +162,13 @@ struct TensorEvaluator<const TensorReshapingOp<NewDimensions, ArgType>, Device>
       OutputTensorBlockReader;
 
   //===- Tensor block evaluation strategy (see TensorBlock.h) -------------===//
-  typedef internal::TensorBlockNotImplemented TensorBlockV2;
+  typedef internal::TensorBlockDescriptor<NumOutputDims, Index> TensorBlockDesc;
+  typedef internal::TensorBlockScratchAllocator<Device> TensorBlockScratch;
+
+  typedef
+      typename internal::TensorMaterializedBlock<ScalarNoConst, NumOutputDims,
+                                                 Layout, Index>
+          TensorBlockV2;
   //===--------------------------------------------------------------------===//
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
@@ -199,8 +228,9 @@ struct TensorEvaluator<const TensorReshapingOp<NewDimensions, ArgType>, Device>
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void getResourceRequirements(
-      std::vector<internal::TensorOpResourceRequirements>* resources) const {
-    m_impl.getResourceRequirements(resources);
+      std::vector<internal::TensorOpResourceRequirements>*) const {
+    // TODO(ezhulenev): If we'll ever support block evaluation without raw
+    // access we'll need to get requirements from `m_impl`.
   }
 
   // required in block(OutputTensorBlock* output_block) const
@@ -334,6 +364,26 @@ struct TensorEvaluator<const TensorReshapingOp<NewDimensions, ArgType>, Device>
     }
   }
 
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorBlockV2
+  blockV2(TensorBlockDesc& desc, TensorBlockScratch& scratch) const {
+    eigen_assert(m_impl.data() != NULL);
+    eigen_assert((kind == Runtime) ||
+                 (kind == OneByN && desc.dimensions()[0] == 1) ||
+                 (kind == NByOne && desc.dimensions()[1] == 1));
+
+    if (kind == OneByN || kind == NByOne) {
+      // We can guarantee at compile time that block is just a contiguous slice
+      // of the underlying expression memory buffer.
+      return TensorBlockV2(internal::TensorBlockKind::kView,
+                           m_impl.data() + desc.offset(), desc.dimensions());
+    } else {
+      // This will do additional runtime checks, and in the end it might be also
+      // a view, or it might be a block materialized in the temporary buffer.
+      return TensorBlockV2::materialize(m_impl.data(), m_dimensions, desc,
+                                        scratch);
+    }
+  }
+
   EIGEN_DEVICE_FUNC typename Storage::Type data() const {
     return constCast(m_impl.data());
   }
@@ -365,14 +415,14 @@ template<typename NewDimensions, typename ArgType, typename Device>
   typedef NewDimensions Dimensions;
 
   enum {
-    IsAligned = TensorEvaluator<ArgType, Device>::IsAligned,
-    PacketAccess = TensorEvaluator<ArgType, Device>::PacketAccess,
-    BlockAccess = false,
-    BlockAccessV2 = false,
+    IsAligned         = TensorEvaluator<ArgType, Device>::IsAligned,
+    PacketAccess      = TensorEvaluator<ArgType, Device>::PacketAccess,
+    BlockAccess       = false,
+    BlockAccessV2     = TensorEvaluator<ArgType, Device>::RawAccess,
     PreferBlockAccess = false,
-    Layout = TensorEvaluator<ArgType, Device>::Layout,
-    CoordAccess = false,  // to be implemented
-    RawAccess = TensorEvaluator<ArgType, Device>::RawAccess
+    Layout            = TensorEvaluator<ArgType, Device>::Layout,
+    CoordAccess       = false,  // to be implemented
+    RawAccess         = TensorEvaluator<ArgType, Device>::RawAccess
   };
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
@@ -385,17 +435,36 @@ template<typename NewDimensions, typename ArgType, typename Device>
   typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
 
   //===- Tensor block evaluation strategy (see TensorBlock.h) -------------===//
-  typedef internal::TensorBlockNotImplemented TensorBlockV2;
+  typedef internal::TensorBlockDescriptor<TensorEvaluator::NumOutputDims, Index>
+      TensorBlockDesc;
   //===--------------------------------------------------------------------===//
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE CoeffReturnType& coeffRef(Index index)
   {
     return this->m_impl.coeffRef(index);
   }
+
   template <int StoreMode> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
   void writePacket(Index index, const PacketReturnType& x)
   {
     this->m_impl.template writePacket<StoreMode>(index, x);
+  }
+
+  template <typename TensorBlock>
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void writeBlockV2(
+      const TensorBlockDesc& desc, const TensorBlock& block) {
+    assert(this->m_impl.data() != NULL);
+
+    typedef typename TensorBlock::XprType TensorBlockExpr;
+    typedef internal::TensorBlockAssignment<
+        Scalar, TensorEvaluator::NumOutputDims, TensorBlockExpr, Index>
+        TensorBlockAssign;
+
+    TensorBlockAssign::Run(
+        TensorBlockAssign::target(desc.dimensions(),
+                                  internal::strides<Layout>(this->dimensions()),
+                                  this->m_impl.data(), desc.offset()),
+        block.expr());
   }
 };
 

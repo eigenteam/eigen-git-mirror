@@ -1247,10 +1247,10 @@ struct TensorEvaluator<const TensorBroadcastingOp<Broadcast, ArgType>, Device>
           ScalarNoConst, NumDims, typename ArgTensorBlock::XprType, Index>
           TensorBlockAssignment;
 
-      typename TensorBlockAssignment::Dst assignment_dst(
-          input_block_sizes, input_block_strides, *materialized_input);
-
-      TensorBlockAssignment::Run(assignment_dst, input_block.expr());
+      TensorBlockAssignment::Run(
+          TensorBlockAssignment::target(input_block_sizes, input_block_strides,
+                                        *materialized_input),
+          input_block.expr());
 
       input_buffer = *materialized_input;
     }
