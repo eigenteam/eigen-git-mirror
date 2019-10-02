@@ -180,6 +180,10 @@ template <typename ResScalar, typename LhsScalar, typename RhsScalar,
     typename StorageIndex, typename OutputMapper, typename LhsMapper,
     typename RhsMapper>
 struct TensorContractionKernel {
+  // True if `invoke()` supports `beta` in `C <- alpha * A * B + beta * C`
+  // (otherwise beta should be always equal to 1).
+  enum { HasBeta = false };
+
   EIGEN_DEVICE_FUNC
   TensorContractionKernel(StorageIndex m_, StorageIndex k_, StorageIndex n_,
                           StorageIndex bm_, StorageIndex bk_, StorageIndex bn_)
@@ -248,7 +252,9 @@ struct TensorContractionKernel {
       const OutputMapper& output_mapper, const LhsBlock& lhsBlock,
       const RhsBlock& rhsBlock, const StorageIndex rows,
       const StorageIndex depth, const StorageIndex cols,
-      const ResScalar alpha) {
+      const ResScalar alpha, const ResScalar beta) {
+    // Default GEBP kernel does not support beta.
+    eigen_assert(beta == ResScalar(1));
     static const int kComputeStrideFromBlockDimensions = -1;
     GebpKernel()(output_mapper, lhsBlock, rhsBlock, rows, depth, cols, alpha,
         /*strideA*/ kComputeStrideFromBlockDimensions,
@@ -772,15 +778,6 @@ struct TensorContractionEvaluatorBase
   void evalGemm(Scalar* buffer) const {
     // columns in left side, rows in right side
     const Index k = this->m_k_size;
-
-    // rows in left side
-    const Index m = this->m_i_size;
-
-    // columns in right side
-    const Index n = this->m_j_size;
-
-    // zero out the result buffer (which must be of size at least m * n * sizeof(Scalar)
-    this->m_device.memset(buffer, 0, m * n * sizeof(Scalar));
     this->template evalGemmPartial<lhs_inner_dim_contiguous,
                                    rhs_inner_dim_contiguous,
                                    rhs_inner_dim_reordered,
@@ -866,6 +863,12 @@ struct TensorContractionEvaluatorBase
     const BlockMemHandle packed_mem =
         kernel.allocate(this->m_device, &blockA, &blockB);
 
+    // If a contraction kernel does not support beta, explicitly initialize
+    // output buffer with zeroes.
+    if (!TensorContractionKernel::HasBeta) {
+      this->m_device.memset(buffer, 0, m * n * sizeof(Scalar));
+    }
+
     for(Index i2=0; i2<m; i2+=mc)
     {
       const Index actual_mc = numext::mini(i2+mc,m)-i2;
@@ -873,6 +876,13 @@ struct TensorContractionEvaluatorBase
         // make sure we don't overshoot right edge of left matrix, then pack vertical panel
         const Index actual_kc = numext::mini(k2 + kc, k_end) - k2;
         kernel.packLhs(&blockA, lhs.getSubMapper(i2, k2), actual_kc, actual_mc);
+
+        // If kernel supports beta, there is no need to initialize output
+        // buffer with zeroes.
+        const Scalar alpha = Scalar(1);
+        const Scalar beta = (TensorContractionKernel::HasBeta && k2 == k_start)
+                                ? Scalar(0)
+                                : Scalar(1);
 
         // series of horizontal blocks
         for (Index j2 = 0; j2 < n; j2 += nc) {
@@ -885,7 +895,7 @@ struct TensorContractionEvaluatorBase
           // The parameters here are copied from Eigen's GEMM implementation
           const OutputMapper output_mapper = output.getSubMapper(i2, j2);
           kernel.invoke(output_mapper, blockA, blockB, actual_mc, actual_kc,
-                        actual_nc, Scalar(1));
+                        actual_nc, alpha, beta);
 
           // We are done with this [i2, j2] output block.
           if (use_output_kernel && k2 + kc >= k_end) {
