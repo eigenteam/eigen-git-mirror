@@ -626,17 +626,18 @@ template <typename Packet, int N>
 struct pchebevl {
   EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE Packet run(Packet x, const typename unpacket_traits<Packet>::type coef[]) {
+    typedef typename unpacket_traits<Packet>::type Scalar;
     Packet b0 = pset1<Packet>(coef[0]);
-    Packet b1 = pset1<Packet>(0.f);
+    Packet b1 = pset1<Packet>(static_cast<Scalar>(0.f));
     Packet b2;
 
     for (int i = 1; i < N; i++) {
       b2 = b1;
       b1 = b0;
-      b0 = padd(psub(pmul(x, b1), b2), pset1<Packet>(coef[i]));
+      b0 = psub(pmadd(x, b1, pset1<Packet>(coef[i])), b2);
     }
 
-    return pmul(pset1<Packet>(0.5f), psub(b0, b2));
+    return pmul(pset1<Packet>(static_cast<Scalar>(0.5f)), psub(b0, b2));
   }
 };
 
