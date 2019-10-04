@@ -104,13 +104,13 @@ static TensorBlockParams<NumDims> FixedSizeBlock(DSizes<Index, NumDims> dims) {
   return {offsets, dims, TensorBlockDescriptor<NumDims, Index>(0, dims)};
 }
 
-inline Eigen::IndexList<int, Eigen::type2index<1>> NByOne(int n) {
-  Eigen::IndexList<int, Eigen::type2index<1>> ret;
+inline Eigen::IndexList<Index, Eigen::type2index<1>> NByOne(Index n) {
+  Eigen::IndexList<Index, Eigen::type2index<1>> ret;
   ret.set(0, n);
   return ret;
 }
-inline Eigen::IndexList<Eigen::type2index<1>, int> OneByM(int m) {
-  Eigen::IndexList<Eigen::type2index<1>, int> ret;
+inline Eigen::IndexList<Eigen::type2index<1>, Index> OneByM(Index m) {
+  Eigen::IndexList<Eigen::type2index<1>, Index> ret;
   ret.set(1, m);
   return ret;
 }

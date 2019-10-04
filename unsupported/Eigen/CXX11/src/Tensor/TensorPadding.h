@@ -295,8 +295,8 @@ struct TensorEvaluator<const TensorPaddingOp<PaddingDimensions, ArgType>, Device
     // Initialize output block iterator state. Dimension in this array are
     // always in inner_most -> outer_most order (col major layout).
     array<BlockIteratorState, NumDims - 1> it;
-    for (Index i = 0; i < NumDims - 1; ++i) {
-      const Index dim = IsColMajor ? i + 1 : NumDims - i - 2;
+    for (int i = 0; i < NumDims - 1; ++i) {
+      const int dim = IsColMajor ? i + 1 : NumDims - i - 2;
       it[i].count = 0;
       it[i].size = desc.dimension(dim);
 

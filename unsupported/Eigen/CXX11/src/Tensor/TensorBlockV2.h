@@ -418,7 +418,7 @@ class TensorMaterializedBlock {
 
     if (can_use_direct_access) {
       const Scalar* block_start = data + desc.offset();
-      return TensorMaterializedBlock(TensorBlockKind::kView, block_start,
+      return TensorMaterializedBlock(internal::TensorBlockKind::kView, block_start,
                                      desc.dimensions());
 
     } else {
@@ -438,7 +438,7 @@ class TensorMaterializedBlock {
 
       TensorBlockIO::Copy(dst, src);
 
-      return TensorMaterializedBlock(TensorBlockKind::kMaterializedInScratch,
+      return TensorMaterializedBlock(internal::TensorBlockKind::kMaterializedInScratch,
                                      block_buffer, desc.dimensions());
     }
   }
