@@ -737,10 +737,10 @@ EIGEN_DECLARE_TEST(cxx11_tensor_executor) {
   CALL_SUBTEST_COMBINATIONS_V1(8, test_execute_reduction, float, 4);
   CALL_SUBTEST_COMBINATIONS_V1(8, test_execute_reduction, float, 5);
 
-  CALL_SUBTEST_COMBINATIONS_V1(9, test_execute_reshape, float, 2);
-  CALL_SUBTEST_COMBINATIONS_V1(9, test_execute_reshape, float, 3);
-  CALL_SUBTEST_COMBINATIONS_V1(9, test_execute_reshape, float, 4);
-  CALL_SUBTEST_COMBINATIONS_V1(9, test_execute_reshape, float, 5);
+  CALL_SUBTEST_COMBINATIONS_V2(9, test_execute_reshape, float, 2);
+  CALL_SUBTEST_COMBINATIONS_V2(9, test_execute_reshape, float, 3);
+  CALL_SUBTEST_COMBINATIONS_V2(9, test_execute_reshape, float, 4);
+  CALL_SUBTEST_COMBINATIONS_V2(9, test_execute_reshape, float, 5);
 
   CALL_SUBTEST_COMBINATIONS_V1(10, test_execute_slice_rvalue, float, 2);
   CALL_SUBTEST_COMBINATIONS_V1(10, test_execute_slice_rvalue, float, 3);
@@ -779,4 +779,3 @@ EIGEN_DECLARE_TEST(cxx11_tensor_executor) {
   // Force CMake to split this test.
   // EIGEN_SUFFIXES;1;2;3;4;5;6;7;8;9;10;11;12;13;14;15;16
 }
-
