@@ -590,7 +590,7 @@ EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T generic_ndtri_lt_exp_neg_two(
 
   x = psqrt(pmul(neg_two, plog(b)));
   x0 = psub(x, pdiv(plog(x), x));
-  z = one / x;
+  z = pdiv(one, x);
   x1 = pmul(
       z, pselect(
           pcmp_lt(x, eight),
