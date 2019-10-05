@@ -83,7 +83,7 @@ large enough to hold all the data.
 
     // You can also map fixed-size tensors.  Here we get a 1d view of
     // the 2d fixed-size tensor.
-    TensorFixedSize<float, Sizes<4, 5>> t_4x3;
+    TensorFixedSize<float, Sizes<4, 3>> t_4x3;
     TensorMap<Tensor<float, 1>> t_12(t_4x3.data(), 12);
 
 
