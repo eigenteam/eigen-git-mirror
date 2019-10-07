@@ -131,6 +131,7 @@ static void VerifyBlockEvaluator(Expression expr, GenBlockParams gen_block) {
 
   // TensorEvaluator is needed to produce tensor blocks of the expression.
   auto eval = TensorEvaluator<const decltype(expr), Device>(expr, d);
+  eval.evalSubExprsIfNeeded(nullptr);
 
   // Choose a random offsets, sizes and TensorBlockDescriptor.
   TensorBlockParams<NumDims> block_params = gen_block();
@@ -266,29 +267,6 @@ static void test_eval_tensor_reshape() {
       [&shuffled]() { return SkewedInnerBlock<Layout>(shuffled); });
 }
 
-template <typename T, int Layout>
-static void test_eval_tensor_reshape_with_bcast() {
-  Index dim = internal::random<Index>(1, 100);
-
-  Tensor<T, 2, Layout> lhs(1, dim);
-  Tensor<T, 2, Layout> rhs(dim, 1);
-  lhs.setRandom();
-  rhs.setRandom();
-
-  auto reshapeLhs = NByOne(dim);
-  auto reshapeRhs = OneByM(dim);
-
-  auto bcastLhs = OneByM(dim);
-  auto bcastRhs = NByOne(dim);
-
-  DSizes<Index, 2> dims(dim, dim);
-
-  VerifyBlockEvaluator<T, 2, Layout>(
-      lhs.reshape(reshapeLhs).broadcast(bcastLhs) +
-          rhs.reshape(reshapeRhs).broadcast(bcastRhs),
-      [dims]() { return SkewedInnerBlock<Layout, 2>(dims); });
-}
-
 template <typename T, int NumDims, int Layout>
 static void test_eval_tensor_cast() {
   DSizes<Index, NumDims> dims = RandomDims<NumDims>(10, 20);
@@ -353,6 +331,52 @@ static void test_eval_tensor_padding() {
   VerifyBlockEvaluator<T, NumDims, Layout>(
       input.pad(paddings),
       [&padded_dims]() { return SkewedInnerBlock<Layout>(padded_dims); });
+}
+
+template <typename T, int Layout>
+static void test_eval_tensor_reshape_with_bcast() {
+  Index dim = internal::random<Index>(1, 100);
+
+  Tensor<T, 2, Layout> lhs(1, dim);
+  Tensor<T, 2, Layout> rhs(dim, 1);
+  lhs.setRandom();
+  rhs.setRandom();
+
+  auto reshapeLhs = NByOne(dim);
+  auto reshapeRhs = OneByM(dim);
+
+  auto bcastLhs = OneByM(dim);
+  auto bcastRhs = NByOne(dim);
+
+  DSizes<Index, 2> dims(dim, dim);
+
+  VerifyBlockEvaluator<T, 2, Layout>(
+      lhs.reshape(reshapeLhs).broadcast(bcastLhs) +
+          rhs.reshape(reshapeRhs).broadcast(bcastRhs),
+      [dims]() { return SkewedInnerBlock<Layout, 2>(dims); });
+}
+
+template <typename T, int Layout>
+static void test_eval_tensor_forced_eval() {
+  Index dim = internal::random<Index>(1, 100);
+
+  Tensor<T, 2, Layout> lhs(dim, 1);
+  Tensor<T, 2, Layout> rhs(1, dim);
+  lhs.setRandom();
+  rhs.setRandom();
+
+  auto bcastLhs = OneByM(dim);
+  auto bcastRhs = NByOne(dim);
+
+  DSizes<Index, 2> dims(dim, dim);
+
+  VerifyBlockEvaluator<T, 2, Layout>(
+      (lhs.broadcast(bcastLhs) + rhs.broadcast(bcastRhs)).eval().reshape(dims),
+      [dims]() { return SkewedInnerBlock<Layout, 2>(dims); });
+
+  VerifyBlockEvaluator<T, 2, Layout>(
+      (lhs.broadcast(bcastLhs) + rhs.broadcast(bcastRhs)).eval().reshape(dims),
+      [dims]() { return RandomBlock<Layout, 2>(dims, 1, 50); });
 }
 
 // -------------------------------------------------------------------------- //
@@ -482,6 +506,7 @@ EIGEN_DECLARE_TEST(cxx11_tensor_block_eval) {
   CALL_SUBTESTS_DIMS_LAYOUTS(test_eval_tensor_padding);
 
   CALL_SUBTESTS_LAYOUTS(test_eval_tensor_reshape_with_bcast);
+  CALL_SUBTESTS_LAYOUTS(test_eval_tensor_forced_eval);
 
   CALL_SUBTESTS_DIMS_LAYOUTS(test_assign_to_tensor);
   CALL_SUBTESTS_DIMS_LAYOUTS(test_assign_to_tensor_reshape);

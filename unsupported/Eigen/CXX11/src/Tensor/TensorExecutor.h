@@ -238,7 +238,8 @@ class TensorExecutor<Expression, DefaultDevice, Vectorizable,
     typedef TensorBlockMapper<ScalarNoConst, StorageIndex, NumDims, Evaluator::Layout> TensorBlockMapper;
     typedef typename TensorBlock::Dimensions TensorBlockDimensions;
 
-    typedef internal::TensorBlockDescriptor<NumDims> TensorBlockDesc;
+    typedef internal::TensorBlockDescriptor<NumDims, StorageIndex>
+        TensorBlockDesc;
     typedef internal::TensorBlockScratchAllocator<DefaultDevice>
         TensorBlockScratch;
 

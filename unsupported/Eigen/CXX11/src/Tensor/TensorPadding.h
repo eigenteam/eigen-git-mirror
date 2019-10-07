@@ -231,7 +231,11 @@ struct TensorEvaluator<const TensorPaddingOp<PaddingDimensions, ArgType>, Device
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorBlockV2
   blockV2(TensorBlockDesc& desc, TensorBlockScratch& scratch) const {
-    eigen_assert(m_impl.data() != NULL);
+    // If one of the dimensions is zero, return empty block view.
+    if (desc.size() == 0) {
+      return TensorBlockV2(internal::TensorBlockKind::kView, NULL,
+                           desc.dimensions());
+    }
 
     // Check if we can reuse `desc` destination, or allocate new scratch buffer.
     ScalarNoConst* materialized_output =
@@ -384,6 +388,8 @@ struct TensorEvaluator<const TensorPaddingOp<PaddingDimensions, ArgType>, Device
         {  // Copy data from input inner dimension.
           const Index out = output_offset + output_inner_pad_before_size;
           const Index in = input_offset + output_inner_pad_before_size;
+
+          eigen_assert(output_inner_copy_size == 0 || m_impl.data() != NULL);
 
           LinCopy::template Run<LinCopy::Kind::Linear>(
               typename LinCopy::Dst(out, 1, materialized_output),

@@ -111,22 +111,28 @@ struct TensorEvaluator<const TensorEvalToOp<ArgType, MakePointer_>, Device>
     IsAligned         = TensorEvaluator<ArgType, Device>::IsAligned,
     PacketAccess      = TensorEvaluator<ArgType, Device>::PacketAccess,
     BlockAccess       = true,
-    BlockAccessV2     = false,
+    BlockAccessV2     = true,
     PreferBlockAccess = false,
     Layout            = TensorEvaluator<ArgType, Device>::Layout,
     CoordAccess       = false,  // to be implemented
     RawAccess         = true
   };
 
-  typedef typename internal::TensorBlock<
-      CoeffReturnType, Index, internal::traits<ArgType>::NumDimensions, Layout>
-      TensorBlock;
-  typedef typename internal::TensorBlockReader<
-      CoeffReturnType, Index, internal::traits<ArgType>::NumDimensions, Layout>
-      TensorBlockReader;
+  static const int NumDims = internal::traits<ArgType>::NumDimensions;
+
+  typedef typename internal::TensorBlock<CoeffReturnType, Index, NumDims, Layout> TensorBlock;
+  typedef typename internal::TensorBlockReader<CoeffReturnType, Index, NumDims, Layout> TensorBlockReader;
 
   //===- Tensor block evaluation strategy (see TensorBlock.h) -------------===//
-  typedef internal::TensorBlockNotImplemented TensorBlockV2;
+  typedef internal::TensorBlockDescriptor<NumDims, Index> TensorBlockDesc;
+  typedef internal::TensorBlockScratchAllocator<Device> TensorBlockScratch;
+
+  typedef typename TensorEvaluator<const ArgType, Device>::TensorBlockV2
+      ArgTensorBlock;
+
+  typedef internal::TensorBlockAssignment<
+      Scalar, NumDims, typename ArgTensorBlock::XprType, Index>
+      TensorBlockAssignment;
   //===--------------------------------------------------------------------===//
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
@@ -162,6 +168,30 @@ struct TensorEvaluator<const TensorEvalToOp<ArgType, MakePointer_>, Device>
                               block->tensor_strides(), block->tensor_strides(),
                               m_buffer + block->first_coeff_index());
     m_impl.block(&eval_to_block);
+  }
+
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void evalBlockV2(
+      TensorBlockDesc& desc, TensorBlockScratch& scratch) {
+    // Add `m_buffer` as destination buffer to the block descriptor.
+    desc.AddDestinationBuffer(
+        /*dst_base=*/m_buffer + desc.offset(),
+        /*dst_strides=*/internal::strides<Layout>(m_impl.dimensions()),
+        /*total_dst_bytes=*/
+                     (internal::array_prod(m_impl.dimensions())
+                         * sizeof(Scalar)));
+
+    ArgTensorBlock block = m_impl.blockV2(desc, scratch);
+
+    // If block was evaluated into a destination buffer, there is no need to do
+    // an assignment.
+    if (block.kind() != internal::TensorBlockKind::kMaterializedInOutput) {
+      TensorBlockAssignment::Run(
+          TensorBlockAssignment::target(
+              desc.dimensions(), internal::strides<Layout>(m_impl.dimensions()),
+              m_buffer, desc.offset()),
+          block.expr());
+    }
+    block.cleanup();
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void cleanup() {
