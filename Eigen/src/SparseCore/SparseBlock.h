@@ -164,7 +164,7 @@ public:
       }
       else
       {
-        if(m_matrix.isCompressed())
+        if(m_matrix.isCompressed() && nnz!=block_size)
         {
           // no need to realloc, simply copy the tail at its respective position and insert tmp
           matrix.data().resize(start + nnz + tail_size);
