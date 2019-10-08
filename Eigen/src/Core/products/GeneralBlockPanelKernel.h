@@ -648,8 +648,8 @@ public:
   // Vectorized path
   EIGEN_STRONG_INLINE void loadRhs(const RhsScalar* b, DoublePacketType& dest) const
   {
-    dest.first  = pset1<RealPacket>(real(*b));
-    dest.second = pset1<RealPacket>(imag(*b));
+    dest.first  = pset1<RealPacket>(numext::real(*b));
+    dest.second = pset1<RealPacket>(numext::imag(*b));
   }
   
   EIGEN_STRONG_INLINE void loadRhsQuad(const RhsScalar* b, ResPacket& dest) const
