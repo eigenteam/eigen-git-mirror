@@ -729,8 +729,8 @@ template<typename Scalar, typename RealPacket>
 void loadQuadToDoublePacket(const Scalar* b, DoublePacket<RealPacket>& dest,
                             typename enable_if<unpacket_traits<RealPacket>::size<=8>::type* = 0)
 {
-  dest.first  = pset1<RealPacket>(real(*b));
-  dest.second = pset1<RealPacket>(imag(*b));
+  dest.first  = pset1<RealPacket>(numext::real(*b));
+  dest.second = pset1<RealPacket>(numext::imag(*b));
 }
 
 template<typename Scalar, typename RealPacket>
@@ -739,8 +739,8 @@ void loadQuadToDoublePacket(const Scalar* b, DoublePacket<RealPacket>& dest,
 {
   // yes, that's pretty hackish too :(
   typedef typename NumTraits<Scalar>::Real RealScalar;
-  RealScalar r[4] = {real(b[0]), real(b[0]), real(b[1]), real(b[1])};
-  RealScalar i[4] = {imag(b[0]), imag(b[0]), imag(b[1]), imag(b[1])};
+  RealScalar r[4] = {numext::real(b[0]), numext::real(b[0]), numext::real(b[1]), numext::real(b[1])};
+  RealScalar i[4] = {numext::imag(b[0]), numext::imag(b[0]), numext::imag(b[1]), numext::imag(b[1])};
   dest.first  = ploadquad<RealPacket>(r);
   dest.second = ploadquad<RealPacket>(i);
 }
@@ -820,8 +820,8 @@ public:
   template<typename RealPacketType>
   EIGEN_STRONG_INLINE void loadRhs(const RhsScalar* b, DoublePacket<RealPacketType>& dest) const
   {
-    dest.first  = pset1<RealPacketType>(real(*b));
-    dest.second = pset1<RealPacketType>(imag(*b));
+    dest.first  = pset1<RealPacketType>(numext::real(*b));
+    dest.second = pset1<RealPacketType>(numext::imag(*b));
   }
 
   EIGEN_STRONG_INLINE void loadRhs(const RhsScalar* b, RhsPacketx4& dest) const
