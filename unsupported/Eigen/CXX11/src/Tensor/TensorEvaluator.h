@@ -53,18 +53,22 @@ struct TensorEvaluator
     RawAccess          = true
   };
 
-  typedef typename internal::TensorBlock<
-      typename internal::remove_const<Scalar>::type, Index, NumCoords, Layout>
+  typedef typename internal::remove_const<Scalar>::type ScalarNoConst;
+
+  typedef typename internal::TensorBlock<ScalarNoConst, Index, NumCoords, Layout>
       TensorBlock;
-  typedef typename internal::TensorBlockReader<
-      typename internal::remove_const<Scalar>::type, Index, NumCoords, Layout>
+  typedef typename internal::TensorBlockReader<ScalarNoConst, Index, NumCoords, Layout>
       TensorBlockReader;
-  typedef typename internal::TensorBlockWriter<
-      typename internal::remove_const<Scalar>::type, Index, NumCoords, Layout>
+  typedef typename internal::TensorBlockWriter<ScalarNoConst, Index, NumCoords, Layout>
       TensorBlockWriter;
 
   //===- Tensor block evaluation strategy (see TensorBlock.h) -------------===//
   typedef internal::TensorBlockDescriptor<NumCoords, Index> TensorBlockDesc;
+  typedef internal::TensorBlockScratchAllocator<Device> TensorBlockScratch;
+
+  typedef typename internal::TensorMaterializedBlock<ScalarNoConst, NumCoords,
+                                                     Layout, Index>
+      TensorBlockV2;
   //===--------------------------------------------------------------------===//
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const Derived& m, const Device& device)
@@ -159,6 +163,12 @@ struct TensorEvaluator
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void block(TensorBlock* block) const {
     assert(m_data != NULL);
     TensorBlockReader::Run(block, m_data);
+  }
+
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorBlockV2
+  blockV2(TensorBlockDesc& desc, TensorBlockScratch& scratch) const {
+    assert(m_data != NULL);
+    return TensorBlockV2::materialize(m_data, m_dims, desc, scratch);
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void writeBlock(
@@ -268,11 +278,6 @@ struct TensorEvaluator<const Derived, Device>
   //===- Tensor block evaluation strategy (see TensorBlock.h) -------------===//
   typedef internal::TensorBlockDescriptor<NumCoords, Index> TensorBlockDesc;
   typedef internal::TensorBlockScratchAllocator<Device> TensorBlockScratch;
-
-  typedef internal::TensorBlockIOV2<ScalarNoConst, Index, NumCoords, Layout>
-      TensorBlockIO;
-  typedef typename TensorBlockIO::Dst TensorBlockIODst;
-  typedef typename TensorBlockIO::Src TensorBlockIOSrc;
 
   typedef typename internal::TensorMaterializedBlock<ScalarNoConst, NumCoords,
                                                      Layout, Index>

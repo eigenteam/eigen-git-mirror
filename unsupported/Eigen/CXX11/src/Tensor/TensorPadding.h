@@ -334,8 +334,12 @@ struct TensorEvaluator<const TensorPaddingOp<PaddingDimensions, ArgType>, Device
         // Want to copy from input.
         (output_inner_dim_size - output_inner_pad_before_size),
         // Can copy from input.
-        (static_cast<Index>(m_impl.dimensions()[inner_dim_idx]) -
-         numext::maxi(input_offsets[inner_dim_idx], Index(0))));
+        numext::maxi(
+            static_cast<Index>(m_impl.dimensions()[inner_dim_idx]) -
+                (input_offsets[inner_dim_idx] + output_inner_pad_before_size),
+            Index(0)));
+
+    eigen_assert(output_inner_copy_size >= 0);
 
     // How many values to fill with padding AFTER reading from the input inner
     // dimension.

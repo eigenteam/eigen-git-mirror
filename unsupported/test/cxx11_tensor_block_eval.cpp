@@ -82,14 +82,14 @@ static TensorBlockParams<NumDims> SkewedInnerBlock(
       index -= idx * strides[i];
       offsets[i] = idx;
     }
-    offsets[0] = index;
+    if (NumDims > 0) offsets[0] = index;
   } else {
     for (int i = 0; i < NumDims - 1; ++i) {
       const Index idx = index / strides[i];
       index -= idx * strides[i];
       offsets[i] = idx;
     }
-    offsets[NumDims - 1] = index;
+    if (NumDims > 0) offsets[NumDims - 1] = index;
   }
 
   auto desc = TensorBlockDescriptor<NumDims>(block.first_coeff_index(), sizes);
@@ -333,6 +333,42 @@ static void test_eval_tensor_padding() {
       [&padded_dims]() { return SkewedInnerBlock<Layout>(padded_dims); });
 }
 
+template <typename T, int NumDims, int Layout>
+static void test_eval_tensor_chipping() {
+  DSizes<Index, NumDims> dims = RandomDims<NumDims>(10, 20);
+  Tensor<T, NumDims, Layout> input(dims);
+  input.setRandom();
+
+  Index chip_dim = internal::random<int>(0, NumDims - 1);
+  Index chip_offset = internal::random<Index>(0, dims[chip_dim] - 2);
+
+  DSizes<Index, NumDims - 1> chipped_dims;
+  for (Index i = 0; i < chip_dim; ++i) {
+    chipped_dims[i] = dims[i];
+  }
+  for (Index i = chip_dim + 1; i < NumDims; ++i) {
+    chipped_dims[i - 1] = dims[i];
+  }
+
+  // Block buffer forwarding.
+  VerifyBlockEvaluator<T, NumDims - 1, Layout>(
+      input.chip(chip_offset, chip_dim),
+      [&chipped_dims]() { return FixedSizeBlock(chipped_dims); });
+
+  VerifyBlockEvaluator<T, NumDims - 1, Layout>(
+      input.chip(chip_offset, chip_dim),
+      [&chipped_dims]() { return RandomBlock<Layout>(chipped_dims, 1, 10); });
+
+  // Block expression assignment.
+  VerifyBlockEvaluator<T, NumDims - 1, Layout>(
+      input.square().chip(chip_offset, chip_dim),
+      [&chipped_dims]() { return FixedSizeBlock(chipped_dims); });
+
+  VerifyBlockEvaluator<T, NumDims - 1, Layout>(
+      input.square().chip(chip_offset, chip_dim),
+      [&chipped_dims]() { return RandomBlock<Layout>(chipped_dims, 1, 10); });
+}
+
 template <typename T, int Layout>
 static void test_eval_tensor_reshape_with_bcast() {
   Index dim = internal::random<Index>(1, 100);
@@ -384,8 +420,8 @@ static void test_eval_tensor_forced_eval() {
 // as an assignment to TensorSliceOp (writing a block is is identical to
 // assigning one tensor to a slice of another tensor).
 
-template <typename T, int NumDims, int Layout, typename Expression,
-          typename GenBlockParams>
+template <typename T, int NumDims, int Layout, int NumExprDims = NumDims,
+          typename Expression, typename GenBlockParams>
 static void VerifyBlockAssignment(Tensor<T, NumDims, Layout>& tensor,
                                   Expression expr, GenBlockParams gen_block) {
   using Device = DefaultDevice;
@@ -395,17 +431,17 @@ static void VerifyBlockAssignment(Tensor<T, NumDims, Layout>& tensor,
   auto eval = TensorEvaluator<decltype(expr), Device>(expr, d);
 
   // Generate a random block, or choose a block that fits in full expression.
-  TensorBlockParams<NumDims> block_params = gen_block();
+  TensorBlockParams<NumExprDims> block_params = gen_block();
 
   // Generate random data of the selected block size.
-  Tensor<T, NumDims, Layout> block(block_params.desc.dimensions());
+  Tensor<T, NumExprDims, Layout> block(block_params.desc.dimensions());
   block.setRandom();
 
   // ************************************************************************ //
   // (1) Assignment from a block.
 
   // Construct a materialize block from a random generated block tensor.
-  internal::TensorMaterializedBlock<T, NumDims, Layout> blk(
+  internal::TensorMaterializedBlock<T, NumExprDims, Layout> blk(
       internal::TensorBlockKind::kView, block.data(), block.dimensions());
 
   // Reset all underlying tensor values to zero.
@@ -478,6 +514,37 @@ static void test_assign_to_tensor_reshape() {
       [&shuffled]() { return FixedSizeBlock(shuffled); });
 }
 
+template <typename T, int NumDims, int Layout>
+static void test_assign_to_tensor_chipping() {
+  DSizes<Index, NumDims> dims = RandomDims<NumDims>(10, 20);
+  Tensor<T, NumDims, Layout> tensor(dims);
+
+  Index chip_dim = internal::random<int>(0, NumDims - 1);
+  Index chip_offset = internal::random<Index>(0, dims[chip_dim] - 2);
+
+  DSizes < Index, NumDims - 1 > chipped_dims;
+  for (Index i = 0; i < chip_dim; ++i) {
+    chipped_dims[i] = dims[i];
+  }
+  for (Index i = chip_dim + 1; i < NumDims; ++i) {
+    chipped_dims[i - 1] = dims[i];
+  }
+
+  TensorMap<Tensor<T, NumDims, Layout>> map(tensor.data(), dims);
+
+  VerifyBlockAssignment<T, NumDims, Layout, NumDims - 1>(
+      tensor, map.chip(chip_offset, chip_dim),
+      [&chipped_dims]() { return RandomBlock<Layout>(chipped_dims, 1, 10); });
+
+  VerifyBlockAssignment<T, NumDims, Layout, NumDims - 1>(
+      tensor, map.chip(chip_offset, chip_dim),
+      [&chipped_dims]() { return SkewedInnerBlock<Layout>(chipped_dims); });
+
+  VerifyBlockAssignment<T, NumDims, Layout, NumDims - 1>(
+      tensor, map.chip(chip_offset, chip_dim),
+      [&chipped_dims]() { return FixedSizeBlock(chipped_dims); });
+}
+
 // -------------------------------------------------------------------------- //
 
 #define CALL_SUBTESTS_DIMS_LAYOUTS(NAME)      \
@@ -503,12 +570,15 @@ EIGEN_DECLARE_TEST(cxx11_tensor_block_eval) {
   CALL_SUBTESTS_DIMS_LAYOUTS(test_eval_tensor_broadcast);
   CALL_SUBTESTS_DIMS_LAYOUTS(test_eval_tensor_reshape);
   CALL_SUBTESTS_DIMS_LAYOUTS(test_eval_tensor_cast);
+  CALL_SUBTESTS_DIMS_LAYOUTS(test_eval_tensor_select);
   CALL_SUBTESTS_DIMS_LAYOUTS(test_eval_tensor_padding);
+  CALL_SUBTESTS_DIMS_LAYOUTS(test_eval_tensor_chipping);
 
   CALL_SUBTESTS_LAYOUTS(test_eval_tensor_reshape_with_bcast);
   CALL_SUBTESTS_LAYOUTS(test_eval_tensor_forced_eval);
 
   CALL_SUBTESTS_DIMS_LAYOUTS(test_assign_to_tensor);
   CALL_SUBTESTS_DIMS_LAYOUTS(test_assign_to_tensor_reshape);
+  CALL_SUBTESTS_DIMS_LAYOUTS(test_assign_to_tensor_chipping);
   // clang-format on
 }
