@@ -369,6 +369,48 @@ static void test_eval_tensor_chipping() {
       [&chipped_dims]() { return RandomBlock<Layout>(chipped_dims, 1, 10); });
 }
 
+template <typename T, int NumDims, int Layout>
+static void test_eval_tensor_generator() {
+  DSizes<Index, NumDims> dims = RandomDims<NumDims>(10, 20);
+  Tensor<T, NumDims, Layout> input(dims);
+  input.setRandom();
+
+  auto generator = [](const array<Index, NumDims>& dims) -> T {
+    T result = static_cast<T>(0);
+    for (int i = 0; i < NumDims; ++i) {
+      result += static_cast<T>((i + 1) * dims[i]);
+    }
+    return result;
+  };
+
+  VerifyBlockEvaluator<T, NumDims, Layout>(
+      input.generate(generator),
+      [&dims]() { return FixedSizeBlock(dims); });
+
+  VerifyBlockEvaluator<T, NumDims, Layout>(
+      input.generate(generator),
+      [&dims]() { return RandomBlock<Layout>(dims, 1, 10); });
+}
+
+template <typename T, int NumDims, int Layout>
+static void test_eval_tensor_reverse() {
+  DSizes<Index, NumDims> dims = RandomDims<NumDims>(10, 20);
+  Tensor<T, NumDims, Layout> input(dims);
+  input.setRandom();
+
+  // Randomly reverse dimensions.
+  Eigen::DSizes<bool, NumDims> reverse;
+  for (int i = 0; i < NumDims; ++i) reverse[i] = internal::random<bool>();
+
+  VerifyBlockEvaluator<T, NumDims, Layout>(
+      input.reverse(reverse),
+      [&dims]() { return FixedSizeBlock(dims); });
+
+  VerifyBlockEvaluator<T, NumDims, Layout>(
+      input.reverse(reverse),
+      [&dims]() { return RandomBlock<Layout>(dims, 1, 10); });
+}
+
 template <typename T, int Layout>
 static void test_eval_tensor_reshape_with_bcast() {
   Index dim = internal::random<Index>(1, 100);
@@ -573,6 +615,8 @@ EIGEN_DECLARE_TEST(cxx11_tensor_block_eval) {
   CALL_SUBTESTS_DIMS_LAYOUTS(test_eval_tensor_select);
   CALL_SUBTESTS_DIMS_LAYOUTS(test_eval_tensor_padding);
   CALL_SUBTESTS_DIMS_LAYOUTS(test_eval_tensor_chipping);
+  CALL_SUBTESTS_DIMS_LAYOUTS(test_eval_tensor_generator);
+  CALL_SUBTESTS_DIMS_LAYOUTS(test_eval_tensor_reverse);
 
   CALL_SUBTESTS_LAYOUTS(test_eval_tensor_reshape_with_bcast);
   CALL_SUBTESTS_LAYOUTS(test_eval_tensor_forced_eval);

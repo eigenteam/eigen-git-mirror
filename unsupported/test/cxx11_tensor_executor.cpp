@@ -539,7 +539,7 @@ static void test_execute_reverse_rvalue(Device d)
 
   // Reverse half of the dimensions.
   Eigen::array<bool, NumDims> reverse;
-  for (int i = 0; i < NumDims; ++i) reverse[i] = (dims[i] % 2 == 0);
+  for (int i = 0; i < NumDims; ++i) reverse[i] = internal::random<bool>();
 
   const auto expr = src.reverse(reverse);
 
@@ -756,16 +756,16 @@ EIGEN_DECLARE_TEST(cxx11_tensor_executor) {
   CALL_SUBTEST_COMBINATIONS_V2(12, test_execute_broadcasting_of_forced_eval, float, 4);
   CALL_SUBTEST_COMBINATIONS_V2(12, test_execute_broadcasting_of_forced_eval, float, 5);
 
-  CALL_SUBTEST_COMBINATIONS_V1(13, test_execute_generator_op, float, 2);
-  CALL_SUBTEST_COMBINATIONS_V1(13, test_execute_generator_op, float, 3);
-  CALL_SUBTEST_COMBINATIONS_V1(13, test_execute_generator_op, float, 4);
-  CALL_SUBTEST_COMBINATIONS_V1(13, test_execute_generator_op, float, 5);
+  CALL_SUBTEST_COMBINATIONS_V2(13, test_execute_generator_op, float, 2);
+  CALL_SUBTEST_COMBINATIONS_V2(13, test_execute_generator_op, float, 3);
+  CALL_SUBTEST_COMBINATIONS_V2(13, test_execute_generator_op, float, 4);
+  CALL_SUBTEST_COMBINATIONS_V2(13, test_execute_generator_op, float, 5);
 
-  CALL_SUBTEST_COMBINATIONS_V1(14, test_execute_reverse_rvalue, float, 1);
-  CALL_SUBTEST_COMBINATIONS_V1(14, test_execute_reverse_rvalue, float, 2);
-  CALL_SUBTEST_COMBINATIONS_V1(14, test_execute_reverse_rvalue, float, 3);
-  CALL_SUBTEST_COMBINATIONS_V1(14, test_execute_reverse_rvalue, float, 4);
-  CALL_SUBTEST_COMBINATIONS_V1(14, test_execute_reverse_rvalue, float, 5);
+  CALL_SUBTEST_COMBINATIONS_V2(14, test_execute_reverse_rvalue, float, 1);
+  CALL_SUBTEST_COMBINATIONS_V2(14, test_execute_reverse_rvalue, float, 2);
+  CALL_SUBTEST_COMBINATIONS_V2(14, test_execute_reverse_rvalue, float, 3);
+  CALL_SUBTEST_COMBINATIONS_V2(14, test_execute_reverse_rvalue, float, 4);
+  CALL_SUBTEST_COMBINATIONS_V2(14, test_execute_reverse_rvalue, float, 5);
 
   CALL_ASYNC_SUBTEST_COMBINATIONS(15, test_async_execute_unary_expr, float, 3);
   CALL_ASYNC_SUBTEST_COMBINATIONS(15, test_async_execute_unary_expr, float, 4);

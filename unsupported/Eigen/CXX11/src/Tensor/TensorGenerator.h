@@ -94,7 +94,7 @@ struct TensorEvaluator<const TensorGeneratorOp<Generator, ArgType>, Device>
     IsAligned         = false,
     PacketAccess      = (PacketType<CoeffReturnType, Device>::size > 1),
     BlockAccess       = true,
-    BlockAccessV2     = false,
+    BlockAccessV2     = true,
     PreferBlockAccess = true,
     Layout            = TensorEvaluator<ArgType, Device>::Layout,
     CoordAccess       = false,  // to be implemented
@@ -107,7 +107,12 @@ struct TensorEvaluator<const TensorGeneratorOp<Generator, ArgType>, Device>
       TensorBlock;
 
   //===- Tensor block evaluation strategy (see TensorBlock.h) -------------===//
-  typedef internal::TensorBlockNotImplemented TensorBlockV2;
+  typedef internal::TensorBlockDescriptor<NumDims, Index> TensorBlockDesc;
+  typedef internal::TensorBlockScratchAllocator<Device> TensorBlockScratch;
+
+  typedef typename internal::TensorMaterializedBlock<CoeffReturnType, NumDims,
+                                                     Layout, Index>
+      TensorBlockV2;
   //===--------------------------------------------------------------------===//
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
@@ -230,6 +235,78 @@ struct TensorEvaluator<const TensorGeneratorOp<Generator, ArgType>, Device>
         offset -= it[i].span;
       }
     }
+  }
+
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorBlockV2
+  blockV2(TensorBlockDesc& desc, TensorBlockScratch& scratch) const {
+    static const bool is_col_major =
+        static_cast<int>(Layout) == static_cast<int>(ColMajor);
+
+    // Compute spatial coordinates for the first block element.
+    array<Index, NumDims> coords;
+    extract_coordinates(desc.offset(), coords);
+    array<Index, NumDims> initial_coords = coords;
+
+    // Try to reuse destination as an output block buffer.
+    CoeffReturnType* block_buffer =
+        desc.template destination<CoeffReturnType, Layout>();
+    bool materialized_in_output;
+
+    if (block_buffer != NULL) {
+      materialized_in_output = true;
+
+    } else {
+      materialized_in_output = false;
+      void* mem = scratch.allocate(desc.size() * sizeof(CoeffReturnType));
+      block_buffer = static_cast<CoeffReturnType*>(mem);
+    }
+
+    // Offset in the output block buffer.
+    Index offset = 0;
+
+    // Initialize output block iterator state. Dimension in this array are
+    // always in inner_most -> outer_most order (col major layout).
+    array<BlockIteratorState, NumDims> it;
+    for (int i = 0; i < NumDims; ++i) {
+      const int dim = is_col_major ? i : NumDims - 1 - i;
+      it[i].size = desc.dimension(dim);
+      it[i].stride = i == 0 ? 1 : (it[i - 1].size * it[i - 1].stride);
+      it[i].span = it[i].stride * (it[i].size - 1);
+      it[i].count = 0;
+    }
+    eigen_assert(it[0].stride == 1);
+
+    while (it[NumDims - 1].count < it[NumDims - 1].size) {
+      // Generate data for the inner-most dimension.
+      for (Index i = 0; i < it[0].size; ++i) {
+        *(block_buffer + offset + i) = m_generator(coords);
+        coords[is_col_major ? 0 : NumDims - 1]++;
+      }
+      coords[is_col_major ? 0 : NumDims - 1] =
+          initial_coords[is_col_major ? 0 : NumDims - 1];
+
+      // For the 1d tensor we need to generate only one inner-most dimension.
+      if (NumDims == 1) break;
+
+      // Update offset.
+      for (Index i = 1; i < NumDims; ++i) {
+        if (++it[i].count < it[i].size) {
+          offset += it[i].stride;
+          coords[is_col_major ? i : NumDims - 1 - i]++;
+          break;
+        }
+        if (i != NumDims - 1) it[i].count = 0;
+        coords[is_col_major ? i : NumDims - 1 - i] =
+            initial_coords[is_col_major ? i : NumDims - 1 - i];
+        offset -= it[i].span;
+      }
+    }
+
+    return TensorBlockV2(
+        materialized_in_output
+          ? internal::TensorBlockKind::kMaterializedInOutput
+          : internal::TensorBlockKind::kMaterializedInScratch,
+        block_buffer, desc.dimensions());
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorOpCost

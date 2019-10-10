@@ -131,7 +131,7 @@ struct TensorEvaluator<const TensorEvalToOp<ArgType, MakePointer_>, Device>
       ArgTensorBlock;
 
   typedef internal::TensorBlockAssignment<
-      Scalar, NumDims, typename ArgTensorBlock::XprType, Index>
+      CoeffReturnType, NumDims, typename ArgTensorBlock::XprType, Index>
       TensorBlockAssignment;
   //===--------------------------------------------------------------------===//
 
