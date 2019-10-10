@@ -180,9 +180,8 @@ static void test_execute_chipping_lvalue(Device d)
                                                                             \
     const auto offset = internal::random<Index>(0, dims[(CHIP_DIM)] - 1);   \
                                                                             \
-    /* Generate random data to fill non-chipped dimensions*/                \
     Tensor<T, NumDims, Layout, Index> random(dims);                         \
-    random.setRandom();                                                     \
+    random.setZero();                                                       \
                                                                             \
     Tensor<T, NumDims, Layout, Index> golden(dims);                         \
     golden = random;                                                        \
@@ -716,13 +715,13 @@ EIGEN_DECLARE_TEST(cxx11_tensor_executor) {
   CALL_SUBTEST_COMBINATIONS_V2(3, test_execute_broadcasting, float, 4);
   CALL_SUBTEST_COMBINATIONS_V2(3, test_execute_broadcasting, float, 5);
 
-  CALL_SUBTEST_COMBINATIONS_V1(4, test_execute_chipping_rvalue, float, 3);
-  CALL_SUBTEST_COMBINATIONS_V1(4, test_execute_chipping_rvalue, float, 4);
-  CALL_SUBTEST_COMBINATIONS_V1(4, test_execute_chipping_rvalue, float, 5);
+  CALL_SUBTEST_COMBINATIONS_V2(4, test_execute_chipping_rvalue, float, 3);
+  CALL_SUBTEST_COMBINATIONS_V2(4, test_execute_chipping_rvalue, float, 4);
+  CALL_SUBTEST_COMBINATIONS_V2(4, test_execute_chipping_rvalue, float, 5);
 
-  CALL_SUBTEST_COMBINATIONS_V1(5, test_execute_chipping_lvalue, float, 3);
-  CALL_SUBTEST_COMBINATIONS_V1(5, test_execute_chipping_lvalue, float, 4);
-  CALL_SUBTEST_COMBINATIONS_V1(5, test_execute_chipping_lvalue, float, 5);
+  CALL_SUBTEST_COMBINATIONS_V2(5, test_execute_chipping_lvalue, float, 3);
+  CALL_SUBTEST_COMBINATIONS_V2(5, test_execute_chipping_lvalue, float, 4);
+  CALL_SUBTEST_COMBINATIONS_V2(5, test_execute_chipping_lvalue, float, 5);
 
   CALL_SUBTEST_COMBINATIONS_V1(6, test_execute_shuffle_rvalue, float, 3);
   CALL_SUBTEST_COMBINATIONS_V1(6, test_execute_shuffle_rvalue, float, 4);
@@ -752,10 +751,10 @@ EIGEN_DECLARE_TEST(cxx11_tensor_executor) {
   CALL_SUBTEST_COMBINATIONS_V1(11, test_execute_slice_lvalue, float, 4);
   CALL_SUBTEST_COMBINATIONS_V1(11, test_execute_slice_lvalue, float, 5);
 
-  CALL_SUBTEST_COMBINATIONS_V1(12, test_execute_broadcasting_of_forced_eval, float, 2);
-  CALL_SUBTEST_COMBINATIONS_V1(12, test_execute_broadcasting_of_forced_eval, float, 3);
-  CALL_SUBTEST_COMBINATIONS_V1(12, test_execute_broadcasting_of_forced_eval, float, 4);
-  CALL_SUBTEST_COMBINATIONS_V1(12, test_execute_broadcasting_of_forced_eval, float, 5);
+  CALL_SUBTEST_COMBINATIONS_V2(12, test_execute_broadcasting_of_forced_eval, float, 2);
+  CALL_SUBTEST_COMBINATIONS_V2(12, test_execute_broadcasting_of_forced_eval, float, 3);
+  CALL_SUBTEST_COMBINATIONS_V2(12, test_execute_broadcasting_of_forced_eval, float, 4);
+  CALL_SUBTEST_COMBINATIONS_V2(12, test_execute_broadcasting_of_forced_eval, float, 5);
 
   CALL_SUBTEST_COMBINATIONS_V1(13, test_execute_generator_op, float, 2);
   CALL_SUBTEST_COMBINATIONS_V1(13, test_execute_generator_op, float, 3);

@@ -644,6 +644,9 @@ struct TensorEvaluator<const TensorSlicingOp<StartIndices, Sizes, ArgType>, Devi
       }
     }
 
+    // No strides for scalars.
+    if (NumDims == 0) return;
+
     const typename TensorEvaluator<ArgType, Device>::Dimensions& input_dims = m_impl.dimensions();
     const Sizes& output_dims = op.sizes();
     if (static_cast<int>(Layout) == static_cast<int>(ColMajor)) {

@@ -97,21 +97,26 @@ struct TensorEvaluator<const TensorForcedEvalOp<ArgType_>, Device>
     IsAligned         = true,
     PacketAccess      = (PacketType<CoeffReturnType, Device>::size > 1),
     BlockAccess       = internal::is_arithmetic<CoeffReturnType>::value,
-    BlockAccessV2     = false,
+    BlockAccessV2     = internal::is_arithmetic<CoeffReturnType>::value,
     PreferBlockAccess = false,
     Layout            = TensorEvaluator<ArgType, Device>::Layout,
     RawAccess         = true
   };
 
-  typedef typename internal::TensorBlock<
-      CoeffReturnType, Index, internal::traits<ArgType>::NumDimensions, Layout>
+  static const int NumDims = internal::traits<ArgType>::NumDimensions;
+
+  typedef typename internal::TensorBlock<CoeffReturnType, Index, NumDims, Layout>
       TensorBlock;
-  typedef typename internal::TensorBlockReader<
-      CoeffReturnType, Index, internal::traits<ArgType>::NumDimensions, Layout>
+  typedef typename internal::TensorBlockReader<CoeffReturnType, Index, NumDims, Layout>
       TensorBlockReader;
 
   //===- Tensor block evaluation strategy (see TensorBlock.h) -------------===//
-  typedef internal::TensorBlockNotImplemented TensorBlockV2;
+  typedef internal::TensorBlockDescriptor<NumDims, Index> TensorBlockDesc;
+  typedef internal::TensorBlockScratchAllocator<Device> TensorBlockScratch;
+
+  typedef typename internal::TensorMaterializedBlock<CoeffReturnType, NumDims,
+                                                     Layout, Index>
+      TensorBlockV2;
   //===--------------------------------------------------------------------===//
 
   EIGEN_DEVICE_FUNC TensorEvaluator(const XprType& op, const Device& device)
@@ -168,6 +173,12 @@ struct TensorEvaluator<const TensorForcedEvalOp<ArgType_>, Device>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void block(TensorBlock* block) const {
     assert(m_buffer != NULL);
     TensorBlockReader::Run(block, m_buffer);
+  }
+
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorBlockV2
+  blockV2(TensorBlockDesc& desc, TensorBlockScratch& scratch) const {
+    assert(m_buffer != NULL);
+    return TensorBlockV2::materialize(m_buffer, m_impl.dimensions(), desc, scratch);
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorOpCost costPerCoeff(bool vectorized) const {
