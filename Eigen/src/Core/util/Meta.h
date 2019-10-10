@@ -174,6 +174,11 @@ template<typename T> struct add_const_on_value_type<T*>        { typedef T const
 template<typename T> struct add_const_on_value_type<T* const>  { typedef T const* const type; };
 template<typename T> struct add_const_on_value_type<T const* const>  { typedef T const* const type; };
 
+#if EIGEN_HAS_CXX11
+
+using std::is_convertible;
+
+#else
 
 template<typename From, typename To>
 struct is_convertible_impl
@@ -210,6 +215,14 @@ struct is_convertible
 {
   enum { value = is_convertible_impl<From,To>::value };
 };
+
+template<typename T>
+struct is_convertible<T,T&> { enum { value = false }; };
+
+template<typename T>
+struct is_convertible<const T,const T&> { enum { value = true }; };
+
+#endif
 
 /** \internal Allows to enable/disable an overload
   * according to a compile time condition.
