@@ -668,7 +668,7 @@ struct generic_k0<T, float> {
     x_le_two = pselect(pcmp_le(x, pset1<T>(0.0)), MAXNUM, x_le_two);
     T x_gt_two = pmul(
         pmul(
-            pexp(-x),
+            pexp(pnegate(x)),
             internal::pchebevl<T, 10>::run(
                 psub(pdiv(pset1<T>(8.0), x), two), B)),
         prsqrt(x));
