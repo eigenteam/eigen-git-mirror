@@ -45,6 +45,12 @@ EIGEN_ALWAYS_INLINE DSizes<IndexType, NumDims> strides(
   return strides;
 }
 
+template<int Layout, typename IndexType, size_t NumDims>
+EIGEN_ALWAYS_INLINE DSizes<IndexType, NumDims> strides(
+    const Eigen::array<IndexType, NumDims>& dimensions) {
+  return strides<Layout>(DSizes<IndexType, NumDims>(dimensions));
+}
+
 #if EIGEN_HAS_CXX11
 template <int Layout, std::ptrdiff_t... Indices>
 EIGEN_STRONG_INLINE DSizes<std::ptrdiff_t, sizeof...(Indices)> strides(
@@ -78,42 +84,6 @@ class TensorBlockDescriptor {
       return static_cast<Scalar*>(m_data);
     }
 
-   private:
-    friend class TensorBlockDescriptor;
-
-    DestinationBuffer() : m_data(NULL), m_total_dst_bytes(0) {}
-
-    template <typename Scalar>
-    DestinationBuffer(Scalar* data, const Dimensions& dimensions,
-                      const Dimensions& strides, size_t total_dst_bytes)
-        : m_data(static_cast<void*>(data)),
-          m_dimensions(dimensions),
-          m_strides(strides),
-          m_total_dst_bytes(total_dst_bytes) {
-      // TODO(ezhulenev): Benchmark template meta-unroll for this loop.
-      for (int i = 0; i < NumDims; ++i) {
-        m_dimensions[i] *= sizeof(Scalar);
-        m_strides[i] *= sizeof(Scalar);
-      }
-    }
-
-    // Returns true if the tensor block corresponding to `desc` fits into the
-    // contiguous block of memory defined by `*this`.
-    template <typename Scalar, int Layout>
-    bool fitsContiguously(const TensorBlockDescriptor& desc) const {
-      if (m_data == NULL) return false;
-
-      const Dimensions& desc_dims = desc.dimensions();
-      const Dimensions& dst_dims = dimensions<Scalar>();
-
-      if (!dimensions_match(desc_dims, dst_dims)) return false;
-
-      const Dimensions& desc_strides = internal::strides<Layout>(desc_dims);
-      const Dimensions& dst_strides = internal::strides<Layout>(dst_dims);
-
-      return dimensions_match(desc_strides, dst_strides);
-    }
-
     template <typename Scalar>
     Dimensions dimensions() const {
       Dimensions dimensions;
@@ -132,6 +102,48 @@ class TensorBlockDescriptor {
         strides[i] = m_strides[i] / sizeof(Scalar);
       }
       return strides;
+    }
+
+    // Returns true if the tensor block corresponding to `desc` fits into the
+    // contiguous block of memory defined by `*this`.
+    template <typename Scalar, int Layout>
+    bool fitsContiguously(const TensorBlockDescriptor& desc) const {
+      if (m_data == NULL) return false;
+
+      const Dimensions& desc_dims = desc.dimensions();
+      const Dimensions& dst_dims = dimensions<Scalar>();
+
+      if (!dimensions_match(desc_dims, dst_dims)) return false;
+
+      const Dimensions& desc_strides = internal::strides<Layout>(desc_dims);
+      const Dimensions& dst_strides = strides<Scalar>();
+
+      // Compare strides ignoring dimensions of size `1`.
+      for (int i = 0; i < NumDims; ++i) {
+        if (desc_dims[i] == 1) continue;
+         if (desc_strides[i] != dst_strides[i]) return false;
+      }
+
+      return true;
+    }
+
+   private:
+    friend class TensorBlockDescriptor;
+
+    DestinationBuffer() : m_data(NULL), m_total_dst_bytes(0) {}
+
+    template <typename Scalar>
+    DestinationBuffer(Scalar* data, const Dimensions& dimensions,
+                      const Dimensions& strides, size_t total_dst_bytes)
+        : m_data(static_cast<void*>(data)),
+          m_dimensions(dimensions),
+          m_strides(strides),
+          m_total_dst_bytes(total_dst_bytes) {
+      // TODO(ezhulenev): Benchmark template meta-unroll for this loop.
+      for (int i = 0; i < NumDims; ++i) {
+        m_dimensions[i] *= sizeof(Scalar);
+        m_strides[i] *= sizeof(Scalar);
+      }
     }
 
     void* m_data;
@@ -181,6 +193,12 @@ class TensorBlockDescriptor {
     return *this;
   }
 
+  bool HasDestinationBuffer() const { return m_destination.m_data != NULL; }
+
+  const DestinationBuffer& GetDestinationBuffer() const {
+    return m_destination;
+  }
+
   // Returns a non-nullptr pointer to a destination buffer memory if this
   // block has a contiguous destination buffer.
   template <typename Scalar, int Layout>
@@ -189,6 +207,11 @@ class TensorBlockDescriptor {
       return m_destination.template data<Scalar>();
     }
     return NULL;
+  }
+
+  // Returns a copy of `*this` with updated offset.
+  TensorBlockDescriptor WithOffset(IndexType offset) const {
+    return TensorBlockDescriptor(offset, m_dimensions, m_destination);
   }
 
  private:
@@ -294,18 +317,12 @@ enum TensorBlockKind {
 
   // Tensor block that was materialized directly into the final output memory
   // buffer. For example if the left side of an assignment is a Tensor, we can
-  // directly materialize the block in the destination memory. The block
-  // expression is still a valid Tensor expression, and can be used to build
-  // lazy expressions.
+  // directly materialize the block in the destination memory.
+  //
+  // If strides in the output buffer do not match tensor block strides, the
+  // Tensor expression will be invalid, and should not be used by
+  // TensorBlockAssign or for constructing another block expression.
   kMaterializedInOutput
-
-  // TODO(ezhulenev): If we know that we are evaluating a block, for the root of
-  // the expression tree, it might be beneficial to do an assignment to the
-  // output memory buffer, even if it will be impossible to construct a valid
-  // block expression after that (e.g. output memory buffer has strides not
-  // compatible with TensorMap). This might be a performance optimization for
-  // uniformly shaped blocks, because for blocks skewed towards inner dimension
-  // `kMaterializedInOutput` should always work.
 };
 #if !EIGEN_HAS_CXX11
 }  // namespace TensorBlockKind
@@ -346,6 +363,11 @@ struct XprScalar<void> {
 // Tensor), or a memory buffer allocated with scratch allocator, and in this
 // case the scratch allocator will deallocate it at the end of block based
 // expression execution.
+//
+// If the block was evaluated directly into the output buffer, and strides in
+// the output buffer do not match block strides, the TensorMap expression will
+// be invalid, and should never be used in block assignment or any other tensor
+// expression.
 
 template <typename Scalar, int NumDims, int Layout,
           typename IndexType = Eigen::Index>
@@ -358,11 +380,12 @@ class TensorMaterializedBlock {
   typedef TensorMap<const Tensor<Scalar, NumDims, Layout> > XprType;
 
   TensorMaterializedBlock(TensorBlockKind kind, const Scalar* data,
-                          const Dimensions& dimensions)
+                          const Dimensions& dimensions, bool valid_expr = true)
       : m_kind(kind),
         m_data(data),
         m_dimensions(dimensions),
-        m_expr(m_data, m_dimensions) {
+        m_expr(m_data, m_dimensions),
+        m_valid_expr(valid_expr) {
     eigen_assert(m_kind == internal::TensorBlockKind::kView ||
                  m_kind == internal::TensorBlockKind::kMaterializedInScratch ||
                  m_kind == internal::TensorBlockKind::kMaterializedInOutput);
@@ -372,7 +395,10 @@ class TensorMaterializedBlock {
   // NOTE(ezhulenev): Returning XprType by value like in other block types
   // causes asan failures. The theory is that XprType::Nested doesn't work
   // properly for TensorMap.
-  const XprType& expr() const { return m_expr; }
+  const XprType& expr() const {
+    eigen_assert(m_valid_expr);
+    return m_expr;
+  }
   const Scalar* data() const { return m_data; }
   void cleanup() {}
 
@@ -427,6 +453,7 @@ class TensorMaterializedBlock {
       bool materialized_in_output;
 
       if (block_buffer != NULL) {
+        desc.DropDestinationBuffer();
         materialized_in_output = true;
 
       } else {
@@ -461,6 +488,7 @@ class TensorMaterializedBlock {
   const Scalar* m_data;
   Dimensions m_dimensions;
   XprType m_expr;
+  bool m_valid_expr;
 };
 
 // -------------------------------------------------------------------------- //

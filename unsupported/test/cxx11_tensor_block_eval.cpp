@@ -139,23 +139,50 @@ static void VerifyBlockEvaluator(Expression expr, GenBlockParams gen_block) {
   // Evaluate TensorBlock expression into a tensor.
   Tensor<T, NumDims, Layout> block(block_params.desc.dimensions());
 
+  // Dimensions for the potential destination buffer.
+  DSizes<Index, NumDims> dst_dims;
+  if (internal::random<bool>()) {
+    dst_dims = block_params.desc.dimensions();
+  } else {
+    for (int i = 0; i < NumDims; ++i) {
+      Index extent = internal::random<Index>(0, 5);
+      dst_dims[i] = block_params.desc.dimension(i) + extent;
+    }
+  }
+
   // Maybe use this tensor as a block desc destination.
-  Tensor<T, NumDims, Layout> dst(block_params.desc.dimensions());
+  Tensor<T, NumDims, Layout> dst(dst_dims);
+  dst.setZero();
   if (internal::random<bool>()) {
     block_params.desc.template AddDestinationBuffer(
         dst.data(), internal::strides<Layout>(dst.dimensions()),
         dst.dimensions().TotalSize() * sizeof(T));
   }
 
-  auto tensor_block = eval.blockV2(block_params.desc, scratch);
-  auto b_expr = tensor_block.expr();
+  const bool root_of_expr = internal::random<bool>();
+  auto tensor_block = eval.blockV2(block_params.desc, scratch, root_of_expr);
 
-  // We explicitly disable vectorization and tiling, to run a simple coefficient
-  // wise assignment loop, because it's very simple and should be correct.
-  using BlockAssign = TensorAssignOp<decltype(block), const decltype(b_expr)>;
-  using BlockExecutor = TensorExecutor<const BlockAssign, Device, false,
-                                       internal::TiledEvaluation::Off>;
-  BlockExecutor::run(BlockAssign(block, b_expr), d);
+  if (tensor_block.kind() == internal::TensorBlockKind::kMaterializedInOutput) {
+    // Copy data from destination buffer.
+    if (dimensions_match(dst.dimensions(), block.dimensions())) {
+      block = dst;
+    } else {
+      DSizes<Index, NumDims> offsets;
+      for (int i = 0; i < NumDims; ++i) offsets[i] = 0;
+      block = dst.slice(offsets, block.dimensions());
+    }
+
+  } else {
+    // Assign to block from expression.
+    auto b_expr = tensor_block.expr();
+
+    // We explicitly disable vectorization and tiling, to run a simple coefficient
+    // wise assignment loop, because it's very simple and should be correct.
+    using BlockAssign = TensorAssignOp<decltype(block), const decltype(b_expr)>;
+    using BlockExecutor = TensorExecutor<const BlockAssign, Device, false,
+                                         internal::TiledEvaluation::Off>;
+    BlockExecutor::run(BlockAssign(block, b_expr), d);
+  }
 
   // Cleanup temporary buffers owned by a tensor block.
   tensor_block.cleanup();
@@ -375,17 +402,16 @@ static void test_eval_tensor_generator() {
   Tensor<T, NumDims, Layout> input(dims);
   input.setRandom();
 
-  auto generator = [](const array<Index, NumDims>& dims) -> T {
+  auto generator = [](const array<Index, NumDims>& coords) -> T {
     T result = static_cast<T>(0);
     for (int i = 0; i < NumDims; ++i) {
-      result += static_cast<T>((i + 1) * dims[i]);
+      result += static_cast<T>((i + 1) * coords[i]);
     }
     return result;
   };
 
   VerifyBlockEvaluator<T, NumDims, Layout>(
-      input.generate(generator),
-      [&dims]() { return FixedSizeBlock(dims); });
+      input.generate(generator), [&dims]() { return FixedSizeBlock(dims); });
 
   VerifyBlockEvaluator<T, NumDims, Layout>(
       input.generate(generator),
@@ -403,12 +429,63 @@ static void test_eval_tensor_reverse() {
   for (int i = 0; i < NumDims; ++i) reverse[i] = internal::random<bool>();
 
   VerifyBlockEvaluator<T, NumDims, Layout>(
-      input.reverse(reverse),
-      [&dims]() { return FixedSizeBlock(dims); });
+      input.reverse(reverse), [&dims]() { return FixedSizeBlock(dims); });
+
+  VerifyBlockEvaluator<T, NumDims, Layout>(input.reverse(reverse), [&dims]() {
+    return RandomBlock<Layout>(dims, 1, 10);
+  });
+}
+
+template <typename T, int NumDims, int Layout>
+static void test_eval_tensor_slice() {
+  DSizes<Index, NumDims> dims = RandomDims<NumDims>(10, 20);
+  Tensor<T, NumDims, Layout> input(dims);
+  input.setRandom();
+
+  // Pick a random slice of an input tensor.
+  DSizes<Index, NumDims> slice_start = RandomDims<NumDims>(5, 10);
+  DSizes<Index, NumDims> slice_size = RandomDims<NumDims>(5, 10);
+
+  // Make sure that slice start + size do not overflow tensor dims.
+  for (int i = 0; i < NumDims; ++i) {
+    slice_start[i] = numext::mini(dims[i] - 1, slice_start[i]);
+    slice_size[i] = numext::mini(slice_size[i], dims[i] - slice_start[i]);
+  }
 
   VerifyBlockEvaluator<T, NumDims, Layout>(
-      input.reverse(reverse),
-      [&dims]() { return RandomBlock<Layout>(dims, 1, 10); });
+      input.slice(slice_start, slice_size),
+      [&slice_size]() { return FixedSizeBlock(slice_size); });
+
+  VerifyBlockEvaluator<T, NumDims, Layout>(
+      input.slice(slice_start, slice_size),
+      [&slice_size]() { return RandomBlock<Layout>(slice_size, 1, 10); });
+}
+
+template <typename T, int NumDims, int Layout>
+static void test_eval_tensor_shuffle() {
+  DSizes<Index, NumDims> dims = RandomDims<NumDims>(5, 15);
+  Tensor<T, NumDims, Layout> input(dims);
+  input.setRandom();
+
+  DSizes<Index, NumDims> shuffle;
+  for (int i = 0; i < NumDims; ++i) shuffle[i] = i;
+
+  do {
+    DSizes<Index, NumDims> shuffled_dims;
+    for (int i = 0; i < NumDims; ++i) shuffled_dims[i] = dims[shuffle[i]];
+
+    VerifyBlockEvaluator<T, NumDims, Layout>(
+        input.shuffle(shuffle),
+        [&shuffled_dims]() { return FixedSizeBlock(shuffled_dims); });
+
+    VerifyBlockEvaluator<T, NumDims, Layout>(
+        input.shuffle(shuffle), [&shuffled_dims]() {
+          return RandomBlock<Layout>(shuffled_dims, 1, 5);
+        });
+
+    break;
+
+  } while (std::next_permutation(&shuffle[0], &shuffle[0] + NumDims));
 }
 
 template <typename T, int Layout>
@@ -564,7 +641,7 @@ static void test_assign_to_tensor_chipping() {
   Index chip_dim = internal::random<int>(0, NumDims - 1);
   Index chip_offset = internal::random<Index>(0, dims[chip_dim] - 2);
 
-  DSizes < Index, NumDims - 1 > chipped_dims;
+  DSizes<Index, NumDims - 1> chipped_dims;
   for (Index i = 0; i < chip_dim; ++i) {
     chipped_dims[i] = dims[i];
   }
@@ -587,42 +664,111 @@ static void test_assign_to_tensor_chipping() {
       [&chipped_dims]() { return FixedSizeBlock(chipped_dims); });
 }
 
+template <typename T, int NumDims, int Layout>
+static void test_assign_to_tensor_slice() {
+  DSizes<Index, NumDims> dims = RandomDims<NumDims>(10, 20);
+  Tensor<T, NumDims, Layout> tensor(dims);
+
+  // Pick a random slice of tensor.
+  DSizes<Index, NumDims> slice_start = RandomDims<NumDims>(5, 10);
+  DSizes<Index, NumDims> slice_size = RandomDims<NumDims>(5, 10);
+
+  // Make sure that slice start + size do not overflow tensor dims.
+  for (int i = 0; i < NumDims; ++i) {
+    slice_start[i] = numext::mini(dims[i] - 1, slice_start[i]);
+    slice_size[i] = numext::mini(slice_size[i], dims[i] - slice_start[i]);
+  }
+
+  TensorMap<Tensor<T, NumDims, Layout>> map(tensor.data(), dims);
+
+  VerifyBlockAssignment<T, NumDims, Layout>(
+      tensor, map.slice(slice_start, slice_size),
+      [&slice_size]() { return RandomBlock<Layout>(slice_size, 1, 10); });
+
+  VerifyBlockAssignment<T, NumDims, Layout>(
+      tensor, map.slice(slice_start, slice_size),
+      [&slice_size]() { return SkewedInnerBlock<Layout>(slice_size); });
+
+  VerifyBlockAssignment<T, NumDims, Layout>(
+      tensor, map.slice(slice_start, slice_size),
+      [&slice_size]() { return FixedSizeBlock(slice_size); });
+}
+
+template <typename T, int NumDims, int Layout>
+static void test_assign_to_tensor_shuffle() {
+  DSizes<Index, NumDims> dims = RandomDims<NumDims>(5, 15);
+  Tensor<T, NumDims, Layout> tensor(dims);
+
+  DSizes<Index, NumDims> shuffle;
+  for (int i = 0; i < NumDims; ++i) shuffle[i] = i;
+
+  TensorMap<Tensor<T, NumDims, Layout>> map(tensor.data(), dims);
+
+  do {
+    DSizes<Index, NumDims> shuffled_dims;
+    for (int i = 0; i < NumDims; ++i) shuffled_dims[i] = dims[shuffle[i]];
+
+    VerifyBlockAssignment<T, NumDims, Layout>(
+        tensor, map.shuffle(shuffle),
+        [&shuffled_dims]() { return FixedSizeBlock(shuffled_dims); });
+
+    VerifyBlockAssignment<T, NumDims, Layout>(
+        tensor, map.shuffle(shuffle), [&shuffled_dims]() {
+          return RandomBlock<Layout>(shuffled_dims, 1, 5);
+        });
+
+  } while (std::next_permutation(&shuffle[0], &shuffle[0] + NumDims));
+}
+
 // -------------------------------------------------------------------------- //
 
-#define CALL_SUBTESTS_DIMS_LAYOUTS(NAME)      \
-  CALL_SUBTEST((NAME<float, 1, RowMajor>())); \
-  CALL_SUBTEST((NAME<float, 2, RowMajor>())); \
-  CALL_SUBTEST((NAME<float, 4, RowMajor>())); \
-  CALL_SUBTEST((NAME<float, 5, RowMajor>())); \
-  CALL_SUBTEST((NAME<float, 1, ColMajor>())); \
-  CALL_SUBTEST((NAME<float, 2, ColMajor>())); \
-  CALL_SUBTEST((NAME<float, 4, ColMajor>())); \
-  CALL_SUBTEST((NAME<float, 5, ColMajor>()))
+#define CALL_SUBTEST_PART(PART) \
+  CALL_SUBTEST_##PART
 
-#define CALL_SUBTESTS_LAYOUTS(NAME)        \
-  CALL_SUBTEST((NAME<float, RowMajor>())); \
-  CALL_SUBTEST((NAME<float, ColMajor>()))
+#define CALL_SUBTESTS_DIMS_LAYOUTS(PART, NAME)           \
+  CALL_SUBTEST_PART(PART)((NAME<float, 1, RowMajor>())); \
+  CALL_SUBTEST_PART(PART)((NAME<float, 2, RowMajor>())); \
+  CALL_SUBTEST_PART(PART)((NAME<float, 3, RowMajor>())); \
+  CALL_SUBTEST_PART(PART)((NAME<float, 4, RowMajor>())); \
+  CALL_SUBTEST_PART(PART)((NAME<float, 5, RowMajor>())); \
+  CALL_SUBTEST_PART(PART)((NAME<float, 1, ColMajor>())); \
+  CALL_SUBTEST_PART(PART)((NAME<float, 2, ColMajor>())); \
+  CALL_SUBTEST_PART(PART)((NAME<float, 4, ColMajor>())); \
+  CALL_SUBTEST_PART(PART)((NAME<float, 4, ColMajor>())); \
+  CALL_SUBTEST_PART(PART)((NAME<float, 5, ColMajor>()))
+
+#define CALL_SUBTESTS_LAYOUTS(PART, NAME)             \
+  CALL_SUBTEST_PART(PART)((NAME<float, RowMajor>())); \
+  CALL_SUBTEST_PART(PART)((NAME<float, ColMajor>()))
 
 EIGEN_DECLARE_TEST(cxx11_tensor_block_eval) {
   // clang-format off
-  CALL_SUBTESTS_DIMS_LAYOUTS(test_eval_tensor_block);
-  CALL_SUBTESTS_DIMS_LAYOUTS(test_eval_tensor_unary_expr_block);
-  CALL_SUBTESTS_DIMS_LAYOUTS(test_eval_tensor_binary_expr_block);
-  CALL_SUBTESTS_DIMS_LAYOUTS(test_eval_tensor_binary_with_unary_expr_block);
-  CALL_SUBTESTS_DIMS_LAYOUTS(test_eval_tensor_broadcast);
-  CALL_SUBTESTS_DIMS_LAYOUTS(test_eval_tensor_reshape);
-  CALL_SUBTESTS_DIMS_LAYOUTS(test_eval_tensor_cast);
-  CALL_SUBTESTS_DIMS_LAYOUTS(test_eval_tensor_select);
-  CALL_SUBTESTS_DIMS_LAYOUTS(test_eval_tensor_padding);
-  CALL_SUBTESTS_DIMS_LAYOUTS(test_eval_tensor_chipping);
-  CALL_SUBTESTS_DIMS_LAYOUTS(test_eval_tensor_generator);
-  CALL_SUBTESTS_DIMS_LAYOUTS(test_eval_tensor_reverse);
+  CALL_SUBTESTS_DIMS_LAYOUTS(1, test_eval_tensor_block);
+  CALL_SUBTESTS_DIMS_LAYOUTS(1, test_eval_tensor_unary_expr_block);
+  CALL_SUBTESTS_DIMS_LAYOUTS(1, test_eval_tensor_binary_expr_block);
+  CALL_SUBTESTS_DIMS_LAYOUTS(2, test_eval_tensor_binary_with_unary_expr_block);
+  CALL_SUBTESTS_DIMS_LAYOUTS(2, test_eval_tensor_broadcast);
+  CALL_SUBTESTS_DIMS_LAYOUTS(2, test_eval_tensor_reshape);
+  CALL_SUBTESTS_DIMS_LAYOUTS(3, test_eval_tensor_cast);
+  CALL_SUBTESTS_DIMS_LAYOUTS(3, test_eval_tensor_select);
+  CALL_SUBTESTS_DIMS_LAYOUTS(3, test_eval_tensor_padding);
+  CALL_SUBTESTS_DIMS_LAYOUTS(4, test_eval_tensor_chipping);
+  CALL_SUBTESTS_DIMS_LAYOUTS(4, test_eval_tensor_generator);
+  CALL_SUBTESTS_DIMS_LAYOUTS(4, test_eval_tensor_reverse);
+  CALL_SUBTESTS_DIMS_LAYOUTS(5, test_eval_tensor_slice);
+  CALL_SUBTESTS_DIMS_LAYOUTS(5, test_eval_tensor_shuffle);
 
-  CALL_SUBTESTS_LAYOUTS(test_eval_tensor_reshape_with_bcast);
-  CALL_SUBTESTS_LAYOUTS(test_eval_tensor_forced_eval);
+  CALL_SUBTESTS_LAYOUTS(6, test_eval_tensor_reshape_with_bcast);
+  CALL_SUBTESTS_LAYOUTS(6, test_eval_tensor_forced_eval);
 
-  CALL_SUBTESTS_DIMS_LAYOUTS(test_assign_to_tensor);
-  CALL_SUBTESTS_DIMS_LAYOUTS(test_assign_to_tensor_reshape);
-  CALL_SUBTESTS_DIMS_LAYOUTS(test_assign_to_tensor_chipping);
+  CALL_SUBTESTS_DIMS_LAYOUTS(7, test_assign_to_tensor);
+  CALL_SUBTESTS_DIMS_LAYOUTS(7, test_assign_to_tensor_reshape);
+  CALL_SUBTESTS_DIMS_LAYOUTS(7, test_assign_to_tensor_chipping);
+  CALL_SUBTESTS_DIMS_LAYOUTS(8, test_assign_to_tensor_slice);
+  CALL_SUBTESTS_DIMS_LAYOUTS(8, test_assign_to_tensor_shuffle);
+
+  // Force CMake to split this test.
+  // EIGEN_SUFFIXES;1;2;3;4;5;6;7;8
+
   // clang-format on
 }

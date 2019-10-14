@@ -238,7 +238,8 @@ struct TensorEvaluator<const TensorGeneratorOp<Generator, ArgType>, Device>
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorBlockV2
-  blockV2(TensorBlockDesc& desc, TensorBlockScratch& scratch) const {
+  blockV2(TensorBlockDesc& desc, TensorBlockScratch& scratch,
+          bool /*root_of_expr_ast*/ = false) const {
     static const bool is_col_major =
         static_cast<int>(Layout) == static_cast<int>(ColMajor);
 
@@ -253,6 +254,7 @@ struct TensorEvaluator<const TensorGeneratorOp<Generator, ArgType>, Device>
     bool materialized_in_output;
 
     if (block_buffer != NULL) {
+      desc.DropDestinationBuffer();
       materialized_in_output = true;
 
     } else {

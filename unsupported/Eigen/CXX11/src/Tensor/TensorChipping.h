@@ -368,7 +368,8 @@ struct TensorEvaluator<const TensorChippingOp<DimId, ArgType>, Device>
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorBlockV2
-  blockV2(TensorBlockDesc& desc, TensorBlockScratch& scratch) const {
+  blockV2(TensorBlockDesc& desc, TensorBlockScratch& scratch,
+          bool /*root_of_expr_ast*/ = false) const {
     const Index chip_dim = m_dim.actualDim();
 
     DSizes<Index, NumInputDims> input_block_dims;
@@ -390,6 +391,7 @@ struct TensorEvaluator<const TensorChippingOp<DimId, ArgType>, Device>
     }
 
     ArgTensorBlock arg_block = m_impl.blockV2(arg_desc, scratch);
+    if (!arg_desc.HasDestinationBuffer()) desc.DropDestinationBuffer();
 
     if (arg_block.data() != NULL) {
       // Forward argument block buffer if possible.
@@ -405,6 +407,7 @@ struct TensorEvaluator<const TensorChippingOp<DimId, ArgType>, Device>
       bool materialized_in_output;
 
       if (output_buffer != NULL) {
+        desc.DropDestinationBuffer();
         materialized_in_output = true;
 
       } else {

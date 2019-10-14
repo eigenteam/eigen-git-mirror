@@ -230,7 +230,8 @@ struct TensorEvaluator<const TensorPaddingOp<PaddingDimensions, ArgType>, Device
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorBlockV2
-  blockV2(TensorBlockDesc& desc, TensorBlockScratch& scratch) const {
+  blockV2(TensorBlockDesc& desc, TensorBlockScratch& scratch,
+          bool /*root_of_expr_ast*/ = false) const {
     // If one of the dimensions is zero, return empty block view.
     if (desc.size() == 0) {
       return TensorBlockV2(internal::TensorBlockKind::kView, NULL,
@@ -240,8 +241,8 @@ struct TensorEvaluator<const TensorPaddingOp<PaddingDimensions, ArgType>, Device
     // Check if we can reuse `desc` destination, or allocate new scratch buffer.
     ScalarNoConst* materialized_output =
         desc.template destination<ScalarNoConst, Layout>();
-
     bool materialized_in_output;
+
     if (materialized_output != NULL) {
       desc.DropDestinationBuffer();
       materialized_in_output = true;

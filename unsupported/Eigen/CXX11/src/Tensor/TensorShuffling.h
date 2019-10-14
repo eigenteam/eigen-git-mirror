@@ -116,7 +116,7 @@ struct TensorEvaluator<const TensorShufflingOp<Shuffle, ArgType>, Device>
     IsAligned         = false,
     PacketAccess      = (PacketType<CoeffReturnType, Device>::size > 1),
     BlockAccess       = TensorEvaluator<ArgType, Device>::BlockAccess,
-    BlockAccessV2     = false,
+    BlockAccessV2     = TensorEvaluator<ArgType, Device>::RawAccess,
     PreferBlockAccess = true,
     Layout            = TensorEvaluator<ArgType, Device>::Layout,
     CoordAccess       = false,  // to be implemented
@@ -131,7 +131,12 @@ struct TensorEvaluator<const TensorShufflingOp<Shuffle, ArgType>, Device>
       TensorBlockReader;
 
   //===- Tensor block evaluation strategy (see TensorBlock.h) -------------===//
-  typedef internal::TensorBlockNotImplemented TensorBlockV2;
+  typedef internal::TensorBlockDescriptor<NumDims, Index> TensorBlockDesc;
+  typedef internal::TensorBlockScratchAllocator<Device> TensorBlockScratch;
+
+  typedef typename internal::TensorMaterializedBlock<ScalarNoConst, NumDims,
+                                                     Layout, Index>
+      TensorBlockV2;
   //===--------------------------------------------------------------------===//
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op,
@@ -143,6 +148,7 @@ struct TensorEvaluator<const TensorShufflingOp<Shuffle, ArgType>, Device>
     const Shuffle& shuffle = op.shufflePermutation();
     m_is_identity = true;
     for (int i = 0; i < NumDims; ++i) {
+      m_shuffle[i] = static_cast<int>(shuffle[i]);
       m_dimensions[i] = input_dims[shuffle[i]];
       m_inverseShuffle[shuffle[i]] = i;
       if (m_is_identity && shuffle[i] != i) {
@@ -241,7 +247,6 @@ struct TensorEvaluator<const TensorShufflingOp<Shuffle, ArgType>, Device>
         1, m_device.firstLevelCacheSize() / sizeof(Scalar));
     resources->push_back(internal::TensorOpResourceRequirements(
         internal::kUniformAllDims, block_total_size_max));
-    m_impl.getResourceRequirements(resources);
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void block(
@@ -336,6 +341,78 @@ struct TensorEvaluator<const TensorShufflingOp<Shuffle, ArgType>, Device>
     }
   }
 
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorBlockV2
+  blockV2(TensorBlockDesc& desc, TensorBlockScratch& scratch,
+          bool root_of_expr_ast = false) const {
+    assert(m_impl.data() != NULL);
+
+    typedef internal::TensorBlockIOV2<ScalarNoConst, Index, NumDims, Layout>
+        TensorBlockIO;
+    typedef typename TensorBlockIO::Dst TensorBlockIODst;
+    typedef typename TensorBlockIO::Src TensorBlockIOSrc;
+
+    ScalarNoConst* block_buffer = NULL;
+    typename TensorBlockIO::Dimensions block_strides;
+
+    bool materialized_in_output = false;
+    bool has_valid_materialized_expr = true;
+
+    if (desc.HasDestinationBuffer()) {
+      // Check if we can reuse destination buffer for block materialization.
+      const typename TensorBlockDesc::DestinationBuffer& destination_buffer =
+          desc.GetDestinationBuffer();
+
+      const bool dims_match = dimensions_match(
+          desc.dimensions(), destination_buffer.template dimensions<Scalar>());
+
+      const bool strides_match =
+          dimensions_match(internal::strides<Layout>(desc.dimensions()),
+                           destination_buffer.template strides<Scalar>());
+
+      if (dims_match && strides_match) {
+        // Destination buffer fits the block contiguously.
+        materialized_in_output = true;
+        has_valid_materialized_expr = true;
+        block_buffer = destination_buffer.template data<ScalarNoConst>();
+        block_strides = internal::strides<Layout>(desc.dimensions());
+        eigen_assert(block_buffer != NULL);
+
+      } else if (dims_match && root_of_expr_ast) {
+        // Destination buffer has strides not matching the block strides, but
+        // for the root of the expression tree it's safe to materialize anyway.
+        materialized_in_output = true;
+        has_valid_materialized_expr = false;
+        block_buffer = destination_buffer.template data<ScalarNoConst>();
+        block_strides = destination_buffer.template strides<ScalarNoConst>();
+        eigen_assert(block_buffer != NULL);
+      }
+
+      if (materialized_in_output) desc.DropDestinationBuffer();
+    }
+
+    // If we were not able to reuse destination buffer, allocate temporary
+    // buffer for block evaluation using scratch allocator.
+    if (!materialized_in_output) {
+      void* mem = scratch.allocate(desc.size() * sizeof(ScalarNoConst));
+      block_buffer = static_cast<ScalarNoConst*>(mem);
+      block_strides = internal::strides<Layout>(desc.dimensions());
+    }
+
+    typename TensorBlockIO::Dimensions input_strides(m_unshuffledInputStrides);
+    TensorBlockIOSrc src(input_strides, m_impl.data(), srcCoeff(desc.offset()));
+
+    TensorBlockIODst dst(desc.dimensions(), block_strides, block_buffer);
+
+    typename TensorBlockIO::DimensionsMap dst_to_src_dim_map(m_shuffle);
+    TensorBlockIO::Copy(dst, src, dst_to_src_dim_map);
+
+    return TensorBlockV2(
+        materialized_in_output
+            ? internal::TensorBlockKind::kMaterializedInOutput
+            : internal::TensorBlockKind::kMaterializedInScratch,
+        block_buffer, desc.dimensions(), has_valid_materialized_expr);
+  }
+
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorOpCost costPerCoeff(bool vectorized) const {
     const double compute_cost = m_is_identity ? TensorOpCost::AddCost<Index>() :
                                 NumDims * (2 * TensorOpCost::AddCost<Index>() +
@@ -400,7 +477,8 @@ struct TensorEvaluator<const TensorShufflingOp<Shuffle, ArgType>, Device>
 
   Dimensions m_dimensions;
   bool m_is_identity;
-  array<Index, NumDims> m_inverseShuffle;
+  array<int, NumDims> m_shuffle;
+  array<Index, NumDims> m_inverseShuffle;  // TODO(ezhulenev): Make it int type.
   array<Index, NumDims> m_outputStrides;
   array<internal::TensorIntDivisor<Index>, NumDims> m_fastOutputStrides;
   array<Index, NumDims> m_inputStrides;
@@ -431,7 +509,7 @@ struct TensorEvaluator<TensorShufflingOp<Shuffle, ArgType>, Device>
     IsAligned         = false,
     PacketAccess      = (PacketType<CoeffReturnType, Device>::size > 1),
     BlockAccess       = TensorEvaluator<ArgType, Device>::BlockAccess,
-    BlockAccessV2     = false,
+    BlockAccessV2     = TensorEvaluator<ArgType, Device>::RawAccess,
     PreferBlockAccess = true,
     Layout            = TensorEvaluator<ArgType, Device>::Layout,
     RawAccess         = false
@@ -445,7 +523,7 @@ struct TensorEvaluator<TensorShufflingOp<Shuffle, ArgType>, Device>
       TensorBlockWriter;
 
   //===- Tensor block evaluation strategy (see TensorBlock.h) -------------===//
-  typedef internal::TensorBlockNotImplemented TensorBlockV2;
+  typedef internal::TensorBlockDescriptor<NumDims, Index> TensorBlockDesc;
   //===--------------------------------------------------------------------===//
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
@@ -476,6 +554,63 @@ struct TensorEvaluator<TensorShufflingOp<Shuffle, ArgType>, Device>
     TensorBlockWriter::Run(block, this->srcCoeff(block.first_coeff_index()),
                            this->m_inverseShuffle,
                            this->m_unshuffledInputStrides, this->m_impl.data());
+  }
+
+template <typename TensorBlockV2>
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void writeBlockV2(
+      const TensorBlockDesc& desc, const TensorBlockV2& block) {
+    eigen_assert(this->m_impl.data() != NULL);
+
+    typedef internal::TensorBlockIOV2<ScalarNoConst, Index, NumDims, Layout>
+        TensorBlockIO;
+    typedef typename TensorBlockIO::Dst TensorBlockIODst;
+    typedef typename TensorBlockIO::Src TensorBlockIOSrc;
+
+    const Scalar* block_buffer = block.data();
+
+    // TODO(ezhulenev): TensorBlockIO should be able to read from any Eigen
+    // expression with coefficient and packet access as `src`.
+    void* mem = NULL;
+    if (block_buffer == NULL) {
+      mem = this->m_device.allocate(desc.size() * sizeof(Scalar));
+      ScalarNoConst* buf = static_cast<ScalarNoConst*>(mem);
+
+      typedef internal::TensorBlockAssignment<
+          ScalarNoConst, NumDims, typename TensorBlockV2::XprType, Index>
+          TensorBlockAssignment;
+
+      TensorBlockAssignment::Run(
+          TensorBlockAssignment::target(
+              desc.dimensions(), internal::strides<Layout>(desc.dimensions()),
+              buf),
+          block.expr());
+
+      block_buffer = buf;
+    }
+
+    // Read from block.
+    TensorBlockIOSrc src(internal::strides<Layout>(desc.dimensions()),
+                         block_buffer);
+
+    // Write to the output buffer.
+    typename TensorBlockIO::Dimensions output_strides(
+        this->m_unshuffledInputStrides);
+    typename TensorBlockIO::Dimensions output_dimensions;
+    for (int i = 0; i < NumDims; ++i) {
+      output_dimensions[this->m_shuffle[i]] = desc.dimension(i);
+    }
+    TensorBlockIODst dst(output_dimensions, output_strides, this->m_impl.data(),
+                         this->srcCoeff(desc.offset()));
+
+    // Reorder dimensions according to the shuffle.
+    typename TensorBlockIO::DimensionsMap dst_to_src_dim_map;
+    for (int i = 0; i < NumDims; ++i) {
+      dst_to_src_dim_map[i] = static_cast<int>(this->m_inverseShuffle[i]);
+    }
+    TensorBlockIO::Copy(dst, src, dst_to_src_dim_map);
+
+    // Deallocate temporary buffer used for the block materialization.
+    if (mem != NULL) this->m_device.deallocate(mem);
   }
 };
 

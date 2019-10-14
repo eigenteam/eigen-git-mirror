@@ -21,6 +21,30 @@ using Eigen::internal::TiledEvaluation;
 // A set of tests to verify that different TensorExecutor strategies yields the
 // same results for all the ops, supporting tiled evaluation.
 
+// Default assignment that does no use block evaluation or vectorization.
+// We assume that default coefficient evaluation is well tested and correct.
+template <typename Dst, typename Expr>
+static void DefaultAssign(Dst& dst, Expr expr) {
+  using Assign = Eigen::TensorAssignOp<Dst, const Expr>;
+  using Executor =
+      Eigen::internal::TensorExecutor<const Assign, DefaultDevice,
+                                      /*Vectorizable=*/false,
+                                      /*Tiling=*/TiledEvaluation::Off>;
+
+  Executor::run(Assign(dst, expr), DefaultDevice());
+}
+
+// Assignment with specified device and tiling strategy.
+template <bool Vectorizable, TiledEvaluation Tiling, typename Device,
+          typename Dst, typename Expr>
+static void DeviceAssign(Device& d, Dst& dst, Expr expr) {
+  using Assign = Eigen::TensorAssignOp<Dst, const Expr>;
+  using Executor = Eigen::internal::TensorExecutor<const Assign, Device,
+                                                   Vectorizable, Tiling>;
+
+  Executor::run(Assign(dst, expr), d);
+}
+
 template <int NumDims>
 static array<Index, NumDims> RandomDims(int min_dim = 1, int max_dim = 20) {
   array<Index, NumDims> dims;
@@ -222,30 +246,32 @@ static void test_execute_shuffle_rvalue(Device d)
   Tensor<T, NumDims, Options, Index> src(dims);
   src.setRandom();
 
-  // Create a random dimension re-ordering/shuffle.
-  std::vector<Index> shuffle;
-  for (int i = 0; i < NumDims; ++i) shuffle.push_back(i);
-  std::shuffle(shuffle.begin(), shuffle.end(), std::mt19937());
+  DSizes<Index, NumDims> shuffle;
+  for (int i = 0; i < NumDims; ++i) shuffle[i] = i;
 
-  const auto expr = src.shuffle(shuffle);
+  // Test all possible shuffle permutations.
+  do {
+    DSizes<Index, NumDims> shuffled_dims;
+    for (int i = 0; i < NumDims; ++i) {
+      shuffled_dims[i] = dims[shuffle[i]];
+    }
 
-  // We assume that shuffling on a default device is tested and correct, so
-  // we can rely on it to verify correctness of tensor executor and tiling.
-  Tensor<T, NumDims, Options, Index> golden;
-  golden = expr;
+    const auto expr = src.shuffle(shuffle);
 
-  // Now do the shuffling using configured tensor executor.
-  Tensor<T, NumDims, Options, Index> dst(golden.dimensions());
+    // We assume that shuffling on a default device is tested and correct, so
+    // we can rely on it to verify correctness of tensor executor and tiling.
+    Tensor<T, NumDims, Options, Index> golden(shuffled_dims);
+    DefaultAssign(golden, expr);
 
-  using Assign = TensorAssignOp<decltype(dst), const decltype(expr)>;
-  using Executor =
-      internal::TensorExecutor<const Assign, Device, Vectorizable, Tiling>;
+    // Now do the shuffling using configured tensor executor.
+    Tensor<T, NumDims, Options, Index> dst(shuffled_dims);
+    DeviceAssign<Vectorizable, Tiling>(d, dst, expr);
 
-  Executor::run(Assign(dst, expr), d);
+    for (Index i = 0; i < dst.dimensions().TotalSize(); ++i) {
+      VERIFY_IS_EQUAL(dst.coeff(i), golden.coeff(i));
+    }
 
-  for (Index i = 0; i < dst.dimensions().TotalSize(); ++i) {
-    VERIFY_IS_EQUAL(dst.coeff(i), golden.coeff(i));
-  }
+  } while (std::next_permutation(&shuffle[0], &shuffle[0] + NumDims));
 }
 
 template <typename T, int NumDims, typename Device, bool Vectorizable,
@@ -258,33 +284,30 @@ static void test_execute_shuffle_lvalue(Device d)
   Tensor<T, NumDims, Options, Index> src(dims);
   src.setRandom();
 
-  // Create a random dimension re-ordering/shuffle.
-  std::vector<Index> shuffle;
-  for (int i = 0; i < NumDims; ++i) shuffle.push_back(i);
-  std::shuffle(shuffle.begin(), shuffle.end(), std::mt19937());
+  DSizes<Index, NumDims> shuffle;
+  for (int i = 0; i < NumDims; ++i) shuffle[i] = i;
 
-  array<Index, NumDims> shuffled_dims;
-  for (int i = 0; i < NumDims; ++i) shuffled_dims[shuffle[i]] = dims[i];
+  // Test all possible shuffle permutations.
+  do {
+    DSizes<Index, NumDims> shuffled_dims;
+    for (int i = 0; i < NumDims; ++i) shuffled_dims[shuffle[i]] = dims[i];
 
-  // We assume that shuffling on a default device is tested and correct, so
-  // we can rely on it to verify correctness of tensor executor and tiling.
-  Tensor<T, NumDims, Options, Index> golden(shuffled_dims);
-  golden.shuffle(shuffle) = src;
+    // We assume that shuffling on a default device is tested and correct, so
+    // we can rely on it to verify correctness of tensor executor and tiling.
+    Tensor<T, NumDims, Options, Index> golden(shuffled_dims);
+    auto golden_shuffle = golden.shuffle(shuffle);
+    DefaultAssign(golden_shuffle, src);
 
-  // Now do the shuffling using configured tensor executor.
-  Tensor<T, NumDims, Options, Index> dst(shuffled_dims);
+    // Now do the shuffling using configured tensor executor.
+    Tensor<T, NumDims, Options, Index> dst(shuffled_dims);
+    auto dst_shuffle = dst.shuffle(shuffle);
+    DeviceAssign<Vectorizable, Tiling>(d, dst_shuffle, src);
 
-  auto expr = dst.shuffle(shuffle);
+    for (Index i = 0; i < dst.dimensions().TotalSize(); ++i) {
+      VERIFY_IS_EQUAL(dst.coeff(i), golden.coeff(i));
+    }
 
-  using Assign = TensorAssignOp<decltype(expr), const decltype(src)>;
-  using Executor =
-      internal::TensorExecutor<const Assign, Device, Vectorizable, Tiling>;
-
-  Executor::run(Assign(expr, src), d);
-
-  for (Index i = 0; i < dst.dimensions().TotalSize(); ++i) {
-    VERIFY_IS_EQUAL(dst.coeff(i), golden.coeff(i));
-  }
+  } while (std::next_permutation(&shuffle[0], &shuffle[0] + NumDims));
 }
 
 template <typename T, int NumDims, typename Device, bool Vectorizable,
@@ -723,13 +746,13 @@ EIGEN_DECLARE_TEST(cxx11_tensor_executor) {
   CALL_SUBTEST_COMBINATIONS_V2(5, test_execute_chipping_lvalue, float, 4);
   CALL_SUBTEST_COMBINATIONS_V2(5, test_execute_chipping_lvalue, float, 5);
 
-  CALL_SUBTEST_COMBINATIONS_V1(6, test_execute_shuffle_rvalue, float, 3);
-  CALL_SUBTEST_COMBINATIONS_V1(6, test_execute_shuffle_rvalue, float, 4);
-  CALL_SUBTEST_COMBINATIONS_V1(6, test_execute_shuffle_rvalue, float, 5);
+  CALL_SUBTEST_COMBINATIONS_V2(6, test_execute_shuffle_rvalue, float, 3);
+  CALL_SUBTEST_COMBINATIONS_V2(6, test_execute_shuffle_rvalue, float, 4);
+  CALL_SUBTEST_COMBINATIONS_V2(6, test_execute_shuffle_rvalue, float, 5);
 
-  CALL_SUBTEST_COMBINATIONS_V1(7, test_execute_shuffle_lvalue, float, 3);
-  CALL_SUBTEST_COMBINATIONS_V1(7, test_execute_shuffle_lvalue, float, 4);
-  CALL_SUBTEST_COMBINATIONS_V1(7, test_execute_shuffle_lvalue, float, 5);
+  CALL_SUBTEST_COMBINATIONS_V2(7, test_execute_shuffle_lvalue, float, 3);
+  CALL_SUBTEST_COMBINATIONS_V2(7, test_execute_shuffle_lvalue, float, 4);
+  CALL_SUBTEST_COMBINATIONS_V2(7, test_execute_shuffle_lvalue, float, 5);
 
   CALL_SUBTEST_COMBINATIONS_V1(8, test_execute_reduction, float, 2);
   CALL_SUBTEST_COMBINATIONS_V1(8, test_execute_reduction, float, 3);
@@ -741,15 +764,15 @@ EIGEN_DECLARE_TEST(cxx11_tensor_executor) {
   CALL_SUBTEST_COMBINATIONS_V2(9, test_execute_reshape, float, 4);
   CALL_SUBTEST_COMBINATIONS_V2(9, test_execute_reshape, float, 5);
 
-  CALL_SUBTEST_COMBINATIONS_V1(10, test_execute_slice_rvalue, float, 2);
-  CALL_SUBTEST_COMBINATIONS_V1(10, test_execute_slice_rvalue, float, 3);
-  CALL_SUBTEST_COMBINATIONS_V1(10, test_execute_slice_rvalue, float, 4);
-  CALL_SUBTEST_COMBINATIONS_V1(10, test_execute_slice_rvalue, float, 5);
+  CALL_SUBTEST_COMBINATIONS_V2(10, test_execute_slice_rvalue, float, 2);
+  CALL_SUBTEST_COMBINATIONS_V2(10, test_execute_slice_rvalue, float, 3);
+  CALL_SUBTEST_COMBINATIONS_V2(10, test_execute_slice_rvalue, float, 4);
+  CALL_SUBTEST_COMBINATIONS_V2(10, test_execute_slice_rvalue, float, 5);
 
-  CALL_SUBTEST_COMBINATIONS_V1(11, test_execute_slice_lvalue, float, 2);
-  CALL_SUBTEST_COMBINATIONS_V1(11, test_execute_slice_lvalue, float, 3);
-  CALL_SUBTEST_COMBINATIONS_V1(11, test_execute_slice_lvalue, float, 4);
-  CALL_SUBTEST_COMBINATIONS_V1(11, test_execute_slice_lvalue, float, 5);
+  CALL_SUBTEST_COMBINATIONS_V2(11, test_execute_slice_lvalue, float, 2);
+  CALL_SUBTEST_COMBINATIONS_V2(11, test_execute_slice_lvalue, float, 3);
+  CALL_SUBTEST_COMBINATIONS_V2(11, test_execute_slice_lvalue, float, 4);
+  CALL_SUBTEST_COMBINATIONS_V2(11, test_execute_slice_lvalue, float, 5);
 
   CALL_SUBTEST_COMBINATIONS_V2(12, test_execute_broadcasting_of_forced_eval, float, 2);
   CALL_SUBTEST_COMBINATIONS_V2(12, test_execute_broadcasting_of_forced_eval, float, 3);

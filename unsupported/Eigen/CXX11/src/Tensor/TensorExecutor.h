@@ -521,19 +521,6 @@ class TensorExecutor<Expression, ThreadPoolDevice, Vectorizable,
   static EIGEN_STRONG_INLINE void run(const Expression& expr,
                                       const ThreadPoolDevice& device) {
     Evaluator evaluator(expr, device);
-    Index total_size = array_prod(evaluator.dimensions());
-    Index cache_size = device.firstLevelCacheSize() / sizeof(Scalar);
-
-    // TODO(ezuhulenev): For small expressions cost of block mapping and
-    // resource requirements gathering dominates the cost of expression
-    // evaluatiuon.
-    if (total_size < cache_size &&
-        !ExpressionHasTensorBroadcastingOp<Expression>::value) {
-      internal::TensorExecutor<Expression, ThreadPoolDevice, Vectorizable,
-                               /*Tiling=*/TiledEvaluation::Off>::run(expr, device);
-      evaluator.cleanup();
-      return;
-    }
 
     const bool needs_assign = evaluator.evalSubExprsIfNeeded(nullptr);
     if (needs_assign) {

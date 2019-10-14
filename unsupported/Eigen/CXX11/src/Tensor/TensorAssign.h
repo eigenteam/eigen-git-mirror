@@ -242,9 +242,8 @@ struct TensorEvaluator<const TensorAssignOp<LeftArgType, RightArgType>, Device>
           (internal::array_prod(m_leftImpl.dimensions()) * sizeof(Scalar)));
     }
 
-    RightTensorBlock block = m_rightImpl.blockV2(desc, scratch);
-    // If block was evaluated into a destination, there is no need to do
-    // assignment.
+    RightTensorBlock block = m_rightImpl.blockV2(desc, scratch, /*root_of_expr_ast=*/true);
+    // If block was evaluated into a destination, there is no need to do assignment.
     if (block.kind() != internal::TensorBlockKind::kMaterializedInOutput) {
       m_leftImpl.writeBlockV2(desc, block);
     }

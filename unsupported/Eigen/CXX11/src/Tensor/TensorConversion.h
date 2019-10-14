@@ -404,7 +404,8 @@ struct TensorEvaluator<const TensorConversionOp<TargetType, ArgType>, Device>
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorBlockV2
-  blockV2(TensorBlockDesc& desc, TensorBlockScratch& scratch) const {
+  blockV2(TensorBlockDesc& desc, TensorBlockScratch& scratch,
+          bool /*root_of_expr_ast*/ = false) const {
     return TensorBlockV2(m_impl.blockV2(desc, scratch),
                          TensorConversionOpBlockFactory());
   }

@@ -355,7 +355,8 @@ struct TensorEvaluator<const TensorReverseOp<ReverseDimensions, ArgType>, Device
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorBlockV2
-  blockV2(TensorBlockDesc& desc, TensorBlockScratch& scratch) const {
+  blockV2(TensorBlockDesc& desc, TensorBlockScratch& scratch,
+          bool /*root_of_expr_ast*/ = false) const {
     // TODO(ezhulenev): If underlying tensor expression supports and prefers
     // block evaluation we must use it. Currently we use coeff and packet
     // access into the underlying tensor expression.
@@ -370,10 +371,12 @@ struct TensorEvaluator<const TensorReverseOp<ReverseDimensions, ArgType>, Device
     const bool inner_dim_reversed = m_reverse[inner_dim_idx];
 
     // Try to reuse destination as an output block buffer.
-    CoeffReturnType* block_buffer = desc.template destination<CoeffReturnType, Layout>();
+    CoeffReturnType* block_buffer =
+        desc.template destination<CoeffReturnType, Layout>();
     bool materialized_in_output;
 
     if (block_buffer != NULL) {
+      desc.DropDestinationBuffer();
       materialized_in_output = true;
 
     } else {
