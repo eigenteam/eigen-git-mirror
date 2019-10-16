@@ -266,6 +266,10 @@ static void test_eval_tensor_broadcast() {
 
   VerifyBlockEvaluator<T, NumDims, Layout>(
       input.broadcast(bcast),
+      [&bcasted_dims]() { return RandomBlock<Layout>(bcasted_dims, 5, 10); });
+
+  VerifyBlockEvaluator<T, NumDims, Layout>(
+      input.broadcast(bcast),
       [&bcasted_dims]() { return FixedSizeBlock(bcasted_dims); });
 
   // Check that desc.destination() memory is not shared between two broadcast
@@ -534,6 +538,33 @@ static void test_eval_tensor_forced_eval() {
       [dims]() { return RandomBlock<Layout, 2>(dims, 1, 50); });
 }
 
+template <typename T, int Layout>
+static void test_eval_tensor_chipping_of_bcast() {
+  if (Layout != static_cast<int>(RowMajor)) return;
+
+  Index dim0 = internal::random<Index>(1, 10);
+  Index dim1 = internal::random<Index>(1, 10);
+  Index dim2 = internal::random<Index>(1, 10);
+
+  Tensor<T, 3, Layout> input(1, dim1, dim2);
+  input.setRandom();
+
+  Eigen::array<Index, 3> bcast({dim0, 1, 1});
+  DSizes<Index, 2> chipped_dims(dim0, dim2);
+
+  VerifyBlockEvaluator<T, 2, Layout>(
+      input.broadcast(bcast).chip(0, 1),
+      [chipped_dims]() { return FixedSizeBlock(chipped_dims); });
+
+  VerifyBlockEvaluator<T, 2, Layout>(
+      input.broadcast(bcast).chip(0, 1),
+      [chipped_dims]() { return SkewedInnerBlock<Layout, 2>(chipped_dims); });
+
+  VerifyBlockEvaluator<T, 2, Layout>(
+      input.broadcast(bcast).chip(0, 1),
+      [chipped_dims]() { return RandomBlock<Layout, 2>(chipped_dims, 1, 5); });
+}
+
 // -------------------------------------------------------------------------- //
 // Verify that assigning block to a Tensor expression produces the same result
 // as an assignment to TensorSliceOp (writing a block is is identical to
@@ -760,6 +791,7 @@ EIGEN_DECLARE_TEST(cxx11_tensor_block_eval) {
 
   CALL_SUBTESTS_LAYOUTS(6, test_eval_tensor_reshape_with_bcast);
   CALL_SUBTESTS_LAYOUTS(6, test_eval_tensor_forced_eval);
+  CALL_SUBTESTS_LAYOUTS(6, test_eval_tensor_chipping_of_bcast);
 
   CALL_SUBTESTS_DIMS_LAYOUTS(7, test_assign_to_tensor);
   CALL_SUBTESTS_DIMS_LAYOUTS(7, test_assign_to_tensor_reshape);

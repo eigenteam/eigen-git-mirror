@@ -45,7 +45,7 @@ EIGEN_ALWAYS_INLINE DSizes<IndexType, NumDims> strides(
   return strides;
 }
 
-template<int Layout, typename IndexType, size_t NumDims>
+template <int Layout, typename IndexType, size_t NumDims>
 EIGEN_ALWAYS_INLINE DSizes<IndexType, NumDims> strides(
     const Eigen::array<IndexType, NumDims>& dimensions) {
   return strides<Layout>(DSizes<IndexType, NumDims>(dimensions));
@@ -121,7 +121,7 @@ class TensorBlockDescriptor {
       // Compare strides ignoring dimensions of size `1`.
       for (int i = 0; i < NumDims; ++i) {
         if (desc_dims[i] == 1) continue;
-         if (desc_strides[i] != dst_strides[i]) return false;
+        if (desc_strides[i] != dst_strides[i]) return false;
       }
 
       return true;
@@ -507,8 +507,8 @@ class TensorCwiseUnaryBlock {
  public:
   typedef typename conditional<
       NoArgBlockAccess, void,
-      TensorCwiseUnaryOp<UnaryOp, const typename ArgTensorBlock::XprType> >::type
-      XprType;
+      TensorCwiseUnaryOp<UnaryOp, const typename ArgTensorBlock::XprType> >::
+      type XprType;
 
   typedef typename XprScalar<XprType>::type Scalar;
 
@@ -854,12 +854,13 @@ class TensorBlockIOV2 {
   //
   //   src_dimension_index = dst_to_src_dim_map[dst_dimension_index]
   //
-  static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void Copy(
+  // Returns the number of copied elements.
+  static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE IndexType Copy(
       const Dst& dst, const Src& src, const DimensionsMap& dst_to_src_dim_map) {
     // Copy single scalar value from `src` to `dst`.
     if (NumDims == 0) {
       *(dst.data + dst.offset) = *(src.data + src.offset);
-      return;
+      return 1;
     }
 
     // Both `dst` and `src` must have contiguous innermost dimension. We also
@@ -898,13 +899,13 @@ class TensorBlockIOV2 {
     // If all dimensions are of size 1, just copy a scalar from `src` to `dst`.
     if (num_size_one_inner_dims == NumDims) {
       *(dst.data + dst.offset) = *(src.data + src.offset);
-      return;
+      return 1;
     }
 
     // Outermost dimension in the dst with `stride == 1` (contiguous in memory).
-    const int dst_stride1_dim =
-        IsColMajor ? num_size_one_inner_dims
-                   : NumDims - num_size_one_inner_dims - 1;
+    const int dst_stride1_dim = IsColMajor
+                                    ? num_size_one_inner_dims
+                                    : NumDims - num_size_one_inner_dims - 1;
 
     // Dimension in the src that corresponds to the dst innermost dimension.
     const int src_dim_for_dst_stride1_dim =
@@ -956,24 +957,27 @@ class TensorBlockIOV2 {
     // Iterate copying data from src to dst.
     const IndexType block_total_size = NumDims == 0 ? 1 : dst.dims.TotalSize();
 
-#define COPY_INNER_DIM(KIND)                                             \
-  for (IndexType i = 0; i < block_total_size; i += dst_inner_dim_size) { \
-    LinCopy::template Run<KIND>(                                         \
-        typename LinCopy::Dst(output_offset, output_stride, dst.data),   \
-        typename LinCopy::Src(input_offset, input_stride, src.data),     \
-        dst_inner_dim_size);                                             \
-                                                                         \
-    for (int j = 0; j < idx; ++j) {                                      \
-      if (++it[j].count < it[j].size) {                                  \
-        input_offset += it[j].input_stride;                              \
-        output_offset += it[j].output_stride;                            \
-        break;                                                           \
-      }                                                                  \
-      it[j].count = 0;                                                   \
-      input_offset -= it[j].input_span;                                  \
-      output_offset -= it[j].output_span;                                \
-    }                                                                    \
-  }
+#define COPY_INNER_DIM(KIND)                                           \
+  IndexType num_copied = 0;                                            \
+  for (num_copied = 0; num_copied < block_total_size;                  \
+       num_copied += dst_inner_dim_size) {                             \
+    LinCopy::template Run<KIND>(                                       \
+        typename LinCopy::Dst(output_offset, output_stride, dst.data), \
+        typename LinCopy::Src(input_offset, input_stride, src.data),   \
+        dst_inner_dim_size);                                           \
+                                                                       \
+    for (int j = 0; j < idx; ++j) {                                    \
+      if (++it[j].count < it[j].size) {                                \
+        input_offset += it[j].input_stride;                            \
+        output_offset += it[j].output_stride;                          \
+        break;                                                         \
+      }                                                                \
+      it[j].count = 0;                                                 \
+      input_offset -= it[j].input_span;                                \
+      output_offset -= it[j].output_span;                              \
+    }                                                                  \
+  }                                                                    \
+  return num_copied;
 
     if (input_stride == 1 && output_stride == 1) {
       COPY_INNER_DIM(LinCopy::Linear);
@@ -992,12 +996,13 @@ class TensorBlockIOV2 {
 #undef COPY_INNER_DIM
   }
 
-  // Copy from `src` to `dst` with an identity src->dst dimension map.
-  static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void Copy(const Dst& dst,
-                                                         const Src& src) {
+  // Copy from `src` to `dst` with an identity src->dst dimension map. Returns
+  // the number of copied elements.
+  static EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE IndexType Copy(const Dst& dst,
+                                                              const Src& src) {
     DimensionsMap dst_to_src_map;
     for (int i = 0; i < NumDims; ++i) dst_to_src_map[i] = i;
-    Copy(dst, src, dst_to_src_map);
+    return Copy(dst, src, dst_to_src_map);
   }
 
  private:
