@@ -235,11 +235,9 @@ struct TensorEvaluator<const TensorAssignOp<LeftArgType, RightArgType>, Device>
         m_leftImpl.data() != NULL) {
       // If destination has raw data access, we pass it as a potential
       // destination for a block descriptor evaluation.
-      desc.AddDestinationBuffer(
+      desc.template AddDestinationBuffer<Layout>(
           /*dst_base=*/m_leftImpl.data() + desc.offset(),
-          /*dst_strides=*/internal::strides<Layout>(m_leftImpl.dimensions()),
-          /*total_dst_bytes=*/
-          (internal::array_prod(m_leftImpl.dimensions()) * sizeof(Scalar)));
+          /*dst_strides=*/internal::strides<Layout>(m_leftImpl.dimensions()));
     }
 
     RightTensorBlock block = m_rightImpl.blockV2(desc, scratch, /*root_of_expr_ast=*/true);

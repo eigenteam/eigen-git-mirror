@@ -248,21 +248,6 @@ struct TensorEvaluator<const TensorGeneratorOp<Generator, ArgType>, Device>
     extract_coordinates(desc.offset(), coords);
     array<Index, NumDims> initial_coords = coords;
 
-    // Try to reuse destination as an output block buffer.
-    CoeffReturnType* block_buffer =
-        desc.template destination<CoeffReturnType, Layout>();
-    bool materialized_in_output;
-
-    if (block_buffer != NULL) {
-      desc.DropDestinationBuffer();
-      materialized_in_output = true;
-
-    } else {
-      materialized_in_output = false;
-      void* mem = scratch.allocate(desc.size() * sizeof(CoeffReturnType));
-      block_buffer = static_cast<CoeffReturnType*>(mem);
-    }
-
     // Offset in the output block buffer.
     Index offset = 0;
 
@@ -277,6 +262,12 @@ struct TensorEvaluator<const TensorGeneratorOp<Generator, ArgType>, Device>
       it[i].count = 0;
     }
     eigen_assert(it[0].stride == 1);
+
+    // Prepare storage for the materialized generator result.
+    const typename TensorBlockV2::Storage block_storage =
+        TensorBlockV2::prepareStorage(desc, scratch);
+
+    CoeffReturnType* block_buffer = block_storage.data();
 
     while (it[NumDims - 1].count < it[NumDims - 1].size) {
       // Generate data for the inner-most dimension.
@@ -304,11 +295,7 @@ struct TensorEvaluator<const TensorGeneratorOp<Generator, ArgType>, Device>
       }
     }
 
-    return TensorBlockV2(
-        materialized_in_output
-          ? internal::TensorBlockKind::kMaterializedInOutput
-          : internal::TensorBlockKind::kMaterializedInScratch,
-        block_buffer, desc.dimensions());
+    return block_storage.AsTensorMaterializedBlock();
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorOpCost

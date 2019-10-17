@@ -154,9 +154,8 @@ static void VerifyBlockEvaluator(Expression expr, GenBlockParams gen_block) {
   Tensor<T, NumDims, Layout> dst(dst_dims);
   dst.setZero();
   if (internal::random<bool>()) {
-    block_params.desc.template AddDestinationBuffer(
-        dst.data(), internal::strides<Layout>(dst.dimensions()),
-        dst.dimensions().TotalSize() * sizeof(T));
+    block_params.desc.template AddDestinationBuffer<Layout>(
+        dst.data(), internal::strides<Layout>(dst.dimensions()));
   }
 
   const bool root_of_expr = internal::random<bool>();

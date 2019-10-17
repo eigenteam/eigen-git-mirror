@@ -173,12 +173,9 @@ struct TensorEvaluator<const TensorEvalToOp<ArgType, MakePointer_>, Device>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void evalBlockV2(
       TensorBlockDesc& desc, TensorBlockScratch& scratch) {
     // Add `m_buffer` as destination buffer to the block descriptor.
-    desc.AddDestinationBuffer(
+    desc.template AddDestinationBuffer<Layout>(
         /*dst_base=*/m_buffer + desc.offset(),
-        /*dst_strides=*/internal::strides<Layout>(m_impl.dimensions()),
-        /*total_dst_bytes=*/
-                     (internal::array_prod(m_impl.dimensions())
-                         * sizeof(Scalar)));
+        /*dst_strides=*/internal::strides<Layout>(m_impl.dimensions()));
 
     ArgTensorBlock block = m_impl.blockV2(desc, scratch);
 

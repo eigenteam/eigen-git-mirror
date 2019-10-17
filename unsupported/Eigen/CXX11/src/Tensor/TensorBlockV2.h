@@ -70,91 +70,89 @@ class TensorBlockDescriptor {
 
   // If we evaluate a Tensor assignment, and expression on the left, already has
   // a memory buffer, then we might do performance optimization, and evaluate
-  // the root expression directly into the memory, or maybe use it as temporary
-  // storage for some of the subexpressions, to avoid dynamic memory allocation.
+  // the root expression directly into the final output memory. Some time it's
+  // possible to reuse it for materializing subexpressions inside an expression
+  // tree, to to avoid dynamic memory allocation.
   //
-  // This is a type erased storage, because passing Scalar type through all the
-  // expression evaluation layers it way too many templates. Also it should be
-  // possible to use this destination as a temp buffer for materializing
-  // expressions with type, not matching the final output.
+  // The pointer type of the underlying storage is erased, because passing
+  // Scalar type through all the expression evaluation layers is way too many
+  // templates. In practice destination buffer type should always match the
+  // evaluated expression scalar type.
   class DestinationBuffer {
    public:
+    enum DestinationBufferKind {
+      // Destination buffer is not defined (`m_data` == nullptr).
+      kEmpty,
+
+      // Tensor block defined by an owning tensor block descriptor can fit
+      // contiguously into the destination buffer. In this case it's safe to
+      // materialize tensor block in the destination buffer, wrap it in a
+      // TensorMap, and use to build Eigen expression on top of it.
+      kContiguous,
+
+      // Destination buffer strides do not match strides of the contiguously
+      // stored block, and it's impossible to define a TensorMap over this
+      // buffer. However if we are evaluating a root of an expression tree, we
+      // still can materialize an output into this destination, because we can
+      // guarantee that no one will ever access it through block API.
+      //
+      // In theory it is possible to build valid TensorStriding<TensorMap>
+      // expression on top of this destination buffer, however it has
+      // inefficient coeff/packet access, and defeats the purpose of fast block
+      // evaluation API.
+      kStrided
+    };
+
     template <typename Scalar>
     Scalar* data() const {
+      eigen_assert(m_data_type_size == sizeof(Scalar));
       return static_cast<Scalar*>(m_data);
     }
 
-    template <typename Scalar>
-    Dimensions dimensions() const {
-      Dimensions dimensions;
-      for (int i = 0; i < NumDims; ++i) {
-        eigen_assert(m_dimensions[i] % sizeof(Scalar) == 0);
-        dimensions[i] = m_dimensions[i] / sizeof(Scalar);
-      }
-      return dimensions;
-    }
-
-    template <typename Scalar>
-    Dimensions strides() const {
-      Dimensions strides;
-      for (int i = 0; i < NumDims; ++i) {
-        eigen_assert(m_strides[i] % sizeof(Scalar) == 0);
-        strides[i] = m_strides[i] / sizeof(Scalar);
-      }
-      return strides;
-    }
-
-    // Returns true if the tensor block corresponding to `desc` fits into the
-    // contiguous block of memory defined by `*this`.
-    template <typename Scalar, int Layout>
-    bool fitsContiguously(const TensorBlockDescriptor& desc) const {
-      if (m_data == NULL) return false;
-
-      const Dimensions& desc_dims = desc.dimensions();
-      const Dimensions& dst_dims = dimensions<Scalar>();
-
-      if (!dimensions_match(desc_dims, dst_dims)) return false;
-
-      const Dimensions& desc_strides = internal::strides<Layout>(desc_dims);
-      const Dimensions& dst_strides = strides<Scalar>();
-
-      // Compare strides ignoring dimensions of size `1`.
-      for (int i = 0; i < NumDims; ++i) {
-        if (desc_dims[i] == 1) continue;
-        if (desc_strides[i] != dst_strides[i]) return false;
-      }
-
-      return true;
-    }
+    const Dimensions& strides() const { return m_strides; }
+    const DestinationBufferKind& kind() const { return m_kind; }
 
    private:
     friend class TensorBlockDescriptor;
 
-    DestinationBuffer() : m_data(NULL), m_total_dst_bytes(0) {}
+    DestinationBuffer() : m_data(NULL), m_data_type_size(0), m_kind(kEmpty) {}
 
     template <typename Scalar>
-    DestinationBuffer(Scalar* data, const Dimensions& dimensions,
-                      const Dimensions& strides, size_t total_dst_bytes)
+    DestinationBuffer(Scalar* data, const Dimensions& strides,
+                      DestinationBufferKind kind)
         : m_data(static_cast<void*>(data)),
-          m_dimensions(dimensions),
+          m_data_type_size(sizeof(Scalar)),
           m_strides(strides),
-          m_total_dst_bytes(total_dst_bytes) {
-      // TODO(ezhulenev): Benchmark template meta-unroll for this loop.
-      for (int i = 0; i < NumDims; ++i) {
-        m_dimensions[i] *= sizeof(Scalar);
-        m_strides[i] *= sizeof(Scalar);
-      }
+          m_kind(kind) {}
+
+    template <int Layout, typename Scalar>
+    static DestinationBuffer make(const TensorBlockDescriptor& desc,
+                                  Scalar* data, const Dimensions& strides) {
+      return DestinationBuffer(data, strides, kind<Layout>(desc, strides));
     }
 
+    template <int Layout>
+    static DestinationBufferKind kind(const TensorBlockDescriptor& desc,
+                                      const Dimensions& strides) {
+      const Dimensions& desc_dims = desc.dimensions();
+      const Dimensions& desc_strides = internal::strides<Layout>(desc_dims);
+      for (int i = 0; i < NumDims; ++i) {
+        if (desc_dims[i] == 1) continue;
+        if (desc_strides[i] != strides[i]) return kStrided;
+      }
+      return kContiguous;
+    }
+
+    // Storage pointer is type erased, to reduce template bloat, but we still
+    // keep the size of the underlying element type for error checking.
     void* m_data;
-    Dimensions m_dimensions;
+    size_t m_data_type_size;
+
+    // Destination buffer dimensions always match the dimensions of a tensor
+    // block descriptor it belongs to, however strides might be different.
     Dimensions m_strides;
 
-    // Total size of the memory buffer at the destination (typically the total
-    // size of the left hand side of an assignment expression). This can be the
-    // same as `array_prod(m_dimensions)` if the assignment target has just a
-    // single block, but typically it's a larger number.
-    size_t m_total_dst_bytes;
+    DestinationBufferKind m_kind;
   };
 
   TensorBlockDescriptor(const IndexType offset, const Dimensions& dimensions,
@@ -173,40 +171,31 @@ class TensorBlockDescriptor {
   IndexType dimension(int index) const { return m_dimensions[index]; }
   IndexType size() const { return array_prod<IndexType>(m_dimensions); }
 
-  template <typename Scalar>
-  void AddDestinationBuffer(Scalar* dst_base, const Dimensions& dst_strides,
-                            size_t total_dst_bytes) {
+  const DestinationBuffer& destination() const { return m_destination; }
+
+  template <int Layout, typename Scalar>
+  void AddDestinationBuffer(Scalar* dst_base, const Dimensions& dst_strides) {
+    eigen_assert(dst_base != NULL);
     m_destination =
-        DestinationBuffer(dst_base, m_dimensions, dst_strides, total_dst_bytes);
+        DestinationBuffer::template make<Layout>(*this, dst_base, dst_strides);
   }
 
-  template <typename Scalar, typename DstStridesIndexType>
+  template <int Layout, typename Scalar, typename DstStridesIndexType>
   void AddDestinationBuffer(
-      Scalar* dst_base, const DSizes<DstStridesIndexType, NumDims>& dst_strides,
-      size_t total_dst_bytes) {
+      Scalar* dst_base,
+      const DSizes<DstStridesIndexType, NumDims>& dst_strides) {
     // DSizes constructor will do index type promotion if it's safe.
-    AddDestinationBuffer(dst_base, Dimensions(dst_strides), total_dst_bytes);
+    AddDestinationBuffer<Layout>(*this, dst_base, Dimensions(dst_strides));
   }
 
   TensorBlockDescriptor& DropDestinationBuffer() {
     m_destination.m_data = NULL;
+    m_destination.m_kind = DestinationBuffer::kEmpty;
     return *this;
   }
 
-  bool HasDestinationBuffer() const { return m_destination.m_data != NULL; }
-
-  const DestinationBuffer& GetDestinationBuffer() const {
-    return m_destination;
-  }
-
-  // Returns a non-nullptr pointer to a destination buffer memory if this
-  // block has a contiguous destination buffer.
-  template <typename Scalar, int Layout>
-  Scalar* destination() const {
-    if (m_destination.template fitsContiguously<Scalar, Layout>(*this)) {
-      return m_destination.template data<Scalar>();
-    }
-    return NULL;
+  bool HasDestinationBuffer() const {
+    return m_destination.kind() != DestinationBuffer::kEmpty;
   }
 
   // Returns a copy of `*this` with updated offset.
@@ -404,6 +393,80 @@ class TensorMaterializedBlock {
 
   typedef internal::TensorBlockDescriptor<NumDims, IndexType> TensorBlockDesc;
 
+  // TensorMaterializedBlock can be backed by different types of storage:
+  //
+  //   (1) Contiguous block of memory allocated with scratch allocator.
+  //   (2) Contiguous block of memory reused from tensor block descriptor
+  //       destination buffer.
+  //   (3) Strided block of memory reused from tensor block descriptor
+  //       destination buffer.
+  //
+  class Storage {
+   public:
+    Scalar* data() const { return m_data; }
+    const Dimensions& dimensions() const { return m_dimensions; }
+    const Dimensions& strides() const { return m_strides; }
+
+    TensorMaterializedBlock AsTensorMaterializedBlock() const {
+      return TensorMaterializedBlock(
+          m_materialized_in_output
+              ? internal::TensorBlockKind::kMaterializedInOutput
+              : internal::TensorBlockKind::kMaterializedInScratch,
+          m_data, m_dimensions, !m_strided_storage);
+    }
+
+   private:
+    friend class TensorMaterializedBlock;
+
+    Storage(Scalar* data, const Dimensions& dimensions,
+            const Dimensions& strides, bool materialized_in_output,
+            bool strided_storage)
+        : m_data(data),
+          m_dimensions(dimensions),
+          m_strides(strides),
+          m_materialized_in_output(materialized_in_output),
+          m_strided_storage(strided_storage) {}
+
+    Scalar* m_data;
+    Dimensions m_dimensions;
+    Dimensions m_strides;
+    bool m_materialized_in_output;
+    bool m_strided_storage;
+  };
+
+  // Creates a storage for materialized block either from the block descriptor
+  // destination buffer, or allocates a new buffer with scratch allocator.
+  template <typename TensorBlockScratch>
+  EIGEN_STRONG_INLINE static Storage prepareStorage(
+      TensorBlockDesc& desc, TensorBlockScratch& scratch,
+      bool allow_strided_storage = false) {
+    // Try to reuse destination as an output block buffer.
+    typedef typename TensorBlockDesc::DestinationBuffer DestinationBuffer;
+
+    if (desc.destination().kind() == DestinationBuffer::kContiguous) {
+      Scalar* buffer = desc.destination().template data<Scalar>();
+      desc.DropDestinationBuffer();
+      return Storage(buffer, desc.dimensions(),
+                     internal::strides<Layout>(desc.dimensions()),
+                     /*materialized_in_output=*/true,
+                     /*strided_storage=*/false);
+
+    } else if (desc.destination().kind() == DestinationBuffer::kStrided &&
+               allow_strided_storage) {
+      Scalar* buffer = desc.destination().template data<Scalar>();
+      desc.DropDestinationBuffer();
+      return Storage(buffer, desc.dimensions(), desc.destination().strides(),
+                     /*materialized_in_output=*/true, /*strided_storage=*/true);
+
+    } else {
+      void* mem = scratch.allocate(desc.size() * sizeof(Scalar));
+      return Storage(static_cast<Scalar*>(mem), desc.dimensions(),
+                     internal::strides<Layout>(desc.dimensions()),
+                     /*materialized_in_output=*/false,
+                     /*strided_storage=*/false);
+    }
+  }
+
   // Creates a materialized block for the given descriptor from a memory buffer.
   template <typename DataDimensions, typename TensorBlockScratch>
   EIGEN_STRONG_INLINE static TensorMaterializedBlock materialize(
@@ -448,19 +511,8 @@ class TensorMaterializedBlock {
                                      block_start, desc.dimensions());
 
     } else {
-      // Try to reuse destination as an output block buffer.
-      Scalar* block_buffer = desc.template destination<Scalar, Layout>();
-      bool materialized_in_output;
-
-      if (block_buffer != NULL) {
-        desc.DropDestinationBuffer();
-        materialized_in_output = true;
-
-      } else {
-        materialized_in_output = false;
-        void* mem = scratch.allocate(desc.size() * sizeof(Scalar));
-        block_buffer = static_cast<Scalar*>(mem);
-      }
+      // Reuse destination buffer or allocate new buffer with scratch allocator.
+      const Storage storage = prepareStorage(desc, scratch);
 
       typedef internal::TensorBlockIOV2<Scalar, IndexType, NumDims, Layout>
           TensorBlockIO;
@@ -469,17 +521,11 @@ class TensorMaterializedBlock {
 
       TensorBlockIOSrc src(internal::strides<Layout>(Dimensions(data_dims)),
                            data, desc.offset());
-      TensorBlockIODst dst(desc.dimensions(),
-                           internal::strides<Layout>(desc.dimensions()),
-                           block_buffer);
+      TensorBlockIODst dst(storage.dimensions(), storage.strides(),
+                           storage.data());
 
       TensorBlockIO::Copy(dst, src);
-
-      return TensorMaterializedBlock(
-          materialized_in_output
-              ? internal::TensorBlockKind::kMaterializedInOutput
-              : internal::TensorBlockKind::kMaterializedInScratch,
-          block_buffer, desc.dimensions());
+      return storage.AsTensorMaterializedBlock();
     }
   }
 

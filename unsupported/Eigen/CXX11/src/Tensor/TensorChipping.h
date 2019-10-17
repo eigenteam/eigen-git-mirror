@@ -369,28 +369,35 @@ struct TensorEvaluator<const TensorChippingOp<DimId, ArgType>, Device>
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorBlockV2
   blockV2(TensorBlockDesc& desc, TensorBlockScratch& scratch,
-          bool /*root_of_expr_ast*/ = false) const {
+          bool root_of_expr_ast = false) const {
     const Index chip_dim = m_dim.actualDim();
 
     DSizes<Index, NumInputDims> input_block_dims;
     for (int i = 0; i < NumInputDims; ++i) {
-      input_block_dims[i] = i < chip_dim ? desc.dimension(i)
-                          : i > chip_dim ? desc.dimension(i - 1)
-                          : 1;
+      input_block_dims[i]
+            = i < chip_dim ? desc.dimension(i)
+            : i > chip_dim ? desc.dimension(i - 1)
+            : 1;
     }
 
     ArgTensorBlockDesc arg_desc(srcCoeff(desc.offset()), input_block_dims);
 
     // Try to reuse destination buffer for materializing argument block.
-    ScalarNoConst* destination_buffer =
-        desc.template destination<ScalarNoConst, Layout>();
-    if (destination_buffer != NULL) {
-      arg_desc.AddDestinationBuffer(
-          destination_buffer, internal::strides<Layout>(arg_desc.dimensions()),
-          (arg_desc.size() * sizeof(Scalar)));
+    if (desc.HasDestinationBuffer()) {
+      DSizes<Index, NumInputDims> arg_destination_strides;
+      for (int i = 0; i < NumInputDims; ++i) {
+      arg_destination_strides[i]
+            = i < chip_dim ? desc.destination().strides()[i]
+            : i > chip_dim ? desc.destination().strides()[i - 1]
+            : 0; // for dimensions of size `1` stride should never be used.
+      }
+
+      arg_desc.template AddDestinationBuffer<Layout>(
+          desc.destination().template data<ScalarNoConst>(),
+          arg_destination_strides);
     }
 
-    ArgTensorBlock arg_block = m_impl.blockV2(arg_desc, scratch);
+    ArgTensorBlock arg_block = m_impl.blockV2(arg_desc, scratch, root_of_expr_ast);
     if (!arg_desc.HasDestinationBuffer()) desc.DropDestinationBuffer();
 
     if (arg_block.data() != NULL) {
@@ -401,21 +408,9 @@ struct TensorEvaluator<const TensorChippingOp<DimId, ArgType>, Device>
     } else {
       // Assign argument block expression to a buffer.
 
-      // Try to reuse destination as an output buffer.
-      ScalarNoConst* output_buffer =
-          desc.template destination<ScalarNoConst, Layout>();
-      bool materialized_in_output;
-
-      if (output_buffer != NULL) {
-        desc.DropDestinationBuffer();
-        materialized_in_output = true;
-
-      } else {
-        materialized_in_output = false;
-        const size_t materialized_output_size = desc.size() * sizeof(Scalar);
-        void* output_scratch_mem = scratch.allocate(materialized_output_size);
-        output_buffer = static_cast<ScalarNoConst*>(output_scratch_mem);
-      }
+      // Prepare storage for the materialized chipping result.
+      const typename TensorBlockV2::Storage block_storage =
+          TensorBlockV2::prepareStorage(desc, scratch);
 
       typedef internal::TensorBlockAssignment<
           ScalarNoConst, NumInputDims, typename ArgTensorBlock::XprType, Index>
@@ -425,14 +420,10 @@ struct TensorEvaluator<const TensorChippingOp<DimId, ArgType>, Device>
           TensorBlockAssignment::target(
               arg_desc.dimensions(),
               internal::strides<Layout>(arg_desc.dimensions()),
-              output_buffer),
+              block_storage.data()),
           arg_block.expr());
 
-      return TensorBlockV2(
-          materialized_in_output
-              ? internal::TensorBlockKind::kMaterializedInOutput
-              : internal::TensorBlockKind::kMaterializedInScratch,
-          output_buffer, desc.dimensions());
+      return block_storage.AsTensorMaterializedBlock();
     }
   }
 
