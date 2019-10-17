@@ -764,14 +764,18 @@ struct TensorEvaluator<const TensorCwiseTernaryOp<TernaryOp, Arg1Type, Arg2Type,
 
   enum {
     IsAligned = TensorEvaluator<Arg1Type, Device>::IsAligned & TensorEvaluator<Arg2Type, Device>::IsAligned & TensorEvaluator<Arg3Type, Device>::IsAligned,
-    PacketAccess = TensorEvaluator<Arg1Type, Device>::PacketAccess & TensorEvaluator<Arg2Type, Device>::PacketAccess & TensorEvaluator<Arg3Type, Device>::PacketAccess &
-                   internal::functor_traits<TernaryOp>::PacketAccess,
-    BlockAccess = false,
-    BlockAccessV2 = false,
-    PreferBlockAccess = false,
-    Layout = TensorEvaluator<Arg1Type, Device>::Layout,
-    CoordAccess = false,  // to be implemented
-    RawAccess = false
+    PacketAccess      = TensorEvaluator<Arg1Type, Device>::PacketAccess &&
+                        TensorEvaluator<Arg2Type, Device>::PacketAccess &&
+                        TensorEvaluator<Arg3Type, Device>::PacketAccess &&
+                        internal::functor_traits<TernaryOp>::PacketAccess,
+    BlockAccess       = false,
+    BlockAccessV2     = false,
+    PreferBlockAccess = TensorEvaluator<Arg1Type, Device>::PreferBlockAccess ||
+                        TensorEvaluator<Arg2Type, Device>::PreferBlockAccess ||
+                        TensorEvaluator<Arg3Type, Device>::PreferBlockAccess,
+    Layout            = TensorEvaluator<Arg1Type, Device>::Layout,
+    CoordAccess       = false,  // to be implemented
+    RawAccess         = false
   };
 
   EIGEN_DEVICE_FUNC TensorEvaluator(const XprType& op, const Device& device)

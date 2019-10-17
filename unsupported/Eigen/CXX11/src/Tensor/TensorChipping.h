@@ -157,8 +157,10 @@ struct TensorEvaluator<const TensorChippingOp<DimId, ArgType>, Device>
     // Chipping inner-most dimension.
     IsInnerChipping   = (static_cast<int>(Layout) == ColMajor && DimId == 0) ||
                         (static_cast<int>(Layout) == RowMajor && DimId == NumInputDims - 1),
-    // Do not choose block access if chipping is trivial.
-    PreferBlockAccess = !IsOuterChipping,
+    // Prefer block access if the underlying expression prefers it, otherwise
+    // only if chipping is not trivial.
+    PreferBlockAccess = TensorEvaluator<ArgType, Device>::PreferBlockAccess ||
+                        !IsOuterChipping,
     CoordAccess       = false,  // to be implemented
     RawAccess         = false
   };

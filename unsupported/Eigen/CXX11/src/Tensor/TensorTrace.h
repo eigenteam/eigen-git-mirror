@@ -99,7 +99,7 @@ struct TensorEvaluator<const TensorTraceOp<Dims, ArgType>, Device>
     PacketAccess = TensorEvaluator<ArgType, Device>::PacketAccess,
     BlockAccess = false,
     BlockAccessV2 = false,
-    PreferBlockAccess = false,
+    PreferBlockAccess = TensorEvaluator<ArgType, Device>::PreferBlockAccess,
     Layout = TensorEvaluator<ArgType, Device>::Layout,
     CoordAccess = false,
     RawAccess = false

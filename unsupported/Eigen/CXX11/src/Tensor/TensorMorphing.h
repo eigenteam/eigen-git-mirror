@@ -1118,7 +1118,7 @@ struct TensorEvaluator<const TensorStridingSlicingOp<StartIndices, StopIndices, 
     PacketAccess = false,
     BlockAccess = false,
     BlockAccessV2 = false,
-    PreferBlockAccess = false,
+    PreferBlockAccess = TensorEvaluator<ArgType, Device>::PreferBlockAccess,
     Layout = TensorEvaluator<ArgType, Device>::Layout,
     RawAccess = false
   };
@@ -1300,7 +1300,7 @@ struct TensorEvaluator<TensorStridingSlicingOp<StartIndices, StopIndices, Stride
     PacketAccess = false,
     BlockAccess = false,
     BlockAccessV2 = false,
-    PreferBlockAccess = false,
+    PreferBlockAccess = TensorEvaluator<ArgType, Device>::PreferBlockAccess,
     Layout = TensorEvaluator<ArgType, Device>::Layout,
     CoordAccess = TensorEvaluator<ArgType, Device>::CoordAccess,
     RawAccess = false

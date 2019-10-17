@@ -90,7 +90,7 @@ struct TensorEvaluator<const TensorIndexTupleOp<ArgType>, Device>
     PacketAccess = /*TensorEvaluator<ArgType, Device>::PacketAccess*/ false,
     BlockAccess = false,
     BlockAccessV2 = false,
-    PreferBlockAccess = false,
+    PreferBlockAccess = TensorEvaluator<ArgType, Device>::PreferBlockAccess,
     Layout = TensorEvaluator<ArgType, Device>::Layout,
     CoordAccess = false,  // to be implemented
     RawAccess = false
@@ -228,14 +228,14 @@ struct TensorEvaluator<const TensorTupleReducerOp<ReduceOp, Dims, ArgType>, Devi
   typedef StorageMemory<TupleType, Device> TupleStorageMem;
 
   enum {
-    IsAligned = /*TensorEvaluator<ArgType, Device>::IsAligned*/ false,
-    PacketAccess = /*TensorEvaluator<ArgType, Device>::PacketAccess*/ false,
-    BlockAccess = false,
-    BlockAccessV2 = false,
-    PreferBlockAccess = false,
-    Layout = TensorEvaluator<const TensorReductionOp<ReduceOp, Dims, const TensorIndexTupleOp<ArgType> >, Device>::Layout,
-    CoordAccess = false,  // to be implemented
-    RawAccess = false
+    IsAligned         = /*TensorEvaluator<ArgType, Device>::IsAligned*/ false,
+    PacketAccess      = /*TensorEvaluator<ArgType, Device>::PacketAccess*/ false,
+    BlockAccess       = false,
+    BlockAccessV2     = false,
+    PreferBlockAccess = TensorEvaluator<ArgType, Device>::PreferBlockAccess,
+    Layout            = TensorEvaluator<const TensorReductionOp<ReduceOp, Dims, const TensorIndexTupleOp<ArgType> >, Device>::Layout,
+    CoordAccess       = false,  // to be implemented
+    RawAccess         = false
   };
 
   //===- Tensor block evaluation strategy (see TensorBlock.h) -------------===//

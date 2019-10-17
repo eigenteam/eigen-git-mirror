@@ -121,7 +121,7 @@ struct TensorEvaluator<const TensorLayoutSwapOp<ArgType>, Device>
     PacketAccess = TensorEvaluator<ArgType, Device>::PacketAccess,
     BlockAccess = false,
     BlockAccessV2 = false,
-    PreferBlockAccess = false,
+    PreferBlockAccess = TensorEvaluator<ArgType, Device>::PreferBlockAccess,
     Layout = (static_cast<int>(TensorEvaluator<ArgType, Device>::Layout) == static_cast<int>(ColMajor)) ? RowMajor : ColMajor,
     CoordAccess = false,  // to be implemented
     RawAccess = TensorEvaluator<ArgType, Device>::RawAccess
@@ -201,7 +201,7 @@ template<typename ArgType, typename Device>
     PacketAccess = TensorEvaluator<ArgType, Device>::PacketAccess,
     BlockAccess = false,
     BlockAccessV2 = false,
-    PreferBlockAccess = false,
+    PreferBlockAccess = TensorEvaluator<ArgType, Device>::PreferBlockAccess,
     Layout = (static_cast<int>(TensorEvaluator<ArgType, Device>::Layout) == static_cast<int>(ColMajor)) ? RowMajor : ColMajor,
     CoordAccess = false  // to be implemented
   };
