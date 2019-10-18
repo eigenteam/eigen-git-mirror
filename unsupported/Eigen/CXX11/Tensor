@@ -13,6 +13,8 @@
 
 #include "../../../Eigen/Core"
 
+#if EIGEN_HAS_CXX11
+
 #if defined(EIGEN_USE_SYCL)
 #undef min
 #undef max
@@ -47,6 +49,7 @@
 #include <cmath>
 #include <cstddef>
 #include <cstring>
+#include <random>
 
 #ifdef _WIN32
 typedef __int16 int16_t;
@@ -59,10 +62,6 @@ typedef unsigned __int64 uint64_t;
 #else
 #include <stdint.h>
 #include <unistd.h>
-#endif
-
-#if __cplusplus > 199711 || EIGEN_COMP_MSVC >= 1900
-#include <random>
 #endif
 
 #ifdef _WIN32
@@ -164,4 +163,5 @@ typedef unsigned __int64 uint64_t;
 
 #include "../../../Eigen/src/Core/util/ReenableStupidWarnings.h"
 
+#endif  // EIGEN_HAS_CXX11
 //#endif // EIGEN_CXX11_TENSOR_MODULE

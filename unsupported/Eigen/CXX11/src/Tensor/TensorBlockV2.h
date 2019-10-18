@@ -51,13 +51,11 @@ EIGEN_ALWAYS_INLINE DSizes<IndexType, NumDims> strides(
   return strides<Layout>(DSizes<IndexType, NumDims>(dimensions));
 }
 
-#if EIGEN_HAS_CXX11
 template <int Layout, std::ptrdiff_t... Indices>
 EIGEN_STRONG_INLINE DSizes<std::ptrdiff_t, sizeof...(Indices)> strides(
     const Sizes<Indices...>& sizes) {
   return strides<Layout>(DSizes<std::ptrdiff_t, sizeof...(Indices)>(sizes));
 }
-#endif
 
 // -------------------------------------------------------------------------- //
 // TensorBlockDescriptor specifies a block offset within a tensor and the block
@@ -185,7 +183,7 @@ class TensorBlockDescriptor {
       Scalar* dst_base,
       const DSizes<DstStridesIndexType, NumDims>& dst_strides) {
     // DSizes constructor will do index type promotion if it's safe.
-    AddDestinationBuffer<Layout>(*this, dst_base, Dimensions(dst_strides));
+    AddDestinationBuffer<Layout>(dst_base, Dimensions(dst_strides));
   }
 
   TensorBlockDescriptor& DropDestinationBuffer() {
@@ -285,11 +283,6 @@ class TensorBlockScratchAllocator {
 // -------------------------------------------------------------------------- //
 // TensorBlockKind represents all possible block kinds, that can be produced by
 // TensorEvaluator::evalBlock function.
-#if !EIGEN_HAS_CXX11
-// To be able to use `TensorBlockKind::kExpr` in C++03 we need a namespace.
-// (Use of enumeration in a nested name specifier is a c++11 extension).
-namespace TensorBlockKind {
-#endif
 enum TensorBlockKind {
   // Tensor block that is a lazy expression that must be assigned to a
   // destination using TensorBlockAssign.
@@ -313,9 +306,6 @@ enum TensorBlockKind {
   // TensorBlockAssign or for constructing another block expression.
   kMaterializedInOutput
 };
-#if !EIGEN_HAS_CXX11
-}  // namespace TensorBlockKind
-#endif
 
 // -------------------------------------------------------------------------- //
 // TensorBlockNotImplemented should be used to defined TensorBlock typedef in
@@ -361,9 +351,6 @@ struct XprScalar<void> {
 template <typename Scalar, int NumDims, int Layout,
           typename IndexType = Eigen::Index>
 class TensorMaterializedBlock {
-#if !EIGEN_HAS_CXX11
-  typedef internal::TensorBlockKind::TensorBlockKind TensorBlockKind;
-#endif
  public:
   typedef DSizes<IndexType, NumDims> Dimensions;
   typedef TensorMap<const Tensor<Scalar, NumDims, Layout> > XprType;
@@ -543,9 +530,6 @@ class TensorMaterializedBlock {
 
 template <typename UnaryOp, typename ArgTensorBlock>
 class TensorCwiseUnaryBlock {
-#if !EIGEN_HAS_CXX11
-  typedef internal::TensorBlockKind::TensorBlockKind TensorBlockKind;
-#endif
 
   static const bool NoArgBlockAccess =
       internal::is_void<typename ArgTensorBlock::XprType>::value;
@@ -578,9 +562,6 @@ class TensorCwiseUnaryBlock {
 
 template <typename BinaryOp, typename LhsTensorBlock, typename RhsTensorBlock>
 class TensorCwiseBinaryBlock {
-#if !EIGEN_HAS_CXX11
-  typedef internal::TensorBlockKind::TensorBlockKind TensorBlockKind;
-#endif
 
   static const bool NoArgBlockAccess =
       internal::is_void<typename LhsTensorBlock::XprType>::value ||
@@ -628,9 +609,6 @@ class TensorCwiseBinaryBlock {
 
 template <typename BlockFactory, typename ArgTensorBlock>
 class TensorUnaryExprBlock {
-#if !EIGEN_HAS_CXX11
-  typedef internal::TensorBlockKind::TensorBlockKind TensorBlockKind;
-#endif
 
   typedef typename ArgTensorBlock::XprType ArgXprType;
   static const bool NoArgBlockAccess = internal::is_void<ArgXprType>::value;
@@ -663,9 +641,6 @@ class TensorUnaryExprBlock {
 template <typename BlockFactory, typename Arg1TensorBlock,
           typename Arg2TensorBlock, typename Arg3TensorBlock>
 class TensorTernaryExprBlock {
-#if !EIGEN_HAS_CXX11
-  typedef internal::TensorBlockKind::TensorBlockKind TensorBlockKind;
-#endif
 
   typedef typename Arg1TensorBlock::XprType Arg1XprType;
   typedef typename Arg2TensorBlock::XprType Arg2XprType;

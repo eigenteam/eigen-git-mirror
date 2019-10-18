@@ -445,7 +445,7 @@ __global__ void OuterReductionKernel(R, const S, I_, I_, typename S::CoeffReturn
  */
 template <typename Op, typename CoeffReturnType>
 struct ReductionReturnType {
-#if EIGEN_HAS_CXX11 && defined(EIGEN_USE_SYCL)
+#if defined(EIGEN_USE_SYCL)
   typedef typename remove_const<decltype(std::declval<Op>().initialize())>::type type;
 #else
   typedef typename remove_const<CoeffReturnType>::type type;

@@ -76,13 +76,8 @@ struct ExpressionHasTensorBroadcastingOp<
  * Default strategy: the expression is evaluated sequentially with a single cpu
  * thread, without vectorization and block evaluation.
  */
-#if EIGEN_HAS_CXX11
 template <typename Expression, typename Device, bool Vectorizable,
           TiledEvaluation Tiling>
-#else
- template <typename Expression, typename Device, bool Vectorizable,
-          TiledEvaluation::TiledEvaluation Tiling>
-#endif
 class TensorExecutor {
  public:
   typedef typename Expression::Index StorageIndex;

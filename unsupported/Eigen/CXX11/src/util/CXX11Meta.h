@@ -11,18 +11,101 @@
 #define EIGEN_CXX11META_H
 
 #include <vector>
-#include "EmulateArray.h"
-
-// Emulate the cxx11 functionality that we need if the compiler doesn't support it.
-// Visual studio 2015 doesn't advertise itself as cxx11 compliant, although it
-// supports enough of the standard for our needs
-#if __cplusplus > 199711L || EIGEN_COMP_MSVC >= 1900
+#include <array>
 
 #include "CXX11Workarounds.h"
 
 namespace Eigen {
 
+// Workaround for constructors used by legacy code calling Eigen::array.
+template <typename T, size_t N>
+class array : public std::array<T, N> {
+ public:
+
+  typedef std::array<T, N> Base;
+
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+  array() : Base() {}
+
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+  array(const T& v) : Base{v} {
+    EIGEN_STATIC_ASSERT(N == 1, YOU_MADE_A_PROGRAMMING_MISTAKE);
+  }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+  array(const T& v1, const T& v2) : Base{v1, v2} {
+    EIGEN_STATIC_ASSERT(N == 2, YOU_MADE_A_PROGRAMMING_MISTAKE);
+  }
+
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+  array(const T& v1, const T& v2, const T& v3) : Base{v1, v2, v3} {
+    EIGEN_STATIC_ASSERT(N == 3, YOU_MADE_A_PROGRAMMING_MISTAKE);
+  }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+  array(const T& v1, const T& v2, const T& v3, const T& v4)
+      : Base{v1, v2, v3, v4} {
+    EIGEN_STATIC_ASSERT(N == 4, YOU_MADE_A_PROGRAMMING_MISTAKE);
+  }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+  array(const T& v1, const T& v2, const T& v3, const T& v4, const T& v5)
+      : Base{v1, v2, v3, v4, v5} {
+    EIGEN_STATIC_ASSERT(N == 5, YOU_MADE_A_PROGRAMMING_MISTAKE);
+  }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+  array(const T& v1, const T& v2, const T& v3, const T& v4, const T& v5,
+       const T& v6) : Base{v1, v2, v3, v4, v5, v6} {
+    EIGEN_STATIC_ASSERT(N == 6, YOU_MADE_A_PROGRAMMING_MISTAKE);
+  }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+  array(const T& v1, const T& v2, const T& v3, const T& v4, const T& v5,
+        const T& v6, const T& v7)
+      : Base{v1, v2, v3, v4, v5, v6, v7} {
+    EIGEN_STATIC_ASSERT(N == 7, YOU_MADE_A_PROGRAMMING_MISTAKE);
+  }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+  array(const T& v1, const T& v2, const T& v3, const T& v4, const T& v5,
+        const T& v6, const T& v7, const T& v8)
+      : Base{v1, v2, v3, v4, v5, v6, v7, v8} {
+    EIGEN_STATIC_ASSERT(N == 8, YOU_MADE_A_PROGRAMMING_MISTAKE);
+  }
+#if EIGEN_HAS_VARIADIC_TEMPLATES
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+  array(std::initializer_list<T> l) {
+    eigen_assert(l.size() == N);
+    internal::smart_copy(l.begin(), l.end(), this->begin());
+  }
+#endif
+};
+
+template<typename T, std::size_t N> struct internal::array_size<const array<T,N> > {
+  enum { value = N };
+};
+template<typename T, std::size_t N> struct internal::array_size<array<T,N> > {
+  enum { value = N };
+};
+
 namespace internal {
+
+/* std::get is only constexpr in C++14, not yet in C++11
+ *     - libstdc++ from version 4.7 onwards has it nevertheless,
+ *                                          so use that
+ *     - libstdc++ older versions: use _M_instance directly
+ *     - libc++ all versions so far: use __elems_ directly
+ *     - all other libs: use std::get to be portable, but
+ *                       this may not be constexpr
+ */
+#if defined(__GLIBCXX__) && __GLIBCXX__ < 20120322
+#define STD_GET_ARR_HACK             a._M_instance[I_]
+#elif defined(_LIBCPP_VERSION)
+#define STD_GET_ARR_HACK             a.__elems_[I_]
+#else
+#define STD_GET_ARR_HACK             std::template get<I_, T, N>(a)
+#endif
+
+template<std::size_t I_, class T, std::size_t N> constexpr inline T&       array_get(std::array<T,N>&       a) { return (T&)       STD_GET_ARR_HACK; }
+template<std::size_t I_, class T, std::size_t N> constexpr inline T&&      array_get(std::array<T,N>&&      a) { return (T&&)      STD_GET_ARR_HACK; }
+template<std::size_t I_, class T, std::size_t N> constexpr inline T const& array_get(std::array<T,N> const& a) { return (T const&) STD_GET_ARR_HACK; }
+
+#undef STD_GET_ARR_HACK
 
 /** \internal
   * \file CXX11/util/CXX11Meta.h
@@ -536,11 +619,5 @@ InstType instantiate_by_c_array(ArrType* arr)
 } // end namespace internal
 
 } // end namespace Eigen
-
-#else // Non C++11, fallback to emulation mode
-
-#include "EmulateCXX11Meta.h"
-
-#endif
 
 #endif // EIGEN_CXX11META_H

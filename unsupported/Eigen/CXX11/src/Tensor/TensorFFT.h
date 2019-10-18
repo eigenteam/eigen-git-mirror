@@ -10,10 +10,6 @@
 #ifndef EIGEN_CXX11_TENSOR_TENSOR_FFT_H
 #define EIGEN_CXX11_TENSOR_TENSOR_FFT_H
 
-// This code requires the ability to initialize arrays of constant
-// values directly inside a class.
-#if __cplusplus >= 201103L || EIGEN_COMP_MSVC >= 1900
-
 namespace Eigen {
 
 /** \class TensorFFT
@@ -670,8 +666,5 @@ struct TensorEvaluator<const TensorFFTOp<FFT, ArgType, FFTResultType, FFTDir>, D
 };
 
 }  // end namespace Eigen
-
-#endif  // EIGEN_HAS_CONSTEXPR
-
 
 #endif  // EIGEN_CXX11_TENSOR_TENSOR_FFT_H
