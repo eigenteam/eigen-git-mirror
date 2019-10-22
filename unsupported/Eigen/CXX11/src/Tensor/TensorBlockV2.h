@@ -78,7 +78,14 @@ class TensorBlockDescriptor {
   // evaluated expression scalar type.
   class DestinationBuffer {
    public:
-    enum DestinationBufferKind {
+    enum DestinationBufferKind : int {
+      // The above explicit specification of "int" as the enum basetype is needed
+      // to get around a HIPCC link error ("the field type is not amp-compatible")
+      // which is issued for class members with the enum type.
+      // TODO(rocm):
+      // remove the "int" basetype once HIPCC has been fixed to not error out
+      // in the above scenario.
+
       // Destination buffer is not defined (`m_data` == nullptr).
       kEmpty,
 
