@@ -132,14 +132,6 @@ struct TensorEvaluator<const TensorForcedEvalOp<ArgType_>, Device>
   EIGEN_STRONG_INLINE bool evalSubExprsIfNeeded(EvaluatorPointerType) {
     const Index numValues =  internal::array_prod(m_impl.dimensions());
     m_buffer = m_device.get((CoeffReturnType*)m_device.allocate_temp(numValues * sizeof(CoeffReturnType)));
-    #ifndef EIGEN_USE_SYCL
-    // Should initialize the memory in case we're dealing with non POD types.
-    if (NumTraits<CoeffReturnType>::RequireInitialization) {
-      for (Index i = 0; i < numValues; ++i) {
-        new(m_buffer+i) CoeffReturnType();
-      }
-    }
-    #endif
     typedef TensorEvalToOp< const typename internal::remove_const<ArgType>::type > EvalTo;
     EvalTo evalToTmp(m_device.get(m_buffer), m_op);
 
@@ -151,6 +143,29 @@ struct TensorEvaluator<const TensorForcedEvalOp<ArgType_>, Device>
 
     return true;
   }
+
+#ifdef EIGEN_USE_THREADS
+  template <typename EvalSubExprsCallback>
+  EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC void evalSubExprsIfNeededAsync(
+      EvaluatorPointerType, EvalSubExprsCallback done) {
+    const Index numValues = internal::array_prod(m_impl.dimensions());
+    m_buffer = m_device.get((CoeffReturnType*)m_device.allocate_temp(
+        numValues * sizeof(CoeffReturnType)));
+    typedef TensorEvalToOp<const typename internal::remove_const<ArgType>::type>
+        EvalTo;
+    EvalTo evalToTmp(m_device.get(m_buffer), m_op);
+
+    auto on_done = std::bind([](EvalSubExprsCallback done) { done(true); },
+                             std::move(done));
+    internal::TensorAsyncExecutor<
+        const EvalTo, typename internal::remove_const<Device>::type,
+        decltype(on_done),
+        /*Vectorizable=*/internal::IsVectorizable<Device, const ArgType>::value,
+        /*Tiling=*/internal::IsTileable<Device, const ArgType>::value>::
+        runAsync(evalToTmp, m_device, std::move(on_done));
+  }
+#endif
+
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void cleanup() {
     m_device.deallocate_temp(m_buffer);
     m_buffer = NULL;

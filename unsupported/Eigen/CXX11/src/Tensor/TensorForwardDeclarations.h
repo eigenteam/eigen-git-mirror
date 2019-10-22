@@ -185,11 +185,11 @@ template <typename Expression, typename Device,
           TiledEvaluation Tiling = IsTileable<Device, Expression>::value>
 class TensorExecutor;
 
-// TODO(ezhulenev): Add TiledEvaluation support to async executor.
 template <typename Expression, typename Device, typename DoneCallback,
           bool Vectorizable = IsVectorizable<Device, Expression>::value,
-          bool Tileable     = IsTileable<Device, Expression>::BlockAccess>
+          TiledEvaluation Tiling = IsTileable<Device, Expression>::value>
 class TensorAsyncExecutor;
+
 
 }  // end namespace internal
 

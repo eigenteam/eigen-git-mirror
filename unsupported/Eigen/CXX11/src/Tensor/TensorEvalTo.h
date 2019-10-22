@@ -151,6 +151,16 @@ struct TensorEvaluator<const TensorEvalToOp<ArgType, MakePointer_>, Device>
     return m_impl.evalSubExprsIfNeeded(m_buffer);
   }
 
+#ifdef EIGEN_USE_THREADS
+  template <typename EvalSubExprsCallback>
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void evalSubExprsIfNeededAsync(
+      EvaluatorPointerType scalar, EvalSubExprsCallback done) {
+    EIGEN_UNUSED_VARIABLE(scalar);
+    eigen_assert(scalar == NULL);
+    m_impl.evalSubExprsIfNeededAsync(m_buffer, std::move(done));
+  }
+#endif
+
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void evalScalar(Index i) {
     m_buffer[i] = m_impl.coeff(i);
   }

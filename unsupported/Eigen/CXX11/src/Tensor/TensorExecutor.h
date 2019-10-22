@@ -102,7 +102,7 @@ class TensorExecutor {
  * available for ThreadPoolDevice (see definition below).
  */
 template <typename Expression, typename Device, typename DoneCallback,
-          bool Vectorizable, bool Tileable>
+          bool Vectorizable, TiledEvaluation Tiling>
 class TensorAsyncExecutor {};
 
 /**
@@ -544,9 +544,9 @@ class TensorExecutor<Expression, ThreadPoolDevice, Vectorizable,
 };
 
 template <typename Expression, typename DoneCallback, bool Vectorizable,
-          bool Tileable>
+          TiledEvaluation Tiling>
 class TensorAsyncExecutor<Expression, ThreadPoolDevice, DoneCallback,
-                          Vectorizable, Tileable> {
+                          Vectorizable, Tiling> {
  public:
   typedef typename Expression::Index StorageIndex;
   typedef TensorEvaluator<Expression, ThreadPoolDevice> Evaluator;
@@ -598,7 +598,7 @@ class TensorAsyncExecutor<Expression, ThreadPoolDevice, DoneCallback,
 
 template <typename Expression, typename DoneCallback, bool Vectorizable>
 class TensorAsyncExecutor<Expression, ThreadPoolDevice, DoneCallback,
-                          Vectorizable, /*Tileable*/ true> {
+                          Vectorizable, /*Tileable*/ TiledEvaluation::Legacy> {
  public:
   typedef typename traits<Expression>::Index StorageIndex;
   typedef typename traits<Expression>::Scalar Scalar;
@@ -607,7 +607,9 @@ class TensorAsyncExecutor<Expression, ThreadPoolDevice, DoneCallback,
   static const int NumDims = traits<Expression>::NumDimensions;
 
   typedef TensorEvaluator<Expression, ThreadPoolDevice> Evaluator;
-  typedef TensorBlockMapper<ScalarNoConst, StorageIndex, NumDims, Evaluator::Layout> BlockMapper;
+  typedef TensorBlockMapper<ScalarNoConst, StorageIndex, NumDims,
+                            Evaluator::Layout>
+      BlockMapper;
   typedef TensorExecutorTilingContext<BlockMapper> TilingContext;
 
   static EIGEN_STRONG_INLINE void runAsync(const Expression& expr,
@@ -624,7 +626,7 @@ class TensorAsyncExecutor<Expression, ThreadPoolDevice, DoneCallback,
       auto delete_ctx = [ctx]() { delete ctx; };
       internal::TensorAsyncExecutor<
           Expression, ThreadPoolDevice, decltype(delete_ctx), Vectorizable,
-          /*Tileable*/ false>::runAsync(expr, device, std::move(delete_ctx));
+          /*Tileable*/ TiledEvaluation::Off>::runAsync(expr, device, std::move(delete_ctx));
       return;
     }
 
@@ -635,22 +637,102 @@ class TensorAsyncExecutor<Expression, ThreadPoolDevice, DoneCallback,
       }
 
       ctx->tiling =
-          GetTensorExecutorTilingContext<Evaluator, BlockMapper,
-                                         Vectorizable>(device, ctx->evaluator);
+          GetTensorExecutorTilingContext<Evaluator, BlockMapper, Vectorizable>(
+              device, ctx->evaluator);
 
-      device.parallelForAsync(
-          ctx->tiling.block_mapper.total_block_count(), ctx->tiling.cost,
-          [ctx](StorageIndex firstIdx, StorageIndex lastIdx) {
-            ScalarNoConst* thread_buf =
-                ctx->tiling.template GetCurrentThreadBuffer<ScalarNoConst>(
-                    ctx->device);
-            for (StorageIndex i = firstIdx; i < lastIdx; ++i) {
-              auto block =
-                  ctx->tiling.block_mapper.GetBlockForIndex(i, thread_buf);
-              ctx->evaluator.evalBlock(&block);
-            }
-          },
-          [ctx]() { delete ctx; });
+      auto eval_block = [ctx](StorageIndex firstIdx, StorageIndex lastIdx) {
+        ScalarNoConst* thread_buf =
+            ctx->tiling.template GetCurrentThreadBuffer<ScalarNoConst>(
+                ctx->device);
+        for (StorageIndex i = firstIdx; i < lastIdx; ++i) {
+          auto block = ctx->tiling.block_mapper.GetBlockForIndex(i, thread_buf);
+          ctx->evaluator.evalBlock(&block);
+        }
+      };
+      device.parallelForAsync(ctx->tiling.block_mapper.total_block_count(),
+                              ctx->tiling.cost, eval_block,
+                              [ctx]() { delete ctx; });
+    };
+
+    ctx->evaluator.evalSubExprsIfNeededAsync(nullptr, on_eval_subexprs);
+  }
+
+ private:
+  struct TensorAsyncExecutorContext {
+    TensorAsyncExecutorContext(const Expression& expr,
+                               const ThreadPoolDevice& thread_pool,
+                               DoneCallback done)
+        : device(thread_pool),
+          evaluator(expr, thread_pool),
+          on_done(std::move(done)) {}
+
+    ~TensorAsyncExecutorContext() {
+      on_done();
+      device.deallocate(tiling.buffer);
+      evaluator.cleanup();
+    }
+
+    const ThreadPoolDevice& device;
+    Evaluator evaluator;
+    TilingContext tiling;
+
+   private:
+    DoneCallback on_done;
+  };
+};
+
+template <typename Expression, typename DoneCallback, bool Vectorizable>
+class TensorAsyncExecutor<Expression, ThreadPoolDevice, DoneCallback,
+                          Vectorizable, /*Tileable*/ TiledEvaluation::On> {
+ public:
+  typedef typename traits<Expression>::Index IndexType;
+  typedef typename traits<Expression>::Scalar Scalar;
+  typedef typename remove_const<Scalar>::type ScalarNoConst;
+
+  static const int NumDims = traits<Expression>::NumDimensions;
+
+  typedef TensorEvaluator<Expression, ThreadPoolDevice> Evaluator;
+  typedef TensorBlockMapper<ScalarNoConst, IndexType, NumDims,
+                            Evaluator::Layout>
+      BlockMapper;
+  typedef TensorExecutorTilingContext<BlockMapper> TilingContext;
+
+  typedef internal::TensorBlockDescriptor<NumDims, IndexType> TensorBlockDesc;
+  typedef internal::TensorBlockScratchAllocator<ThreadPoolDevice>
+      TensorBlockScratch;
+
+  static EIGEN_STRONG_INLINE void runAsync(const Expression& expr,
+                                           const ThreadPoolDevice& device,
+                                           DoneCallback done) {
+
+    TensorAsyncExecutorContext* const ctx =
+        new TensorAsyncExecutorContext(expr, device, std::move(done));
+
+    const auto on_eval_subexprs = [ctx](bool need_assign) -> void {
+      if (!need_assign) {
+        delete ctx;
+        return;
+      }
+
+      ctx->tiling =
+          internal::GetTensorExecutorTilingContext<Evaluator, BlockMapper,
+                                                   Vectorizable>(
+              ctx->device, ctx->evaluator, /*allocate_buffer=*/false);
+
+      auto eval_block = [ctx](IndexType firstBlockIdx, IndexType lastBlockIdx) {
+        TensorBlockScratch scratch(ctx->device);
+
+        for (IndexType block_idx = firstBlockIdx; block_idx < lastBlockIdx;
+             ++block_idx) {
+          auto block =
+              ctx->tiling.block_mapper.GetBlockForIndex(block_idx, nullptr);
+          TensorBlockDesc desc(block.first_coeff_index(), block.block_sizes());
+          ctx->evaluator.evalBlockV2(desc, scratch);
+          scratch.reset();
+        }
+      };
+      ctx->device.parallelForAsync(ctx->tiling.block_mapper.total_block_count(),
+                                   ctx->tiling.cost, eval_block, [ctx]() { delete ctx; });
     };
 
     ctx->evaluator.evalSubExprsIfNeededAsync(nullptr, on_eval_subexprs);
@@ -681,7 +763,6 @@ class TensorAsyncExecutor<Expression, ThreadPoolDevice, DoneCallback,
 };
 
 #endif  // EIGEN_USE_THREADS
-
 
 // GPU: the evaluation of the expression is offloaded to a GPU.
 #if defined(EIGEN_USE_GPU)

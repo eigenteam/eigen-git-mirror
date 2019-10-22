@@ -689,15 +689,14 @@ struct TensorReductionEvaluatorBase<const TensorReductionOp<Op, Dims, ArgType, M
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Dimensions& dimensions() const { return m_dimensions; }
 
   EIGEN_STRONG_INLINE
-    #if !defined(EIGEN_HIPCC)
-    // Marking this as EIGEN_DEVICE_FUNC for HIPCC requires also doing the same for all the functions
-    // being called within here, which then leads to proliferation of EIGEN_DEVICE_FUNC markings, one
-    // of which will eventually result in an NVCC error
-    EIGEN_DEVICE_FUNC
-    #endif
-    bool evalSubExprsIfNeeded(EvaluatorPointerType data) {
-    m_impl.evalSubExprsIfNeeded(NULL);
-
+#if !defined(EIGEN_HIPCC)
+  // Marking this as EIGEN_DEVICE_FUNC for HIPCC requires also doing the same
+  // for all the functions being called within here, which then leads to
+  // proliferation of EIGEN_DEVICE_FUNC markings, one of which will eventually
+  // result in an NVCC error
+  EIGEN_DEVICE_FUNC
+#endif
+  bool evalSubExprsIfNeededCommon(EvaluatorPointerType data) {
     // Use the FullReducer if possible.
     if ((RunningFullReduction && RunningOnSycl) ||(RunningFullReduction &&
         internal::FullReducer<Self, Op, Device>::HasOptimizedImplementation &&
@@ -800,6 +799,34 @@ struct TensorReductionEvaluatorBase<const TensorReductionOp<Op, Dims, ArgType, M
       #endif
     }
     return true;
+  }
+
+#ifdef EIGEN_USE_THREADS
+  template <typename EvalSubExprsCallback>
+  EIGEN_STRONG_INLINE
+#if !defined(EIGEN_HIPCC)
+      EIGEN_DEVICE_FUNC
+#endif
+      void
+      evalSubExprsIfNeededAsync(EvaluatorPointerType data,
+                                EvalSubExprsCallback done) {
+    m_impl.evalSubExprsIfNeededAsync(NULL, [this, data, done](bool) {
+      done(evalSubExprsIfNeededCommon(data));
+    });
+  }
+#endif
+
+  EIGEN_STRONG_INLINE
+#if !defined(EIGEN_HIPCC)
+  // Marking this as EIGEN_DEVICE_FUNC for HIPCC requires also doing the same
+  // for all the functions being called within here, which then leads to
+  // proliferation of EIGEN_DEVICE_FUNC markings, one of which will eventually
+  // result in an NVCC error
+  EIGEN_DEVICE_FUNC
+#endif
+  bool evalSubExprsIfNeeded(EvaluatorPointerType data) {
+    m_impl.evalSubExprsIfNeeded(NULL);
+    return evalSubExprsIfNeededCommon(data);
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void cleanup() {
