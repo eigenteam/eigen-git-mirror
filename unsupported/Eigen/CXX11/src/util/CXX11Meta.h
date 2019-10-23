@@ -28,43 +28,43 @@ class array : public std::array<T, N> {
   array() : Base() {}
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-  array(const T& v) : Base{v} {
+  array(const T& v) : Base{{v}} {
     EIGEN_STATIC_ASSERT(N == 1, YOU_MADE_A_PROGRAMMING_MISTAKE);
   }
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-  array(const T& v1, const T& v2) : Base{v1, v2} {
+  array(const T& v1, const T& v2) : Base{{v1, v2}} {
     EIGEN_STATIC_ASSERT(N == 2, YOU_MADE_A_PROGRAMMING_MISTAKE);
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-  array(const T& v1, const T& v2, const T& v3) : Base{v1, v2, v3} {
+  array(const T& v1, const T& v2, const T& v3) : Base{{v1, v2, v3}} {
     EIGEN_STATIC_ASSERT(N == 3, YOU_MADE_A_PROGRAMMING_MISTAKE);
   }
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
   array(const T& v1, const T& v2, const T& v3, const T& v4)
-      : Base{v1, v2, v3, v4} {
+      : Base{{v1, v2, v3, v4}} {
     EIGEN_STATIC_ASSERT(N == 4, YOU_MADE_A_PROGRAMMING_MISTAKE);
   }
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
   array(const T& v1, const T& v2, const T& v3, const T& v4, const T& v5)
-      : Base{v1, v2, v3, v4, v5} {
+      : Base{{v1, v2, v3, v4, v5}} {
     EIGEN_STATIC_ASSERT(N == 5, YOU_MADE_A_PROGRAMMING_MISTAKE);
   }
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
   array(const T& v1, const T& v2, const T& v3, const T& v4, const T& v5,
-       const T& v6) : Base{v1, v2, v3, v4, v5, v6} {
+       const T& v6) : Base{{v1, v2, v3, v4, v5, v6}} {
     EIGEN_STATIC_ASSERT(N == 6, YOU_MADE_A_PROGRAMMING_MISTAKE);
   }
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
   array(const T& v1, const T& v2, const T& v3, const T& v4, const T& v5,
         const T& v6, const T& v7)
-      : Base{v1, v2, v3, v4, v5, v6, v7} {
+      : Base{{v1, v2, v3, v4, v5, v6, v7}} {
     EIGEN_STATIC_ASSERT(N == 7, YOU_MADE_A_PROGRAMMING_MISTAKE);
   }
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
   array(const T& v1, const T& v2, const T& v3, const T& v4, const T& v5,
         const T& v6, const T& v7, const T& v8)
-      : Base{v1, v2, v3, v4, v5, v6, v7, v8} {
+      : Base{{v1, v2, v3, v4, v5, v6, v7, v8}} {
     EIGEN_STATIC_ASSERT(N == 8, YOU_MADE_A_PROGRAMMING_MISTAKE);
   }
 #if EIGEN_HAS_VARIADIC_TEMPLATES
@@ -76,14 +76,15 @@ class array : public std::array<T, N> {
 #endif
 };
 
-template<typename T, std::size_t N> struct internal::array_size<const array<T,N> > {
+namespace internal {
+  
+template<typename T, std::size_t N> struct array_size<const array<T,N> > {
   enum { value = N };
 };
-template<typename T, std::size_t N> struct internal::array_size<array<T,N> > {
+template<typename T, std::size_t N> struct array_size<array<T,N> > {
   enum { value = N };
 };
 
-namespace internal {
 
 /* std::get is only constexpr in C++14, not yet in C++11
  *     - libstdc++ from version 4.7 onwards has it nevertheless,
