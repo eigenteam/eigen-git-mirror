@@ -493,7 +493,12 @@ if(EIGEN_TEST_SYCL)
   endif(EIGEN_SYCL_TRISYCL)
 endif(EIGEN_TEST_SYCL)
 
-add_subdirectory(unsupported)
+
+option(EIGEN_SKIP_UNSUPPORTED "Skip use of unsupported code" OFF)
+mark_as_advanced(EIGEN_SKIP_UNSUPPORTED)
+if( NOT EIGEN_SKIP_UNSUPPORTED )
+  add_subdirectory(unsupported)
+endif()
 
 add_subdirectory(demos EXCLUDE_FROM_ALL)
 
