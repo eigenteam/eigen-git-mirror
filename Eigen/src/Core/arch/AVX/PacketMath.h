@@ -228,10 +228,19 @@ template<> EIGEN_STRONG_INLINE Packet8f pmadd(const Packet8f& a, const Packet8f&
   // Gcc stupidly generates a vfmadd132ps instruction.
   // So let's enforce it to generate a vfmadd231ps instruction since the most common use
   //  case is to accumulate the result of the product.
+
+  // https://www.felixcloutier.com/x86/vfmadd132ps:vfmadd213ps:vfmadd231ps
+  // Opcode/Instruction         Op/En                            64/32 bit Mode Support  CPUID Feature Flag
+  // VEX.128.66.0F38.W0 B8 /r   VFMADD231PS xmm1, xmm2, xmm3/m128  A  V/V  FMA
+  // Multiply packed single-precision floating-point values from xmm2 and xmm3/mem, add to xmm1 and put result in xmm1.
   Packet8f res = c;
-  __asm__("vfmadd231ps %[a], %[b], %[c]" : [c] "+x" (res) : [a] "x" (a), [b] "x" (b));
+  // __asm__("vfmadd231ps %[a], %[b], %[c]" : [c] "+x" (res) : [a] "x" (a), [b] "x" (b));
+  __asm__("vfmadd231ps %[c], %[a], %[b]" : [c] "+x" (res) : [a] "x" (a), [b] "x" (b));
   return res;
 #else
+  // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm256_fmadd_ps&expand=2553
+  // Multiply packed single-precision (32-bit) floating-point elements in a and b, add the intermediate result to packed elements in c, and store the results in dst.
+  // dst[i+31:i] := (a[i+31:i] * b[i+31:i]) + c[i+31:i]
   return _mm256_fmadd_ps(a,b,c);
 #endif
 }
