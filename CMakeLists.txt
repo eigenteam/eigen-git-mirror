@@ -69,9 +69,6 @@ include(GNUInstallDirs)
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
 
-option(EIGEN_TEST_CXX11 "Enable testing with C++11 and C++11 features (e.g. Tensor module)." OFF)
-
-
 macro(ei_add_cxx_compiler_flag FLAG)
   string(REGEX REPLACE "-" "" SFLAG1 ${FLAG})
   string(REGEX REPLACE "\\+" "p" SFLAG ${SFLAG1})
@@ -81,9 +78,10 @@ macro(ei_add_cxx_compiler_flag FLAG)
   endif()
 endmacro(ei_add_cxx_compiler_flag)
 
-check_cxx_compiler_flag("-std=c++11" EIGEN_COMPILER_SUPPORT_CPP11)
 
+option(EIGEN_TEST_CXX11 "Enable testing with C++11 and C++11 features (e.g. Tensor module)." OFF)
 if(EIGEN_TEST_CXX11)
+  check_cxx_compiler_flag("-std=c++11" EIGEN_COMPILER_SUPPORT_CPP11)
   set(CMAKE_CXX_STANDARD 11)
   set(CMAKE_CXX_EXTENSIONS OFF)
   if(EIGEN_COMPILER_SUPPORT_CPP11)
