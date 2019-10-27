@@ -286,11 +286,21 @@ macro(ei_add_test testname)
   endif()
   if( (EIGEN_SPLIT_LARGE_TESTS AND suffixes) OR explicit_suffixes)
     add_custom_target(${testname})
-    foreach(suffix ${suffixes})
+    ## The BLDARCHLIST is the list of architectures to build for
+    set(BLDARCHLIST "core2;corei7")
+    # valid target CPU values are:
+    # nocona, core2, penryn, bonnell, atom, silvermont, slm, goldmont, goldmont-plus, tremont, nehalem, corei7, westmere, sandybridge, corei7-avx, ivybridge, core-avx-i,
+    # haswell, core-avx2, broadwell, skylake, skylake-avx512, skx, cascadelake, cannonlake, icelake-client, icelake-server, knl, knm, k8, athlon64, athlon-fx, opteron, k8-sse3, athlon64-sse3,
+    # opteron-sse3, amdfam10, barcelona, btver1, btver2, bdver1, bdver2, bdver3, bdver4, znver1, x86-64
+    foreach(numsuffix ${suffixes})
+     foreach(bldarch IN LISTS BLDARCHLIST)
+      set(suffix "${numsuffix}_${bldarch}")
       ei_add_test_internal(${testname} ${testname}_${suffix}
         "${ARGV1} -DEIGEN_TEST_PART_${suffix}=1" "${ARGV2}")
       add_dependencies(${testname} ${testname}_${suffix})
-    endforeach(suffix)
+      ei_add_target_property(${testname}_${suffix} COMPILE_FLAGS "-march=${bldarch}")
+     endforeach()#bldarch
+    endforeach()#numsuffix
   else()
     ei_add_test_internal(${testname} ${testname} "${ARGV1} -DEIGEN_TEST_PART_ALL=1" "${ARGV2}")
   endif()
