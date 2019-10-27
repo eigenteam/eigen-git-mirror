@@ -265,6 +265,10 @@ EIGEN_DECLARE_TEST(product_small)
     CALL_SUBTEST_2( product(Matrix<int, 3, 17>()) );
     CALL_SUBTEST_8( product(Matrix<double, 3, 17>()) );
     CALL_SUBTEST_3( product(Matrix3d()) );
+
+    product(Matrix4d());
+    product(Matrix4f());
+
     CALL_SUBTEST_4( product(Matrix4d()) );
     CALL_SUBTEST_5( product(Matrix4f()) );
     CALL_SUBTEST_6( product1x1<0>() );
