@@ -49,6 +49,14 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     else()
       message(STATUS "host compiler - clang ${CMAKE_CXX_COMPILER_VERSION}")
     endif()
+elseif( "${CMAKE_CXX_COMPILER_ID}" STREQUAL "AppleClang")
+    # Require at least AppleClang verion 6.0 See: https://trac.macports.org/wiki/XcodeVersionInfo
+    if (${CMAKE_CXX_COMPILER_VERSION} VERSION_LESS 6.0.0)
+      message(FATAL_ERROR
+        "host compiler - Not found! (AppleClang version must be at least 6.0)")
+    else()
+      message(STATUS "host compiler - AppleClang ${CMAKE_CXX_COMPILER_VERSION}")
+    endif()
 else()
   message(WARNING
     "host compiler - Not found! (ComputeCpp supports GCC and Clang, see readme)")

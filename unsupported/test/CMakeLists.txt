@@ -231,7 +231,7 @@ if(CUDA_FOUND AND EIGEN_TEST_CUDA)
 
   message(STATUS "Flags used to compile cuda code: " ${CMAKE_CXX_FLAGS})
 
-  if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+  if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang") # AppleClang behavior should be the same?
     set(CUDA_NVCC_FLAGS "-ccbin ${CMAKE_C_COMPILER}" CACHE STRING "nvcc flags" FORCE)
   endif()
   if(EIGEN_TEST_CUDA_CLANG)

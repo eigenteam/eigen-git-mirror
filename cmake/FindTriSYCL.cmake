@@ -36,6 +36,14 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
   else()
     message(STATUS "host compiler - clang ${CMAKE_CXX_COMPILER_VERSION}")
   endif()
+elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "AppleClang")
+  # Require at least clang 8.0
+  if (${CMAKE_CXX_COMPILER_VERSION} VERSION_LESS 8.0)
+    message(FATAL_ERROR
+      "host compiler - Not found! (clang version must be at least 3.9)")
+  else()
+    message(STATUS "host compiler - clang ${CMAKE_CXX_COMPILER_VERSION}")
+  endif()
 else()
   message(WARNING
     "host compiler - Not found! (triSYCL supports GCC and Clang)")
