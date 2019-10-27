@@ -1,0 +1,189 @@
+#Travis CI configuration for VXL
+# See http://travis-ci.org/vxl/vxl
+
+#dist: xenial # This is the default as of April 2019
+sudo: false
+language: cpp
+
+# global environment variables
+# Note source code is checked out by travis to $TRAVIS_BUILD_DIR,
+# located at ${HOME}/build/<USER>/<REPO>.
+# $PROJ_BUILD_DIR must not be co-located with the source directory!
+env:
+  global:
+    - PROJ_SOURCE_DIR=${TRAVIS_BUILD_DIR} # ${HOME}/build/<USER>/<REPO>
+    - PROJ_BUILD_DIR=${HOME}/proj/build
+    - PROJ_INSTALL_DIR=${HOME}/proj/install
+
+# https://docs.travis-ci.com/user/customizing-the-build/
+git:
+  depth: 3
+
+# cache the build dir
+# note in the before_script step the cache will be deleted for certain
+# TRAVIS_EVENT_TYPE (e.g., "pull_request") to ensure a full rebuild
+# proior to some repository actions.
+cache:
+  timeout: 1000
+  directories:
+    - ${PROJ_BUILD_DIR}
+
+# cache identifier
+# travis hashes the "env" list of each build matrix element to
+# discover an appropriate cache to restore
+# https://docs.travis-ci.com/user/caching/#caches-and-build-matrices
+#
+# Increment CACHE_ID to force travis to ignore existing caches. This field is
+# copied to the build matrix via yaml anchors.
+cache_id: &cache_id
+  CACHE_ID=0
+
+# build matrix
+# https://docs.travis-ci.com/user/languages/c/#gcc-on-linux
+matrix:
+  include:
+    - os: linux
+      compiler: gcc # default 5.4 as of Sept 2019
+      addons:
+        apt:
+          packages:
+            - ninja-build
+      env:
+        - MATRIX_NAME="gcc_default"
+        - *cache_id
+
+    - os: linux
+      compiler: clang
+      addons:
+        apt:
+          packages:
+            - ninja-build
+      env:
+        - MATRIX_NAME="clang_default"
+        - *cache_id
+
+    # ppa:ubuntu-toolchain-r/test xenial gcc versions as of Sept 2019
+    # https://launchpad.net/~ubuntu-toolchain-r/+archive/ubuntu/test
+    # 4.9.4, 5.5.0, 6.5.0, 7.4.0
+
+    - os: linux
+      compiler: gcc
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - ninja-build
+            - g++-4.9
+      env:
+        - MATRIX_NAME="gcc-4.9"
+        - MATRIX_EVAL="CC=gcc-4.9 && CXX=g++-4.9"
+        - *cache_id
+
+    # # gcc 5 is tested via default above
+    # - os: linux
+    #   compiler: gcc
+    #   addons:
+    #     apt:
+    #       sources:
+    #         - ubuntu-toolchain-r-test
+    #       packages:
+    #         - ninja-build
+    #         - g++-5
+    #   env:
+    #     - MATRIX_NAME="gcc-5"
+    #     - MATRIX_EVAL="CC=gcc-5 && CXX=g++-5"
+    #     - *cache_id
+
+    - os: linux
+      compiler: gcc
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - ninja-build
+            - g++-6
+      env:
+        - MATRIX_NAME="gcc-6"
+        - MATRIX_EVAL="CC=gcc-6 && CXX=g++-6"
+        - *cache_id
+
+    - os: linux
+      compiler: gcc
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - ninja-build
+            - g++-7
+      env:
+        - MATRIX_NAME="gcc-7"
+        - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
+        - *cache_id
+
+# set compiler options
+# https://docs.travis-ci.com/user/languages/c/#gcc-on-linux
+before_install:
+  - if [ ! -z "${MATRIX_EVAL}" ]; then eval "${MATRIX_EVAL}"; fi
+
+# additional setup
+install:
+
+  # additional dependencies in ${HOME}/deps/
+  - DEPS_DIR="${HOME}/deps"
+  - mkdir -p ${DEPS_DIR} && cd ${DEPS_DIR}
+
+  # install specific cmake version (minimum vxl requirement)
+  - |
+    if [[ "${TRAVIS_OS_NAME}" == "linux" ]]; then
+      CMAKE_URL="http://www.cmake.org/files/v3.10/cmake-3.10.2-Linux-x86_64.tar.gz"
+      mkdir cmake && travis_retry wget --no-check-certificate --quiet -O - ${CMAKE_URL} | tar --strip-components=1 -xz -C cmake
+      export PATH=${DEPS_DIR}/cmake/bin:${PATH}
+    fi
+
+# script setup (e.g., cache deployment)
+before_script:
+
+  # delete build cache on pull_request or cron job
+  - |
+    if [ "${TRAVIS_EVENT_TYPE}" == "pull_request" ] || [ "${TRAVIS_EVENT_TYPE}" == "cron" ]; then
+      rm -rf ${PROJ_BUILD_DIR}
+    fi
+
+  # create build & install directories if they do not exist
+  - mkdir -p ${PROJ_BUILD_DIR} ${PROJ_INSTALL_DIR}
+
+  # before script runs, we need to resolve timestamps between the git clone
+  # and the older build cache. A good discussion is found here:
+  # https://blog.esciencecenter.nl/travis-caching-and-incremental-builds-6518b89ee889
+  - |
+    MD5_FILE=${PROJ_BUILD_DIR}/build_cache.md5
+    export OLDEST_DATE=$(find ${PROJ_BUILD_DIR} -type f -printf '%TD %TT\n' | sort | head -1)
+    if [ -f ${MD5_FILE} ]; then
+      (md5sum -c ${MD5_FILE} 2>/dev/null || :) | awk '{if ($NF == "OK") print substr($0, 1, length($0)-4)}' | xargs touch -d "${OLDEST_DATE}"
+    fi
+    find ${PROJ_SOURCE_DIR} \( -type d -name .git \) -prune -o -type f -print0 | xargs -0 md5sum > ${MD5_FILE}
+
+  # display build directory
+  - ls -la ${PROJ_BUILD_DIR}
+
+# main script
+script:
+  - cmake --version
+  - ${CC} --version
+  - cd ${PROJ_BUILD_DIR}
+  - cmake
+          -G Ninja
+          -DCMAKE_INSTALL_PREFIX:PATH=${PROJ_INSTALL_DIR}
+          -DCMAKE_BUILD_TYPE:STRING=Release
+          -DEIGEN_TEST_FMA:BOOL=ON 
+          ${PROJ_SOURCE_DIR}
+  - ninja check
+  - ctest -D ExperimentalStart
+  - ctest -D ExperimentalConfigure
+  - ctest -D ExperimentalBuild -j2
+  - ctest -D ExperimentalTest --schedule-random -j2 --output-on-failure
+  - ctest -D ExperimentalSubmit
+  - ninja install
