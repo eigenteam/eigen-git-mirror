@@ -153,7 +153,8 @@ if(NOT MSVC)
   if(COMPILER_SUPPORT_WERROR)
     set(CMAKE_REQUIRED_FLAGS "-Werror")
   endif()
-  ei_add_cxx_compiler_flag("-pedantic")
+  # ei_add_cxx_compiler_flag("-pedantic") We should remove this, or use  -pedantic-errors,  either require conformance, or allow newer c99 constructs
+
   ei_add_cxx_compiler_flag("-Wall")
   ei_add_cxx_compiler_flag("-Wextra")
   #ei_add_cxx_compiler_flag("-Weverything")              # clang
