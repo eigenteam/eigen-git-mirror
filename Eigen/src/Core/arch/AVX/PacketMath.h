@@ -14,6 +14,15 @@ namespace Eigen {
 
 namespace internal {
 
+//NOTE: Confirmed failure in XCode 11.0, and ambiguous reports for 11.1 without means of testing
+#if defined(EIGEN_COMP_CLANG) && (EIGEN_COMP_CLANG >= 1100 || EIGEN_COMP_CLANG <= 9999 ) && ( __MAC_OS_X_VERSION_MIN_REQUIRED == 101500 )
+// A nasty bug in the clang compiler shipped with xcode in a common compilation situation
+// when XCode 11.[0-?].[0-?].? and Mac deployment target macOS 10.15 is https://trac.macports.org/ticket/58776#no1
+  #error "There is a nasty bug with -macosx-version-min=10.15, use of AVX instructions, and Xcode 11.0.0 compiler."
+  // NOTE using -macosx-version-min=10.15 with Xcode 11.0.0.?? results in segmentation faults
+  // NOTE using -macosx-version-min=10.14 seems to work perfectly fine for tests
+#endif
+
 #ifndef EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
 #define EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD 8
 #endif
