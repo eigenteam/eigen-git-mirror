@@ -217,6 +217,43 @@ macro(ei_add_test_internal_sycl testname testname_with_suffix)
 
 endmacro(ei_add_test_internal_sycl)
 
+## The BLDARCHLIST is the list of architectures to build for
+set(BLDARCHLIST "")
+set(BLDARCHLISTCANDIATE "nocona;core2;penryn;bonnell;atom;silvermont;slm;goldmont;goldmont-plus;tremont;nehalem;corei7;westmere;sandybridge;corei7-avx;ivybridge;core-avx-i;haswell;core-avx2;broadwell;skylake;skylake-avx512;skx;cascadelake;cannonlake;icelake-client;icelake-server;knl;knm;k8;athlon64;athlon-fx;opteron;k8-sse3;athlon64-sse3;opteron-sse3;amdfam10;barcelona;btver1;btver2;bdver1;bdver2;bdver3;bdver4;znver1;x86-64")
+foreach(bldarch IN LISTS BLDARCHLISTCANDIATE)
+  #message(STATUS "${CMAKE_CXX_COMPILER} ${CMAKE_CURRENT_SOURCE_DIR}/cmake/test_platform_stub.cxx -march=${bldarch} -o ${CMAKE_CURRENT_BINARY_DIR}/test_${bldarch}.exe")
+  execute_process(COMMAND ${CMAKE_CXX_COMPILER} ${CMAKE_CURRENT_SOURCE_DIR}/cmake/test_platform_stub.cxx -march=${bldarch} -o ${CMAKE_CURRENT_BINARY_DIR}/test_${bldarch}.exe
+                WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+                TIMEOUT 3
+                RESULT_VARIABLE EIGEN_BUILD_ARCH_${bldarch}_BUILD
+                OUTPUT_VARIABLE EIGEN_BUILD_ARCH_${bldarch}_OUTPUT_BUILD
+  )
+  if( ${EIGEN_BUILD_ARCH_${bldarch}_BUILD} EQUAL 0 )
+    execute_process(COMMAND ${CMAKE_CURRENT_BINARY_DIR}/test_${bldarch}.exe
+                  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+                  TIMEOUT 3
+                  RESULT_VARIABLE EIGEN_BUILD_ARCH_${bldarch}
+                  OUTPUT_VARIABLE EIGEN_BUILD_ARCH_${bldarch}_OUTPUT
+                  #[OUTPUT_VARIABLE <variable>]
+                  #[ERROR_VARIABLE <variable>]
+                  #[INPUT_FILE <file>]
+                  #[OUTPUT_FILE <file>]
+                  #[ERROR_FILE <file>]
+                  #[OUTPUT_QUIET]
+                  #[ERROR_QUIET]
+                  #[OUTPUT_STRIP_TRAILING_WHITESPACE]
+                  #[ERROR_STRIP_TRAILING_WHITESPACE]
+    )
+    #message(STATUS "BUILD_STATUS: EIGEN_BUILD_ARCH_${bldarch} = ${EIGEN_BUILD_ARCH_${bldarch}}")
+    if( ${EIGEN_BUILD_ARCH_${bldarch}} EQUAL 0 )
+      set(BLDARCHLIST "${BLDARCHLIST};${bldarch}")
+      #message(STATUS "USING: ${bldarch}")
+    #else()
+      #message(STATUS "SKIPPING: ${bldarch}")
+    endif()
+  endif()
+endforeach()
+    message(STATUS "All archs: ${BLDARCHLIST}")
 
 # Macro to add a test
 #
@@ -284,10 +321,9 @@ macro(ei_add_test testname)
     string(REGEX REPLACE "EIGEN_TEST_PART_" "" explicit_suffixes "${occurrences}")
     list(REMOVE_DUPLICATES explicit_suffixes)
   endif()
+
   if( (EIGEN_SPLIT_LARGE_TESTS AND suffixes) OR explicit_suffixes)
     add_custom_target(${testname})
-    ## The BLDARCHLIST is the list of architectures to build for
-    set(BLDARCHLIST "core2;corei7")
     # valid target CPU values are:
     # nocona, core2, penryn, bonnell, atom, silvermont, slm, goldmont, goldmont-plus, tremont, nehalem, corei7, westmere, sandybridge, corei7-avx, ivybridge, core-avx-i,
     # haswell, core-avx2, broadwell, skylake, skylake-avx512, skx, cascadelake, cannonlake, icelake-client, icelake-server, knl, knm, k8, athlon64, athlon-fx, opteron, k8-sse3, athlon64-sse3,
@@ -296,7 +332,7 @@ macro(ei_add_test testname)
      foreach(bldarch IN LISTS BLDARCHLIST)
       set(suffix "${numsuffix}_${bldarch}")
       ei_add_test_internal(${testname} ${testname}_${suffix}
-        "${ARGV1} -DEIGEN_TEST_PART_${suffix}=1" "${ARGV2}")
+        "${ARGV1} -DEIGEN_TEST_PART_${numsuffix}=1" "${ARGV2}")
       add_dependencies(${testname} ${testname}_${suffix})
       ei_add_target_property(${testname}_${suffix} COMPILE_FLAGS "-march=${bldarch}")
      endforeach()#bldarch
