@@ -71,7 +71,7 @@ class array : public std::array<T, N> {
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
   array(std::initializer_list<T> l) {
     eigen_assert(l.size() == N);
-    internal::smart_copy(l.begin(), l.end(), this->begin());
+    internal::smart_copy(l.begin(), l.end(), &this->front());
   }
 #endif
 };
