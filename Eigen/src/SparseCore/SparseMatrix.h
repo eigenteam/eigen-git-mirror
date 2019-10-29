@@ -767,7 +767,7 @@ class SparseMatrix
         initAssignment(other);
         if(other.isCompressed())
         {
-          internal::smart_copy(other.m_outerIndex, other.m_outerIndex + m_outerSize + 1, m_outerIndex);
+          std::copy(other.m_outerIndex, other.m_outerIndex + m_outerSize + 1, m_outerIndex);
           m_data = other.m_data;
         }
         else
@@ -982,8 +982,8 @@ protected:
           {
             Index i = newEntries[k].i;
             Index p = newEntries[k].p;
-            internal::smart_copy(m_data.valuePtr()+prev_p, m_data.valuePtr()+p, newData.valuePtr()+prev_p+k);
-            internal::smart_copy(m_data.indexPtr()+prev_p, m_data.indexPtr()+p, newData.indexPtr()+prev_p+k);
+            std::copy(m_data.valuePtr()+prev_p, m_data.valuePtr()+p, newData.valuePtr()+prev_p+k);
+            std::copy(m_data.indexPtr()+prev_p, m_data.indexPtr()+p, newData.indexPtr()+prev_p+k);
             for(Index j=prev_i;j<i;++j)
               m_outerIndex[j+1] += k;
             if(!isComp)
@@ -995,8 +995,8 @@ protected:
             assignFunc.assignCoeff(newData.value(p+k), diaEval.coeff(i));
           }
           {
-            internal::smart_copy(m_data.valuePtr()+prev_p, m_data.valuePtr()+m_data.size(), newData.valuePtr()+prev_p+n_entries);
-            internal::smart_copy(m_data.indexPtr()+prev_p, m_data.indexPtr()+m_data.size(), newData.indexPtr()+prev_p+n_entries);
+            std::copy(m_data.valuePtr()+prev_p, m_data.valuePtr()+m_data.size(), newData.valuePtr()+prev_p+n_entries);
+            std::copy(m_data.indexPtr()+prev_p, m_data.indexPtr()+m_data.size(), newData.indexPtr()+prev_p+n_entries);
             for(Index j=prev_i+1;j<=m_outerSize;++j)
               m_outerIndex[j] += n_entries;
           }

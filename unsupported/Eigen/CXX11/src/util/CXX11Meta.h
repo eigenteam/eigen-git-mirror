@@ -67,13 +67,11 @@ class array : public std::array<T, N> {
       : Base{{v1, v2, v3, v4, v5, v6, v7, v8}} {
     EIGEN_STATIC_ASSERT(N == 8, YOU_MADE_A_PROGRAMMING_MISTAKE);
   }
-#if EIGEN_HAS_VARIADIC_TEMPLATES
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
   array(std::initializer_list<T> l) {
     eigen_assert(l.size() == N);
-    internal::smart_copy(l.begin(), l.end(), &this->front());
+    std::copy(l.begin(), l.end(), &this->front());
   }
-#endif
 };
 
 namespace internal {
