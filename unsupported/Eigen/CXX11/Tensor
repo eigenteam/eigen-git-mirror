@@ -83,10 +83,8 @@ typedef unsigned __int64 uint64_t;
   #else
     #include <cuda_runtime.h>
   #endif
-  #if __cplusplus >= 201103L
-    #include <atomic>
-    #include <unistd.h>
-  #endif
+  #include <atomic>
+  #include <unistd.h>
 #endif
 
 #include "src/Tensor/TensorMacros.h"
