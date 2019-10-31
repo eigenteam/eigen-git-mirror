@@ -17,7 +17,7 @@
 #    CMakeLists.txt:3 (enable_language)
 #
 # My workaround is to invoke cmake twice.  If both return codes are zero, 
-# it is safe to invoke ENABLE_LANGUAGE(Fortran OPTIONAL)
+# it is safe to invoke enable_language(Fortran OPTIONAL)
 
 function(workaround_9220 language language_works)
   #message("DEBUG: language = ${language}")

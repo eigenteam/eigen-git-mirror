@@ -74,7 +74,7 @@ if(EIGEN_ENABLE_LAPACK_TESTS)
         sgetrf.f  dgetrf.f  cgetrf.f  zgetrf.f
         sgetrs.f  dgetrs.f  cgetrs.f  zgetrs.f)
     
-    FILE(GLOB ReferenceLapack_SRCS0 RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "reference/*.f")
+    file(GLOB ReferenceLapack_SRCS0 RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "reference/*.f")
     foreach(filename1 IN LISTS ReferenceLapack_SRCS0)
       string(REPLACE "reference/" "" filename ${filename1})
       list(FIND EigenLapack_SRCS ${filename} id1)

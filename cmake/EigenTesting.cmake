@@ -133,7 +133,7 @@ macro(ei_add_test_internal_sycl testname testname_with_suffix)
   if(NOT EIGEN_SYCL_TRISYCL)
     include_directories( SYSTEM ${COMPUTECPP_PACKAGE_ROOT_DIR}/include)
 
-    ADD_CUSTOM_COMMAND(
+    add_custom_command(
       OUTPUT ${include_file}
       COMMAND ${CMAKE_COMMAND} -E echo "\\#include \\\"${host_file}\\\"" > ${include_file}
       COMMAND ${CMAKE_COMMAND} -E echo "\\#include \\\"${bc_file}\\\"" >> ${include_file}
