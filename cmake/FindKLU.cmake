@@ -3,7 +3,7 @@
 
 if (KLU_INCLUDES AND KLU_LIBRARIES)
   set(KLU_FIND_QUIETLY TRUE)
-endif (KLU_INCLUDES AND KLU_LIBRARIES)
+endif ()
 
 find_path(KLU_INCLUDES
   NAMES
@@ -22,7 +22,7 @@ if(KLU_LIBRARIES)
 
   if(NOT KLU_LIBDIR)
     get_filename_component(KLU_LIBDIR ${KLU_LIBRARIES} PATH)
-  endif(NOT KLU_LIBDIR)
+  endif()
 
   find_library(COLAMD_LIBRARY colamd PATHS ${KLU_LIBDIR} $ENV{KLUDIR} ${LIB_INSTALL_DIR})
   if(COLAMD_LIBRARY)
@@ -39,7 +39,7 @@ if(KLU_LIBRARIES)
     set(KLU_LIBRARIES ${KLU_LIBRARIES} ${BTF_LIBRARY})
   endif()
 
-endif(KLU_LIBRARIES)
+endif()
 
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(KLU DEFAULT_MSG

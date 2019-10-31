@@ -86,9 +86,9 @@ if(EIGEN_ENABLE_LAPACK_TESTS)
   endif()
   
   
-endif(EIGEN_ENABLE_LAPACK_TESTS)
+endif()
 
-endif(EIGEN_Fortran_COMPILER_WORKS)
+endif()
 
 add_library(eigen_lapack_static ${EigenLapack_SRCS} ${ReferenceLapack_SRCS})
 add_library(eigen_lapack SHARED ${EigenLapack_SRCS})
@@ -152,7 +152,7 @@ if(EXISTS ${eigen_full_path_to_testing_lapack})
         -DINTDIR=${CMAKE_CFG_INTDIR}
         -P "${LAPACK_SOURCE_DIR}/testing/runtest.cmake")
     endif()
-  endmacro(add_lapack_test)
+  endmacro()
 
   if (BUILD_SINGLE)
   add_lapack_test(stest.out stest.in xlintsts)

@@ -29,7 +29,7 @@ ENDIF(MSVC)
 if(IS_ICPC)
   set(CMAKE_CXX_FLAGS "-fast ${CMAKE_CXX_FLAGS}")
   set(CMAKE_Fortran_FLAGS "-fast ${CMAKE_Fortran_FLAGS}")
-endif(IS_ICPC)
+endif()
 
 include_directories(
   ${PROJECT_SOURCE_DIR}/actions
@@ -41,7 +41,7 @@ include_directories(
 # if (MKL_FOUND)
 #   add_definitions(-DHAVE_MKL)
 #   set(DEFAULT_LIBRARIES ${MKL_LIBRARIES})
-# endif (MKL_FOUND)
+# endif ()
 
 find_library(EIGEN_BTL_RT_LIBRARY rt)
 # if we cannot find it easily, then we don't need it!
@@ -53,7 +53,7 @@ MACRO(BTL_ADD_BENCH targetname)
 
   foreach(_current_var ${ARGN})
     set(_last_var ${_current_var})
-  endforeach(_current_var)
+  endforeach()
 
   set(_sources ${ARGN})
   list(LENGTH _sources _argn_length)
@@ -64,7 +64,7 @@ MACRO(BTL_ADD_BENCH targetname)
 
   if (${_argn_length} EQUAL ${_src_length})
     set(_last_var ON)
-  endif (${_argn_length} EQUAL ${_src_length})
+  endif ()
 
   OPTION(BUILD_${targetname} "Build benchmark ${targetname}" ${_last_var})
 
@@ -86,7 +86,7 @@ macro(btl_add_target_property target prop value)
     set_target_properties(${target} PROPERTIES ${prop} "${previous} ${value}")
   endif()
 
-endmacro(btl_add_target_property)
+endmacro()
 
 ENABLE_TESTING()
 

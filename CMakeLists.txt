@@ -54,13 +54,13 @@ endif()
 if(EIGEN_BRANCH_OUTPUT MATCHES "default")
 string(REGEX MATCH "^changeset: *[0-9]*:([0-9;a-f]+).*" EIGEN_HG_CHANGESET_MATCH "${EIGEN_HGTIP_OUTPUT}")
 set(EIGEN_HG_CHANGESET "${CMAKE_MATCH_1}")
-endif(EIGEN_BRANCH_OUTPUT MATCHES "default")
+endif()
 #...and show it next to the version number
 if(EIGEN_HG_CHANGESET)
   set(EIGEN_VERSION "${EIGEN_VERSION_NUMBER} (mercurial changeset ${EIGEN_HG_CHANGESET})")
-else(EIGEN_HG_CHANGESET)
+else()
   set(EIGEN_VERSION "${EIGEN_VERSION_NUMBER}")
-endif(EIGEN_HG_CHANGESET)
+endif()
 
 
 include(CheckCXXCompilerFlag)
@@ -79,7 +79,7 @@ macro(ei_add_cxx_compiler_flag FLAG)
   if(COMPILER_SUPPORT_${SFLAG})
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${FLAG}")
   endif()
-endmacro(ei_add_cxx_compiler_flag)
+endmacro()
 
 check_cxx_compiler_flag("-std=c++11" EIGEN_COMPILER_SUPPORT_CPP11)
 
@@ -319,7 +319,7 @@ if(NOT MSVC)
     endif()
   endif()
 
-else(NOT MSVC)
+else()
 
   # C4127 - conditional expression is constant
   # C4714 - marked as __forceinline not inlined (I failed to deactivate it selectively)
@@ -347,9 +347,9 @@ else(NOT MSVC)
     if(NOT CMAKE_CL_64)
       # arch is not supported on 64 bit systems, SSE is enabled automatically.
       set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /arch:SSE2")
-    endif(NOT CMAKE_CL_64)
+    endif()
     message(STATUS "Enabling SSE2 in tests/examples")
-  endif(EIGEN_TEST_SSE2)
+  endif()
 
   option(EIGEN_TEST_AVX "Enable/Disable AVX in tests/examples" OFF)
   if(EIGEN_TEST_AVX)
@@ -363,7 +363,7 @@ else(NOT MSVC)
     message(STATUS "Enabling FMA/AVX2 in tests/examples")
   endif()
 
-endif(NOT MSVC)
+endif()
 
 option(EIGEN_TEST_NO_EXPLICIT_VECTORIZATION "Disable explicit vectorization in tests/examples" OFF)
 option(EIGEN_TEST_X87 "Force using X87 instructions. Implies no vectorization." OFF)
@@ -440,9 +440,9 @@ macro(ei_add_target_property target prop value)
   # if the property wasn't previously set, ${previous} is now "previous-NOTFOUND" which cmake allows catching with plain if()
   if(NOT previous)
     set(previous "")
-  endif(NOT previous)
+  endif()
   set_target_properties(${target} PROPERTIES ${prop} "${previous} ${value}")
-endmacro(ei_add_target_property)
+endmacro()
 
 install(FILES
   signature_of_eigen3_matrix_library
@@ -489,11 +489,11 @@ if(EIGEN_TEST_SYCL)
   if(EIGEN_SYCL_TRISYCL)
     message(STATUS "Using triSYCL")
     include(FindTriSYCL)
-  else(EIGEN_SYCL_TRISYCL)
+  else()
     message(STATUS "Using ComputeCPP SYCL")
     include(FindComputeCpp)
-  endif(EIGEN_SYCL_TRISYCL)
-endif(EIGEN_TEST_SYCL)
+  endif()
+endif()
 
 add_subdirectory(unsupported)
 
@@ -505,11 +505,11 @@ add_subdirectory(scripts EXCLUDE_FROM_ALL)
 # TODO: consider also replacing EIGEN_BUILD_BTL by a custom target "make btl"?
 if(EIGEN_BUILD_BTL)
   add_subdirectory(bench/btl EXCLUDE_FROM_ALL)
-endif(EIGEN_BUILD_BTL)
+endif()
 
 if(NOT WIN32)
   add_subdirectory(bench/spbench EXCLUDE_FROM_ALL)
-endif(NOT WIN32)
+endif()
 
 configure_file(scripts/cdashtesting.cmake.in cdashtesting.cmake @ONLY)
 
@@ -605,7 +605,7 @@ if (NOT CMAKE_VERSION VERSION_LESS 3.0)
 
   install (EXPORT Eigen3Targets NAMESPACE Eigen3:: DESTINATION ${CMAKEPACKAGE_INSTALL_DIR})
 
-else (NOT CMAKE_VERSION VERSION_LESS 3.0)
+else ()
   # Fallback to legacy Eigen3Config.cmake without the imported target
 
   # If CMakePackageConfigHelpers module is available (CMake >= 2.8.8)
@@ -635,7 +635,7 @@ else (NOT CMAKE_VERSION VERSION_LESS 3.0)
                                     VERSION ${EIGEN_VERSION_NUMBER}
                                     COMPATIBILITY SameMajorVersion )
 
-endif (NOT CMAKE_VERSION VERSION_LESS 3.0)
+endif ()
 
 install ( FILES ${CMAKE_CURRENT_SOURCE_DIR}/cmake/UseEigen3.cmake
                 ${CMAKE_CURRENT_BINARY_DIR}/Eigen3Config.cmake

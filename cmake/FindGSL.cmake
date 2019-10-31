@@ -54,7 +54,7 @@ IF(WIN32)
 		PATHS  ${GSL_POSSIBLE_ROOT_DIRS}
 		PATH_SUFFIXES lib
 		DOC "GSL library")
-  endif(NOT GSL_GSL_LIBRARY)
+  endif()
   
   FIND_LIBRARY(GSL_GSLCBLAS_LIBRARY
     NAMES libgslcblas.dll.a gslcblas libgslcblas
@@ -68,7 +68,7 @@ IF(WIN32)
 		PATHS  ${GSL_POSSIBLE_ROOT_DIRS}
 		PATH_SUFFIXES lib
 		DOC "GSL library")
-  endif(NOT GSL_GSLCBLAS_LIBRARY)
+  endif()
   
   SET(GSL_LIBRARIES ${GSL_GSL_LIBRARY})
 

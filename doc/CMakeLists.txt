@@ -7,8 +7,8 @@ project(EigenDoc)
 if(CMAKE_COMPILER_IS_GNUCXX)
   if(CMAKE_SYSTEM_NAME MATCHES Linux)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O1 -g1")
-  endif(CMAKE_SYSTEM_NAME MATCHES Linux)
-endif(CMAKE_COMPILER_IS_GNUCXX)
+  endif()
+endif()
 
 # some examples and snippets needs c++11, so let's check it once
 check_cxx_compiler_flag("-std=c++11" EIGEN_COMPILER_SUPPORT_CPP11)
@@ -24,9 +24,9 @@ set(EIGEN_DOXY_HTML_COLORSTYLE_HUE      "220")
 set(EIGEN_DOXY_TAGFILES                 "")
 if(EIGEN_INTERNAL_DOCUMENTATION)
   set(EIGEN_DOXY_INTERNAL                 "YES")
-else(EIGEN_INTERNAL_DOCUMENTATION)
+else()
   set(EIGEN_DOXY_INTERNAL                 "NO")
-endif(EIGEN_INTERNAL_DOCUMENTATION)
+endif()
 
 configure_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in

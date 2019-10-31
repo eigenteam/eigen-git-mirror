@@ -28,7 +28,7 @@ if(EIGEN_TEST_EXTERNAL_BLAS)
   message(STATUS "BLAS_COMPILER_FLAGS: ${BLAS_COMPILER_FLAGS}")
   add_definitions("-DEIGEN_USE_BLAS") # is adding  ${BLAS_COMPILER_FLAGS} necessary?
   list(APPEND EXTERNAL_LIBS "${BLAS_LIBRARIES}")
-endif(EIGEN_TEST_EXTERNAL_BLAS)
+endif()
 
 # configure blas/lapack (use Eigen's ones)
 set(EIGEN_BLAS_LIBRARIES eigen_blas)
@@ -39,10 +39,10 @@ if(EIGEN_TEST_MATRIX_DIR)
   if(NOT WIN32)
     message(STATUS "Test realworld sparse matrices: ${EIGEN_TEST_MATRIX_DIR}")
     add_definitions( -DTEST_REAL_CASES="${EIGEN_TEST_MATRIX_DIR}" )
-  else(NOT WIN32)
+  else()
     message(STATUS "REAL CASES CAN NOT BE CURRENTLY TESTED ON WIN32")
-  endif(NOT WIN32)
-endif(EIGEN_TEST_MATRIX_DIR)
+  endif()
+endif()
 
 set(SPARSE_LIBS " ")
 
@@ -110,9 +110,9 @@ if(PASTIX_FOUND AND PASTIX_pastix_nompi.h_INCLUDE_DIRS)
   elseif(METIS_FOUND)
     include_directories(${METIS_INCLUDE_DIRS})
     set(PASTIX_LIBRARIES ${PASTIX_LIBRARIES} ${METIS_LIBRARIES})
-  else(SCOTCH_FOUND)
+  else()
     ei_add_property(EIGEN_MISSING_BACKENDS  "PaStiX, ")
-  endif(SCOTCH_FOUND)
+  endif()
   set(SPARSE_LIBS ${SPARSE_LIBS} ${PASTIX_LIBRARIES_DEP} ${ORDERING_LIBRARIES})
   set(PASTIX_ALL_LIBS ${PASTIX_LIBRARIES_DEP})
   ei_add_property(EIGEN_TESTED_BACKENDS  "PaStiX, ")
@@ -148,11 +148,11 @@ if(NOT EIGEN_TEST_NOQT)
   else()
     ei_add_property(EIGEN_MISSING_BACKENDS  "Qt4 support, ")
   endif()
-endif(NOT EIGEN_TEST_NOQT)
+endif()
 
 if(TEST_LIB)
   add_definitions("-DEIGEN_EXTERN_INSTANTIATIONS=1")
-endif(TEST_LIB)
+endif()
 
 set_property(GLOBAL PROPERTY EIGEN_CURRENT_SUBPROJECT "Official")
 add_custom_target(BuildOfficial)
@@ -311,7 +311,7 @@ ei_add_test(fastmath " ${EIGEN_FASTMATH_FLAGS} ")
 
 if(QT4_FOUND)
   ei_add_test(qtvector "" "${QT_QTCORE_LIBRARY}")
-endif(QT4_FOUND)
+endif()
 
 if(UMFPACK_FOUND)
   ei_add_test(umfpack_support "" "${UMFPACK_ALL_LIBS}")
@@ -405,9 +405,9 @@ if(CUDA_FOUND)
   
   unset(EIGEN_ADD_TEST_FILENAME_EXTENSION)
 
-endif(CUDA_FOUND)
+endif()
 
-endif(EIGEN_TEST_CUDA)
+endif()
 
 
 # HIP unit tests
@@ -439,7 +439,7 @@ if (EIGEN_TEST_HIP)
 	message(FATAL_ERROR "Unknown HIP_PLATFORM = ${HIP_PLATFORM}")
       endif()
       
-    endif(HIP_FOUND)
+    endif()
     
   else ()
 
@@ -447,7 +447,7 @@ if (EIGEN_TEST_HIP)
     
   endif()
     
-endif(EIGEN_TEST_HIP)
+endif()
 
 option(EIGEN_TEST_BUILD_DOCUMENTATION "Test building the doxygen documentation" OFF)
 IF(EIGEN_TEST_BUILD_DOCUMENTATION)

@@ -263,4 +263,4 @@ function(add_sycl_to_target targetName binaryDir sourceFiles)
   target_link_libraries(${targetName} PUBLIC ${COMPUTECPP_RUNTIME_LIBRARY}
                         PUBLIC ${OpenCL_LIBRARIES})
 
-endfunction(add_sycl_to_target)
+endfunction()

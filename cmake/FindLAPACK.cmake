@@ -75,8 +75,8 @@ macro(check_lapack_libraries DEFINITIONS LIBRARIES _prefix _name _flags _list _b
       mark_as_advanced(${_prefix}_${_library}_LIBRARY)
       set(${LIBRARIES} ${${LIBRARIES}} ${${_prefix}_${_library}_LIBRARY})
       set(_libraries_found ${${_prefix}_${_library}_LIBRARY})
-    endif(_libraries_found)
-  endforeach(_library ${_list})
+    endif()
+  endforeach()
   if(_libraries_found)
     set(_libraries_found ${${LIBRARIES}})
   endif()
@@ -103,7 +103,7 @@ macro(check_lapack_libraries DEFINITIONS LIBRARIES _prefix _name _flags _list _b
     set(CMAKE_REQUIRED_LIBRARIES    "")
     mark_as_advanced(${_prefix}_${_name}_${_combined_name}_f2c_WORKS)
     set(_libraries_work ${${_prefix}_${_name}_${_combined_name}_f2c_WORKS})
-  endif(_libraries_found AND NOT _libraries_work)
+  endif()
 
   # If not found, test this combination of libraries with a C interface.
   # A few implementations (ie ACML) provide a C interface. Unfortunately, there is no standard.
@@ -117,7 +117,7 @@ macro(check_lapack_libraries DEFINITIONS LIBRARIES _prefix _name _flags _list _b
     set(CMAKE_REQUIRED_LIBRARIES "")
     mark_as_advanced(${_prefix}_${_name}${_combined_name}_WORKS)
     set(_libraries_work ${${_prefix}_${_name}${_combined_name}_WORKS})
-  endif(_libraries_found AND NOT _libraries_work)
+  endif()
 
   # on failure
   if(NOT _libraries_work)
@@ -126,7 +126,7 @@ macro(check_lapack_libraries DEFINITIONS LIBRARIES _prefix _name _flags _list _b
   endif()
   #message("DEBUG: ${DEFINITIONS} = ${${DEFINITIONS}}")
   #message("DEBUG: ${LIBRARIES} = ${${LIBRARIES}}")
-endmacro(check_lapack_libraries)
+endmacro()
 
 
 #
@@ -216,7 +216,7 @@ else()
       "${BLAS_LIBRARIES}"
       "${CGAL_TAUCS_LIBRARIES_DIR} ENV LAPACK_LIB_DIR"
       )
-    endif ( NOT LAPACK_LIBRARIES )
+    endif ()
 
     # Generic LAPACK library?
     # This configuration *must* be the last try as this library is notably slow.
@@ -242,14 +242,14 @@ else()
   if(NOT LAPACK_FIND_QUIETLY)
     if(LAPACK_FOUND)
       message(STATUS "A library with LAPACK API found.")
-    else(LAPACK_FOUND)
+    else()
       if(LAPACK_FIND_REQUIRED)
         message(FATAL_ERROR "A required library with LAPACK API not found. Please specify library location.")
       else()
         message(STATUS "A library with LAPACK API not found. Please specify library location.")
       endif()
-    endif(LAPACK_FOUND)
-  endif(NOT LAPACK_FIND_QUIETLY)
+    endif()
+  endif()
 
   # Add variables to cache
   set( LAPACK_INCLUDE_DIR   "${LAPACK_INCLUDE_DIR}"
@@ -270,4 +270,4 @@ else()
   #message("DEBUG: LAPACK_LIBRARIES_DIR = ${LAPACK_LIBRARIES_DIR}")
   #message("DEBUG: LAPACK_FOUND = ${LAPACK_FOUND}")
 
-endif(NOT BLAS_FOUND)
+endif()

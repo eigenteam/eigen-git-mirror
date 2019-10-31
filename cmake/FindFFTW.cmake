@@ -101,7 +101,7 @@ else()
     PATHS ${PKG_FFTW_INCLUDE_DIRS} ${INCLUDE_INSTALL_DIR}
   )
 
-endif( FFTW_ROOT )
+endif()
 
 set(FFTW_LIBRARIES ${FFTW_LIB} ${FFTWF_LIB})
 

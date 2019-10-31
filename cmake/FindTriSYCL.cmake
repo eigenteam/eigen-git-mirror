@@ -72,7 +72,7 @@ if(TRISYCL_OPENCL)
   if(UNIX)
     set(BOOST_COMPUTE_INCPATH /usr/include/compute CACHE PATH
       "Path to Boost.Compute headers (default is: /usr/include/compute)")
-  endif(UNIX)
+  endif()
 endif()
 
 # Find OpenMP package
@@ -147,6 +147,6 @@ function(add_sycl_to_target targetName sourceFile binaryDir)
     set_target_properties(${targetName}
       PROPERTIES
       LINK_FLAGS ${OpenMP_CXX_FLAGS})
-  endif(${TRISYCL_OPENMP} AND (NOT WIN32))
+  endif()
 
-endfunction(add_sycl_to_target)
+endfunction()

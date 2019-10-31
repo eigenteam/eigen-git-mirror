@@ -238,7 +238,7 @@ if (NOT MPI_FOUND AND PASTIX_LOOK_FOR_MPI)
     mark_as_advanced(MPI_LIBRARY)
     mark_as_advanced(MPI_EXTRA_LIBRARY)
   endif()
-endif (NOT MPI_FOUND AND PASTIX_LOOK_FOR_MPI)
+endif ()
 
 # PASTIX may depend on STARPU
 #----------------------------
@@ -279,7 +279,7 @@ if( NOT STARPU_FOUND AND PASTIX_LOOK_FOR_STARPU)
       COMPONENTS ${STARPU_COMPONENT_LIST})
   endif()
 
-endif( NOT STARPU_FOUND AND PASTIX_LOOK_FOR_STARPU)
+endif()
 
 # PASTIX may depends on SCOTCH
 #-----------------------------
@@ -478,7 +478,7 @@ foreach(pastix_lib ${PASTIX_libs_to_find})
   endif()
   mark_as_advanced(PASTIX_${pastix_lib}_LIBRARY)
 
-endforeach(pastix_lib ${PASTIX_libs_to_find})
+endforeach()
 
 # check a function to validate the find
 if(PASTIX_LIBRARIES)
@@ -681,7 +681,7 @@ if(PASTIX_LIBRARIES)
   set(CMAKE_REQUIRED_INCLUDES)
   set(CMAKE_REQUIRED_FLAGS)
   set(CMAKE_REQUIRED_LIBRARIES)
-endif(PASTIX_LIBRARIES)
+endif()
 
 if (PASTIX_LIBRARIES)
   list(GET PASTIX_LIBRARIES 0 first_lib)

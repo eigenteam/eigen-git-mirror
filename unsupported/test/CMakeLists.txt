@@ -17,9 +17,9 @@ if(GOOGLEHASH_FOUND)
   add_definitions("-DEIGEN_GOOGLEHASH_SUPPORT")
   include_directories(${GOOGLEHASH_INCLUDES})
   ei_add_property(EIGEN_TESTED_BACKENDS  "GoogleHash, ")
-else(GOOGLEHASH_FOUND)
+else()
   ei_add_property(EIGEN_MISSING_BACKENDS  "GoogleHash, ")
-endif(GOOGLEHASH_FOUND)
+endif()
 
 
 find_package(Adolc)
@@ -31,9 +31,9 @@ if(ADOLC_FOUND)
   else()
     message(STATUS "Adolc found, but tests require C++11 mode")
   endif()
-else(ADOLC_FOUND)
+else()
   ei_add_property(EIGEN_MISSING_BACKENDS "Adolc, ")
-endif(ADOLC_FOUND)
+endif()
 
 # this test seems to never have been successful on x87, so is considered to contain a FP-related bug.
 # see thread: "non-linear optimization test summary"
@@ -114,13 +114,13 @@ if(EIGEN_TEST_CXX11)
     if(EIGEN_SYCL_TRISYCL)
       set(CMAKE_CXX_STANDARD 14)
       set(STD_CXX_FLAG "-std=c++1z")
-    else(EIGEN_SYCL_TRISYCL)
+    else()
       # It should be safe to always run these tests as there is some fallback code for
       # older compiler that don't support cxx11.
       # This is already set if EIGEN_TEST_CXX11 is enabled:
       # set(CMAKE_CXX_STANDARD 11)
       # set(STD_CXX_FLAG "-std=c++11")
-    endif(EIGEN_SYCL_TRISYCL)
+    endif()
 
     ei_add_test_sycl(cxx11_tensor_sycl ${STD_CXX_FLAG})
     ei_add_test_sycl(cxx11_tensor_forced_eval_sycl ${STD_CXX_FLAG})
@@ -145,7 +145,7 @@ if(EIGEN_TEST_CXX11)
     ei_add_test_sycl(cxx11_tensor_volume_patch_sycl ${STD_CXX_FLAG})
     ei_add_test_sycl(cxx11_tensor_argmax_sycl ${STD_CXX_FLAG})
     ei_add_test_sycl(cxx11_tensor_custom_op_sycl ${STD_CXX_FLAG})
-  endif(EIGEN_TEST_SYCL)
+  endif()
 
   ei_add_test(cxx11_eventcount "-pthread" "${CMAKE_THREAD_LIBS_INIT}")
   ei_add_test(cxx11_runqueue "-pthread" "${CMAKE_THREAD_LIBS_INIT}")
@@ -339,7 +339,7 @@ if (EIGEN_TEST_HIP)
 	message(FATAL_ERROR "Unknown HIP_PLATFORM = ${HIP_PLATFORM}")
       endif()
 
-    endif(HIP_FOUND)
+    endif()
 
   else ()
 
@@ -347,5 +347,5 @@ if (EIGEN_TEST_HIP)
 
   endif()
 
-endif(EIGEN_TEST_HIP)
+endif()
 

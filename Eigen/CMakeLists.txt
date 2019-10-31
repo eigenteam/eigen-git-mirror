@@ -9,7 +9,7 @@ foreach(f ${Eigen_directory_files})
   if(NOT f MATCHES "\\.txt" AND NOT f MATCHES "${ESCAPED_CMAKE_CURRENT_SOURCE_DIR}/[.].+" AND NOT f MATCHES "${ESCAPED_CMAKE_CURRENT_SOURCE_DIR}/src")
     list(APPEND Eigen_directory_files_to_install ${f})
   endif()
-endforeach(f ${Eigen_directory_files})
+endforeach()
 
 install(FILES
   ${Eigen_directory_files_to_install}

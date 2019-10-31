@@ -6,7 +6,7 @@ macro(ei_add_property prop value)
   else()
     set_property(GLOBAL PROPERTY ${prop} "${previous} ${value}")
   endif()
-endmacro(ei_add_property)
+endmacro()
 
 #internal. See documentation of ei_add_test for details.
 macro(ei_add_test_internal testname testname_with_suffix)
@@ -60,11 +60,11 @@ macro(ei_add_test_internal testname testname_with_suffix)
 
   if(EIGEN_NO_ASSERTION_CHECKING)
     ei_add_target_property(${targetname} COMPILE_FLAGS "-DEIGEN_NO_ASSERTION_CHECKING=1")
-  else(EIGEN_NO_ASSERTION_CHECKING)
+  else()
     if(EIGEN_DEBUG_ASSERTS)
       ei_add_target_property(${targetname} COMPILE_FLAGS "-DEIGEN_DEBUG_ASSERTS=1")
-    endif(EIGEN_DEBUG_ASSERTS)
-  endif(EIGEN_NO_ASSERTION_CHECKING)
+    endif()
+  endif()
 
   ei_add_target_property(${targetname} COMPILE_FLAGS "-DEIGEN_TEST_MAX_SIZE=${EIGEN_TEST_MAX_SIZE}")
 
@@ -75,7 +75,7 @@ macro(ei_add_test_internal testname testname_with_suffix)
   # let the user pass flags.
   if(${ARGC} GREATER 2)
     ei_add_target_property(${targetname} COMPILE_FLAGS "${ARGV2}")
-  endif(${ARGC} GREATER 2)
+  endif()
 
   if(EIGEN_TEST_CUSTOM_CXX_FLAGS)
     ei_add_target_property(${targetname} COMPILE_FLAGS "${EIGEN_TEST_CUSTOM_CXX_FLAGS}")
@@ -114,7 +114,7 @@ macro(ei_add_test_internal testname testname_with_suffix)
     set_property(TEST ${testname_with_suffix} PROPERTY LABELS "${current_subproject}")
   endif()
 
-endmacro(ei_add_test_internal)
+endmacro()
 
 # SYCL
 macro(ei_add_test_internal_sycl testname testname_with_suffix)
@@ -160,11 +160,11 @@ macro(ei_add_test_internal_sycl testname testname_with_suffix)
 
   if(EIGEN_NO_ASSERTION_CHECKING)
     ei_add_target_property(${targetname} COMPILE_FLAGS "-DEIGEN_NO_ASSERTION_CHECKING=1")
-  else(EIGEN_NO_ASSERTION_CHECKING)
+  else()
     if(EIGEN_DEBUG_ASSERTS)
       ei_add_target_property(${targetname} COMPILE_FLAGS "-DEIGEN_DEBUG_ASSERTS=1")
-    endif(EIGEN_DEBUG_ASSERTS)
-  endif(EIGEN_NO_ASSERTION_CHECKING)
+    endif()
+  endif()
 
   ei_add_target_property(${targetname} COMPILE_FLAGS "-DEIGEN_TEST_MAX_SIZE=${EIGEN_TEST_MAX_SIZE}")
 
@@ -175,7 +175,7 @@ macro(ei_add_test_internal_sycl testname testname_with_suffix)
   # let the user pass flags.
   if(${ARGC} GREATER 2)
     ei_add_target_property(${targetname} COMPILE_FLAGS "${ARGV2}")
-  endif(${ARGC} GREATER 2)
+  endif()
 
   if(EIGEN_TEST_CUSTOM_CXX_FLAGS)
     ei_add_target_property(${targetname} COMPILE_FLAGS "${EIGEN_TEST_CUSTOM_CXX_FLAGS}")
@@ -215,7 +215,7 @@ macro(ei_add_test_internal_sycl testname testname_with_suffix)
   endif()
 
 
-endmacro(ei_add_test_internal_sycl)
+endmacro()
 
 
 # Macro to add a test
@@ -290,11 +290,11 @@ macro(ei_add_test testname)
       ei_add_test_internal(${testname} ${testname}_${suffix}
         "${ARGV1} -DEIGEN_TEST_PART_${suffix}=1" "${ARGV2}")
       add_dependencies(${testname} ${testname}_${suffix})
-    endforeach(suffix)
+    endforeach()
   else()
     ei_add_test_internal(${testname} ${testname} "${ARGV1} -DEIGEN_TEST_PART_ALL=1" "${ARGV2}")
   endif()
-endmacro(ei_add_test)
+endmacro()
 
 macro(ei_add_test_sycl testname)
   get_property(EIGEN_TESTS_LIST GLOBAL PROPERTY EIGEN_TESTS_LIST)
@@ -319,16 +319,16 @@ macro(ei_add_test_sycl testname)
       ei_add_test_internal_sycl(${testname} ${testname}_${suffix}
         "${ARGV1} -DEIGEN_TEST_PART_${suffix}=1" "${ARGV2}")
       add_dependencies(${testname} ${testname}_${suffix})
-    endforeach(suffix)
-  else(EIGEN_SPLIT_LARGE_TESTS AND suffixes)
+    endforeach()
+  else()
     set(symbols_to_enable_all_parts "")
     foreach(suffix ${suffixes})
       set(symbols_to_enable_all_parts
         "${symbols_to_enable_all_parts} -DEIGEN_TEST_PART_${suffix}=1")
-    endforeach(suffix)
+    endforeach()
     ei_add_test_internal_sycl(${testname} ${testname} "${ARGV1} ${symbols_to_enable_all_parts}" "${ARGV2}")
-  endif(EIGEN_SPLIT_LARGE_TESTS AND suffixes)
-endmacro(ei_add_test_sycl)
+  endif()
+endmacro()
 
 # adds a failtest, i.e. a test that succeed if the program fails to compile
 # note that the test runner for these is CMake itself, when passed -DEIGEN_FAILTEST=ON
@@ -360,7 +360,7 @@ macro(ei_add_failtest testname)
 
   # Expect the second test to fail
   set_tests_properties(${test_target_ko} PROPERTIES WILL_FAIL TRUE)
-endmacro(ei_add_failtest)
+endmacro()
 
 # print a summary of the different options
 macro(ei_testing_print_summary)
@@ -510,7 +510,7 @@ macro(ei_testing_print_summary)
   message(STATUS "\n${EIGEN_TESTING_SUMMARY}")
 
   message(STATUS "************************************************************")
-endmacro(ei_testing_print_summary)
+endmacro()
 
 macro(ei_init_testing)
   define_property(GLOBAL PROPERTY EIGEN_CURRENT_SUBPROJECT BRIEF_DOCS " " FULL_DOCS " ")
@@ -532,7 +532,7 @@ macro(ei_init_testing)
 
   # uncomment anytime you change the ei_get_compilerver_from_cxx_version_string macro
   # ei_test_get_compilerver_from_cxx_version_string()
-endmacro(ei_init_testing)
+endmacro()
 
 macro(ei_set_sitename)
   # if the sitename is not yet set, try to set it
@@ -549,7 +549,7 @@ macro(ei_set_sitename)
   if(SITE)
     string(TOLOWER ${SITE} SITE)
   endif()
-endmacro(ei_set_sitename)
+endmacro()
 
 macro(ei_get_compilerver VAR)
     if(MSVC)
@@ -582,7 +582,7 @@ macro(ei_get_compilerver VAR)
     set(${VAR} "${CNAME}-${CVER}")
 
   endif()
-endmacro(ei_get_compilerver)
+endmacro()
 
 # Extract compiler name and version from a raw version string
 # WARNING: if you edit thid macro, then please test it by  uncommenting
@@ -631,7 +631,7 @@ macro(ei_get_compilerver_from_cxx_version_string VERSTRING CNAME CVER)
 
   string(REGEX REPLACE ".(.*)" "\\1" ${CVER} ${eicver})
 
-endmacro(ei_get_compilerver_from_cxx_version_string)
+endmacro()
 
 macro(ei_get_cxxflags VAR)
   set(${VAR} "")
@@ -679,7 +679,7 @@ macro(ei_get_cxxflags VAR)
       set(${VAR} ${${VAR}}-ROWMAJ)
     endif()
   endif()
-endmacro(ei_get_cxxflags)
+endmacro()
 
 macro(ei_set_build_string)
   ei_get_compilerver(LOCAL_COMPILER_VERSION)
@@ -714,7 +714,7 @@ macro(ei_set_build_string)
   endif()
 
   string(TOLOWER ${TMP_BUILD_STRING} BUILDNAME)
-endmacro(ei_set_build_string)
+endmacro()
 
 macro(ei_is_64bit_env VAR)
   if(CMAKE_SIZEOF_VOID_P EQUAL 8)
@@ -724,7 +724,7 @@ macro(ei_is_64bit_env VAR)
   else()
     message(WARNING "Unsupported pointer size. Please contact the authors.")
   endif()
-endmacro(ei_is_64bit_env)
+endmacro()
 
 
 # helper macro for testing ei_get_compilerver_from_cxx_version_string
@@ -737,7 +737,7 @@ macro(ei_test1_get_compilerver_from_cxx_version_string STR REFNAME REFVER)
     message("STATUS ei_get_compilerver_from_cxx_version_string error:")
     message("Expected \"${REFNAME}-${REFVER}\", got \"${CNAME}-${CVER}\"")
   endif()
-endmacro(ei_test1_get_compilerver_from_cxx_version_string)
+endmacro()
 
 # macro for testing ei_get_compilerver_from_cxx_version_string
 # feel free to add more version strings
@@ -752,4 +752,4 @@ macro(ei_test_get_compilerver_from_cxx_version_string)
   ei_test1_get_compilerver_from_cxx_version_string("i686-apple-darwin11-llvm-g++-4.2 (GCC) 4.2.1 (Based on Apple Inc. build 5658) (LLVM build 2335.15.00)" "llvm-g++" "4.2.1")
   ei_test1_get_compilerver_from_cxx_version_string("g++-mp-4.4 (GCC) 4.4.6" "g++" "4.4.6")
   ei_test1_get_compilerver_from_cxx_version_string("g++-mp-4.4 (GCC) 2011" "g++" "4.4")
-endmacro(ei_test_get_compilerver_from_cxx_version_string)
+endmacro()
