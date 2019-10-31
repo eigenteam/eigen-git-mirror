@@ -15,13 +15,13 @@ namespace Eigen {
 namespace internal {
 
 // Disable the code for older versions of gcc that don't support many of the required avx512 instrinsics.
-#if EIGEN_GNUC_AT_LEAST(5, 3) || EIGEN_COMP_CLANG
+#if EIGEN_GNUC_AT_LEAST(5, 3) || EIGEN_COMP_CLANG  || EIGEN_COMP_MSVC >= 1923
 
 #define _EIGEN_DECLARE_CONST_Packet16f(NAME, X) \
   const Packet16f p16f_##NAME = pset1<Packet16f>(X)
 
 #define _EIGEN_DECLARE_CONST_Packet16f_FROM_INT(NAME, X) \
-  const Packet16f p16f_##NAME = (__m512)pset1<Packet16i>(X)
+  const Packet16f p16f_##NAME =  preinterpret<Packet16f,Packet16i>(pset1<Packet16i>(X))
 
 #define _EIGEN_DECLARE_CONST_Packet8d(NAME, X) \
   const Packet8d p8d_##NAME = pset1<Packet8d>(X)
@@ -72,7 +72,7 @@ plog<Packet16f>(const Packet16f& _x) {
   x = pmax(x, p16f_min_norm_pos);
 
   // Extract the shifted exponents.
-  Packet16f emm0 = _mm512_cvtepi32_ps(_mm512_srli_epi32((__m512i)x, 23));
+  Packet16f emm0 = _mm512_cvtepi32_ps(_mm512_srli_epi32(preinterpret<Packet16i,Packet16f>(x), 23));
   Packet16f e = _mm512_sub_ps(emm0, p16f_126f);
 
   // Set the exponents to -1, i.e. x are in the range [0.5,1).
