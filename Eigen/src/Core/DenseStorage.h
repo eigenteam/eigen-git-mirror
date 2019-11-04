@@ -369,7 +369,7 @@ template<typename T, int _Options> class DenseStorage<T, Dynamic, Dynamic, Dynam
       , m_cols(other.m_cols)
     {
       EIGEN_INTERNAL_DENSE_STORAGE_CTOR_PLUGIN(Index size = m_rows*m_cols)
-      internal::smart_copy(other.m_data, other.m_data+other.m_rows*other.m_cols, m_data);
+      std::copy(other.m_data, other.m_data+other.m_rows*other.m_cols, m_data);
     }
     EIGEN_DEVICE_FUNC DenseStorage& operator=(const DenseStorage& other)
     {
@@ -452,7 +452,7 @@ template<typename T, int _Rows, int _Options> class DenseStorage<T, Dynamic, _Ro
       , m_cols(other.m_cols)
     {
       EIGEN_INTERNAL_DENSE_STORAGE_CTOR_PLUGIN(Index size = m_cols*_Rows)
-      internal::smart_copy(other.m_data, other.m_data+_Rows*m_cols, m_data);
+      std::copy(other.m_data, other.m_data+_Rows*m_cols, m_data);
     }
     EIGEN_DEVICE_FUNC DenseStorage& operator=(const DenseStorage& other)
     {
@@ -528,7 +528,7 @@ template<typename T, int _Cols, int _Options> class DenseStorage<T, Dynamic, Dyn
       , m_rows(other.m_rows)
     {
       EIGEN_INTERNAL_DENSE_STORAGE_CTOR_PLUGIN(Index size = m_rows*_Cols)
-      internal::smart_copy(other.m_data, other.m_data+other.m_rows*_Cols, m_data);
+      std::copy(other.m_data, other.m_data+other.m_rows*_Cols, m_data);
     }
     EIGEN_DEVICE_FUNC DenseStorage& operator=(const DenseStorage& other)
     {

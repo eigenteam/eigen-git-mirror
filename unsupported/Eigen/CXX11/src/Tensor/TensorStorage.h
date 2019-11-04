@@ -96,7 +96,7 @@ class TensorStorage<T, DSizes<IndexType, NumIndices_>, Options_>
       : m_data(internal::conditional_aligned_new_auto<T,(Options_&DontAlign)==0>(internal::array_prod(other.m_dimensions)))
       , m_dimensions(other.m_dimensions)
     {
-      internal::smart_copy(other.m_data, other.m_data+internal::array_prod(other.m_dimensions), m_data);
+      std::copy(other.m_data, other.m_data+internal::array_prod(other.m_dimensions), m_data);
     }
     EIGEN_DEVICE_FUNC Self& operator=(const Self& other)
     {

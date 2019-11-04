@@ -147,14 +147,14 @@ public:
         // realloc manually to reduce copies
         typename SparseMatrixType::Storage newdata(m_matrix.data().allocatedSize() - block_size + nnz);
 
-        internal::smart_copy(m_matrix.valuePtr(),       m_matrix.valuePtr() + start,      newdata.valuePtr());
-        internal::smart_copy(m_matrix.innerIndexPtr(),  m_matrix.innerIndexPtr() + start, newdata.indexPtr());
+        std::copy(m_matrix.valuePtr(),       m_matrix.valuePtr() + start,      newdata.valuePtr());
+        std::copy(m_matrix.innerIndexPtr(),  m_matrix.innerIndexPtr() + start, newdata.indexPtr());
 
-        internal::smart_copy(tmp.valuePtr() + tmp_start,      tmp.valuePtr() + tmp_start + nnz,       newdata.valuePtr() + start);
-        internal::smart_copy(tmp.innerIndexPtr() + tmp_start, tmp.innerIndexPtr() + tmp_start + nnz,  newdata.indexPtr() + start);
+        std::copy(tmp.valuePtr() + tmp_start,      tmp.valuePtr() + tmp_start + nnz,       newdata.valuePtr() + start);
+        std::copy(tmp.innerIndexPtr() + tmp_start, tmp.innerIndexPtr() + tmp_start + nnz,  newdata.indexPtr() + start);
 
-        internal::smart_copy(matrix.valuePtr()+end,       matrix.valuePtr()+end + tail_size,      newdata.valuePtr()+start+nnz);
-        internal::smart_copy(matrix.innerIndexPtr()+end,  matrix.innerIndexPtr()+end + tail_size, newdata.indexPtr()+start+nnz);
+        std::copy(matrix.valuePtr()+end,       matrix.valuePtr()+end + tail_size,      newdata.valuePtr()+start+nnz);
+        std::copy(matrix.innerIndexPtr()+end,  matrix.innerIndexPtr()+end + tail_size, newdata.indexPtr()+start+nnz);
 
         newdata.resize(m_matrix.outerIndexPtr()[m_matrix.outerSize()] - block_size + nnz);
 
@@ -175,8 +175,8 @@ public:
           update_trailing_pointers = true;
         }
 
-        internal::smart_copy(tmp.valuePtr() + tmp_start,      tmp.valuePtr() + tmp_start + nnz,       matrix.valuePtr() + start);
-        internal::smart_copy(tmp.innerIndexPtr() + tmp_start, tmp.innerIndexPtr() + tmp_start + nnz,  matrix.innerIndexPtr() + start);
+        std::copy(tmp.valuePtr() + tmp_start,      tmp.valuePtr() + tmp_start + nnz,       matrix.valuePtr() + start);
+        std::copy(tmp.innerIndexPtr() + tmp_start, tmp.innerIndexPtr() + tmp_start + nnz,  matrix.innerIndexPtr() + start);
       }
 
       // update outer index pointers and innerNonZeros

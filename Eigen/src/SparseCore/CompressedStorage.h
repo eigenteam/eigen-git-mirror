@@ -53,8 +53,8 @@ class CompressedStorage
       resize(other.size());
       if(other.size()>0)
       {
-        internal::smart_copy(other.m_values,  other.m_values  + m_size, m_values);
-        internal::smart_copy(other.m_indices, other.m_indices + m_size, m_indices);
+        std::copy(other.m_values,  other.m_values  + m_size, m_values);
+        std::copy(other.m_indices, other.m_indices + m_size, m_indices);
       }
       return *this;
     }
@@ -183,14 +183,14 @@ class CompressedStorage
           internal::scoped_array<StorageIndex> newIndices(m_allocatedSize);
 
           // copy first chunk
-          internal::smart_copy(m_values,  m_values +id, newValues.ptr());
-          internal::smart_copy(m_indices, m_indices+id, newIndices.ptr());
+          std::copy(m_values,  m_values +id, newValues.ptr());
+          std::copy(m_indices, m_indices+id, newIndices.ptr());
 
           // copy the rest
           if(m_size>id)
           {
-            internal::smart_copy(m_values +id,  m_values +m_size, newValues.ptr() +id+1);
-            internal::smart_copy(m_indices+id,  m_indices+m_size, newIndices.ptr()+id+1);
+            std::copy(m_values +id,  m_values +m_size, newValues.ptr() +id+1);
+            std::copy(m_indices+id,  m_indices+m_size, newIndices.ptr()+id+1);
           }
           std::swap(m_values,newValues.ptr());
           std::swap(m_indices,newIndices.ptr());
@@ -218,8 +218,8 @@ class CompressedStorage
       }
       else
       {
-        internal::smart_copy(m_values+from,  m_values+from+chunkSize,  m_values+to);
-        internal::smart_copy(m_indices+from, m_indices+from+chunkSize, m_indices+to);
+        std::copy(m_values+from,  m_values+from+chunkSize,  m_values+to);
+        std::copy(m_indices+from, m_indices+from+chunkSize, m_indices+to);
       }
     }
 
@@ -251,8 +251,8 @@ class CompressedStorage
       internal::scoped_array<StorageIndex> newIndices(size);
       Index copySize = (std::min)(size, m_size);
       if (copySize>0) {
-        internal::smart_copy(m_values, m_values+copySize, newValues.ptr());
-        internal::smart_copy(m_indices, m_indices+copySize, newIndices.ptr());
+        std::copy(m_values, m_values+copySize, newValues.ptr());
+        std::copy(m_indices, m_indices+copySize, newIndices.ptr());
       }
       std::swap(m_values,newValues.ptr());
       std::swap(m_indices,newIndices.ptr());
