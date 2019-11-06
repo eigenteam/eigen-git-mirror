@@ -372,7 +372,7 @@
   #endif
 #endif
 
-#if defined(__F16C__) && (!defined(EIGEN_COMP_CLANG) || EIGEN_COMP_CLANG>=380)
+#if defined(__F16C__) && (!defined(EIGEN_GPUCC) && (!defined(EIGEN_COMP_CLANG) || EIGEN_COMP_CLANG>=380))
   // We can use the optimized fp16 to float and float to fp16 conversion routines
   #define EIGEN_HAS_FP16_C
 
