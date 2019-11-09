@@ -9,27 +9,19 @@
 
 #define EIGEN_USE_THREADS
 
+#include <atomic>
+
 #include <stdlib.h>
 #include "main.h"
 #include <Eigen/CXX11/Tensor>
-
-
-namespace {
-
-void WaitAndAdd(Eigen::Notification* n, int* counter) {
-  n->Wait();
-  *counter = *counter + 1;
-}
-
-}  // namespace
 
 static void test_notification_single()
 {
   ThreadPool thread_pool(1);
 
-  int counter = 0;
+  std::atomic<int> counter(0);
   Eigen::Notification n;
-  std::function<void()> func = std::bind(&WaitAndAdd, &n, &counter);
+  auto func = [&n, &counter](){ n.Wait(); ++counter;};
   thread_pool.Schedule(func);
   EIGEN_SLEEP(1000);
 
@@ -51,9 +43,9 @@ static void test_notification_multiple()
 {
   ThreadPool thread_pool(1);
 
-  int counter = 0;
+  std::atomic<int> counter(0);
   Eigen::Notification n;
-  std::function<void()> func = std::bind(&WaitAndAdd, &n, &counter);
+  auto func = [&n, &counter](){ n.Wait(); ++counter;};
   thread_pool.Schedule(func);
   thread_pool.Schedule(func);
   thread_pool.Schedule(func);
