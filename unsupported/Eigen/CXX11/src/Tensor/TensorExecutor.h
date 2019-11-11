@@ -592,8 +592,8 @@ class TensorAsyncExecutor<Expression, ThreadPoolDevice, DoneCallback,
         : evaluator(expr, thread_pool), on_done(std::move(done)) {}
 
     ~TensorAsyncExecutorContext() {
-      on_done();
       evaluator.cleanup();
+      on_done();
     }
 
     Evaluator evaluator;
@@ -674,9 +674,9 @@ class TensorAsyncExecutor<Expression, ThreadPoolDevice, DoneCallback,
           on_done(std::move(done)) {}
 
     ~TensorAsyncExecutorContext() {
-      on_done();
       device.deallocate(tiling.buffer);
       evaluator.cleanup();
+      on_done();
     }
 
     const ThreadPoolDevice& device;
@@ -755,9 +755,9 @@ class TensorAsyncExecutor<Expression, ThreadPoolDevice, DoneCallback,
           on_done(std::move(done)) {}
 
     ~TensorAsyncExecutorContext() {
-      on_done();
       device.deallocate(tiling.buffer);
       evaluator.cleanup();
+      on_done();
     }
 
     const ThreadPoolDevice& device;
