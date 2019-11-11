@@ -269,20 +269,35 @@ struct TensorEvaluator<const TensorGeneratorOp<Generator, ArgType>, Device>
 
     CoeffReturnType* block_buffer = block_storage.data();
 
+    static const int packet_size = PacketType<CoeffReturnType, Device>::size;
+
+    static const int inner_dim = is_col_major ? 0 : NumDims - 1;
+    const Index inner_dim_size = it[0].size;
+    const Index inner_dim_vectorized = inner_dim_size - packet_size;
+
     while (it[NumDims - 1].count < it[NumDims - 1].size) {
-      // Generate data for the inner-most dimension.
-      for (Index i = 0; i < it[0].size; ++i) {
-        *(block_buffer + offset + i) = m_generator(coords);
-        coords[is_col_major ? 0 : NumDims - 1]++;
+      Index i = 0;
+      // Generate data for the vectorized part of the inner-most dimension.
+      for (; i <= inner_dim_vectorized; i += packet_size) {
+        for (Index j = 0; j < packet_size; ++j) {
+          array<Index, NumDims> j_coords = coords;  // Break loop dependence.
+          j_coords[inner_dim] += j;
+          *(block_buffer + offset + i + j) = m_generator(j_coords);
+        }
+        coords[inner_dim] += packet_size;
       }
-      coords[is_col_major ? 0 : NumDims - 1] =
-          initial_coords[is_col_major ? 0 : NumDims - 1];
+      // Finalize non-vectorized part of the inner-most dimension.
+      for (; i < inner_dim_size; ++i) {
+        *(block_buffer + offset + i) = m_generator(coords);
+        coords[inner_dim]++;
+      }
+      coords[inner_dim] = initial_coords[inner_dim];
 
       // For the 1d tensor we need to generate only one inner-most dimension.
       if (NumDims == 1) break;
 
       // Update offset.
-      for (Index i = 1; i < NumDims; ++i) {
+      for (i = 1; i < NumDims; ++i) {
         if (++it[i].count < it[i].size) {
           offset += it[i].stride;
           coords[is_col_major ? i : NumDims - 1 - i]++;
