@@ -98,7 +98,6 @@ struct TensorEvaluator<const TensorPaddingOp<PaddingDimensions, ArgType>, Device
   enum {
     IsAligned         = true,
     PacketAccess      = TensorEvaluator<ArgType, Device>::PacketAccess,
-    BlockAccess       = false,
     BlockAccessV2     = TensorEvaluator<ArgType, Device>::RawAccess,
     PreferBlockAccess = true,
     Layout            = TensorEvaluator<ArgType, Device>::Layout,

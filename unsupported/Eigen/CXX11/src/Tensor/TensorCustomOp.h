@@ -95,7 +95,6 @@ struct TensorEvaluator<const TensorCustomUnaryOp<CustomUnaryFunc, XprType>, Devi
   enum {
     IsAligned = false,
     PacketAccess = (PacketType<CoeffReturnType, Device>::size > 1),
-    BlockAccess = false,
     BlockAccessV2 = false,
     PreferBlockAccess = false,
     Layout = TensorEvaluator<XprType, Device>::Layout,
@@ -269,7 +268,6 @@ struct TensorEvaluator<const TensorCustomBinaryOp<CustomBinaryFunc, LhsXprType, 
   enum {
     IsAligned = false,
     PacketAccess = (PacketType<CoeffReturnType, Device>::size > 1),
-    BlockAccess = false,
     BlockAccessV2 = false,
     PreferBlockAccess = false,
     Layout = TensorEvaluator<LhsXprType, Device>::Layout,

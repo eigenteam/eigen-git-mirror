@@ -302,7 +302,6 @@ struct TensorEvaluator<const TensorConversionOp<TargetType, ArgType>, Device>
                         TensorEvaluator<ArgType, Device>::PacketAccess &
                         internal::type_casting_traits<SrcType, TargetType>::VectorizedCast,
     #endif
-    BlockAccess       = false,
     BlockAccessV2     = TensorEvaluator<ArgType, Device>::BlockAccessV2,
     PreferBlockAccess = TensorEvaluator<ArgType, Device>::PreferBlockAccess,
     Layout            = TensorEvaluator<ArgType, Device>::Layout,

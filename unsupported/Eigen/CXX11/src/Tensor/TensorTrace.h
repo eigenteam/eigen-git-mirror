@@ -97,7 +97,6 @@ struct TensorEvaluator<const TensorTraceOp<Dims, ArgType>, Device>
   enum {
     IsAligned = false,
     PacketAccess = TensorEvaluator<ArgType, Device>::PacketAccess,
-    BlockAccess = false,
     BlockAccessV2 = false,
     PreferBlockAccess = TensorEvaluator<ArgType, Device>::PreferBlockAccess,
     Layout = TensorEvaluator<ArgType, Device>::Layout,

@@ -125,7 +125,6 @@ struct TensorEvaluator<const TensorConcatenationOp<Axis, LeftArgType, RightArgTy
     IsAligned         = false,
     PacketAccess      = TensorEvaluator<LeftArgType, Device>::PacketAccess &&
                         TensorEvaluator<RightArgType, Device>::PacketAccess,
-    BlockAccess       = false,
     BlockAccessV2     = false,
     PreferBlockAccess = TensorEvaluator<LeftArgType, Device>::PreferBlockAccess ||
                         TensorEvaluator<RightArgType, Device>::PreferBlockAccess,
@@ -325,7 +324,6 @@ template<typename Axis, typename LeftArgType, typename RightArgType, typename De
     IsAligned         = false,
     PacketAccess      = TensorEvaluator<LeftArgType, Device>::PacketAccess &&
                         TensorEvaluator<RightArgType, Device>::PacketAccess,
-    BlockAccess       = false,
     BlockAccessV2     = false,
     PreferBlockAccess = TensorEvaluator<LeftArgType, Device>::PreferBlockAccess ||
                         TensorEvaluator<RightArgType, Device>::PreferBlockAccess,

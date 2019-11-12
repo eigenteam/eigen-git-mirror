@@ -133,7 +133,6 @@ struct TensorEvaluator<const TensorFFTOp<FFT, ArgType, FFTResultType, FFTDir>, D
   enum {
     IsAligned = false,
     PacketAccess = true,
-    BlockAccess = false,
     BlockAccessV2 = false,
     PreferBlockAccess = false,
     Layout = TensorEvaluator<ArgType, Device>::Layout,

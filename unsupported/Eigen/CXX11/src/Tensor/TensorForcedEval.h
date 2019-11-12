@@ -96,7 +96,6 @@ struct TensorEvaluator<const TensorForcedEvalOp<ArgType_>, Device>
   enum {
     IsAligned         = true,
     PacketAccess      = (PacketType<CoeffReturnType, Device>::size > 1),
-    BlockAccess       = internal::is_arithmetic<CoeffReturnType>::value,
     BlockAccessV2     = internal::is_arithmetic<CoeffReturnType>::value,
     PreferBlockAccess = false,
     Layout            = TensorEvaluator<ArgType, Device>::Layout,
@@ -104,11 +103,6 @@ struct TensorEvaluator<const TensorForcedEvalOp<ArgType_>, Device>
   };
 
   static const int NumDims = internal::traits<ArgType>::NumDimensions;
-
-  typedef typename internal::TensorBlock<CoeffReturnType, Index, NumDims, Layout>
-      TensorBlock;
-  typedef typename internal::TensorBlockReader<CoeffReturnType, Index, NumDims, Layout>
-      TensorBlockReader;
 
   //===- Tensor block evaluation strategy (see TensorBlock.h) -------------===//
   typedef internal::TensorBlockDescriptor<NumDims, Index> TensorBlockDesc;
@@ -184,11 +178,6 @@ struct TensorEvaluator<const TensorForcedEvalOp<ArgType_>, Device>
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void getResourceRequirements(
       std::vector<internal::TensorOpResourceRequirements>*) const {}
-
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void block(TensorBlock* block) const {
-    assert(m_buffer != NULL);
-    TensorBlockReader::Run(block, m_buffer);
-  }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorBlockV2
   blockV2(TensorBlockDesc& desc, TensorBlockScratch& scratch,

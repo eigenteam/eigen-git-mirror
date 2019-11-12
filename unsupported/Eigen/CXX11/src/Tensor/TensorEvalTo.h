@@ -110,7 +110,6 @@ struct TensorEvaluator<const TensorEvalToOp<ArgType, MakePointer_>, Device>
   enum {
     IsAligned         = TensorEvaluator<ArgType, Device>::IsAligned,
     PacketAccess      = TensorEvaluator<ArgType, Device>::PacketAccess,
-    BlockAccess       = true,
     BlockAccessV2     = true,
     PreferBlockAccess = false,
     Layout            = TensorEvaluator<ArgType, Device>::Layout,
@@ -119,9 +118,6 @@ struct TensorEvaluator<const TensorEvalToOp<ArgType, MakePointer_>, Device>
   };
 
   static const int NumDims = internal::traits<ArgType>::NumDimensions;
-
-  typedef typename internal::TensorBlock<CoeffReturnType, Index, NumDims, Layout> TensorBlock;
-  typedef typename internal::TensorBlockReader<CoeffReturnType, Index, NumDims, Layout> TensorBlockReader;
 
   //===- Tensor block evaluation strategy (see TensorBlock.h) -------------===//
   typedef internal::TensorBlockDescriptor<NumDims, Index> TensorBlockDesc;
@@ -173,13 +169,6 @@ struct TensorEvaluator<const TensorEvalToOp<ArgType, MakePointer_>, Device>
     m_impl.getResourceRequirements(resources);
   }
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void evalBlock(TensorBlock* block) {
-    TensorBlock eval_to_block(block->first_coeff_index(), block->block_sizes(),
-                              block->tensor_strides(), block->tensor_strides(),
-                              m_buffer + block->first_coeff_index());
-    m_impl.block(&eval_to_block);
-  }
-
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void evalBlockV2(
       TensorBlockDesc& desc, TensorBlockScratch& scratch) {
     // Add `m_buffer` as destination buffer to the block descriptor.
@@ -214,11 +203,6 @@ struct TensorEvaluator<const TensorEvalToOp<ArgType, MakePointer_>, Device>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE PacketReturnType packet(Index index) const
   {
     return internal::ploadt<PacketReturnType, LoadMode>(m_buffer + index);
-  }
-
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void block(TensorBlock* block) const {
-    assert(m_buffer != NULL);
-    TensorBlockReader::Run(block, m_buffer);
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorOpCost costPerCoeff(bool vectorized) const {

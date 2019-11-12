@@ -158,7 +158,6 @@ struct IsVectorizable<GpuDevice, Expression> {
 enum TiledEvaluation {
   Off = 0,    // tiled evaluation is not supported
   On = 1,     // still work in progress (see TensorBlockV2.h)
-  Legacy = 2  // soon to be deprecated (see TensorBock.h)
 };
 
 template <typename Device, typename Expression>
@@ -166,18 +165,12 @@ struct IsTileable {
   // Check that block evaluation is supported and it's a preferred option (at
   // least one sub-expression has much faster block evaluation, e.g.
   // broadcasting).
-  static const bool BlockAccess =
-      TensorEvaluator<Expression, Device>::BlockAccess &&
-      TensorEvaluator<Expression, Device>::PreferBlockAccess;
-
   static const bool BlockAccessV2 =
       TensorEvaluator<Expression, Device>::BlockAccessV2 &&
       TensorEvaluator<Expression, Device>::PreferBlockAccess;
 
   static const TiledEvaluation value =
-      BlockAccessV2
-          ? TiledEvaluation::On
-          : (BlockAccess ? TiledEvaluation::Legacy : TiledEvaluation::Off);
+      BlockAccessV2 ? TiledEvaluation::On : TiledEvaluation::Off;
 };
 
 template <typename Expression, typename Device,

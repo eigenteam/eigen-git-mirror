@@ -381,7 +381,6 @@ struct TensorContractionEvaluatorBase
   enum {
     IsAligned         = true,
     PacketAccess      = (PacketType<CoeffReturnType, Device>::size > 1),
-    BlockAccess       = false,
     BlockAccessV2     = false,
     PreferBlockAccess = false,
     Layout            = TensorEvaluator<LeftArgType, Device>::Layout,

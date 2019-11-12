@@ -114,7 +114,6 @@ struct TensorEvaluator<const TensorStridingOp<Strides, ArgType>, Device>
   enum {
     IsAligned = /*TensorEvaluator<ArgType, Device>::IsAligned*/false,
     PacketAccess = TensorEvaluator<ArgType, Device>::PacketAccess,
-    BlockAccess = false,
     BlockAccessV2 = false,
     PreferBlockAccess = TensorEvaluator<ArgType, Device>::PreferBlockAccess,
     Layout = TensorEvaluator<ArgType, Device>::Layout,
@@ -288,7 +287,6 @@ struct TensorEvaluator<TensorStridingOp<Strides, ArgType>, Device>
   enum {
     IsAligned = /*TensorEvaluator<ArgType, Device>::IsAligned*/false,
     PacketAccess = TensorEvaluator<ArgType, Device>::PacketAccess,
-    BlockAccess = false,
     PreferBlockAccess = false,
     Layout = TensorEvaluator<ArgType, Device>::Layout,
     CoordAccess = false,  // to be implemented

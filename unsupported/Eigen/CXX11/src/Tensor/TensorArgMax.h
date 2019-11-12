@@ -88,7 +88,6 @@ struct TensorEvaluator<const TensorIndexTupleOp<ArgType>, Device>
   enum {
     IsAligned = /*TensorEvaluator<ArgType, Device>::IsAligned*/ false,
     PacketAccess = /*TensorEvaluator<ArgType, Device>::PacketAccess*/ false,
-    BlockAccess = false,
     BlockAccessV2 = false,
     PreferBlockAccess = TensorEvaluator<ArgType, Device>::PreferBlockAccess,
     Layout = TensorEvaluator<ArgType, Device>::Layout,
@@ -230,7 +229,6 @@ struct TensorEvaluator<const TensorTupleReducerOp<ReduceOp, Dims, ArgType>, Devi
   enum {
     IsAligned         = /*TensorEvaluator<ArgType, Device>::IsAligned*/ false,
     PacketAccess      = /*TensorEvaluator<ArgType, Device>::PacketAccess*/ false,
-    BlockAccess       = false,
     BlockAccessV2     = false,
     PreferBlockAccess = TensorEvaluator<ArgType, Device>::PreferBlockAccess,
     Layout            = TensorEvaluator<const TensorReductionOp<ReduceOp, Dims, const TensorIndexTupleOp<ArgType> >, Device>::Layout,

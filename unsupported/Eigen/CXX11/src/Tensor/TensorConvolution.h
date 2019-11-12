@@ -309,7 +309,6 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
   enum {
     IsAligned = TensorEvaluator<InputArgType, Device>::IsAligned & TensorEvaluator<KernelArgType, Device>::IsAligned,
     PacketAccess = TensorEvaluator<InputArgType, Device>::PacketAccess & TensorEvaluator<KernelArgType, Device>::PacketAccess,
-    BlockAccess = false,
     BlockAccessV2 = false,
     PreferBlockAccess = false,
     Layout = TensorEvaluator<InputArgType, Device>::Layout,
@@ -787,7 +786,6 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
   enum {
     IsAligned = TensorEvaluator<InputArgType, GpuDevice>::IsAligned & TensorEvaluator<KernelArgType, GpuDevice>::IsAligned,
     PacketAccess = false,
-    BlockAccess = false,
     BlockAccessV2 = false,
     PreferBlockAccess = false,
     Layout = TensorEvaluator<InputArgType, GpuDevice>::Layout,

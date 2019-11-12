@@ -99,7 +99,6 @@ struct TensorEvaluator<const TensorScanOp<Op, ArgType>, Device> {
   enum {
     IsAligned = false,
     PacketAccess = (PacketType<CoeffReturnType, Device>::size > 1),
-    BlockAccess = false,
     BlockAccessV2 = false,
     PreferBlockAccess = false,
     Layout = TensorEvaluator<ArgType, Device>::Layout,

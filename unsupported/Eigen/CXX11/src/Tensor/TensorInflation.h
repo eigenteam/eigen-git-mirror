@@ -92,7 +92,6 @@ struct TensorEvaluator<const TensorInflationOp<Strides, ArgType>, Device>
   enum {
     IsAligned = /*TensorEvaluator<ArgType, Device>::IsAligned*/ false,
     PacketAccess = TensorEvaluator<ArgType, Device>::PacketAccess,
-    BlockAccess = false,
     BlockAccessV2 = false,
     PreferBlockAccess = false,
     Layout = TensorEvaluator<ArgType, Device>::Layout,

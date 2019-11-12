@@ -108,8 +108,6 @@ struct TensorEvaluator<const TensorAssignOp<LeftArgType, RightArgType>, Device>
                         TensorEvaluator<RightArgType, Device>::IsAligned,
     PacketAccess      = TensorEvaluator<LeftArgType, Device>::PacketAccess &
                         TensorEvaluator<RightArgType, Device>::PacketAccess,
-    BlockAccess       = TensorEvaluator<LeftArgType, Device>::BlockAccess &
-                        TensorEvaluator<RightArgType, Device>::BlockAccess,
     BlockAccessV2     = TensorEvaluator<LeftArgType, Device>::BlockAccessV2 &
                         TensorEvaluator<RightArgType, Device>::BlockAccessV2,
     PreferBlockAccess = TensorEvaluator<LeftArgType, Device>::PreferBlockAccess |
@@ -214,19 +212,6 @@ struct TensorEvaluator<const TensorAssignOp<LeftArgType, RightArgType>, Device>
       std::vector<internal::TensorOpResourceRequirements>* resources) const {
     m_leftImpl.getResourceRequirements(resources);
     m_rightImpl.getResourceRequirements(resources);
-  }
-
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void evalBlock(TensorBlock* block) {
-    if (TensorEvaluator<LeftArgType, Device>::RawAccess &&
-        m_leftImpl.data() != NULL) {
-      TensorBlock left_block(block->first_coeff_index(), block->block_sizes(),
-                             block->tensor_strides(), block->tensor_strides(),
-                             m_leftImpl.data() + block->first_coeff_index());
-      m_rightImpl.block(&left_block);
-    } else {
-      m_rightImpl.block(block);
-      m_leftImpl.writeBlock(*block);
-    }
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void evalBlockV2(

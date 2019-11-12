@@ -242,7 +242,6 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
   enum {
     IsAligned = TensorEvaluator<InputArgType, const Eigen::SyclDevice>::IsAligned & TensorEvaluator<KernelArgType, const Eigen::SyclDevice>::IsAligned,
     PacketAccess = false,
-    BlockAccess = false,
     BlockAccessV2 = false,
     PreferBlockAccess = false,
     Layout = TensorEvaluator<InputArgType, const Eigen::SyclDevice>::Layout,

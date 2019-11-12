@@ -115,7 +115,6 @@ struct TensorEvaluator<const TensorShufflingOp<Shuffle, ArgType>, Device>
   enum {
     IsAligned         = false,
     PacketAccess      = (PacketType<CoeffReturnType, Device>::size > 1),
-    BlockAccess       = TensorEvaluator<ArgType, Device>::BlockAccess,
     BlockAccessV2     = TensorEvaluator<ArgType, Device>::RawAccess,
     PreferBlockAccess = true,
     Layout            = TensorEvaluator<ArgType, Device>::Layout,
@@ -124,11 +123,6 @@ struct TensorEvaluator<const TensorShufflingOp<Shuffle, ArgType>, Device>
   };
 
   typedef typename internal::remove_const<Scalar>::type ScalarNoConst;
-
-  typedef internal::TensorBlock<ScalarNoConst, Index, NumDims, Layout>
-      TensorBlock;
-  typedef internal::TensorBlockReader<ScalarNoConst, Index, NumDims, Layout>
-      TensorBlockReader;
 
   //===- Tensor block evaluation strategy (see TensorBlock.h) -------------===//
   typedef internal::TensorBlockDescriptor<NumDims, Index> TensorBlockDesc;
@@ -247,98 +241,6 @@ struct TensorEvaluator<const TensorShufflingOp<Shuffle, ArgType>, Device>
         1, m_device.firstLevelCacheSize() / sizeof(Scalar));
     resources->push_back(internal::TensorOpResourceRequirements(
         internal::kUniformAllDims, block_total_size_max));
-  }
-
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void block(
-      TensorBlock* output_block) const {
-    if (m_impl.data() != NULL) {
-      // Fast path: we have direct access to the data, so shuffle as we read.
-      TensorBlockReader::Run(output_block,
-                             srcCoeff(output_block->first_coeff_index()),
-                             m_inverseShuffle,
-                             m_unshuffledInputStrides,
-                             m_impl.data());
-      return;
-    }
-
-    // Slow path: read unshuffled block from the input and shuffle in-place.
-    // Initialize input block sizes using input-to-output shuffle map.
-    DSizes<Index, NumDims> input_block_sizes;
-    for (Index i = 0; i < NumDims; ++i) {
-      input_block_sizes[i] = output_block->block_sizes()[m_inverseShuffle[i]];
-    }
-
-    // Calculate input block strides.
-    DSizes<Index, NumDims> input_block_strides;
-    if (static_cast<int>(Layout) == static_cast<int>(ColMajor)) {
-      input_block_strides[0] = 1;
-      for (int i = 1; i < NumDims; ++i) {
-        input_block_strides[i] =
-            input_block_strides[i - 1] * input_block_sizes[i - 1];
-      }
-    } else {
-      input_block_strides[NumDims - 1] = 1;
-      for (int i = NumDims - 2; i >= 0; --i) {
-        input_block_strides[i] =
-            input_block_strides[i + 1] * input_block_sizes[i + 1];
-      }
-    }
-    DSizes<internal::TensorIntDivisor<Index>, NumDims> fast_input_block_strides;
-    for (int i = 0; i < NumDims; ++i) {
-      fast_input_block_strides[i] =
-          internal::TensorIntDivisor<Index>(input_block_strides[i]);
-    }
-
-    // Read input block.
-    TensorBlock input_block(srcCoeff(output_block->first_coeff_index()),
-                            input_block_sizes,
-                            input_block_strides,
-                            Dimensions(m_unshuffledInputStrides),
-                            output_block->data());
-
-    m_impl.block(&input_block);
-
-    // Naive In-place shuffle: random IO but block size is O(L1 cache size).
-    // TODO(andydavis) Improve the performance of this in-place shuffle.
-    const Index total_size = input_block_sizes.TotalSize();
-    std::vector<bool> bitmap(total_size, false);
-    ScalarNoConst* data = const_cast<ScalarNoConst*>(output_block->data());
-    const DSizes<Index, NumDims>& output_block_strides =
-        output_block->block_strides();
-    for (Index input_index = 0; input_index < total_size; ++input_index) {
-      if (bitmap[input_index]) {
-        // Coefficient at this index has already been shuffled.
-        continue;
-      }
-
-      Index output_index =
-          GetBlockOutputIndex(input_index, input_block_strides,
-                              output_block_strides, fast_input_block_strides);
-      if (output_index == input_index) {
-        // Coefficient already in place.
-        bitmap[output_index] = true;
-        continue;
-      }
-
-      // The following loop starts at 'input_index', and shuffles
-      // coefficients into their shuffled location at 'output_index'.
-      // It skips through the array shuffling coefficients by following
-      // the shuffle cycle starting and ending a 'start_index'.
-      ScalarNoConst evicted_value;
-      ScalarNoConst shuffled_value = data[input_index];
-      do {
-        evicted_value = data[output_index];
-        data[output_index] = shuffled_value;
-        shuffled_value = evicted_value;
-        bitmap[output_index] = true;
-        output_index =
-            GetBlockOutputIndex(output_index, input_block_strides,
-                                output_block_strides, fast_input_block_strides);
-      } while (output_index != input_index);
-
-      data[output_index] = shuffled_value;
-      bitmap[output_index] = true;
-    }
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorBlockV2
@@ -462,7 +364,6 @@ struct TensorEvaluator<TensorShufflingOp<Shuffle, ArgType>, Device>
   enum {
     IsAligned         = false,
     PacketAccess      = (PacketType<CoeffReturnType, Device>::size > 1),
-    BlockAccess       = TensorEvaluator<ArgType, Device>::BlockAccess,
     BlockAccessV2     = TensorEvaluator<ArgType, Device>::RawAccess,
     PreferBlockAccess = true,
     Layout            = TensorEvaluator<ArgType, Device>::Layout,
@@ -470,11 +371,6 @@ struct TensorEvaluator<TensorShufflingOp<Shuffle, ArgType>, Device>
   };
 
   typedef typename internal::remove_const<Scalar>::type ScalarNoConst;
-
-  typedef internal::TensorBlock<ScalarNoConst, Index, NumDims, Layout>
-      TensorBlock;
-  typedef internal::TensorBlockWriter<ScalarNoConst, Index, NumDims, Layout>
-      TensorBlockWriter;
 
   //===- Tensor block evaluation strategy (see TensorBlock.h) -------------===//
   typedef internal::TensorBlockDescriptor<NumDims, Index> TensorBlockDesc;
@@ -502,15 +398,7 @@ struct TensorEvaluator<TensorShufflingOp<Shuffle, ArgType>, Device>
     }
   }
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void writeBlock(
-      const TensorBlock& block) {
-    eigen_assert(this->m_impl.data() != NULL);
-    TensorBlockWriter::Run(block, this->srcCoeff(block.first_coeff_index()),
-                           this->m_inverseShuffle,
-                           this->m_unshuffledInputStrides, this->m_impl.data());
-  }
-
-template <typename TensorBlockV2>
+  template <typename TensorBlockV2>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void writeBlockV2(
       const TensorBlockDesc& desc, const TensorBlockV2& block) {
     eigen_assert(this->m_impl.data() != NULL);
