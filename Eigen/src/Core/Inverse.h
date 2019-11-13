@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2014 Gael Guennebaud <gael.guennebaud@inria.fr>
+// Copyright (C) 2014-2019 Gael Guennebaud <gael.guennebaud@inria.fr>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
@@ -44,7 +44,6 @@ class Inverse : public InverseImpl<XprType,typename internal::traits<XprType>::S
 {
 public:
   typedef typename XprType::StorageIndex StorageIndex;
-  typedef typename XprType::PlainObject                       PlainObject;
   typedef typename XprType::Scalar                            Scalar;
   typedef typename internal::ref_selector<XprType>::type      XprTypeNested;
   typedef typename internal::remove_all<XprTypeNested>::type  XprTypeNestedCleaned;
@@ -55,8 +54,8 @@ public:
     : m_xpr(xpr)
   {}
 
-  EIGEN_DEVICE_FUNC Index rows() const { return m_xpr.rows(); }
-  EIGEN_DEVICE_FUNC Index cols() const { return m_xpr.cols(); }
+  EIGEN_DEVICE_FUNC Index rows() const { return m_xpr.cols(); }
+  EIGEN_DEVICE_FUNC Index cols() const { return m_xpr.rows(); }
 
   EIGEN_DEVICE_FUNC const XprTypeNestedCleaned& nestedExpression() const { return m_xpr; }
 

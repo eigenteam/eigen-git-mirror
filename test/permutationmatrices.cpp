@@ -54,7 +54,11 @@ template<typename MatrixType> void permutationmatrices(const MatrixType& m)
   m_permuted = m_original;
   VERIFY_EVALUATION_COUNT(m_permuted = lp * m_permuted * rp, 1);
   VERIFY_IS_APPROX(m_permuted, lm*m_original*rm);
-  
+
+  LeftPermutationType lpi;
+  lpi = lp.inverse();
+  VERIFY_IS_APPROX(lpi*m_permuted,lp.inverse()*m_permuted);
+
   VERIFY_IS_APPROX(lp.inverse()*m_permuted*rp.inverse(), m_original);
   VERIFY_IS_APPROX(lv.asPermutation().inverse()*m_permuted*rv.asPermutation().inverse(), m_original);
   VERIFY_IS_APPROX(MapLeftPerm(lv.data(),lv.size()).inverse()*m_permuted*MapRightPerm(rv.data(),rv.size()).inverse(), m_original);

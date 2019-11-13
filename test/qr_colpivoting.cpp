@@ -70,10 +70,11 @@ void cod_fixedsize() {
     Cols = MatrixType::ColsAtCompileTime
   };
   typedef typename MatrixType::Scalar Scalar;
+  typedef CompleteOrthogonalDecomposition<Matrix<Scalar, Rows, Cols> > COD;
   int rank = internal::random<int>(1, (std::min)(int(Rows), int(Cols)) - 1);
   Matrix<Scalar, Rows, Cols> matrix;
   createRandomPIMatrixOfRank(rank, Rows, Cols, matrix);
-  CompleteOrthogonalDecomposition<Matrix<Scalar, Rows, Cols> > cod(matrix);
+  COD cod(matrix);
   VERIFY(rank == cod.rank());
   VERIFY(Cols - cod.rank() == cod.dimensionOfKernel());
   VERIFY(cod.isInjective() == (rank == Rows));
@@ -90,6 +91,9 @@ void cod_fixedsize() {
   JacobiSVD<MatrixType> svd(matrix, ComputeFullU | ComputeFullV);
   Matrix<Scalar, Cols, Cols2> svd_solution = svd.solve(rhs);
   VERIFY_IS_APPROX(cod_solution, svd_solution);
+
+  typename Inverse<COD>::PlainObject pinv = cod.pseudoInverse();
+  VERIFY_IS_APPROX(cod_solution, pinv * rhs);
 }
 
 template<typename MatrixType> void qr()
