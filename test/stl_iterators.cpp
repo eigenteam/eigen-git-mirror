@@ -1,12 +1,13 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2018 Gael Guennebaud <gael.guennebaud@inria.fr>
+// Copyright (C) 2018-2019 Gael Guennebaud <gael.guennebaud@inria.fr>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+#include <iterator>
 #include <numeric>
 #include "main.h"
 
@@ -420,6 +421,16 @@ void test_stl_iterators(int rows=Rows, int cols=Cols)
     A.setRandom();
     A.col(j).setZero();
     VERIFY_IS_EQUAL( std::find_if(A.colwise().begin(), A.colwise().end(), [](typename ColMatrixType::ColXpr x) { return x.norm() == Scalar(0); })-A.colwise().begin(), j );
+  }
+
+  {
+    using VecOp = VectorwiseOp<ArrayXXi, 0>;
+    STATIC_CHECK(( internal::is_same<VecOp::const_iterator, decltype(std::declval<const VecOp&>().cbegin())>::value ));
+    STATIC_CHECK(( internal::is_same<VecOp::const_iterator, decltype(std::declval<const VecOp&>().cend  ())>::value ));
+    #if EIGEN_COMP_CXXVER>=14
+      STATIC_CHECK(( internal::is_same<VecOp::const_iterator, decltype(std::cbegin(std::declval<const VecOp&>()))>::value ));
+      STATIC_CHECK(( internal::is_same<VecOp::const_iterator, decltype(std::cend  (std::declval<const VecOp&>()))>::value ));
+    #endif
   }
 
 #endif

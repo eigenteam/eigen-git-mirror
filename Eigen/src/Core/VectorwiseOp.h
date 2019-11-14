@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2008-2010 Gael Guennebaud <gael.guennebaud@inria.fr>
+// Copyright (C) 2008-2019 Gael Guennebaud <gael.guennebaud@inria.fr>
 // Copyright (C) 2006-2008 Benoit Jacob <jacob.benoit.1@gmail.com>
 //
 // This Source Code Form is subject to the terms of the Mozilla
@@ -286,14 +286,18 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
     /** returns an iterator to the first row (rowwise) or column (colwise) of the nested expression.
       * \sa end(), cbegin()
       */
-    iterator        begin() const { return iterator      (m_matrix, 0); }
+    iterator        begin()       { return iterator      (m_matrix, 0); }
+    /** const version of begin() */
+    const_iterator  begin() const { return const_iterator(m_matrix, 0); }
     /** const version of begin() */
     const_iterator cbegin() const { return const_iterator(m_matrix, 0); }
 
     /** returns an iterator to the row (resp. column) following the last row (resp. column) of the nested expression
       * \sa begin(), cend()
       */
-    iterator        end()   const { return iterator      (m_matrix, m_matrix.template subVectors<DirectionType(Direction)>()); }
+    iterator        end()         { return iterator      (m_matrix, m_matrix.template subVectors<DirectionType(Direction)>()); }
+    /** const version of end() */
+    const_iterator  end()   const { return const_iterator(m_matrix, m_matrix.template subVectors<DirectionType(Direction)>()); }
     /** const version of end() */
     const_iterator cend()   const { return const_iterator(m_matrix, m_matrix.template subVectors<DirectionType(Direction)>()); }
 
