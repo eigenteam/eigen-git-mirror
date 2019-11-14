@@ -351,10 +351,7 @@ template<typename Packet> EIGEN_DEVICE_FUNC inline Packet preverse(const Packet&
 /** \internal \returns \a a with real and imaginary part flipped (for complex type only) */
 template<typename Packet> EIGEN_DEVICE_FUNC inline Packet pcplxflip(const Packet& a)
 {
-  // FIXME: uncomment the following in case we drop the internal imag and real functions.
-//   using std::imag;
-//   using std::real;
-  return Packet(imag(a),real(a));
+  return Packet(a.imag(),a.real());
 }
 
 /**************************
