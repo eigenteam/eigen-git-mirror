@@ -109,7 +109,6 @@ Packet4d psqrt<Packet4d>(const Packet4d& x) {
 template<> EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED
 Packet8f prsqrt<Packet8f>(const Packet8f& _x) {
   _EIGEN_DECLARE_CONST_Packet8f_FROM_INT(inf, 0x7f800000);
-  _EIGEN_DECLARE_CONST_Packet8f_FROM_INT(nan, 0x7fc00000);
   _EIGEN_DECLARE_CONST_Packet8f(one_point_five, 1.5f);
   _EIGEN_DECLARE_CONST_Packet8f(minus_half, -0.5f);
   _EIGEN_DECLARE_CONST_Packet8f_FROM_INT(flt_min, 0x00800000);
@@ -118,20 +117,25 @@ Packet8f prsqrt<Packet8f>(const Packet8f& _x) {
 
   // select only the inverse sqrt of positive normal inputs (denormals are
   // flushed to zero and cause infs as well).
-  Packet8f le_zero_mask = _mm256_cmp_ps(_x, p8f_flt_min, _CMP_LT_OQ);
-  Packet8f x = _mm256_andnot_ps(le_zero_mask, _mm256_rsqrt_ps(_x));
+  Packet8f lt_min_mask = _mm256_cmp_ps(_x, p8f_flt_min, _CMP_LT_OQ);
+  Packet8f inf_mask =  _mm256_cmp_ps(_x, p8f_inf, _CMP_EQ_OQ);
+  Packet8f not_normal_finite_mask = _mm256_or_ps(lt_min_mask, inf_mask);
 
-  // Fill in NaNs and Infs for the negative/zero entries.
-  Packet8f neg_mask = _mm256_cmp_ps(_x, _mm256_setzero_ps(), _CMP_LT_OQ);
-  Packet8f zero_mask = _mm256_andnot_ps(neg_mask, le_zero_mask);
-  Packet8f infs_and_nans = _mm256_or_ps(_mm256_and_ps(neg_mask, p8f_nan),
-                                        _mm256_and_ps(zero_mask, p8f_inf));
+  // Compute an approximate result using the rsqrt intrinsic.
+  Packet8f y_approx = _mm256_rsqrt_ps(_x);
 
-  // Do a single step of Newton's iteration.
-  x = pmul(x, pmadd(neg_half, pmul(x, x), p8f_one_point_five));
+  // Do a single step of Newton-Raphson iteration to improve the approximation.
+  // This uses the formula y_{n+1} = y_n * (1.5 - y_n * (0.5 * x) * y_n).
+  // It is essential to evaluate the inner term like this because forming
+  // y_n^2 may over- or underflow.
+  Packet8f y_newton = pmul(y_approx, pmadd(y_approx, pmul(neg_half, y_approx), p8f_one_point_five));
 
-  // Insert NaNs and Infs in all the right places.
-  return _mm256_or_ps(x, infs_and_nans);
+  // Select the result of the Newton-Raphson step for positive normal arguments.
+  // For other arguments, choose the output of the intrinsic. This will
+  // return rsqrt(+inf) = 0, rsqrt(x) = NaN if x < 0, and rsqrt(x) = +inf if
+  // x is zero or a positive denormalized float (equivalent to flushing positive
+  // denormalized inputs to zero).
+  return pselect<Packet8f>(not_normal_finite_mask, y_approx, y_newton);
 }
 
 #else

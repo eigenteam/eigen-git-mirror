@@ -98,30 +98,34 @@ Packet2d psqrt<Packet2d>(const Packet2d& x) { return _mm_sqrt_pd(x); }
 
 template<> EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED
 Packet4f prsqrt<Packet4f>(const Packet4f& _x) {
-  _EIGEN_DECLARE_CONST_Packet4f_FROM_INT(inf, 0x7f800000u);
-  _EIGEN_DECLARE_CONST_Packet4f_FROM_INT(nan, 0x7fc00000u);
   _EIGEN_DECLARE_CONST_Packet4f(one_point_five, 1.5f);
   _EIGEN_DECLARE_CONST_Packet4f(minus_half, -0.5f);
+  _EIGEN_DECLARE_CONST_Packet4f_FROM_INT(inf, 0x7f800000u);
   _EIGEN_DECLARE_CONST_Packet4f_FROM_INT(flt_min, 0x00800000u);
 
   Packet4f neg_half = pmul(_x, p4f_minus_half);
 
-  // select only the inverse sqrt of positive normal inputs (denormals are
-  // flushed to zero and cause infs as well).
-  Packet4f le_zero_mask = _mm_cmple_ps(_x, p4f_flt_min);
-  Packet4f x = _mm_andnot_ps(le_zero_mask, _mm_rsqrt_ps(_x));
+  // Identity infinite, zero, negative and denormal arguments.
+  Packet4f lt_min_mask = _mm_cmplt_ps(_x, p4f_flt_min);
+  Packet4f inf_mask = _mm_cmpeq_ps(_x, p4f_inf);
+  Packet4f not_normal_finite_mask = _mm_or_ps(lt_min_mask, inf_mask);
 
-  // Fill in NaNs and Infs for the negative/zero entries.
-  Packet4f neg_mask = _mm_cmplt_ps(_x, _mm_setzero_ps());
-  Packet4f zero_mask = _mm_andnot_ps(neg_mask, le_zero_mask);
-  Packet4f infs_and_nans = _mm_or_ps(_mm_and_ps(neg_mask, p4f_nan),
-                                     _mm_and_ps(zero_mask, p4f_inf));
+  // Compute an approximate result using the rsqrt intrinsic.
+  Packet4f y_approx = _mm_rsqrt_ps(_x);
 
-  // Do a single step of Newton's iteration.
-  x = pmul(x, pmadd(neg_half, pmul(x, x), p4f_one_point_five));
+  // Do a single step of Newton-Raphson iteration to improve the approximation.
+  // This uses the formula y_{n+1} = y_n * (1.5 - y_n * (0.5 * x) * y_n).
+  // It is essential to evaluate the inner term like this because forming
+  // y_n^2 may over- or underflow.
+  Packet4f y_newton = pmul(
+      y_approx, pmadd(y_approx, pmul(neg_half, y_approx), p4f_one_point_five));
 
-  // Insert NaNs and Infs in all the right places.
-  return _mm_or_ps(x, infs_and_nans);
+  // Select the result of the Newton-Raphson step for positive normal arguments.
+  // For other arguments, choose the output of the intrinsic. This will
+  // return rsqrt(+inf) = 0, rsqrt(x) = NaN if x < 0, and rsqrt(x) = +inf if
+  // x is zero or a positive denormalized float (equivalent to flushing positive
+  // denormalized inputs to zero).
+  return pselect<Packet4f>(not_normal_finite_mask, y_approx, y_newton);
 }
 
 #else

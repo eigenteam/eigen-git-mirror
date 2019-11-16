@@ -605,9 +605,8 @@ template<typename Scalar,typename Packet> void packetmath_real()
   }
 
   if(internal::random<float>(0,1)<0.1f)
-    data1[internal::random<int>(0, PacketSize)] = 0;
+     data1[internal::random<int>(0, PacketSize)] = 0;
   CHECK_CWISE1_IF(PacketTraits::HasSqrt, std::sqrt, internal::psqrt);
-  CHECK_CWISE1_IF(PacketTraits::HasSqrt, Scalar(1)/std::sqrt, internal::prsqrt);
   CHECK_CWISE1_IF(PacketTraits::HasLog, std::log, internal::plog);
   CHECK_CWISE1_IF(PacketTraits::HasBessel, numext::bessel_i0, internal::pbessel_i0);
   CHECK_CWISE1_IF(PacketTraits::HasBessel, numext::bessel_i0e, internal::pbessel_i0e);
@@ -615,6 +614,9 @@ template<typename Scalar,typename Packet> void packetmath_real()
   CHECK_CWISE1_IF(PacketTraits::HasBessel, numext::bessel_i1e, internal::pbessel_i1e);
   CHECK_CWISE1_IF(PacketTraits::HasBessel, numext::bessel_j0, internal::pbessel_j0);
   CHECK_CWISE1_IF(PacketTraits::HasBessel, numext::bessel_j1, internal::pbessel_j1);
+
+  data1[0] = std::numeric_limits<Scalar>::infinity();
+  CHECK_CWISE1_IF(PacketTraits::HasRsqrt, Scalar(1)/std::sqrt, internal::prsqrt);
 
   // Use a smaller data range for the positive bessel operations as these
   // can have much more error at very small and very large values.
