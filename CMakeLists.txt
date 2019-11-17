@@ -456,7 +456,7 @@ if(EIGEN_BUILD_PKGCONFIG)
         )
 endif()
 
-add_subdirectory(Eigen)
+install(DIRECTORY Eigen DESTINATION ${INCLUDE_INSTALL_DIR} COMPONENT Devel)
 
 add_subdirectory(doc EXCLUDE_FROM_ALL)
 
