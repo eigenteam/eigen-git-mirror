@@ -40,7 +40,17 @@ for(...) { ... w = C * v;  ...}
 
 In this example, the type of C is not a \c MatrixXd but an abstract expression representing a matrix product and storing references to \c A and \c B.
 Therefore, the product of \c A*B will be carried out multiple times, once per iteration of the for loop.
-Moreover, if the coefficients of A or B change during the iteration, then C will evaluate to different values.
+Moreover, if the coefficients of `A` or `B` change during the iteration, then `C` will evaluate to different values as in the following example:
+
+\code
+MatrixXd A = ..., B = ...;
+auto C = A*B;
+MatrixXd R1 = C;
+A = ...;
+MatrixXd R2 = C;
+\endcode
+for which we end up with `R1` &ne; `R2`.
+
 
 Here is another example leading to a segfault:
 \code
