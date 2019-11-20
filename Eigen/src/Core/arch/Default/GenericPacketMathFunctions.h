@@ -233,6 +233,10 @@ Packet pexp_float(const Packet _x)
   return pmax(pldexp(y,m), _x);
 }
 
+// make it the default path for scalar float
+template<>
+inline float pexp(const float& a) { return pexp_float(a); }
+
 template <typename Packet>
 EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
 EIGEN_UNUSED
@@ -300,6 +304,10 @@ Packet pexp_double(const Packet _x)
   // non-finite values in the input.
   return pmax(pldexp(x,fx), _x);
 }
+
+// make it the default path for scalar double
+template<>
+inline double pexp(const double& a) { return pexp_double(a); }
 
 // The following code is inspired by the following stack-overflow answer:
 //   https://stackoverflow.com/questions/30463616/payne-hanek-algorithm-implementation-in-c/30465751#30465751
