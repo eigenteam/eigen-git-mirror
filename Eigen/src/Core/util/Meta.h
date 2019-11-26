@@ -612,6 +612,16 @@ template<typename T, typename U> struct scalar_product_traits
 // typedef typename scalar_product_traits<typename remove_all<ArgType0>::type, typename remove_all<ArgType1>::type>::ReturnType type;
 // };
 
+/** \internal Obtains a POD type suitable to use as storage for an object of a size
+  * of at most Len bytes, aligned as specified by \c Align.
+  */
+template<unsigned Len, unsigned Align>
+struct aligned_storage {
+  struct type {
+    EIGEN_ALIGN_TO_BOUNDARY(Align) unsigned char data[Len];
+  };
+};
+
 } // end namespace internal
 
 namespace numext {

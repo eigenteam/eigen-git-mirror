@@ -39,9 +39,12 @@ bits(const T& x) {
 // The following implement bitwise operations on floating point types
 template<typename T,typename Bits,typename Func>
 T apply_bit_op(Bits a, Bits b, Func f) {
-  Array<unsigned char,sizeof(T),1> res;
-  for(Index i=0; i<res.size();++i) res[i] = f(a[i],b[i]);
-  return *reinterpret_cast<T*>(&res);
+  Array<unsigned char,sizeof(T),1> data;
+  T res;
+  for(Index i = 0; i < data.size(); ++i)
+    data[i] = f(a[i], b[i]);
+  std::memcpy(&res, &data, sizeof(T));
+  return res;
 }
 
 #define EIGEN_TEST_MAKE_BITWISE2(OP,FUNC,T)             \
