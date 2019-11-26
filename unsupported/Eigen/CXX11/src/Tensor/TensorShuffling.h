@@ -182,6 +182,15 @@ struct TensorEvaluator<const TensorShufflingOp<Shuffle, ArgType>, Device>
     m_impl.evalSubExprsIfNeeded(NULL);
     return true;
   }
+
+#ifdef EIGEN_USE_THREADS
+  template <typename EvalSubExprsCallback>
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void evalSubExprsIfNeededAsync(
+      EvaluatorPointerType, EvalSubExprsCallback done) {
+    m_impl.evalSubExprsIfNeededAsync(nullptr, [done](bool) { done(true); });
+  }
+#endif  // EIGEN_USE_THREADS
+
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void cleanup() {
     m_impl.cleanup();
   }
@@ -237,10 +246,16 @@ struct TensorEvaluator<const TensorShufflingOp<Shuffle, ArgType>, Device>
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void getResourceRequirements(
       std::vector<internal::TensorOpResourceRequirements>* resources) const {
+    static const int inner_dim =
+        Layout == static_cast<int>(ColMajor) ? 0 : NumDims - 1;
+    const bool inner_dim_shuffled = m_shuffle[inner_dim] != inner_dim;
+
     Eigen::Index block_total_size_max = numext::maxi<Eigen::Index>(
         1, m_device.firstLevelCacheSize() / sizeof(Scalar));
     resources->push_back(internal::TensorOpResourceRequirements(
-        internal::kUniformAllDims, block_total_size_max));
+        inner_dim_shuffled ? internal::kUniformAllDims
+                           : internal::kSkewedInnerDims,
+        block_total_size_max));
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorBlockV2

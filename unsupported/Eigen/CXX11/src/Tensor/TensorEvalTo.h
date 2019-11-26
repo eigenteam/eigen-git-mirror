@@ -176,7 +176,8 @@ struct TensorEvaluator<const TensorEvalToOp<ArgType, MakePointer_>, Device>
         /*dst_base=*/m_buffer + desc.offset(),
         /*dst_strides=*/internal::strides<Layout>(m_impl.dimensions()));
 
-    ArgTensorBlock block = m_impl.blockV2(desc, scratch);
+    ArgTensorBlock block =
+        m_impl.blockV2(desc, scratch, /*root_of_expr_ast=*/true);
 
     // If block was evaluated into a destination buffer, there is no need to do
     // an assignment.
