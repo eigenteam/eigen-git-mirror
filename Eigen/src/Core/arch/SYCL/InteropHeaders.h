@@ -161,6 +161,8 @@ struct PacketWrapper<PacketReturnType, 4> {
         eigen_assert(false && "INDEX MUST BE BETWEEN 0 and 3");
         abort();
     }
+    __builtin_unreachable();
+
   }
   EIGEN_DEVICE_FUNC static PacketReturnType convert_to_packet_type(
       Scalar in, Scalar other) {
@@ -203,6 +205,8 @@ struct PacketWrapper<PacketReturnType, 2> {
         eigen_assert(false && "INDEX MUST BE BETWEEN 0 and 1");
         abort();
     }
+    __builtin_unreachable();
+  
   }
   EIGEN_DEVICE_FUNC static PacketReturnType convert_to_packet_type(
       Scalar in, Scalar other) {

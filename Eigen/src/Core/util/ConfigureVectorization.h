@@ -240,15 +240,19 @@
       #define EIGEN_VECTORIZE_SSE4_2
     #endif
     #ifdef __AVX__
-      #define EIGEN_VECTORIZE_AVX
+      #ifndef EIGEN_USE_SYCL 
+        #define EIGEN_VECTORIZE_AVX
+      #endif
       #define EIGEN_VECTORIZE_SSE3
       #define EIGEN_VECTORIZE_SSSE3
       #define EIGEN_VECTORIZE_SSE4_1
       #define EIGEN_VECTORIZE_SSE4_2
     #endif
     #ifdef __AVX2__
-      #define EIGEN_VECTORIZE_AVX2
-      #define EIGEN_VECTORIZE_AVX
+      #ifndef EIGEN_USE_SYCL 
+        #define EIGEN_VECTORIZE_AVX2
+        #define EIGEN_VECTORIZE_AVX
+      #endif
       #define EIGEN_VECTORIZE_SSE3
       #define EIGEN_VECTORIZE_SSSE3
       #define EIGEN_VECTORIZE_SSE4_1
@@ -267,19 +271,23 @@
       #error Please enable FMA in your compiler flags (e.g. -mfma): compiling with AVX512 alone without SSE/AVX FMA is not supported (bug 1638).
       #endif
       #endif
-      #define EIGEN_VECTORIZE_AVX512
-      #define EIGEN_VECTORIZE_AVX2
-      #define EIGEN_VECTORIZE_AVX
+      #ifndef EIGEN_USE_SYCL
+        #define EIGEN_VECTORIZE_AVX512
+        #define EIGEN_VECTORIZE_AVX2
+        #define EIGEN_VECTORIZE_AVX
+      #endif
       #define EIGEN_VECTORIZE_FMA
       #define EIGEN_VECTORIZE_SSE3
       #define EIGEN_VECTORIZE_SSSE3
       #define EIGEN_VECTORIZE_SSE4_1
       #define EIGEN_VECTORIZE_SSE4_2
-      #ifdef __AVX512DQ__
-        #define EIGEN_VECTORIZE_AVX512DQ
-      #endif
-      #ifdef __AVX512ER__
-        #define EIGEN_VECTORIZE_AVX512ER
+      #ifndef EIGEN_USE_SYCL
+        #ifdef __AVX512DQ__
+          #define EIGEN_VECTORIZE_AVX512DQ
+        #endif
+        #ifdef __AVX512ER__
+          #define EIGEN_VECTORIZE_AVX512ER
+        #endif
       #endif
     #endif
 

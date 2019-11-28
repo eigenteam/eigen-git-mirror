@@ -27,6 +27,11 @@ template <typename Device, typename T> class BenchmarkSuite {
     initialize();
   }
 
+  BenchmarkSuite(const Device& device, size_t m, size_t k)
+      : m_(1), k_(k), n_(m), device_(device) {
+    initialize();
+  }
+
   ~BenchmarkSuite() {
     device_.deallocate(a_);
     device_.deallocate(b_);
@@ -79,6 +84,11 @@ template <typename Device, typename T> class BenchmarkSuite {
     sizes[0] = m_;
     sizes[1] = m_;
     TensorMap<Tensor<T, 2>, Eigen::Aligned> C(c_, sizes);
+#ifdef EIGEN_USE_SYCL // warmup for sycl
+    for (int iter = 0; iter < 10; ++iter) {
+      C.device(device_) = C.random();
+    }
+#endif
     StartBenchmarkTiming();
     for (int iter = 0; iter < num_iters; ++iter) {
       C.device(device_) = C.random();
@@ -264,6 +274,7 @@ template <typename Device, typename T> class BenchmarkSuite {
     finalizeBenchmark(static_cast<int64_t>(m_) * k_ * num_iters);
   }
 
+
   void broadcasting(int num_iters) {
     Eigen::array<TensorIndex, 2> size_a;
     size_a[0] = m_;
@@ -406,8 +417,8 @@ for (int iter = 0; iter < 10; ++iter) {
         b_, input_size);
     Eigen::array<TensorIndex, 1> output_size;
     output_size[0] = k_;
-    TensorMap<Tensor<T, 1, 0, TensorIndex>, Eigen::Aligned> C(
-        c_, output_size);
+    TensorMap<Tensor<T, 1, 0, TensorIndex>, Eigen::Aligned> A(
+        a_, output_size);
 
 #ifndef EIGEN_HAS_INDEX_LIST
     Eigen::array<TensorIndex, 1> sum_along_dim;
@@ -419,12 +430,12 @@ for (int iter = 0; iter < 10; ++iter) {
 #endif
 #ifdef EIGEN_USE_SYCL // warmup for sycl
   for (int iter = 0; iter < 10; ++iter) {
-    C.device(device_) = B.sum(sum_along_dim);
+    A.device(device_) = B.sum(sum_along_dim);
   }
 #endif
     StartBenchmarkTiming();
     for (int iter = 0; iter < num_iters; ++iter) {
-      C.device(device_) = B.sum(sum_along_dim);
+      A.device(device_) = B.sum(sum_along_dim);
     }
     // Record the number of FLOP executed per second (assuming one operation
     // per value)
@@ -455,37 +466,27 @@ for (int iter = 0; iter < 10; ++iter) {
     finalizeBenchmark(static_cast<int64_t>(k_) * n_ * num_iters);
   }
 
+  
+
   // do a contraction which is equivalent to a matrix multiplication
   void contraction(int num_iters) {
-    Eigen::array<TensorIndex, 2> sizeA;
-    sizeA[0] = m_;
-    sizeA[1] = k_;
-    Eigen::array<TensorIndex, 2> sizeB;
-    sizeB[0] = k_;
-    sizeB[1] = n_;
-    Eigen::array<TensorIndex, 2> sizeC;
-    sizeC[0] = m_;
-    sizeC[1] = n_;
+      contraction<static_cast<int>(Eigen::ColMajor)>(num_iters, false, false);
+  }
 
-    const TensorMap<Tensor<T, 2>, Eigen::Aligned> A(a_, sizeA);
-    const TensorMap<Tensor<T, 2>, Eigen::Aligned> B(b_, sizeB);
-    TensorMap<Tensor<T, 2>, Eigen::Aligned> C(c_, sizeC);
+    void contractionRowMajor(int num_iters) {
+      contraction<static_cast<int>(Eigen::RowMajor)>(num_iters, false, false);
+  }
+    
+  void contractionRowMajorAT(int num_iters) {
+      contraction<static_cast<int>(Eigen::RowMajor)>(num_iters, true, false);
+  }
 
-    typedef typename Tensor<T, 2>::DimensionPair DimPair;
-    Eigen::array<DimPair, 1> dims;
-    dims[0] = DimPair(1, 0);
-#ifdef EIGEN_USE_SYCL // warmup for sycl
-    for (int iter = 0; iter < 10; ++iter) {
-      C.device(device_) = A.contract(B, dims);
-     }
-#endif
-    StartBenchmarkTiming();
-    for (int iter = 0; iter < num_iters; ++iter) {
-      C.device(device_) = A.contract(B, dims);
-    }
-    // Record the number of FLOP executed per second (size_ multiplications and
-    // additions for each value in the resulting tensor)
-    finalizeBenchmark(static_cast<int64_t>(2) * m_ * n_ * k_ * num_iters);
+  void contractionRowMajorBT(int num_iters) {
+      contraction<static_cast<int>(Eigen::RowMajor)>(num_iters, false, true);
+  }
+
+  void contractionRowMajorABT(int num_iters) {
+      contraction<static_cast<int>(Eigen::RowMajor)>(num_iters, true, true);
   }
 
   void convolution(int num_iters, int kernel_x, int kernel_y) {
@@ -513,13 +514,49 @@ for (int iter = 0; iter < 10; ++iter) {
     for (int iter = 0; iter < num_iters; ++iter) {
       C.device(device_) = A.convolve(B, dims);
     }
-    // Record the number of FLOP executed per second (kernel_size
+    // Record the number of FLOPs executed per second (kernel_size
     // multiplications and additions for each value in the resulting tensor)
     finalizeBenchmark(static_cast<int64_t>(2) *
         (m_ - kernel_x + 1) * (n_ - kernel_y + 1) * kernel_x * kernel_y * num_iters);
   }
 
  private:
+ // do a contraction which is equivalent to a matrix multiplication
+  template<int Layout>
+  void contraction(int num_iters, bool trans_a, bool trans_b) {
+    Eigen::array<TensorIndex, 2> sizeA;
+    sizeA[0] = (trans_a ? k_: m_);
+    sizeA[1] = (trans_a ? m_:  k_);
+    Eigen::array<TensorIndex, 2> sizeB;
+    sizeB[0] = (trans_b ? n_: k_);
+    sizeB[1] = (trans_b ? k_: n_);
+    Eigen::array<TensorIndex, 2> sizeC;
+    sizeC[0] = m_;
+    sizeC[1] = n_;
+
+    const TensorMap<Tensor<T, 2, Layout>, Eigen::Aligned> A(a_, sizeA);
+    const TensorMap<Tensor<T, 2, Layout>, Eigen::Aligned> B(b_, sizeB);
+    TensorMap<Tensor<T, 2, Layout>, Eigen::Aligned> C(c_, sizeC);
+
+    typedef typename Tensor<T, 2, Layout>::DimensionPair DimPair;
+    Eigen::array<DimPair, 1> dims;
+    TensorIndex a_contract_dim = (trans_a ? 0 : 1);
+    TensorIndex b_contract_dim = (trans_b ? 1 : 0);
+    dims[0] = DimPair(a_contract_dim, b_contract_dim);
+#ifdef EIGEN_USE_SYCL // warmup for sycl
+    for (int iter = 0; iter < 10; ++iter) {
+      C.device(device_) = A.contract(B, dims);
+     }
+#endif
+    StartBenchmarkTiming();
+    for (int iter = 0; iter < num_iters; ++iter) {
+      C.device(device_) = A.contract(B, dims);
+    }
+    // Record the number of FLOP executed per second (size_ multiplications and
+    // additions for each value in the resulting tensor)
+    finalizeBenchmark(static_cast<int64_t>(2) * m_ * n_ * k_ * num_iters);
+  }
+
   void initialize() {
     a_ = (T *) device_.allocate(m_ * k_ * sizeof(T));
     b_ = (T *) device_.allocate(k_ * n_ * sizeof(T));
@@ -531,7 +568,6 @@ for (int iter = 0; iter < 10; ++iter) {
     device_.memset(b_, 23, k_ * n_ * sizeof(T));
     device_.memset(c_, 31, m_ * n_ * sizeof(T));
 
-    //BenchmarkUseRealTime();
   }
 
   inline void finalizeBenchmark(int64_t num_items) {

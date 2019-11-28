@@ -113,111 +113,28 @@ macro(ei_add_test_internal testname testname_with_suffix)
     add_dependencies("Build${current_subproject}" ${targetname})
     set_property(TEST ${testname_with_suffix} PROPERTY LABELS "${current_subproject}")
   endif()
-
-endmacro()
-
-# SYCL
-macro(ei_add_test_internal_sycl testname testname_with_suffix)
-  set(targetname ${testname_with_suffix})
-
-  if(EIGEN_ADD_TEST_FILENAME_EXTENSION)
-    set(filename ${testname}.${EIGEN_ADD_TEST_FILENAME_EXTENSION})
-  else()
-    set(filename ${testname}.cpp)
-  endif()
-
-  set( include_file "${CMAKE_CURRENT_BINARY_DIR}/inc_${filename}")
-  set( bc_file "${CMAKE_CURRENT_BINARY_DIR}/${filename}.sycl")
-  set( host_file "${CMAKE_CURRENT_SOURCE_DIR}/${filename}")
-
-  if(NOT EIGEN_SYCL_TRISYCL)
-    include_directories( SYSTEM ${COMPUTECPP_PACKAGE_ROOT_DIR}/include)
-
-    add_custom_command(
-      OUTPUT ${include_file}
-      COMMAND ${CMAKE_COMMAND} -E echo "\\#include \\\"${host_file}\\\"" > ${include_file}
-      COMMAND ${CMAKE_COMMAND} -E echo "\\#include \\\"${bc_file}\\\"" >> ${include_file}
-      DEPENDS ${filename} ${bc_file}
-      COMMENT "Building ComputeCpp integration header file ${include_file}"
-      )
-
-    # Add a custom target for the generated integration header
-    add_custom_target("${testname}_integration_header_sycl" DEPENDS ${include_file})
-
-    add_executable(${targetname} ${include_file})
-    add_dependencies(${targetname} "${testname}_integration_header_sycl")
-  else()
-    add_executable(${targetname} ${host_file})
-  endif()
-
-  add_sycl_to_target(${targetname} ${CMAKE_CURRENT_BINARY_DIR} ${filename})
-
-  if (targetname MATCHES "^eigen2_")
-    add_dependencies(eigen2_buildtests ${targetname})
-  else()
-    add_dependencies(buildtests ${targetname})
-  endif()
-
-  if(EIGEN_NO_ASSERTION_CHECKING)
-    ei_add_target_property(${targetname} COMPILE_FLAGS "-DEIGEN_NO_ASSERTION_CHECKING=1")
-  else()
-    if(EIGEN_DEBUG_ASSERTS)
-      ei_add_target_property(${targetname} COMPILE_FLAGS "-DEIGEN_DEBUG_ASSERTS=1")
-    endif()
-  endif()
-
-  ei_add_target_property(${targetname} COMPILE_FLAGS "-DEIGEN_TEST_MAX_SIZE=${EIGEN_TEST_MAX_SIZE}")
-
-  if(MSVC AND NOT EIGEN_SPLIT_LARGE_TESTS)
-    ei_add_target_property(${targetname} COMPILE_FLAGS "/bigobj")
-  endif()
-
-  # let the user pass flags.
-  if(${ARGC} GREATER 2)
-    ei_add_target_property(${targetname} COMPILE_FLAGS "${ARGV2}")
-  endif()
-
-  if(EIGEN_TEST_CUSTOM_CXX_FLAGS)
-    ei_add_target_property(${targetname} COMPILE_FLAGS "${EIGEN_TEST_CUSTOM_CXX_FLAGS}")
-  endif()
-
-  if(EIGEN_STANDARD_LIBRARIES_TO_LINK_TO)
-    target_link_libraries(${targetname} ${EIGEN_STANDARD_LIBRARIES_TO_LINK_TO})
-  endif()
-  if(EXTERNAL_LIBS)
-    target_link_libraries(${targetname} ${EXTERNAL_LIBS})
-  endif()
-  if(EIGEN_TEST_CUSTOM_LINKER_FLAGS)
-    target_link_libraries(${targetname} ${EIGEN_TEST_CUSTOM_LINKER_FLAGS})
-  endif()
-
-  if(${ARGC} GREATER 3)
-    set(libs_to_link ${ARGV3})
-    # it could be that some cmake module provides a bad library string " "  (just spaces),
-    # and that severely breaks target_link_libraries ("can't link to -l-lstdc++" errors).
-    # so we check for strings containing only spaces.
-    string(STRIP "${libs_to_link}" libs_to_link_stripped)
-    string(LENGTH "${libs_to_link_stripped}" libs_to_link_stripped_length)
-    if(${libs_to_link_stripped_length} GREATER 0)
-      # notice: no double quotes around ${libs_to_link} here. It may be a list.
-      target_link_libraries(${targetname} ${libs_to_link})
-    endif()
-  endif()
-
-  add_test(${testname_with_suffix} "${targetname}")
-
-  # Specify target and test labels according to EIGEN_CURRENT_SUBPROJECT
-  get_property(current_subproject GLOBAL PROPERTY EIGEN_CURRENT_SUBPROJECT)
-  if ((current_subproject) AND (NOT (current_subproject STREQUAL "")))
-    set_property(TARGET ${targetname} PROPERTY LABELS "Build${current_subproject}")
-    add_dependencies("Build${current_subproject}" ${targetname})
-    set_property(TEST ${testname_with_suffix} PROPERTY LABELS "${current_subproject}")
-  endif()
-
-
-endmacro()
-
-
+  if(EIGEN_SYCL)
+    # Force include of the SYCL file at the end to avoid errors.
+    set_property(TARGET ${targetname} PROPERTY COMPUTECPP_INCLUDE_AFTER 1)
+    # Set COMPILE_FLAGS to COMPILE_DEFINITIONS instead to avoid having to duplicate the flags
+    # to the device compiler.
+    get_target_property(target_compile_flags ${targetname} COMPILE_FLAGS)
+    separate_arguments(target_compile_flags)
+    foreach(flag ${target_compile_flags})
+      if(${flag} MATCHES "^-D.*")
+        string(REPLACE "-D" "" definition_flag ${flag})
+        set_property(TARGET ${targetname} APPEND PROPERTY COMPILE_DEFINITIONS ${definition_flag})
+        list(REMOVE_ITEM target_compile_flags ${flag})
+      endif()
+    endforeach()
+    set_property(TARGET ${targetname} PROPERTY COMPILE_FLAGS ${target_compile_flags})
+    # Link against pthread and add sycl to target
+    set(THREADS_PREFER_PTHREAD_FLAG ON)
+    find_package(Threads REQUIRED)
+    target_link_libraries(${targetname} Threads::Threads)
+    add_sycl_to_target(TARGET ${targetname} SOURCES ${filename})
+  endif(EIGEN_SYCL)
+endmacro(ei_add_test_internal)
 # Macro to add a test
 #
 # the unique mandatory parameter testname must correspond to a file
@@ -293,40 +210,6 @@ macro(ei_add_test testname)
     endforeach()
   else()
     ei_add_test_internal(${testname} ${testname} "${ARGV1} -DEIGEN_TEST_PART_ALL=1" "${ARGV2}")
-  endif()
-endmacro()
-
-macro(ei_add_test_sycl testname)
-  get_property(EIGEN_TESTS_LIST GLOBAL PROPERTY EIGEN_TESTS_LIST)
-  set(EIGEN_TESTS_LIST "${EIGEN_TESTS_LIST}${testname}\n")
-  set_property(GLOBAL PROPERTY EIGEN_TESTS_LIST "${EIGEN_TESTS_LIST}")
-
-  if(EIGEN_ADD_TEST_FILENAME_EXTENSION)
-    set(filename ${testname}.${EIGEN_ADD_TEST_FILENAME_EXTENSION})
-  else()
-    set(filename ${testname}.cpp)
-  endif()
-
-  file(READ "${filename}" test_source)
-  set(parts 0)
-  string(REGEX MATCHALL "CALL_SUBTEST_[0-9]+|EIGEN_TEST_PART_[0-9]+|EIGEN_SUFFIXES(;[0-9]+)+"
-         occurrences "${test_source}")
-  string(REGEX REPLACE "CALL_SUBTEST_|EIGEN_TEST_PART_|EIGEN_SUFFIXES" "" suffixes "${occurrences}")
-  list(REMOVE_DUPLICATES suffixes)
-  if(EIGEN_SPLIT_LARGE_TESTS AND suffixes)
-    add_custom_target(${testname})
-    foreach(suffix ${suffixes})
-      ei_add_test_internal_sycl(${testname} ${testname}_${suffix}
-        "${ARGV1} -DEIGEN_TEST_PART_${suffix}=1" "${ARGV2}")
-      add_dependencies(${testname} ${testname}_${suffix})
-    endforeach()
-  else()
-    set(symbols_to_enable_all_parts "")
-    foreach(suffix ${suffixes})
-      set(symbols_to_enable_all_parts
-        "${symbols_to_enable_all_parts} -DEIGEN_TEST_PART_${suffix}=1")
-    endforeach()
-    ei_add_test_internal_sycl(${testname} ${testname} "${ARGV1} ${symbols_to_enable_all_parts}" "${ARGV2}")
   endif()
 endmacro()
 

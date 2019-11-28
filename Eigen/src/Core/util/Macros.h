@@ -854,7 +854,7 @@
   #ifndef EIGEN_DONT_VECTORIZE
     #define EIGEN_DONT_VECTORIZE
   #endif
-  #define EIGEN_DEVICE_FUNC __attribute__((always_inline))
+  #define EIGEN_DEVICE_FUNC __attribute__((flatten)) __attribute__((always_inline))
 // All functions callable from CUDA/HIP code must be qualified with __device__
 #elif defined(EIGEN_GPUCC) 
     #define EIGEN_DEVICE_FUNC __host__ __device__
