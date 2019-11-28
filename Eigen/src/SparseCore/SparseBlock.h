@@ -463,7 +463,6 @@ template<typename ArgType, int BlockRows, int BlockCols, bool InnerPanel>
 class unary_evaluator<Block<ArgType,BlockRows,BlockCols,InnerPanel>, IteratorBased>::InnerVectorInnerIterator
  : public EvalIterator
 {
-  enum { IsRowMajor = unary_evaluator::IsRowMajor };
   const XprType& m_block;
   Index m_end;
 public:
@@ -488,7 +487,6 @@ public:
 template<typename ArgType, int BlockRows, int BlockCols, bool InnerPanel>
 class unary_evaluator<Block<ArgType,BlockRows,BlockCols,InnerPanel>, IteratorBased>::OuterVectorInnerIterator
 {
-  enum { IsRowMajor = unary_evaluator::IsRowMajor };
   const unary_evaluator& m_eval;
   Index m_outerPos;
   const Index m_innerIndex;

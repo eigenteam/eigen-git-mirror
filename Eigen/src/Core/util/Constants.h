@@ -255,12 +255,6 @@ enum AlignmentType {
 };
 
 /** \ingroup enums
- * Enum used by DenseBase::corner() in Eigen2 compatibility mode. */
-// FIXME after the corner() API change, this was not needed anymore, except by AlignedBox
-// TODO: find out what to do with that. Adapt the AlignedBox API ?
-enum CornerType { TopLeft, TopRight, BottomLeft, BottomRight };
-
-/** \ingroup enums
   * Enum containing possible values for the \p Direction parameter of
   * Reverse, PartialReduxExpr and VectorwiseOp. */
 enum DirectionType { 
