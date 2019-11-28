@@ -18,6 +18,7 @@
 #define EIGEN_USE_SYCL
 
 #include "main.h"
+
 #include <unsupported/Eigen/CXX11/Tensor>
 
 using Eigen::array;
@@ -26,9 +27,8 @@ using Eigen::Tensor;
 using Eigen::TensorMap;
 
 template <typename DataType, int Layout, typename DenseIndex>
-static void test_sycl_simple_argmax(const Eigen::SyclDevice &sycl_device){
-
-  Tensor<DataType, 3, Layout, DenseIndex> in(Eigen::array<DenseIndex, 3>{{2,2,2}});
+static void test_sycl_simple_argmax(const Eigen::SyclDevice& sycl_device) {
+  Tensor<DataType, 3, Layout, DenseIndex> in(Eigen::array<DenseIndex, 3>{{2, 2, 2}});
   Tensor<DenseIndex, 0, Layout, DenseIndex> out_max;
   Tensor<DenseIndex, 0, Layout, DenseIndex> out_min;
   in.setRandom();
@@ -39,14 +39,15 @@ static void test_sycl_simple_argmax(const Eigen::SyclDevice &sycl_device){
   std::size_t in_bytes = in.size() * sizeof(DataType);
   std::size_t out_bytes = out_max.size() * sizeof(DenseIndex);
 
-  DataType * d_in       = static_cast<DataType*>(sycl_device.allocate(in_bytes));
+  DataType* d_in = static_cast<DataType*>(sycl_device.allocate(in_bytes));
   DenseIndex* d_out_max = static_cast<DenseIndex*>(sycl_device.allocate(out_bytes));
   DenseIndex* d_out_min = static_cast<DenseIndex*>(sycl_device.allocate(out_bytes));
 
-  Eigen::TensorMap<Eigen::Tensor<DataType, 3, Layout, DenseIndex> > gpu_in(d_in, Eigen::array<DenseIndex, 3>{{2,2,2}});
+  Eigen::TensorMap<Eigen::Tensor<DataType, 3, Layout, DenseIndex> > gpu_in(d_in,
+                                                                           Eigen::array<DenseIndex, 3>{{2, 2, 2}});
   Eigen::TensorMap<Eigen::Tensor<DenseIndex, 0, Layout, DenseIndex> > gpu_out_max(d_out_max);
   Eigen::TensorMap<Eigen::Tensor<DenseIndex, 0, Layout, DenseIndex> > gpu_out_min(d_out_min);
-  sycl_device.memcpyHostToDevice(d_in, in.data(),in_bytes);
+  sycl_device.memcpyHostToDevice(d_in, in.data(), in_bytes);
 
   gpu_out_max.device(sycl_device) = gpu_in.argmax();
   gpu_out_min.device(sycl_device) = gpu_in.argmin();
@@ -54,7 +55,7 @@ static void test_sycl_simple_argmax(const Eigen::SyclDevice &sycl_device){
   sycl_device.memcpyDeviceToHost(out_max.data(), d_out_max, out_bytes);
   sycl_device.memcpyDeviceToHost(out_min.data(), d_out_min, out_bytes);
 
-  VERIFY_IS_EQUAL(out_max(), 2*2*2 - 1);
+  VERIFY_IS_EQUAL(out_max(), 2 * 2 * 2 - 1);
   VERIFY_IS_EQUAL(out_min(), 0);
 
   sycl_device.deallocate(d_in);
@@ -62,22 +63,22 @@ static void test_sycl_simple_argmax(const Eigen::SyclDevice &sycl_device){
   sycl_device.deallocate(d_out_min);
 }
 
-
 template <typename DataType, int DataLayout, typename DenseIndex>
-static void test_sycl_argmax_dim(const Eigen::SyclDevice &sycl_device)
-{
-  DenseIndex sizeDim0=9;
-  DenseIndex sizeDim1=3;
-  DenseIndex sizeDim2=5;
-  DenseIndex sizeDim3=7;
-  Tensor<DataType, 4, DataLayout, DenseIndex> tensor(sizeDim0,sizeDim1,sizeDim2,sizeDim3);
+static void test_sycl_argmax_dim(const Eigen::SyclDevice& sycl_device) {
+  DenseIndex sizeDim0 = 9;
+  DenseIndex sizeDim1 = 3;
+  DenseIndex sizeDim2 = 5;
+  DenseIndex sizeDim3 = 7;
+  Tensor<DataType, 4, DataLayout, DenseIndex> tensor(sizeDim0, sizeDim1, sizeDim2, sizeDim3);
 
   std::vector<DenseIndex> dims;
-  dims.push_back(sizeDim0); dims.push_back(sizeDim1); dims.push_back(sizeDim2); dims.push_back(sizeDim3);
+  dims.push_back(sizeDim0);
+  dims.push_back(sizeDim1);
+  dims.push_back(sizeDim2);
+  dims.push_back(sizeDim3);
   for (DenseIndex dim = 0; dim < 4; ++dim) {
-
     array<DenseIndex, 3> out_shape;
-    for (DenseIndex d = 0; d < 3; ++d) out_shape[d] = (d < dim) ? dims[d] : dims[d+1];
+    for (DenseIndex d = 0; d < 3; ++d) out_shape[d] = (d < dim) ? dims[d] : dims[d + 1];
 
     Tensor<DenseIndex, 3, DataLayout, DenseIndex> tensor_arg(out_shape);
 
@@ -86,9 +87,13 @@ static void test_sycl_argmax_dim(const Eigen::SyclDevice &sycl_device)
       for (DenseIndex j = 0; j < sizeDim1; ++j) {
         for (DenseIndex k = 0; k < sizeDim2; ++k) {
           for (DenseIndex l = 0; l < sizeDim3; ++l) {
-            ix[0] = i; ix[1] = j; ix[2] = k; ix[3] = l;
-            // suppose dim == 1, then for all i, k, l, set tensor(i, 0, k, l) = 10.0
-            tensor(ix)=(ix[dim] != 0)?-1.0:10.0;
+            ix[0] = i;
+            ix[1] = j;
+            ix[2] = k;
+            ix[3] = l;
+            // suppose dim == 1, then for all i, k, l, set tensor(i, 0, k, l)
+            // = 10.0
+            tensor(ix) = (ix[dim] != 0) ? -1.0 : 10.0;
           }
         }
       }
@@ -97,23 +102,23 @@ static void test_sycl_argmax_dim(const Eigen::SyclDevice &sycl_device)
     std::size_t in_bytes = tensor.size() * sizeof(DataType);
     std::size_t out_bytes = tensor_arg.size() * sizeof(DenseIndex);
 
+    DataType* d_in = static_cast<DataType*>(sycl_device.allocate(in_bytes));
+    DenseIndex* d_out = static_cast<DenseIndex*>(sycl_device.allocate(out_bytes));
 
-    DataType * d_in       = static_cast<DataType*>(sycl_device.allocate(in_bytes));
-    DenseIndex* d_out= static_cast<DenseIndex*>(sycl_device.allocate(out_bytes));
-
-    Eigen::TensorMap<Eigen::Tensor<DataType, 4, DataLayout, DenseIndex> > gpu_in(d_in, Eigen::array<DenseIndex, 4>{{sizeDim0,sizeDim1,sizeDim2,sizeDim3}});
+    Eigen::TensorMap<Eigen::Tensor<DataType, 4, DataLayout, DenseIndex> > gpu_in(
+        d_in, Eigen::array<DenseIndex, 4>{{sizeDim0, sizeDim1, sizeDim2, sizeDim3}});
     Eigen::TensorMap<Eigen::Tensor<DenseIndex, 3, DataLayout, DenseIndex> > gpu_out(d_out, out_shape);
 
-    sycl_device.memcpyHostToDevice(d_in, tensor.data(),in_bytes);
+    sycl_device.memcpyHostToDevice(d_in, tensor.data(), in_bytes);
     gpu_out.device(sycl_device) = gpu_in.argmax(dim);
     sycl_device.memcpyDeviceToHost(tensor_arg.data(), d_out, out_bytes);
 
     VERIFY_IS_EQUAL(static_cast<size_t>(tensor_arg.size()),
-                    size_t(sizeDim0*sizeDim1*sizeDim2*sizeDim3 / tensor.dimension(dim)));
+                    size_t(sizeDim0 * sizeDim1 * sizeDim2 * sizeDim3 / tensor.dimension(dim)));
 
     for (DenseIndex n = 0; n < tensor_arg.size(); ++n) {
       // Expect max to be in the first index of the reduced dimension
-       VERIFY_IS_EQUAL(tensor_arg.data()[n], 0);
+      VERIFY_IS_EQUAL(tensor_arg.data()[n], 0);
     }
 
     sycl_device.synchronize();
@@ -122,15 +127,18 @@ static void test_sycl_argmax_dim(const Eigen::SyclDevice &sycl_device)
       for (DenseIndex j = 0; j < sizeDim1; ++j) {
         for (DenseIndex k = 0; k < sizeDim2; ++k) {
           for (DenseIndex l = 0; l < sizeDim3; ++l) {
-            ix[0] = i; ix[1] = j; ix[2] = k; ix[3] = l;
+            ix[0] = i;
+            ix[1] = j;
+            ix[2] = k;
+            ix[3] = l;
             // suppose dim == 1, then for all i, k, l, set tensor(i, 2, k, l) = 20.0
-            tensor(ix)=(ix[dim] != tensor.dimension(dim) - 1)?-1.0:20.0;
+            tensor(ix) = (ix[dim] != tensor.dimension(dim) - 1) ? -1.0 : 20.0;
           }
         }
       }
     }
 
-    sycl_device.memcpyHostToDevice(d_in, tensor.data(),in_bytes);
+    sycl_device.memcpyHostToDevice(d_in, tensor.data(), in_bytes);
     gpu_out.device(sycl_device) = gpu_in.argmax(dim);
     sycl_device.memcpyDeviceToHost(tensor_arg.data(), d_out, out_bytes);
 
@@ -144,20 +152,21 @@ static void test_sycl_argmax_dim(const Eigen::SyclDevice &sycl_device)
 }
 
 template <typename DataType, int DataLayout, typename DenseIndex>
-static void test_sycl_argmin_dim(const Eigen::SyclDevice &sycl_device)
-{
-  DenseIndex sizeDim0=9;
-  DenseIndex sizeDim1=3;
-  DenseIndex sizeDim2=5;
-  DenseIndex sizeDim3=7;
-  Tensor<DataType, 4, DataLayout, DenseIndex> tensor(sizeDim0,sizeDim1,sizeDim2,sizeDim3);
+static void test_sycl_argmin_dim(const Eigen::SyclDevice& sycl_device) {
+  DenseIndex sizeDim0 = 9;
+  DenseIndex sizeDim1 = 3;
+  DenseIndex sizeDim2 = 5;
+  DenseIndex sizeDim3 = 7;
+  Tensor<DataType, 4, DataLayout, DenseIndex> tensor(sizeDim0, sizeDim1, sizeDim2, sizeDim3);
 
   std::vector<DenseIndex> dims;
-  dims.push_back(sizeDim0); dims.push_back(sizeDim1); dims.push_back(sizeDim2); dims.push_back(sizeDim3);
+  dims.push_back(sizeDim0);
+  dims.push_back(sizeDim1);
+  dims.push_back(sizeDim2);
+  dims.push_back(sizeDim3);
   for (DenseIndex dim = 0; dim < 4; ++dim) {
-
     array<DenseIndex, 3> out_shape;
-    for (DenseIndex d = 0; d < 3; ++d) out_shape[d] = (d < dim) ? dims[d] : dims[d+1];
+    for (DenseIndex d = 0; d < 3; ++d) out_shape[d] = (d < dim) ? dims[d] : dims[d + 1];
 
     Tensor<DenseIndex, 3, DataLayout, DenseIndex> tensor_arg(out_shape);
 
@@ -166,9 +175,12 @@ static void test_sycl_argmin_dim(const Eigen::SyclDevice &sycl_device)
       for (DenseIndex j = 0; j < sizeDim1; ++j) {
         for (DenseIndex k = 0; k < sizeDim2; ++k) {
           for (DenseIndex l = 0; l < sizeDim3; ++l) {
-            ix[0] = i; ix[1] = j; ix[2] = k; ix[3] = l;
-            // suppose dim == 1, then for all i, k, l, set tensor(i, 0, k, l) = 10.0
-            tensor(ix)=(ix[dim] != 0)?1.0:-10.0;
+            ix[0] = i;
+            ix[1] = j;
+            ix[2] = k;
+            ix[3] = l;
+            // suppose dim == 1, then for all i, k, l, set tensor(i, 0, k, l) = -10.0
+            tensor(ix) = (ix[dim] != 0) ? 1.0 : -10.0;
           }
         }
       }
@@ -177,23 +189,23 @@ static void test_sycl_argmin_dim(const Eigen::SyclDevice &sycl_device)
     std::size_t in_bytes = tensor.size() * sizeof(DataType);
     std::size_t out_bytes = tensor_arg.size() * sizeof(DenseIndex);
 
+    DataType* d_in = static_cast<DataType*>(sycl_device.allocate(in_bytes));
+    DenseIndex* d_out = static_cast<DenseIndex*>(sycl_device.allocate(out_bytes));
 
-    DataType * d_in       = static_cast<DataType*>(sycl_device.allocate(in_bytes));
-    DenseIndex* d_out= static_cast<DenseIndex*>(sycl_device.allocate(out_bytes));
-
-    Eigen::TensorMap<Eigen::Tensor<DataType, 4, DataLayout, DenseIndex> > gpu_in(d_in, Eigen::array<DenseIndex, 4>{{sizeDim0,sizeDim1,sizeDim2,sizeDim3}});
+    Eigen::TensorMap<Eigen::Tensor<DataType, 4, DataLayout, DenseIndex> > gpu_in(
+        d_in, Eigen::array<DenseIndex, 4>{{sizeDim0, sizeDim1, sizeDim2, sizeDim3}});
     Eigen::TensorMap<Eigen::Tensor<DenseIndex, 3, DataLayout, DenseIndex> > gpu_out(d_out, out_shape);
 
-    sycl_device.memcpyHostToDevice(d_in, tensor.data(),in_bytes);
+    sycl_device.memcpyHostToDevice(d_in, tensor.data(), in_bytes);
     gpu_out.device(sycl_device) = gpu_in.argmin(dim);
     sycl_device.memcpyDeviceToHost(tensor_arg.data(), d_out, out_bytes);
 
     VERIFY_IS_EQUAL(static_cast<size_t>(tensor_arg.size()),
-                    size_t(sizeDim0*sizeDim1*sizeDim2*sizeDim3 / tensor.dimension(dim)));
+                    size_t(sizeDim0 * sizeDim1 * sizeDim2 * sizeDim3 / tensor.dimension(dim)));
 
     for (DenseIndex n = 0; n < tensor_arg.size(); ++n) {
       // Expect max to be in the first index of the reduced dimension
-       VERIFY_IS_EQUAL(tensor_arg.data()[n], 0);
+      VERIFY_IS_EQUAL(tensor_arg.data()[n], 0);
     }
 
     sycl_device.synchronize();
@@ -202,15 +214,18 @@ static void test_sycl_argmin_dim(const Eigen::SyclDevice &sycl_device)
       for (DenseIndex j = 0; j < sizeDim1; ++j) {
         for (DenseIndex k = 0; k < sizeDim2; ++k) {
           for (DenseIndex l = 0; l < sizeDim3; ++l) {
-            ix[0] = i; ix[1] = j; ix[2] = k; ix[3] = l;
-            // suppose dim == 1, then for all i, k, l, set tensor(i, 2, k, l) = 20.0
-            tensor(ix)=(ix[dim] != tensor.dimension(dim) - 1)?1.0:-20.0;
+            ix[0] = i;
+            ix[1] = j;
+            ix[2] = k;
+            ix[3] = l;
+            // suppose dim == 1, then for all i, k, l, set tensor(i, 2, k, l) = -20.0
+            tensor(ix) = (ix[dim] != tensor.dimension(dim) - 1) ? 1.0 : -20.0;
           }
         }
       }
     }
 
-    sycl_device.memcpyHostToDevice(d_in, tensor.data(),in_bytes);
+    sycl_device.memcpyHostToDevice(d_in, tensor.data(), in_bytes);
     gpu_out.device(sycl_device) = gpu_in.argmin(dim);
     sycl_device.memcpyDeviceToHost(tensor_arg.data(), d_out, out_bytes);
 
@@ -223,10 +238,8 @@ static void test_sycl_argmin_dim(const Eigen::SyclDevice &sycl_device)
   }
 }
 
-
-
-
-template<typename DataType, typename Device_Selector> void sycl_argmax_test_per_device(const Device_Selector& d){
+template <typename DataType, typename Device_Selector>
+void sycl_argmax_test_per_device(const Device_Selector& d) {
   QueueInterface queueInterface(d);
   auto sycl_device = Eigen::SyclDevice(&queueInterface);
   test_sycl_simple_argmax<DataType, RowMajor, int64_t>(sycl_device);
@@ -238,8 +251,7 @@ template<typename DataType, typename Device_Selector> void sycl_argmax_test_per_
 }
 
 EIGEN_DECLARE_TEST(cxx11_tensor_argmax_sycl) {
- for (const auto& device :Eigen::get_sycl_supported_devices()) {
-    CALL_SUBTEST(sycl_argmax_test_per_device<double>(device));
+  for (const auto& device : Eigen::get_sycl_supported_devices()) {
+    CALL_SUBTEST(sycl_argmax_test_per_device<float>(device));
   }
-
 }

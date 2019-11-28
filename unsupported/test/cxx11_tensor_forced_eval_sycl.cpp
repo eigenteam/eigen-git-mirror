@@ -36,8 +36,8 @@ void test_forced_eval_sycl(const Eigen::SyclDevice &sycl_device) {
   DataType * gpu_in2_data  = static_cast<DataType*>(sycl_device.allocate(in2.dimensions().TotalSize()*sizeof(DataType)));
   DataType * gpu_out_data =  static_cast<DataType*>(sycl_device.allocate(out.dimensions().TotalSize()*sizeof(DataType)));
 
-  in1 = in1.random() + in1.constant(10.0f);
-  in2 = in2.random() + in2.constant(10.0f);
+  in1 = in1.random() + in1.constant(static_cast<DataType>(10.0f));
+  in2 = in2.random() + in2.constant(static_cast<DataType>(10.0f));
 
   // creating TensorMap from tensor
   Eigen::TensorMap<Eigen::Tensor<DataType, 3, DataLayout, IndexType>> gpu_in1(gpu_in1_data, tensorRange);
@@ -72,5 +72,6 @@ template <typename DataType, typename Dev_selector> void tensorForced_evalperDev
 EIGEN_DECLARE_TEST(cxx11_tensor_forced_eval_sycl) {
   for (const auto& device :Eigen::get_sycl_supported_devices()) {
     CALL_SUBTEST(tensorForced_evalperDevice<float>(device));
+    CALL_SUBTEST(tensorForced_evalperDevice<half>(device));
   }
 }

@@ -123,7 +123,7 @@ struct StorageMemory<T, const SyclDevice> : StorageMemory<T, SyclDevice> {};
 
 namespace TensorSycl {
 namespace internal{
-template <typename Evaluator, typename Op> class ReductionFunctor;
+template <typename Evaluator, typename Op> class GenericNondeterministicReducer;
 }
 }
 #endif

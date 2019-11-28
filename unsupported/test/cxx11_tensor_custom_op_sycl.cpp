@@ -80,6 +80,8 @@ static void test_custom_unary_op_sycl(const Eigen::SyclDevice &sycl_device)
       VERIFY_IS_EQUAL(out(i, j), 0);
     }
   }
+  sycl_device.deallocate(gpu_in1_data);
+sycl_device.deallocate(gpu_out_data);
 }
 
 template<typename TensorType>
@@ -147,6 +149,9 @@ static void test_custom_binary_op_sycl(const Eigen::SyclDevice &sycl_device)
       }
     }
   }
+  sycl_device.deallocate(gpu_in1_data);
+  sycl_device.deallocate(gpu_in2_data);
+  sycl_device.deallocate(gpu_out_data);
 }
 
 template <typename DataType, typename Dev_selector> void custom_op_perDevice(Dev_selector s){

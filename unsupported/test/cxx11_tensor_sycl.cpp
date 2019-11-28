@@ -29,9 +29,9 @@ using Eigen::TensorMap;
 
 template <typename DataType, int DataLayout, typename IndexType>
 void test_sycl_mem_transfers(const Eigen::SyclDevice &sycl_device) {
-  IndexType sizeDim1 = 100;
-  IndexType sizeDim2 = 10;
-  IndexType sizeDim3 = 20;
+  IndexType sizeDim1 = 5;
+  IndexType sizeDim2 = 5;
+  IndexType sizeDim3 = 1;
   array<IndexType, 3> tensorRange = {{sizeDim1, sizeDim2, sizeDim3}};
   Tensor<DataType, 3, DataLayout, IndexType> in1(tensorRange);
   Tensor<DataType, 3, DataLayout, IndexType> out1(tensorRange);
@@ -56,6 +56,7 @@ void test_sycl_mem_transfers(const Eigen::SyclDevice &sycl_device) {
   sycl_device.synchronize();
 
   for (IndexType i = 0; i < in1.size(); ++i) {
+  //  std::cout << "SYCL DATA : " << out1(i) << "  vs  CPU DATA : " << in1(i) * 3.14f << "\n";
     VERIFY_IS_APPROX(out1(i), in1(i) * 3.14f);
     VERIFY_IS_APPROX(out2(i), in1(i) * 3.14f);
     VERIFY_IS_APPROX(out3(i), in1(i) * 2.7f);
@@ -88,6 +89,88 @@ void test_sycl_mem_sync(const Eigen::SyclDevice &sycl_device) {
 
   for (IndexType i = 0; i < in1.size(); ++i) {
     VERIFY_IS_APPROX(out(i), in2(i));
+  }
+
+  sycl_device.deallocate(gpu_data);
+}
+
+template <typename DataType, int DataLayout, typename IndexType>
+void test_sycl_mem_sync_offsets(const Eigen::SyclDevice &sycl_device) {
+  using tensor_type = Tensor<DataType, 1, DataLayout, IndexType>;
+  IndexType full_size = 32;
+  IndexType half_size = full_size / 2;
+  array<IndexType, 1> tensorRange = {{full_size}};
+  tensor_type in1(tensorRange);
+  tensor_type out(tensorRange);
+
+  DataType* gpu_data  = static_cast<DataType*>(sycl_device.allocate(full_size * sizeof(DataType)));
+  TensorMap<tensor_type> gpu1(gpu_data, tensorRange);
+
+  in1 = in1.random();
+  // Copy all data to device, then permute on copy back to host
+  sycl_device.memcpyHostToDevice(gpu_data, in1.data(), full_size * sizeof(DataType));
+  sycl_device.memcpyDeviceToHost(out.data(), gpu_data + half_size, half_size * sizeof(DataType));
+  sycl_device.memcpyDeviceToHost(out.data() + half_size, gpu_data, half_size * sizeof(DataType));
+
+  for (IndexType i = 0; i < half_size; ++i) {
+    VERIFY_IS_APPROX(out(i), in1(i + half_size));
+    VERIFY_IS_APPROX(out(i + half_size), in1(i));
+  }
+
+  in1 = in1.random();
+  out.setZero();
+  // Permute copies to device, then copy all back to host
+  sycl_device.memcpyHostToDevice(gpu_data + half_size, in1.data(), half_size * sizeof(DataType));
+  sycl_device.memcpyHostToDevice(gpu_data, in1.data() + half_size, half_size * sizeof(DataType));
+  sycl_device.memcpyDeviceToHost(out.data(), gpu_data, full_size * sizeof(DataType));
+
+  for (IndexType i = 0; i < half_size; ++i) {
+    VERIFY_IS_APPROX(out(i), in1(i + half_size));
+    VERIFY_IS_APPROX(out(i + half_size), in1(i));
+  }
+
+  in1 = in1.random();
+  out.setZero();
+  DataType* gpu_data_out  = static_cast<DataType*>(sycl_device.allocate(full_size * sizeof(DataType)));
+  TensorMap<tensor_type> gpu2(gpu_data_out, tensorRange);
+  // Copy all to device, permute copies on device, then copy all back to host
+  sycl_device.memcpyHostToDevice(gpu_data, in1.data(), full_size * sizeof(DataType));
+  sycl_device.memcpy(gpu_data_out + half_size, gpu_data, half_size * sizeof(DataType));
+  sycl_device.memcpy(gpu_data_out, gpu_data + half_size, half_size * sizeof(DataType));
+  sycl_device.memcpyDeviceToHost(out.data(), gpu_data_out, full_size * sizeof(DataType));
+
+  for (IndexType i = 0; i < half_size; ++i) {
+    VERIFY_IS_APPROX(out(i), in1(i + half_size));
+    VERIFY_IS_APPROX(out(i + half_size), in1(i));
+  }
+
+  sycl_device.deallocate(gpu_data_out);
+  sycl_device.deallocate(gpu_data);
+}
+
+template <typename DataType, int DataLayout, typename IndexType>
+void test_sycl_memset_offsets(const Eigen::SyclDevice &sycl_device) {
+  using tensor_type = Tensor<DataType, 1, DataLayout, IndexType>;
+  IndexType full_size = 32;
+  IndexType half_size = full_size / 2;
+  array<IndexType, 1> tensorRange = {{full_size}};
+  tensor_type cpu_out(tensorRange);
+  tensor_type out(tensorRange);
+
+  cpu_out.setZero();
+
+  std::memset(cpu_out.data(), 0, half_size * sizeof(DataType));
+  std::memset(cpu_out.data() + half_size, 1, half_size * sizeof(DataType));
+
+  DataType* gpu_data  = static_cast<DataType*>(sycl_device.allocate(full_size * sizeof(DataType)));
+  TensorMap<tensor_type> gpu1(gpu_data, tensorRange);
+
+  sycl_device.memset(gpu_data, 0, half_size * sizeof(DataType));
+  sycl_device.memset(gpu_data + half_size, 1, half_size * sizeof(DataType));
+  sycl_device.memcpyDeviceToHost(out.data(), gpu_data, full_size * sizeof(DataType));
+
+  for (IndexType i = 0; i < full_size; ++i) {
+    VERIFY_IS_APPROX(out(i), cpu_out(i));
   }
 
   sycl_device.deallocate(gpu_data);
@@ -262,6 +345,8 @@ template<typename DataType, typename dev_Selector> void sycl_computing_test_per_
   test_sycl_mem_transfers<DataType, RowMajor, int64_t>(sycl_device);
   test_sycl_computations<DataType, RowMajor, int64_t>(sycl_device);
   test_sycl_mem_sync<DataType, RowMajor, int64_t>(sycl_device);
+  test_sycl_mem_sync_offsets<DataType, RowMajor, int64_t>(sycl_device);
+  test_sycl_memset_offsets<DataType, RowMajor, int64_t>(sycl_device);
   test_sycl_mem_transfers<DataType, ColMajor, int64_t>(sycl_device);
   test_sycl_computations<DataType, ColMajor, int64_t>(sycl_device);
   test_sycl_mem_sync<DataType, ColMajor, int64_t>(sycl_device);

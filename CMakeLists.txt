@@ -492,6 +492,21 @@ if(EIGEN_TEST_SYCL)
   else()
     message(STATUS "Using ComputeCPP SYCL")
     include(FindComputeCpp)
+    set(COMPUTECPP_DRIVER_DEFAULT_VALUE OFF)
+    if (NOT MSVC)
+      set(COMPUTECPP_DRIVER_DEFAULT_VALUE ON)
+    endif()
+    option(COMPUTECPP_USE_COMPILER_DRIVER
+      "Use ComputeCpp driver instead of a 2 steps compilation"
+      ${COMPUTECPP_DRIVER_DEFAULT_VALUE}
+    )
+  endif(EIGEN_SYCL_TRISYCL)
+  option(EIGEN_DONT_VECTORIZE_SYCL "Don't use vectorisation in the SYCL tests." OFF)
+  if(EIGEN_DONT_VECTORIZE_SYCL)
+    message(STATUS "Disabling SYCL vectorization in tests/examples")
+    # When disabling SYCL vectorization, also disable Eigen default vectorization
+    add_definitions(-DEIGEN_DONT_VECTORIZE=1)
+    add_definitions(-DEIGEN_DONT_VECTORIZE_SYCL=1)
   endif()
 endif()
 

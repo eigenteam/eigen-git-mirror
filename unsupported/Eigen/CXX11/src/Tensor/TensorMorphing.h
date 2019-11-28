@@ -421,7 +421,7 @@ template <typename Index, typename Device, bool BlockAccess> struct MemcpyTrigge
 #ifdef EIGEN_USE_GPU
 template <typename Index, bool BlockAccess> struct MemcpyTriggerForSlicing<Index, GpuDevice, BlockAccess>  {
   EIGEN_DEVICE_FUNC MemcpyTriggerForSlicing(const GpuDevice&) { }
-  EIGEN_DEVICE_FUNC bool operator ()(Index total, Index contiguous) const { return contiguous > 4*1024*1024; }
+  EIGEN_DEVICE_FUNC bool operator ()(Index, Index contiguous) const { return contiguous > 4*1024*1024; }
 };
 #endif
 
@@ -430,7 +430,7 @@ template <typename Index, bool BlockAccess> struct MemcpyTriggerForSlicing<Index
 #ifdef EIGEN_USE_SYCL
 template <typename Index, bool BlockAccess> struct MemcpyTriggerForSlicing<Index, Eigen::SyclDevice, BlockAccess>  {
   EIGEN_DEVICE_FUNC MemcpyTriggerForSlicing(const SyclDevice&) { }
-  EIGEN_DEVICE_FUNC bool operator ()(Index total, Index contiguous) const { return contiguous > 4*1024*1024; }
+  EIGEN_DEVICE_FUNC bool operator ()(Index, Index contiguous) const { return contiguous > 4*1024*1024; }
 };
 #endif
 

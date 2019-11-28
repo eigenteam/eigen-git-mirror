@@ -946,7 +946,7 @@ struct TensorReductionEvaluatorBase<const TensorReductionOp<Op, Dims, ArgType, M
 #endif
 
 #if defined(EIGEN_USE_SYCL)
- template < typename Evaluator_, typename Op__> friend class TensorSycl::internal::ReductionFunctor;
+ template < typename Evaluator_, typename Op__> friend class TensorSycl::internal::GenericNondeterministicReducer;
  // SYCL need the Generic reducer for the case the recution algorithm is neither inner, outer, and full reducer
  template <typename, typename, typename> friend struct internal::GenericReducer;
 #endif
