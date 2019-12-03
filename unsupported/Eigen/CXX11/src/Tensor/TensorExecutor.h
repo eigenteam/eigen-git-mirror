@@ -582,7 +582,7 @@ class TensorExecutor<Expression, GpuDevice, Vectorizable, Tiling> {
 #if defined(EIGEN_GPUCC)
 template <typename Evaluator, typename StorageIndex, bool Vectorizable>
 struct EigenMetaKernelEval {
-  static __device__ EIGEN_ALWAYS_INLINE
+  static EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
   void run(Evaluator& eval, StorageIndex firstIdx, StorageIndex lastIdx, StorageIndex step_size) {
     for (StorageIndex i = firstIdx; i < lastIdx; i += step_size) {
       eval.evalScalar(i);
@@ -592,7 +592,7 @@ struct EigenMetaKernelEval {
 
 template <typename Evaluator, typename StorageIndex>
 struct EigenMetaKernelEval<Evaluator, StorageIndex, true> {
-  static __device__ EIGEN_ALWAYS_INLINE
+  static EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
   void run(Evaluator& eval, StorageIndex firstIdx, StorageIndex lastIdx, StorageIndex step_size) {
     const StorageIndex PacketSize = unpacket_traits<typename Evaluator::PacketReturnType>::size;
     const StorageIndex vectorized_size = (lastIdx / PacketSize) * PacketSize;
