@@ -241,17 +241,30 @@ protected:
   typedef typename internal::conditional<Direction==Vertical,typename XprType::ColXpr,typename XprType::RowXpr>::type SubVectorType;
   typedef typename internal::conditional<Direction==Vertical,typename XprType::ConstColXpr,typename XprType::ConstRowXpr>::type ConstSubVectorType;
 
+
 public:
-  typedef typename internal::conditional<bool(is_lvalue), SubVectorType, ConstSubVectorType>::type value_type;
-  typedef value_type* pointer;
-  typedef value_type  reference;
+  typedef typename internal::conditional<bool(is_lvalue), SubVectorType, ConstSubVectorType>::type reference;
+  typedef typename reference::PlainObject value_type;
+
+private:
+  class subvector_stl_iterator_ptr
+  {
+  public:
+      subvector_stl_iterator_ptr(const reference &subvector) : m_subvector(subvector) {}
+      reference* operator->() { return &m_subvector; }
+  private:
+      reference m_subvector;
+  };
+public:
+
+  typedef subvector_stl_iterator_ptr pointer;
   
   subvector_stl_iterator() : Base() {}
   subvector_stl_iterator(XprType& xpr, Index index) : Base(xpr,index) {}
 
-  reference operator*()         const { return   (*mp_xpr).template subVector<Direction>(m_index);   }
-  reference operator[](Index i) const { return   (*mp_xpr).template subVector<Direction>(m_index+i); }
-  pointer   operator->()        const { return &((*mp_xpr).template subVector<Direction>(m_index)); }
+  reference operator*()         const { return (*mp_xpr).template subVector<Direction>(m_index); }
+  reference operator[](Index i) const { return (*mp_xpr).template subVector<Direction>(m_index+i); }
+  pointer   operator->()        const { return (*mp_xpr).template subVector<Direction>(m_index); }
 };
 
 } // namespace internal

@@ -272,6 +272,31 @@ void test_stl_iterators(int rows=Rows, int cols=Cols)
       }
     }
   }
+
+  {
+    // check basic for loop on vector-wise iterators
+    j=0;
+    for (auto it = A.colwise().cbegin(); it != A.colwise().cend(); ++it, ++j) {
+      VERIFY_IS_APPROX( it->coeff(0), A(0,j) );
+      VERIFY_IS_APPROX( (*it).coeff(0), A(0,j) );
+    }
+    j=0;
+    for (auto it = A.colwise().begin(); it != A.colwise().end(); ++it, ++j) {
+      (*it).coeffRef(0) = (*it).coeff(0); // compilation check
+      it->coeffRef(0) = it->coeff(0);     // compilation check
+      VERIFY_IS_APPROX( it->coeff(0), A(0,j) );
+      VERIFY_IS_APPROX( (*it).coeff(0), A(0,j) );
+    }
+
+    // check valuetype gives us a copy
+    j=0;
+    for (auto it = A.colwise().cbegin(); it != A.colwise().cend(); ++it, ++j) {
+      typename decltype(it)::value_type tmp = *it;
+      VERIFY_IS_NOT_EQUAL( tmp.data() , it->data() );
+      VERIFY_IS_APPROX( tmp, A.col(j) );
+    }
+  }
+
 #endif
 
   if(rows>=3) {
@@ -410,7 +435,8 @@ void test_stl_iterators(int rows=Rows, int cols=Cols)
 
     VectorType col = VectorType::Random(rows);
     A.colwise() = col;
-    VERIFY( std::all_of(A.colwise().begin(), A.colwise().end(), [&col](typename ColMatrixType::ColXpr x) { return internal::isApprox(x.norm(),col.norm()); }) );
+    VERIFY( std::all_of(A.colwise().begin(),  A.colwise().end(),  [&col](typename ColMatrixType::ColXpr x) { return internal::isApprox(x.norm(),col.norm()); }) );
+    VERIFY( std::all_of(A.colwise().cbegin(), A.colwise().cend(), [&col](typename ColMatrixType::ConstColXpr x) { return internal::isApprox(x.norm(),col.norm()); }) );
 
     i = internal::random<Index>(0,A.rows()-1);
     A.setRandom();
