@@ -33,3 +33,17 @@ The "make install" step may require administrator privileges.
 You can adjust the installation destination (the "prefix")
 by passing the -DCMAKE_INSTALL_PREFIX=myprefix option to cmake, as is
 explained in the message that cmake prints at the end.
+
+Method 3. Installing using vcpkg
+********************************
+
+You can download and install eigen using the vcpkg(https://github.com/Microsoft/vcpkg) dependency manager:
+   
+  git clone https://github.com/Microsoft/vcpkg.git
+  cd vcpkg
+  ./bootstrap-vcpkg.sh
+  ./vcpkg integrate install
+  vcpkg install eigen3
+    
+The eigen port in vcpkg is kept up to date by Microsoft team members and community contributors. If the version is out of date, please create an issue or pull request(https://github.com/Microsoft/vcpkg) on the vcpkg repository.
+
