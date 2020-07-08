@@ -458,7 +458,9 @@ endif()
 
 install(DIRECTORY Eigen DESTINATION ${INCLUDE_INSTALL_DIR} COMPONENT Devel)
 
+if(NOT ANDROID)
 add_subdirectory(doc EXCLUDE_FROM_ALL)
+endif()
 
 option(BUILD_TESTING "Enable creation of Eigen tests." ON)
 if(BUILD_TESTING)
@@ -510,19 +512,21 @@ if(EIGEN_TEST_SYCL)
   endif()
 endif()
 
+if(NOT ANDROID)
 add_subdirectory(unsupported)
 
 add_subdirectory(demos EXCLUDE_FROM_ALL)
 
 # must be after test and unsupported, for configuring buildtests.in
 add_subdirectory(scripts EXCLUDE_FROM_ALL)
+endif()
 
 # TODO: consider also replacing EIGEN_BUILD_BTL by a custom target "make btl"?
 if(EIGEN_BUILD_BTL)
   add_subdirectory(bench/btl EXCLUDE_FROM_ALL)
 endif()
 
-if(NOT WIN32)
+if(NOT WIN32 AND NOT ANDROID)
   add_subdirectory(bench/spbench EXCLUDE_FROM_ALL)
 endif()
 
