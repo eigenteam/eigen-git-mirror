@@ -134,7 +134,7 @@ EIGEN_DEVICE_FUNC inline Eigen::Index DenseBase<Derived>::count() const
   * \sa allFinite()
   */
 template<typename Derived>
-inline bool DenseBase<Derived>::hasNaN() const
+EIGEN_DEVICE_FUNC inline bool DenseBase<Derived>::hasNaN() const
 {
 #if EIGEN_COMP_MSVC || (defined __FAST_MATH__)
   return derived().array().isNaN().any();
@@ -148,7 +148,7 @@ inline bool DenseBase<Derived>::hasNaN() const
   * \sa hasNaN()
   */
 template<typename Derived>
-inline bool DenseBase<Derived>::allFinite() const
+EIGEN_DEVICE_FUNC inline bool DenseBase<Derived>::allFinite() const
 {
 #if EIGEN_COMP_MSVC || (defined __FAST_MATH__)
   return derived().array().isFinite().all();
